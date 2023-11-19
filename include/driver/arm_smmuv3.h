@@ -440,6 +440,14 @@ enum arm_smmu_msi_index {
 	ARM_SMMU_MAX_MSIS,
 };
 
+/* SMMU private data for an IOMMU domain */
+enum arm_smmu_domain_stage {
+	ARM_SMMU_DOMAIN_S1 = 0,
+	ARM_SMMU_DOMAIN_S2,
+	ARM_SMMU_DOMAIN_NESTED,
+	ARM_SMMU_DOMAIN_BYPASS,
+};
+
 struct arm_smmu_cmdq_ent {
 	/* Common fields */
 	uint8_t opcode;
@@ -532,7 +540,7 @@ struct arm_smmu_ll_queue {
 			uint32_t cons;
 		};
 		uint8_t __pad[SMP_CACHE_BYTES];
-	} __cacheline_aligned;
+	} __cache_aligned u;
 	uint32_t max_n_shift;
 };
 
@@ -543,8 +551,8 @@ struct arm_smmu_queue {
 	dma_addr_t base_dma;
 	uint64_t q_base;
 	size_t ent_dwords;
-	uint32_t *prod_reg;
-	uint32_t *cons_reg;
+	caddr_t prod_reg;
+	caddr_t cons_reg;
 };
 
 struct arm_smmu_queue_poll {

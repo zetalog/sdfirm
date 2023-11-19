@@ -21,6 +21,85 @@ static phys_addr_t arm_smmu_msi_cfg[ARM_SMMU_MAX_MSIS][3] = {
 };
 #endif
 
+static inline void *arm_smmu_page1_fixup(unsigned long offset)
+{
+	if ((offset > SZ_64K) &&
+	    (smmu_device_ctrl.options & ARM_SMMU_OPT_PAGE0_REGS_ONLY))
+		offset -= SZ_64K;
+
+	return SMMU_BASE(iommu_dev) + offset;
+}
+
+/* Low-level queue manipulation functions */
+static bool queue_has_space(struct arm_smmu_ll_queue *q, uint32_t n)
+{
+	uint32_t space, prod, cons;
+
+	prod = Q_IDX(q, q->u.prod);
+	cons = Q_IDX(q, q->u.cons);
+
+	if (Q_WRP(q, q->u.prod) == Q_WRP(q, q->u.cons))
+		space = (1 << q->max_n_shift) - (prod - cons);
+	else
+		space = cons - prod;
+
+	return space >= n;
+}
+
+static bool queue_full(struct arm_smmu_ll_queue *q)
+{
+	return Q_IDX(q, q->u.prod) == Q_IDX(q, q->u.cons) &&
+	       Q_WRP(q, q->u.prod) != Q_WRP(q, q->u.cons);
+}
+
+static bool queue_empty(struct arm_smmu_ll_queue *q)
+{
+	return Q_IDX(q, q->u.prod) == Q_IDX(q, q->u.cons) &&
+	       Q_WRP(q, q->u.prod) == Q_WRP(q, q->u.cons);
+}
+
+static bool queue_consumed(struct arm_smmu_ll_queue *q, uint32_t prod)
+{
+	return ((Q_WRP(q, q->u.cons) == Q_WRP(q, prod)) &&
+		(Q_IDX(q, q->u.cons) > Q_IDX(q, prod))) ||
+	       ((Q_WRP(q, q->u.cons) != Q_WRP(q, prod)) &&
+		(Q_IDX(q, q->u.cons) <= Q_IDX(q, prod)));
+}
+
+static void queue_sync_cons_out(struct arm_smmu_queue *q)
+{
+	/*
+	 * Ensure that all CPU accesses (reads and writes) to the queue
+	 * are complete before we update the cons pointer.
+	 */
+	mb();
+	__raw_writel(q->llq.u.cons, q->cons_reg);
+}
+
+static void queue_inc_cons(struct arm_smmu_ll_queue *q)
+{
+	uint32_t cons = (Q_WRP(q, q->u.cons) | Q_IDX(q, q->u.cons)) + 1;
+	q->u.cons = Q_OVF(q->u.cons) | Q_WRP(q, cons) | Q_IDX(q, cons);
+}
+
+static int queue_sync_prod_in(struct arm_smmu_queue *q)
+{
+	int ret = 0;
+	uint32_t prod = __raw_readl(q->prod_reg);
+
+	if (Q_OVF(prod) != Q_OVF(q->llq.u.prod))
+		ret = -EOVERFLOW;
+
+	q->llq.u.prod = prod;
+	return ret;
+}
+
+static uint32_t queue_inc_prod_n(struct arm_smmu_ll_queue *q, int n)
+{
+	uint32_t prod = (Q_WRP(q, q->u.prod) | Q_IDX(q, q->u.prod)) + n;
+	return Q_OVF(q->u.prod) | Q_WRP(q, prod) | Q_IDX(q, prod);
+}
+
 void smmu_tlb_add_page_s1(unsigned long iova, size_t granule)
 {
 }
@@ -29,12 +108,51 @@ void smmu_tlb_inv_walk_s1(unsigned long iova, size_t size, size_t granule)
 {
 }
 
-void smmu_group_select(void)
+/* Probing and initialisation functions */
+static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+				   struct arm_smmu_queue *q,
+				   unsigned long prod_off,
+				   unsigned long cons_off,
+				   size_t dwords, const char *name)
 {
+	size_t qsz;
+
+	do {
+		qsz = ((1 << q->llq.max_n_shift) * dwords) << 3;
+		q->base = dma_alloc_coherent(qsz, &q->base_dma);
+		if (q->base || qsz < PAGE_SIZE)
+			break;
+
+		q->llq.max_n_shift--;
+	} while (1);
+
+	if (!q->base) {
+		con_err("failed to allocate queue (0x%zx bytes) for %s\n",
+			qsz, name);
+		return -ENOMEM;
+	}
+
+	if (!(q->base_dma & (qsz - 1))) {
+		con_log("allocated %u entries for %s\n",
+			1 << q->llq.max_n_shift, name);
+	}
+
+	q->prod_reg	= arm_smmu_page1_fixup(prod_off);
+	q->cons_reg	= arm_smmu_page1_fixup(cons_off);
+	q->ent_dwords	= dwords;
+
+	q->q_base  = Q_BASE_RWA;
+	q->q_base |= q->base_dma & Q_BASE_ADDR_MASK;
+	q->q_base |= FIELD_PREP(Q_BASE_LOG2SIZE, q->llq.max_n_shift);
+
+	q->llq.prod = q->llq.cons = 0;
+	return 0;
 }
 
-void smmu_device_exit(void)
+static void arm_smmu_init_structures(void)
 {
+	arm_smmu_init_queues();
+	arm_smmu_init_strtab();
 }
 
 static void arm_smmu_device_hw_probe(void)
@@ -280,6 +398,10 @@ void smmu_device_init(void)
 	arm_smmu_device_reset(bypass);
 }
 
+void smmu_device_exit(void)
+{
+}
+
 #if 0
 /* SMMU private data for each master */
 struct arm_smmu_master {
@@ -291,14 +413,6 @@ struct arm_smmu_master {
 	unsigned int			num_sids;
 	bool				ats_enabled;
 	unsigned int			ssid_bits;
-};
-
-/* SMMU private data for an IOMMU domain */
-enum arm_smmu_domain_stage {
-	ARM_SMMU_DOMAIN_S1 = 0,
-	ARM_SMMU_DOMAIN_S2,
-	ARM_SMMU_DOMAIN_NESTED,
-	ARM_SMMU_DOMAIN_BYPASS,
 };
 
 struct arm_smmu_domain {
@@ -321,89 +435,9 @@ struct arm_smmu_domain {
 	spinlock_t			devices_lock;
 };
 
-static inline void __iomem *arm_smmu_page1_fixup(unsigned long offset,
-						 struct arm_smmu_device *smmu)
-{
-	if ((offset > SZ_64K) &&
-	    (smmu->options & ARM_SMMU_OPT_PAGE0_REGS_ONLY))
-		offset -= SZ_64K;
-
-	return smmu->base + offset;
-}
-
 static struct arm_smmu_domain *to_smmu_domain(struct iommu_domain *dom)
 {
 	return container_of(dom, struct arm_smmu_domain, domain);
-}
-
-/* Low-level queue manipulation functions */
-static bool queue_has_space(struct arm_smmu_ll_queue *q, u32 n)
-{
-	u32 space, prod, cons;
-
-	prod = Q_IDX(q, q->prod);
-	cons = Q_IDX(q, q->cons);
-
-	if (Q_WRP(q, q->prod) == Q_WRP(q, q->cons))
-		space = (1 << q->max_n_shift) - (prod - cons);
-	else
-		space = cons - prod;
-
-	return space >= n;
-}
-
-static bool queue_full(struct arm_smmu_ll_queue *q)
-{
-	return Q_IDX(q, q->prod) == Q_IDX(q, q->cons) &&
-	       Q_WRP(q, q->prod) != Q_WRP(q, q->cons);
-}
-
-static bool queue_empty(struct arm_smmu_ll_queue *q)
-{
-	return Q_IDX(q, q->prod) == Q_IDX(q, q->cons) &&
-	       Q_WRP(q, q->prod) == Q_WRP(q, q->cons);
-}
-
-static bool queue_consumed(struct arm_smmu_ll_queue *q, u32 prod)
-{
-	return ((Q_WRP(q, q->cons) == Q_WRP(q, prod)) &&
-		(Q_IDX(q, q->cons) > Q_IDX(q, prod))) ||
-	       ((Q_WRP(q, q->cons) != Q_WRP(q, prod)) &&
-		(Q_IDX(q, q->cons) <= Q_IDX(q, prod)));
-}
-
-static void queue_sync_cons_out(struct arm_smmu_queue *q)
-{
-	/*
-	 * Ensure that all CPU accesses (reads and writes) to the queue
-	 * are complete before we update the cons pointer.
-	 */
-	mb();
-	writel_relaxed(q->llq.cons, q->cons_reg);
-}
-
-static void queue_inc_cons(struct arm_smmu_ll_queue *q)
-{
-	u32 cons = (Q_WRP(q, q->cons) | Q_IDX(q, q->cons)) + 1;
-	q->cons = Q_OVF(q->cons) | Q_WRP(q, cons) | Q_IDX(q, cons);
-}
-
-static int queue_sync_prod_in(struct arm_smmu_queue *q)
-{
-	int ret = 0;
-	u32 prod = readl_relaxed(q->prod_reg);
-
-	if (Q_OVF(prod) != Q_OVF(q->llq.prod))
-		ret = -EOVERFLOW;
-
-	q->llq.prod = prod;
-	return ret;
-}
-
-static u32 queue_inc_prod_n(struct arm_smmu_ll_queue *q, int n)
-{
-	u32 prod = (Q_WRP(q, q->prod) | Q_IDX(q, q->prod)) + n;
-	return Q_OVF(q->prod) | Q_WRP(q, prod) | Q_IDX(q, prod);
 }
 
 static void queue_poll_init(struct arm_smmu_device *smmu,
@@ -2590,49 +2624,6 @@ static struct iommu_ops arm_smmu_ops = {
 	.pgsize_bitmap		= -1UL, /* Restricted during device attach */
 };
 
-/* Probing and initialisation functions */
-static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
-				   struct arm_smmu_queue *q,
-				   unsigned long prod_off,
-				   unsigned long cons_off,
-				   size_t dwords, const char *name)
-{
-	size_t qsz;
-
-	do {
-		qsz = ((1 << q->llq.max_n_shift) * dwords) << 3;
-		q->base = dmam_alloc_coherent(smmu->dev, qsz, &q->base_dma,
-					      GFP_KERNEL);
-		if (q->base || qsz < PAGE_SIZE)
-			break;
-
-		q->llq.max_n_shift--;
-	} while (1);
-
-	if (!q->base) {
-		dev_err(smmu->dev,
-			"failed to allocate queue (0x%zx bytes) for %s\n",
-			qsz, name);
-		return -ENOMEM;
-	}
-
-	if (!WARN_ON(q->base_dma & (qsz - 1))) {
-		dev_info(smmu->dev, "allocated %u entries for %s\n",
-			 1 << q->llq.max_n_shift, name);
-	}
-
-	q->prod_reg	= arm_smmu_page1_fixup(prod_off, smmu);
-	q->cons_reg	= arm_smmu_page1_fixup(cons_off, smmu);
-	q->ent_dwords	= dwords;
-
-	q->q_base  = Q_BASE_RWA;
-	q->q_base |= q->base_dma & Q_BASE_ADDR_MASK;
-	q->q_base |= FIELD_PREP(Q_BASE_LOG2SIZE, q->llq.max_n_shift);
-
-	q->llq.prod = q->llq.cons = 0;
-	return 0;
-}
-
 static void arm_smmu_cmdq_free_bitmap(void *data)
 {
 	unsigned long *bitmap = data;
@@ -2800,17 +2791,6 @@ static int arm_smmu_init_strtab(struct arm_smmu_device *smmu)
 	/* Allocate the first VMID for stage-2 bypass STEs */
 	set_bit(0, smmu->vmid_map);
 	return 0;
-}
-
-static int arm_smmu_init_structures(struct arm_smmu_device *smmu)
-{
-	int ret;
-
-	ret = arm_smmu_init_queues(smmu);
-	if (ret)
-		return ret;
-
-	return arm_smmu_init_strtab(smmu);
 }
 
 static int arm_smmu_write_reg_sync(struct arm_smmu_device *smmu, u32 val,
