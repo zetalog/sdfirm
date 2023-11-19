@@ -43,6 +43,7 @@
 #define __IOMMU_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/dma.h>
 
 #ifdef CONFIG_IOMMU_MAX_DEVICES
 #define NR_IOMMU_DEVICES	CONFIG_IOMMU_MAX_DEVICES
@@ -91,10 +92,28 @@ typedef uint8_t iommu_grp_t;
  */
 #define IOMMU_SYS_CACHE_ONLY	(1 << 6)
 
+/**
+ * struct iommu_iotlb_gather - Range information for a pending IOTLB flush
+ *
+ * @start: IOVA representing the start of the range to be flushed
+ * @end: IOVA representing the end of the range to be flushed (inclusive)
+ * @pgsize: The interval at which to perform the flush
+ * @freelist: Removed pages to free after sync
+ * @queued: Indicates that the flush will be queued
+ *
+ * This structure is intended to be updated by multiple calls to the
+ * ->unmap() function in struct iommu_ops before eventually being passed
+ * into ->iotlb_sync(). Drivers can add pages to @freelist to be freed after
+ * ->iotlb_sync() or ->iotlb_flush_all() have cleared all cached references to
+ * them. @queued is set to indicate when ->iotlb_flush_all() will be called
+ * later instead of ->iotlb_sync(), so drivers may optimise accordingly.
+ */
 struct iommu_iotlb_gather {
-	unsigned long start;
-	unsigned long end;
-	size_t pgsize;
+	unsigned long		start;
+	unsigned long		end;
+	size_t			pgsize;
+	struct list_head	freelist;
+	bool			queued;
 };
 
 #include <target/iommu-pgtable.h>
@@ -204,5 +223,13 @@ iommu_dom_t iommu_get_dma_domain(iommu_grp_t grp);
 
 int dma_info_to_prot(uint8_t dir, bool coherent, unsigned long attrs);
 unsigned long iommu_iova_alloc(iommu_dom_t dom, size_t size);
+
+void iommu_iotlb_sync(struct iommu_iotlb_gather *gather);
+bool iommu_iotlb_gather_is_disjoint(struct iommu_iotlb_gather *gather,
+				    unsigned long iova, size_t size);
+void iommu_iotlb_gather_add_range(struct iommu_iotlb_gather *gather,
+				  unsigned long iova, size_t size);
+void iommu_iotlb_gather_add_page(struct iommu_iotlb_gather *gather,
+				 unsigned long iova, size_t size);
 
 #endif /* __IOMMU_H_INCLUDE__ */

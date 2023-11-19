@@ -46,7 +46,8 @@ bool arm_64_lpae_alloc_pgtable_s1(struct io_pgtable_cfg *cfg);
 void arm_lpae_free_pgtable(void);
 int arm_lpae_map(unsigned long iova, phys_addr_t paddr,
 		 size_t size, int iommu_prot);
-size_t arm_lpae_unmap(unsigned long iova, size_t size);
+size_t arm_lpae_unmap(unsigned long iova, size_t size,
+		      struct iommu_iotlb_gather *gather);
 phys_addr_t arm_lpae_iova_to_phys(unsigned long iova);
 
 #endif /* __IOMMU_PGTABLE_ARM_H_INCLUDE__ */

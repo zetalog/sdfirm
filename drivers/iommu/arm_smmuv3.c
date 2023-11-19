@@ -484,7 +484,7 @@ static void arm_smmu_cmdq_poll_valid_map(struct arm_smmu_cmdq *cmdq,
 /* Wait for the command queue to become non-full */
 static int arm_smmu_cmdq_poll_until_not_full(struct arm_smmu_ll_queue *llq)
 {
-	__unused unsigned long flags;
+	__unused irq_flags_t flags;
 	struct arm_smmu_queue_poll qp;
 	struct arm_smmu_cmdq *cmdq = &smmu_device_ctrl.cmdq;
 	int ret = 0;
@@ -636,7 +636,7 @@ static int arm_smmu_cmdq_issue_cmdlist(uint64_t *cmds, int n, bool sync)
 {
 	uint64_t cmd_sync[CMDQ_ENT_DWORDS];
 	uint32_t prod;
-	__unused unsigned long flags;
+	__unused irq_flags_t flags;
 	bool owner;
 	struct arm_smmu_cmdq *cmdq = &smmu_device_ctrl.cmdq;
 	struct arm_smmu_ll_queue llq = {
@@ -782,12 +782,209 @@ static void arm_smmu_sync_ste_for_sid(uint32_t sid)
 	arm_smmu_cmdq_issue_sync();
 }
 
-void smmu_tlb_add_page_s1(unsigned long iova, size_t granule)
+static void
+arm_smmu_atc_inv_to_cmd(int ssid, unsigned long iova, size_t size,
+			struct arm_smmu_cmdq_ent *cmd)
 {
+	size_t log2_span;
+	size_t span_mask;
+	/* ATC invalidates are always on 4096-bytes pages */
+	size_t inval_grain_shift = 12;
+	unsigned long page_start, page_end;
+
+	*cmd = (struct arm_smmu_cmdq_ent) {
+		.opcode			= CMDQ_OP_ATC_INV,
+		.substream_valid	= !!ssid,
+		.atc.ssid		= ssid,
+	};
+
+	if (!size) {
+		cmd->atc.size = ATC_INV_SIZE_ALL;
+		return;
+	}
+
+	page_start	= iova >> inval_grain_shift;
+	page_end	= (iova + size - 1) >> inval_grain_shift;
+
+	/*
+	 * In an ATS Invalidate Request, the address must be aligned on the
+	 * range size, which must be a power of two number of page sizes. We
+	 * thus have to choose between grossly over-invalidating the region, or
+	 * splitting the invalidation into multiple commands. For simplicity
+	 * we'll go with the first solution, but should refine it in the future
+	 * if multiple commands are shown to be more efficient.
+	 *
+	 * Find the smallest power of two that covers the range. The most
+	 * significant differing bit between the start and end addresses,
+	 * fls(start ^ end), indicates the required span. For example:
+	 *
+	 * We want to invalidate pages [8; 11]. This is already the ideal range:
+	 *		x = 0b1000 ^ 0b1011 = 0b11
+	 *		span = 1 << fls(x) = 4
+	 *
+	 * To invalidate pages [7; 10], we need to invalidate [0; 15]:
+	 *		x = 0b0111 ^ 0b1010 = 0b1101
+	 *		span = 1 << fls(x) = 16
+	 */
+	log2_span	= __fls64(page_start ^ page_end);
+	span_mask	= (1ULL << log2_span) - 1;
+
+	page_start	&= ~span_mask;
+
+	cmd->atc.addr	= page_start << inval_grain_shift;
+	cmd->atc.size	= log2_span;
 }
 
-void smmu_tlb_inv_walk_s1(unsigned long iova, size_t size, size_t granule)
+static int arm_smmu_atc_inv_master(struct arm_smmu_cmdq_ent *cmd)
 {
+	int i;
+
+	if (!smmu_stream_ctrl.ats_enabled)
+		return 0;
+
+	for (i = 0; i < smmu_stream_ctrl.num_sids; i++) {
+		cmd->atc.sid = smmu_stream_ctrl.sids[i];
+		arm_smmu_cmdq_issue_cmd(cmd);
+	}
+
+	return arm_smmu_cmdq_issue_sync();
+}
+
+static int arm_smmu_atc_inv_domain(int ssid, unsigned long iova, size_t size)
+{
+	int ret = 0;
+	__unused irq_flags_t flags;
+	struct arm_smmu_cmdq_ent cmd;
+	struct smmu_stream *stream;
+	iommu_grp_t grp;
+
+	if (!(smmu_device_ctrl.features & ARM_SMMU_FEAT_ATS))
+		return 0;
+
+	/*
+	 * Ensure that we've completed prior invalidation of the main TLBs
+	 * before we read 'nr_ats_masters' in case of a concurrent call to
+	 * arm_smmu_enable_ats():
+	 *
+	 *	// unmap()			// arm_smmu_enable_ats()
+	 *	TLBI+SYNC			atomic_inc(&nr_ats_masters);
+	 *	smp_mb();			[...]
+	 *	atomic_read(&nr_ats_masters);	pci_enable_ats() // writel()
+	 *
+	 * Ensures that we always see the incremented 'nr_ats_masters' count if
+	 * ATS was enabled at the PCI device before completion of the TLBI.
+	 */
+	smp_mb();
+	if (!atomic_read(&smmu_context_ctrl.nr_ats_masters))
+		return 0;
+
+	arm_smmu_atc_inv_to_cmd(ssid, iova, size, &cmd);
+
+	list_for_each_entry(struct smmu_stream, stream,
+			    &smmu_context_ctrl.devices, domain_head) {
+		grp = iommu_group_save(stream->grp);
+		ret |= arm_smmu_atc_inv_master(&cmd);
+		iommu_group_restore(grp);
+	}
+
+	return ret ? -ETIMEDOUT : 0;
+}
+
+/* IO_PGTABLE API */
+void smmuv3_tlb_inv_context(void)
+{
+	struct arm_smmu_cmdq_ent cmd;
+
+	if (smmu_context_ctrl.stage == ARM_SMMU_DOMAIN_S1) {
+		cmd.opcode	= CMDQ_OP_TLBI_NH_ASID;
+		cmd.tlbi.asid	= smmu_context_ctrl.s1_cfg.cd.asid;
+		cmd.tlbi.vmid	= 0;
+	} else {
+		cmd.opcode	= CMDQ_OP_TLBI_S12_VMALL;
+		cmd.tlbi.vmid	= smmu_context_ctrl.s2_cfg.vmid;
+	}
+
+	/*
+	 * NOTE: when io-pgtable is in non-strict mode, we may get here with
+	 * PTEs previously cleared by unmaps on the current CPU not yet visible
+	 * to the SMMU. We are relying on the dma_wmb() implicit during cmd
+	 * insertion to guarantee those are observed before the TLBI. Do be
+	 * careful, 007.
+	 */
+	arm_smmu_cmdq_issue_cmd(&cmd);
+	arm_smmu_cmdq_issue_sync();
+	arm_smmu_atc_inv_domain(0, 0, 0);
+}
+
+static void arm_smmu_tlb_inv_range(unsigned long iova, size_t size,
+				   size_t granule, bool leaf)
+{
+	uint64_t cmds[CMDQ_BATCH_ENTRIES * CMDQ_ENT_DWORDS];
+	unsigned long start = iova, end = iova + size;
+	int i = 0;
+	struct arm_smmu_cmdq_ent cmd = {
+		.tlbi = {
+			.leaf	= leaf,
+		},
+	};
+
+	if (!size)
+		return;
+
+	if (smmu_context_ctrl.stage == ARM_SMMU_DOMAIN_S1) {
+		cmd.opcode	= CMDQ_OP_TLBI_NH_VA;
+		cmd.tlbi.asid	= smmu_context_ctrl.s1_cfg.cd.asid;
+	} else {
+		cmd.opcode	= CMDQ_OP_TLBI_S2_IPA;
+		cmd.tlbi.vmid	= smmu_context_ctrl.s2_cfg.vmid;
+	}
+
+	while (iova < end) {
+		if (i == CMDQ_BATCH_ENTRIES) {
+			arm_smmu_cmdq_issue_cmdlist(cmds, i, false);
+			i = 0;
+		}
+
+		cmd.tlbi.addr = iova;
+		arm_smmu_cmdq_build_cmd(&cmds[i * CMDQ_ENT_DWORDS], &cmd);
+		iova += granule;
+		i++;
+	}
+
+	arm_smmu_cmdq_issue_cmdlist(cmds, i, true);
+
+	/*
+	 * Unfortunately, this can't be leaf-only since we may have
+	 * zapped an entire table.
+	 */
+	arm_smmu_atc_inv_domain(0, start, size);
+}
+
+void smmuv3_tlb_inv_page_nosync(struct iommu_iotlb_gather *gather,
+				unsigned long iova, size_t granule)
+{
+	iommu_iotlb_gather_add_page(gather, iova, granule);
+}
+
+void smmuv3_tlb_inv_walk(unsigned long iova, size_t size, size_t granule)
+{
+	arm_smmu_tlb_inv_range(iova, size, granule, false);
+}
+
+void smmuv3_tlb_inv_leaf(unsigned long iova, size_t size, size_t granule)
+{
+	arm_smmu_tlb_inv_range(iova, size, granule, true);
+}
+
+void smmuv3_flush_iotlb_all(void)
+{
+	smmuv3_tlb_inv_context();
+}
+
+void smmuv3_iotlb_sync(struct iommu_iotlb_gather *gather)
+{
+	arm_smmu_tlb_inv_range(gather->start, gather->end - gather->start,
+			       gather->pgsize, true);
 }
 
 /* Probing and initialisation functions */
@@ -1572,7 +1769,7 @@ static void arm_smmu_sync_cd(struct arm_smmu_domain *smmu_domain,
 			     int ssid, bool leaf)
 {
 	size_t i;
-	unsigned long flags;
+	irq_flags_t flags;
 	struct arm_smmu_master *master;
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
 	struct arm_smmu_cmdq_ent cmd = {
@@ -1989,209 +2186,6 @@ static irqreturn_t arm_smmu_combined_irq_handler(int irq, void *dev)
 	return IRQ_WAKE_THREAD;
 }
 
-static void
-arm_smmu_atc_inv_to_cmd(int ssid, unsigned long iova, size_t size,
-			struct arm_smmu_cmdq_ent *cmd)
-{
-	size_t log2_span;
-	size_t span_mask;
-	/* ATC invalidates are always on 4096-bytes pages */
-	size_t inval_grain_shift = 12;
-	unsigned long page_start, page_end;
-
-	*cmd = (struct arm_smmu_cmdq_ent) {
-		.opcode			= CMDQ_OP_ATC_INV,
-		.substream_valid	= !!ssid,
-		.atc.ssid		= ssid,
-	};
-
-	if (!size) {
-		cmd->atc.size = ATC_INV_SIZE_ALL;
-		return;
-	}
-
-	page_start	= iova >> inval_grain_shift;
-	page_end	= (iova + size - 1) >> inval_grain_shift;
-
-	/*
-	 * In an ATS Invalidate Request, the address must be aligned on the
-	 * range size, which must be a power of two number of page sizes. We
-	 * thus have to choose between grossly over-invalidating the region, or
-	 * splitting the invalidation into multiple commands. For simplicity
-	 * we'll go with the first solution, but should refine it in the future
-	 * if multiple commands are shown to be more efficient.
-	 *
-	 * Find the smallest power of two that covers the range. The most
-	 * significant differing bit between the start and end addresses,
-	 * fls(start ^ end), indicates the required span. For example:
-	 *
-	 * We want to invalidate pages [8; 11]. This is already the ideal range:
-	 *		x = 0b1000 ^ 0b1011 = 0b11
-	 *		span = 1 << fls(x) = 4
-	 *
-	 * To invalidate pages [7; 10], we need to invalidate [0; 15]:
-	 *		x = 0b0111 ^ 0b1010 = 0b1101
-	 *		span = 1 << fls(x) = 16
-	 */
-	log2_span	= fls_long(page_start ^ page_end);
-	span_mask	= (1ULL << log2_span) - 1;
-
-	page_start	&= ~span_mask;
-
-	cmd->atc.addr	= page_start << inval_grain_shift;
-	cmd->atc.size	= log2_span;
-}
-
-static int arm_smmu_atc_inv_master(struct arm_smmu_master *master,
-				   struct arm_smmu_cmdq_ent *cmd)
-{
-	int i;
-
-	if (!master->ats_enabled)
-		return 0;
-
-	for (i = 0; i < master->num_sids; i++) {
-		cmd->atc.sid = master->sids[i];
-		arm_smmu_cmdq_issue_cmd(master->smmu, cmd);
-	}
-
-	return arm_smmu_cmdq_issue_sync(master->smmu);
-}
-
-static int arm_smmu_atc_inv_domain(struct arm_smmu_domain *smmu_domain,
-				   int ssid, unsigned long iova, size_t size)
-{
-	int ret = 0;
-	unsigned long flags;
-	struct arm_smmu_cmdq_ent cmd;
-	struct arm_smmu_master *master;
-
-	if (!(smmu_domain->smmu->features & ARM_SMMU_FEAT_ATS))
-		return 0;
-
-	/*
-	 * Ensure that we've completed prior invalidation of the main TLBs
-	 * before we read 'nr_ats_masters' in case of a concurrent call to
-	 * arm_smmu_enable_ats():
-	 *
-	 *	// unmap()			// arm_smmu_enable_ats()
-	 *	TLBI+SYNC			atomic_inc(&nr_ats_masters);
-	 *	smp_mb();			[...]
-	 *	atomic_read(&nr_ats_masters);	pci_enable_ats() // writel()
-	 *
-	 * Ensures that we always see the incremented 'nr_ats_masters' count if
-	 * ATS was enabled at the PCI device before completion of the TLBI.
-	 */
-	smp_mb();
-	if (!atomic_read(&smmu_domain->nr_ats_masters))
-		return 0;
-
-	arm_smmu_atc_inv_to_cmd(ssid, iova, size, &cmd);
-
-	spin_lock_irqsave(&smmu_domain->devices_lock, flags);
-	list_for_each_entry(master, &smmu_domain->devices, domain_head)
-		ret |= arm_smmu_atc_inv_master(master, &cmd);
-	spin_unlock_irqrestore(&smmu_domain->devices_lock, flags);
-
-	return ret ? -ETIMEDOUT : 0;
-}
-
-/* IO_PGTABLE API */
-static void arm_smmu_tlb_inv_context(void *cookie)
-{
-	struct arm_smmu_domain *smmu_domain = cookie;
-	struct arm_smmu_device *smmu = smmu_domain->smmu;
-	struct arm_smmu_cmdq_ent cmd;
-
-	if (smmu_domain->stage == ARM_SMMU_DOMAIN_S1) {
-		cmd.opcode	= CMDQ_OP_TLBI_NH_ASID;
-		cmd.tlbi.asid	= smmu_domain->s1_cfg.cd.asid;
-		cmd.tlbi.vmid	= 0;
-	} else {
-		cmd.opcode	= CMDQ_OP_TLBI_S12_VMALL;
-		cmd.tlbi.vmid	= smmu_domain->s2_cfg.vmid;
-	}
-
-	/*
-	 * NOTE: when io-pgtable is in non-strict mode, we may get here with
-	 * PTEs previously cleared by unmaps on the current CPU not yet visible
-	 * to the SMMU. We are relying on the dma_wmb() implicit during cmd
-	 * insertion to guarantee those are observed before the TLBI. Do be
-	 * careful, 007.
-	 */
-	arm_smmu_cmdq_issue_cmd(smmu, &cmd);
-	arm_smmu_cmdq_issue_sync(smmu);
-	arm_smmu_atc_inv_domain(smmu_domain, 0, 0, 0);
-}
-
-static void arm_smmu_tlb_inv_range(unsigned long iova, size_t size,
-				   size_t granule, bool leaf,
-				   struct arm_smmu_domain *smmu_domain)
-{
-	u64 cmds[CMDQ_BATCH_ENTRIES * CMDQ_ENT_DWORDS];
-	struct arm_smmu_device *smmu = smmu_domain->smmu;
-	unsigned long start = iova, end = iova + size;
-	int i = 0;
-	struct arm_smmu_cmdq_ent cmd = {
-		.tlbi = {
-			.leaf	= leaf,
-		},
-	};
-
-	if (!size)
-		return;
-
-	if (smmu_domain->stage == ARM_SMMU_DOMAIN_S1) {
-		cmd.opcode	= CMDQ_OP_TLBI_NH_VA;
-		cmd.tlbi.asid	= smmu_domain->s1_cfg.cd.asid;
-	} else {
-		cmd.opcode	= CMDQ_OP_TLBI_S2_IPA;
-		cmd.tlbi.vmid	= smmu_domain->s2_cfg.vmid;
-	}
-
-	while (iova < end) {
-		if (i == CMDQ_BATCH_ENTRIES) {
-			arm_smmu_cmdq_issue_cmdlist(smmu, cmds, i, false);
-			i = 0;
-		}
-
-		cmd.tlbi.addr = iova;
-		arm_smmu_cmdq_build_cmd(&cmds[i * CMDQ_ENT_DWORDS], &cmd);
-		iova += granule;
-		i++;
-	}
-
-	arm_smmu_cmdq_issue_cmdlist(smmu, cmds, i, true);
-
-	/*
-	 * Unfortunately, this can't be leaf-only since we may have
-	 * zapped an entire table.
-	 */
-	arm_smmu_atc_inv_domain(smmu_domain, 0, start, size);
-}
-
-static void arm_smmu_tlb_inv_page_nosync(struct iommu_iotlb_gather *gather,
-					 unsigned long iova, size_t granule,
-					 void *cookie)
-{
-	struct arm_smmu_domain *smmu_domain = cookie;
-	struct iommu_domain *domain = &smmu_domain->domain;
-
-	iommu_iotlb_gather_add_page(domain, gather, iova, granule);
-}
-
-static void arm_smmu_tlb_inv_walk(unsigned long iova, size_t size,
-				  size_t granule, void *cookie)
-{
-	arm_smmu_tlb_inv_range(iova, size, granule, false, cookie);
-}
-
-static void arm_smmu_tlb_inv_leaf(unsigned long iova, size_t size,
-				  size_t granule, void *cookie)
-{
-	arm_smmu_tlb_inv_range(iova, size, granule, true, cookie);
-}
-
 static const struct iommu_flush_ops arm_smmu_flush_ops = {
 	.tlb_flush_all	= arm_smmu_tlb_inv_context,
 	.tlb_flush_walk = arm_smmu_tlb_inv_walk,
@@ -2540,7 +2534,7 @@ static void arm_smmu_disable_ats(struct arm_smmu_master *master)
 
 static void arm_smmu_detach_dev(struct arm_smmu_master *master)
 {
-	unsigned long flags;
+	irq_flags_t flags;
 	struct arm_smmu_domain *smmu_domain = master->domain;
 
 	if (!smmu_domain)
@@ -2560,7 +2554,7 @@ static void arm_smmu_detach_dev(struct arm_smmu_master *master)
 static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 {
 	int ret = 0;
-	unsigned long flags;
+	irq_flags_t flags;
 	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
 	struct arm_smmu_device *smmu;
 	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
@@ -2615,46 +2609,6 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 out_unlock:
 	mutex_unlock(&smmu_domain->init_mutex);
 	return ret;
-}
-
-static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
-			phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
-{
-	struct io_pgtable_ops *ops = to_smmu_domain(domain)->pgtbl_ops;
-
-	if (!ops)
-		return -ENODEV;
-
-	return ops->map(ops, iova, paddr, size, prot);
-}
-
-static size_t arm_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
-			     size_t size, struct iommu_iotlb_gather *gather)
-{
-	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
-	struct io_pgtable_ops *ops = smmu_domain->pgtbl_ops;
-
-	if (!ops)
-		return 0;
-
-	return ops->unmap(ops, iova, size, gather);
-}
-
-static void arm_smmu_flush_iotlb_all(struct iommu_domain *domain)
-{
-	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
-
-	if (smmu_domain->smmu)
-		arm_smmu_tlb_inv_context(smmu_domain);
-}
-
-static void arm_smmu_iotlb_sync(struct iommu_domain *domain,
-				struct iommu_iotlb_gather *gather)
-{
-	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
-
-	arm_smmu_tlb_inv_range(gather->start, gather->end - gather->start,
-			       gather->pgsize, true, smmu_domain);
 }
 
 static phys_addr_t
