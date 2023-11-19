@@ -75,7 +75,6 @@ iommu_grp_t iommu_grp;
 void iommu_group_restore(iommu_grp_t grp)
 {
 	iommu_grp = grp;
-	iommu_hw_group_select();
 }
 
 iommu_grp_t iommu_group_save(iommu_grp_t grp)
@@ -89,7 +88,7 @@ iommu_grp_t iommu_group_save(iommu_grp_t grp)
 struct iommu_group iommu_group_ctrl;
 #endif
 
-iommu_grp_t iommu_alloc_group(void)
+iommu_grp_t iommu_alloc_group(int nr_iommus, iommu_t *iommus)
 {
 	__unused iommu_grp_t grp = INVALID_IOMMU_GRP, sgrp;
 
@@ -101,6 +100,8 @@ iommu_grp_t iommu_alloc_group(void)
 		sgrp = iommu_group_save(grp);
 		if (iommu_group_ctrl.dev == INVALID_IOMMU_DEV) {
 			iommu_group_ctrl.dev = iommu_dev;
+			iommu_group_ctrl.nr_iommus = nr_iommus;
+			iommu_group_ctrl.iommus = iommus;
 			break;
 		}
 	}
@@ -365,12 +366,12 @@ bool iommu_pgtable_alloc(iommu_cfg_t *cfg)
 /* ======================================================================
  * IOMMU Initializers
  * ====================================================================== */
-iommu_grp_t iommu_register_master(iommu_t iommu)
+iommu_grp_t iommu_register_master(int nr_iommus, iommu_t *iommus)
 {
 	iommu_grp_t grp;
 	iommu_dom_t dom;
 
-	grp = iommu_hw_alloc_master(iommu);
+	grp = iommu_hw_alloc_master(nr_iommus, iommus);
 	if (grp != INVALID_IOMMU_GRP) {
 		iommu_group_select(grp);
 		dom = iommu_alloc_domain(IOMMU_DOMAIN_DEFAULT);

@@ -944,7 +944,7 @@
 	uint32_t num_global_irqs;
 #endif
 
-#define SMMU_STREAM_ATTR				\
+#define SMMU_GROUP_ATTR					\
 	/* S2CR entry */				\
 	uint32_t s2cr_type : 2;				\
 	uint32_t s2cr_priv : 2;				\
@@ -958,7 +958,9 @@
 #define SMMU_CONTEXT_S2_ATTR
 #endif
 
-#define SMMU_CONTEXT_ATTR				\
+#define SMMU_STREAM_ATTR				\
+
+#define SMMU_DOMAIN_ATTR				\
 	uint8_t fmt;					\
 	uint8_t stage;					\
 	union {						\
@@ -1127,8 +1129,10 @@ struct arm_smmu_domain {
 		} while ((size) -= (gran));				\
 	} while (0)
 
-void __smmu_free_sme(void);
-void __smmu_alloc_sme(smmu_sme_t sme);
+void smmu_group_free(void);
+iommu_grp_t smmu_group_alloc(int nr_sids, iommu_t *sids);
+void smmu_stream_uninstall(void);
+void smmu_stream_install(void);
 void smmu_tlb_sync_global(void);
 void smmu_tlb_sync_context(void);
 void smmu_tlb_inv_context_s1(void);

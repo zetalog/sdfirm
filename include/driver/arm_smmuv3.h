@@ -650,15 +650,17 @@ struct arm_smmu_priq {
 	struct arm_smmu_strtab_cfg strtab_cfg;		\
 	/* IOMMU core code handle */
 
-#define SMMU_STREAM_ATTR				\
-	struct smmu_context *domain;			\
+#define SMMU_GROUP_ATTR					\
+	struct smmu_domain *domain;			\
 	struct list_head domain_head;			\
 	uint32_t *sids;					\
 	unsigned int num_sids;				\
 	bool ats_enabled;				\
 	unsigned int ssid_bits;
 
-#define SMMU_CONTEXT_ATTR				\
+#define SMMU_STREAM_ATTR				\
+
+#define SMMU_DOMAIN_ATTR				\
 	/* struct io_pgtable_ops *pgtbl_ops; */		\
 	bool non_strict;				\
 	atomic_t nr_ats_masters;			\
@@ -678,7 +680,12 @@ void smmuv3_tlb_inv_page_nosync(struct iommu_iotlb_gather *gather,
 				unsigned long iova, size_t granule);
 void smmuv3_flush_iotlb_all(void);
 void smmuv3_iotlb_sync(struct iommu_iotlb_gather *gather);
-void __smmu_alloc_sme(smmu_sme_t sme);
-void __smmu_free_sme(void);
+
+void smmu_group_select(void);
+iommu_grp_t smmu_group_alloc(int nr_sids, iommu_t *sids);
+void smmu_group_free(void);
+
+void smmu_stream_install(void);
+void smmu_stream_uninstall(void);
 
 #endif /* __ARM_SMMUv3_H_INCLUDE__ */
