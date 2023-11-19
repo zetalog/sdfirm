@@ -28,6 +28,7 @@
 #define EOVERFLOW	75
 #define EOPNOTSUPP      95
 #define ENOTSUP         EOPNOTSUPP
+#define ETIMEDOUT	110
 #define EINPROGRESS     115
 
 #ifndef __ASSEMBLY__

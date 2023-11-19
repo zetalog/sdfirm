@@ -246,6 +246,8 @@ atomic_try_cmpxchg(atomic_t *v, atomic_count_t *old, atomic_count_t new)
 /* atomic_t should be 8 bit signed type */
 typedef int32_t atomic_count_t;
 typedef struct { atomic_count_t counter; } atomic_t;
+typedef int64_t atomic64_count_t;
+typedef struct { atomic64_count_t counter; } atomic64_t;
 
 #define ATOMIC_OP(op, c_op)						\
 static inline void atomic_##op(atomic_count_t i, atomic_t *v)		\
@@ -340,7 +342,100 @@ ATOMIC_NOP(xor, ^)
 #define atomic_dec_and_test(v)		(atomic_sub_return(1, (v)) == 0)
 #define atomic_xchg(ptr, v)		(xchg(&(ptr)->counter, (v)))
 #define atomic_cmpxchg(v, old, new)	(cmpxchg(&((v)->counter), (old), (new)))
+#define atomic_fetch_andnot(i, v)	atomic_fetch_and(~(i), (v))
+
+#define ATOMIC64_OP(op, c_op)						\
+static inline void atomic64_##op(atomic64_count_t i, atomic64_t *v)	\
+{									\
+	irq_flags_t flags;						\
+	irq_local_save(flags);						\
+	v->counter = v->counter c_op i;					\
+	irq_local_restore(flags);					\
+}
+#define ATOMIC64_NOP(op, c_op)						\
+static inline void atomic64_##op##not(atomic64_count_t i,		\
+				      atomic64_t *v)			\
+{									\
+	irq_flags_t flags;						\
+	irq_local_save(flags);						\
+	v->counter = v->counter c_op ~(i);				\
+	irq_local_restore(flags);					\
+}
+#define ATOMIC64_OP_RETURN(op, c_op)					\
+static inline atomic64_count_t atomic64_##op##_return(			\
+	atomic64_count_t i, atomic64_t *v)				\
+{									\
+	irq_flags_t flags;						\
+	atomic64_count_t ret;						\
+	irq_local_save(flags);						\
+	ret = (v->counter = v->counter c_op i);				\
+	irq_local_restore(flags);					\
+	return ret;							\
+}
+#define ATOMIC64_FETCH_OP(op, c_op)					\
+static inline atomic64_count_t atomic64_fetch_##op(atomic64_count_t i,	\
+						   atomic64_t *v)	\
+{									\
+	irq_flags_t flags;						\
+	atomic64_count_t ret;						\
+	irq_local_save(flags);						\
+	ret = v->counter;						\
+	v->counter = v->counter c_op i;					\
+	irq_local_restore(flags);					\
+	return ret;							\
+}
+#define ATOMIC64_FETCH_NOP(op, c_op)					\
+static inline atomic64_count_t atomic64_fetch_##op##not(		\
+	atomic64_count_t i, atomic64_t *v)				\
+{									\
+	irq_flags_t flags;						\
+	atomic64_count_t ret;						\
+	irq_local_save(flags);						\
+	ret = v->counter;						\
+	v->counter = v->counter c_op ~(i);				\
+	irq_local_restore(flags);					\
+	return ret;							\
+}
+
+ATOMIC64_OP_RETURN(add, +)
+ATOMIC64_OP_RETURN(sub, -)
+ATOMIC64_FETCH_OP(add, +)
+ATOMIC64_FETCH_OP(sub, -)
+ATOMIC64_FETCH_OP(and, &)
+ATOMIC64_FETCH_OP(or, |)
+ATOMIC64_FETCH_OP(xor, ^)
+ATOMIC64_FETCH_NOP(and, &)
+ATOMIC64_FETCH_NOP(or, |)
+ATOMIC64_FETCH_NOP(xor, ^)
+ATOMIC64_OP(and, &)
+ATOMIC64_OP(or, |)
+ATOMIC64_OP(xor, ^)
+ATOMIC64_NOP(and, &)
+ATOMIC64_NOP(or, |)
+ATOMIC64_NOP(xor, ^)
+
+#undef ATOMIC64_OP
+#undef ATOMIC64_NOP
+#undef ATOMIC64_OP_RETURN
+#undef ATOMIC64_FETCH_OP
+#undef ATOMIC64_FETCH_NOP
+
+#ifdef CONFIG_64BIT
+#define BITS_PER_LONG			64
+typedef atomic64_t atomic_long_t;
+#define atomic_long_xor			atomic64_xor
+#define atomic_long_cond_read_relaxed	atomic64_cond_read_relaxed
+#else
+#define BITS_PER_LONG			32
+typedef atomic_t atomic_long_t;
+#define atomic_long_xor			atomic_xor
+#define atomic_long_cond_read_relaxed	atomic_cond_read_relaxed
 #endif
+#endif
+
+#define atomic_cond_read_relaxed(v, c)		smp_cond_load_relaxed(&(v)->counter, (c))
+#define atomic64_cond_read_relaxed(v, c)	smp_cond_load_relaxed(&(v)->counter, (c))
+#define atomic_fetch_andnot_relaxed(v, c)	atomic_fetch_andnot((c), (v))
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ATOMIC_H_INCLUDE__ */

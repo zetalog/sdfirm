@@ -43,8 +43,10 @@
 #define __ARM_SMMUv3_H_INCLUDE__
 
 #include <target/arch.h>
+#include <target/list.h>
 #include <target/dma.h>
 #include <target/jiffies.h>
+#include <target/atomic.h>
 
 #define SMMU_PAGESHIFT			16
 #define SMMU_PAGESIZE			0x10000
@@ -185,7 +187,7 @@
 #define SMMU_EVTQ_IRQ_CFG1(smmu)	SMMU_PAGE0_REG(smmu, 0xb8)
 #define SMMU_EVTQ_IRQ_CFG2(smmu)	SMMU_PAGE0_REG(smmu, 0xbc)
 
-#define SMMU_PRIQ_BASE(smmu)		SMMU_PAGE0_REG(smmu, 0xc0
+#define SMMU_PRIQ_BASE(smmu)		SMMU_PAGE0_REG(smmu, 0xc0)
 #define SMMU_PRIQ_PROD(smmu)		SMMU_PAGE1_REG(smmu, 0xc8)
 #define SMMU_PRIQ_CONS(smmu)		SMMU_PAGE1_REG(smmu, 0xcc)
 #define SMMU_PRIQ_IRQ_CFG0(smmu)	SMMU_PAGE0_REG(smmu, 0xd0)
@@ -532,6 +534,35 @@ struct arm_smmu_l1_ctx_desc {
 	dma_addr_t l2ptr_dma;
 };
 
+struct arm_smmu_ctx_desc_cfg {
+	uint64_t *cdtab;
+	dma_addr_t cdtab_dma;
+	struct arm_smmu_l1_ctx_desc *l1_desc;
+	unsigned int num_l1_ents;
+};
+
+struct arm_smmu_s1_cfg {
+	struct arm_smmu_ctx_desc_cfg cdcfg;
+	struct arm_smmu_ctx_desc cd;
+	uint8_t s1fmt;
+	uint8_t s1cdmax;
+};
+
+struct arm_smmu_s2_cfg {
+	uint16_t vmid;
+	uint64_t vttbr;
+	uint64_t vtcr;
+};
+
+struct arm_smmu_strtab_cfg {
+	uint64_t *strtab;
+	dma_addr_t strtab_dma;
+	struct arm_smmu_strtab_l1_desc *l1_desc;
+	unsigned int num_l1_ents;
+	uint64_t strtab_base;
+	uint32_t strtab_base_cfg;
+};
+
 struct arm_smmu_ll_queue {
 	union {
 		uint64_t val;
@@ -547,7 +578,7 @@ struct arm_smmu_ll_queue {
 struct arm_smmu_queue {
 	struct arm_smmu_ll_queue llq;
 	int irq; /* Wired interrupt */
-	caddr_t base;
+	uint64_t *base;
 	dma_addr_t base_dma;
 	uint64_t q_base;
 	size_t ent_dwords;
@@ -564,8 +595,9 @@ struct arm_smmu_queue_poll {
 
 struct arm_smmu_cmdq {
 	struct arm_smmu_queue q;
-	long *valid_map;
-	long owner_prod;
+	atomic_long_t *valid_map;
+	atomic_t owner_prod;
+	atomic_t lock;
 };
 
 struct arm_smmu_evtq {
@@ -599,15 +631,6 @@ struct arm_smmu_priq {
 #define ARM_SMMU_MAX_ASIDS		(1 << 16)
 #define ARM_SMMU_MAX_VMIDS		(1 << 16)
 
-struct arm_smmu_strtab_cfg {
-	uint64_t *strtab;
-	dma_addr_t strtab_dma;
-	struct arm_smmu_strtab_l1_desc *l1_desc;
-	unsigned int num_l1_ents;
-	uint64_t strtab_base;
-	uint32_t strtab_base_cfg;
-};
-
 #define SMMU_DEVICE_ATTR				\
 	uint32_t options;				\
 	struct arm_smmu_cmdq cmdq;			\
@@ -627,9 +650,24 @@ struct arm_smmu_strtab_cfg {
 	struct arm_smmu_strtab_cfg strtab_cfg;		\
 	/* IOMMU core code handle */
 
-#define SMMU_STREAM_ATTR			\
+#define SMMU_STREAM_ATTR				\
+	struct smmu_context *domain;			\
+	struct list_head domain_head;			\
+	uint32_t *sids;					\
+	unsigned int num_sids;				\
+	bool ats_enabled;				\
+	unsigned int ssid_bits;
 
-#define SMMU_CONTEXT_ATTR			\
+#define SMMU_CONTEXT_ATTR				\
+	/* struct io_pgtable_ops *pgtbl_ops; */		\
+	bool non_strict;				\
+	atomic_t nr_ats_masters;			\
+	enum arm_smmu_domain_stage stage;		\
+	union {						\
+		struct arm_smmu_s1_cfg s1_cfg;		\
+		struct arm_smmu_s2_cfg s2_cfg;		\
+	};						\
+	struct list_head		devices;
 
 #include <driver/smmu_common.h>
 
