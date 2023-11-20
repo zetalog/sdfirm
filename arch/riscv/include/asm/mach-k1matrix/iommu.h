@@ -69,11 +69,11 @@
 
 #define SMMU_HW_NUMSMES(n)	smmu_num_sms[n]
 
-/* smmu_sme_t */
-#define SMMU_SME_DMA_TBU0	SMMU_SME(IOMMU_DMAC, 0)
-#define SMMU_SME_DMA_TBU1	SMMU_SME(IOMMU_DMAC, 1)
-#define SMMU_SME_DMA_TBU2	SMMU_SME(IOMMU_DMAC, 2)
-#define SMMU_SME_DMA_TBU3	SMMU_SME(IOMMU_DMAC, 3)
+/* iommu_t */
+#define IOMMU_DMA_TBU0		IOMMU(IOMMU_DMAC, 0)
+#define IOMMU_DMA_TBU1		IOMMU(IOMMU_DMAC, 1)
+#define IOMMU_DMA_TBU2		IOMMU(IOMMU_DMAC, 2)
+#define IOMMU_DMA_TBU3		IOMMU(IOMMU_DMAC, 3)
 #define NR_DMA_IOMMUS		4
 
 #define NR_IOMMUS		(NR_DMA_IOMMUS)
@@ -92,7 +92,6 @@
 #ifdef ARCH_HAVE_IOMMU
 #define iommu_hw_ctrl_init()				smmu_device_init()
 #define iommu_hw_domain_select()			smmu_domain_select()
-#define iommu_hw_alloc_master(nr_sids, sids)		smmu_group_alloc(nr_sids, sids)
 
 #ifdef CONFIG_K1MATRIX_SMMUv2
 #define iommu_hw_tlb_flush_all()			\

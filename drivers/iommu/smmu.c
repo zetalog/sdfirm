@@ -462,7 +462,7 @@ static void smmu_device_reset(void)
 	for (i = 0; i < SMMU_HW_NUMSMES(iommu_dev); i++) {
 		sgr = smmu_stream_save(i);
 		smmu_stream_ctrl.count = 0;
-		smmu_stream_ctrl.sme = INVALID_SMMU_SME;
+		smmu_stream_ctrl.sme = INVALID_IOMMU_MAP;
 		printf("Writing group %d S2CR...\n", i);
 		smmu_write_s2cr(SMMU_S2CR_TYPE_INIT, 0, 0, false);
 		printf("Writing group %d SMR...\n", i);
@@ -534,10 +534,10 @@ void smmu_stream_uninstall(void)
 void smmu_stream_install(void)
 {
 	__unused smmu_gr_t gr, sm;
-	smmu_sme_t sme = smmu_stream_ctrl.sme;
+	iommu_map_t map = smmu_stream_ctrl.sme;
 
-	gr = smmu_sme_gr(sme);
-	sm = smmu_sme_sm(sme);
+	gr = IOMMU_MAP_BASE(map);
+	sm = IOMMU_MAP_MASK(map);
 	smmu_write_smr(gr, sm, true);
 }
 

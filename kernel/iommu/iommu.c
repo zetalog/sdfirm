@@ -366,7 +366,44 @@ bool iommu_pgtable_alloc(iommu_cfg_t *cfg)
 /* ======================================================================
  * IOMMU Initializers
  * ====================================================================== */
-iommu_grp_t iommu_register_master(int nr_iommus, iommu_t *iommus)
+bool iommu_dma_mapped(iommu_map_t iommu)
+{
+	for (i = 0; i < iommu_device_ctrl.count; i++) {
+		if (iommu_device_ctrl.iommus[i] == iommu)
+			return true;
+	}
+	return false;
+}
+
+void iommu_register_dma(int nr_iommus, iommu_t *iommus)
+{
+	__unused iommu_dev_t dev, sdev;
+	__unused iommu_map_t map;
+	int i;
+
+	for (i = 0; i < nr_iommus; i++) {
+		iommu_t iommu = iommus[i];
+
+		dev = IOMMU_DEV(iommu);
+		sdev = iommu_device_save(dev);
+		if (!iommu_device_ctrl.valid) {
+			iommu_device_ctrl.valid = true;
+			iommu_device_ctrl.id = dev;
+			iommu_device_ctrl.count = 0;
+			iommu_device_ctrl.dma = DMA_DEFAULT;
+		}
+		map = IOMMU_MAP(iommu);
+		if (!iommu_dma_mapped(map)) {
+			BUG_ON(iommu_device_ctrl.count >= MAX_IOMMU_RIDS);
+			iommu_device_ctrl.iommus[iommu_device_ctrl.count] = map;
+			iommu_device_ctrl.count++
+			iommu_device_restore(sdev);
+		}
+	}
+}
+
+#if 0
+iommu_grp_t iommu_probe_device(int nr_iommus, iommu_t *iommus)
 {
 	iommu_grp_t grp;
 	iommu_dom_t dom;
@@ -384,6 +421,7 @@ iommu_grp_t iommu_register_master(int nr_iommus, iommu_t *iommus)
 
 	return grp;
 }
+#endif
 
 void iommu_init(void)
 {
@@ -406,12 +444,12 @@ void iommu_init(void)
 		iommu_domain_ctrl.fmt = INVALID_IOMMU_FMT;
 		iommu_domain_restore(sdom);
 	}
-	/* Non-allocatable devices are lauched directly */
+
+	/* Non-allocatable devices are probed */
 	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
 		sdev = iommu_device_save(dev);
-		iommu_device_ctrl.id = dev;
-		iommu_device_ctrl.dma = DMA_DEFAULT;
-		iommu_hw_ctrl_init();
+		if (iommu_device_ctrl.valid)
+			iommu_hw_ctrl_init();
 		iommu_device_restore(sdev);
 	}
 }

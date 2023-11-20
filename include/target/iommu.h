@@ -122,8 +122,36 @@ struct iommu_iotlb_gather {
  * translation group.
  */
 typedef uint64_t iommu_t;
+typedef uint16_t iommu_rid_t;
+/* RID base and RID mask, RID map can be directly converted into RID if
+ * mask is omitted.
+ */
+typedef uint32_t iommu_map_t;
+
+/* Define an IOMMU master */
+#define IOMMU(iommu, rid)		IOMMU_MASK(iommu, rid, 0)
+#define IOMMU_BASE_MASK(base, mask)	MAKELONG(base, mask)
+#define IOMMU_MASK(iommu, base, mask)	MAKELLONG(IOMMU_BASE_MASK(base, mask), iommu)
+/* Decode an IOMMU device */
+#define IOMMU_DEV(iommu)		((iommu_dev_t)HIDWORD(iommu))
+/* Decode an IOMMU streams */
+#define IOMMU_MAP(iommu)		LODWORD(iommu)
+#define IOMMU_RID_BASE(iommu)		LOWORD(IOMMU_MAP(iommu))
+#define IOMMU_RID_MASK(iommu)		HIWORD(IOMMU_MAP(iommu))
+#define IOMMU_RID(iommu)		IOMMU_RID_BASE(iommu)
+/* Decode an IOMMU stream mapping */
+#define IOMMU_MAP_BASE(map)		LOWORD(map)
+#define IOMMU_MAP_MASK(map)		HIWORD(map)
+#define INVALID_IOMMU_MAP		IOMMU_BASE_MASK(0xffff, 0xffff)
+#define INVALID_IOMMU			IOMMU(INVALID_IOMMU_DEV, INVALID_IOMMU_MAP)
 
 #include <driver/iommu.h>
+
+#ifdef IOMMU_HW_MAX_RIDS
+#define MAX_IOMMU_RIDS			IOMMU_HW_MAX_RIDS
+#else
+#define MAX_IOMMU_RIDS			8
+#endif
 
 struct scatterlist {
 	unsigned long page_link;
@@ -136,9 +164,14 @@ struct scatterlist {
 };
 
 struct iommu_device {
+	bool valid;
 	iommu_dev_t id;
 	dma_t dma;		/* contain DMA_PHYS_OFFSET */
 	unsigned long pgsize_bitmap;
+
+	/* RID and RID map count */
+	int count;
+	iommu_map_t iommus[MAX_IOMMU_RIDS];
 };
 
 struct iommu_group {
@@ -173,7 +206,7 @@ void iommu_free_group(iommu_grp_t grp);
 iommu_dom_t iommu_alloc_domain(uint8_t type);
 void iommu_free_domain(iommu_dom_t dom);
 
-iommu_grp_t iommu_register_master(int nr_iommus, iommu_t *iommus);
+void iommu_register_dma(int nr_iommus, iommu_t *iommus);
 
 int iommu_map(unsigned long iova, size_t size, phys_addr_t paddr, int prot);
 int iommu_unmap(unsigned long iova, size_t size);
