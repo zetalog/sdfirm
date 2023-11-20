@@ -47,17 +47,9 @@
 
 typedef uint16_t smmu_gr_t; /* smmu stream id */
 typedef uint8_t smmu_cb_t; /* smmu context bank id */
-typedef iommu_t smmu_sme_t; /* iommu device and smmu stream mapping group */
-
-#define SMMU_SME_MASK(iommu, gr, sm)	MAKELLONG(MAKELONG(gr, sm), iommu)
-#define SMMU_SME(iommu, gr)		SMMU_SME_MASK(iommu, gr, 0)
-#define smmu_sme_dev(sme)		((iommu_dev_t)HIDWORD(sme))
-#define smmu_sme_gr(sme)		LOWORD(LODWORD(sme))
-#define smmu_sme_sm(sme)		HIWORD(LODWORD(sme))
 
 #define SMMU_MAX_CBS			128
 #define INVALID_SMMU_CB			SMMU_MAX_CBS
-#define INVALID_SMMU_SME		SMMU_SME(INVALID_IOMMU_DEV, 0)
 
 struct smmu_device {
 	uint32_t features;
@@ -68,7 +60,7 @@ struct smmu_device {
 
 struct smmu_group {
 	iommu_grp_t grp;
-	smmu_sme_t sme;		/* default stream */
+	iommu_map_t sme;	/* default stream mapping */
 	iommu_dom_t dom;	/* default domain */
 	SMMU_GROUP_ATTR
 };
@@ -79,7 +71,7 @@ struct smmu_stream {
 	bool valid;
 	int count;
 	smmu_gr_t sid;
-	smmu_sme_t sme;
+	iommu_map_t sme;
 	SMMU_STREAM_ATTR
 };
 
@@ -116,16 +108,12 @@ extern struct smmu_stream smmu_stream_ctrl;
 #endif
 void smmu_stream_select(void);
 
+void smmu_dma_config(int nr_iommus, iommu_t *iommus);
+
 #ifdef CONFIG_SMMU_COMMON
-smmu_sme_t smmu_alloc_sme(void);
-void smmu_free_sme(smmu_gr_t sid);
 smmu_cb_t smmu_alloc_cb(smmu_cb_t start, smmu_cb_t end);
 void smmu_free_cb(smmu_cb_t cb);
-#else
-#define smmu_alloc_sme()			INVALID_SMMU_SME
-#define smmu_free_sme(sme)			do { } while (0)
 #endif
-
 
 void smmu_device_exit(void);
 void smmu_device_init(void);

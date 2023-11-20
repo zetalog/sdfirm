@@ -64,6 +64,11 @@
 #define IRQ_GMAC_TX0		EXT_IRQ(37)
 #define IRQ_GMAC_TX1		EXT_IRQ(38)
 
+#define IRQ_SMMU_EVTQ		EXT_IRQ(48)
+#define IRQ_SMMU_PRIQ		EXT_IRQ(49)
+#define IRQ_SMMU_CMDQ		EXT_IRQ(50)
+#define IRQ_SMMU_GERR		EXT_IRQ(51)
+
 #define NR_EXT_IRQS		64
 #define NR_IRQS			(NR_INT_IRQS + NR_EXT_IRQS)
 

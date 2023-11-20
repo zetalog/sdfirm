@@ -1130,7 +1130,6 @@ struct arm_smmu_domain {
 	} while (0)
 
 void smmu_group_free(void);
-iommu_grp_t smmu_group_alloc(int nr_sids, iommu_t *sids);
 void smmu_stream_uninstall(void);
 void smmu_stream_install(void);
 void smmu_tlb_sync_global(void);
