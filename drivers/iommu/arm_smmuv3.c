@@ -2644,33 +2644,7 @@ static struct iommu_ops arm_smmu_ops;
 
 static int arm_smmu_add_device(struct device *dev)
 {
-	int i, ret;
-	struct arm_smmu_device *smmu;
-	struct arm_smmu_master *master;
-	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
-	struct iommu_group *group;
-
-	if (!fwspec || fwspec->ops != &arm_smmu_ops)
-		return -ENODEV;
-
-	if (WARN_ON_ONCE(fwspec->iommu_priv))
-		return -EBUSY;
-
-	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
-	if (!smmu)
-		return -ENODEV;
-
-	master = kzalloc(sizeof(*master), GFP_KERNEL);
-	if (!master)
-		return -ENOMEM;
-
-	master->dev = dev;
-	master->smmu = smmu;
-	master->sids = fwspec->ids;
-	master->num_sids = fwspec->num_ids;
-	fwspec->iommu_priv = master;
-
-
+	master->ssid_bits = min(smmu->ssid_bits, fwspec->num_pasid_bits);
 	if (!(smmu->features & ARM_SMMU_FEAT_2_LVL_CDTAB))
 		master->ssid_bits = min_t(u8, master->ssid_bits,
 					  CTXDESC_LINEAR_CDMAX);
@@ -2687,31 +2661,6 @@ static int arm_smmu_add_device(struct device *dev)
 
 	iommu_group_put(group);
 	return 0;
-
-err_unlink:
-	iommu_device_unlink(&smmu->iommu, dev);
-err_free_master:
-	kfree(master);
-	fwspec->iommu_priv = NULL;
-	return ret;
-}
-
-static void arm_smmu_remove_device(struct device *dev)
-{
-	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
-	struct arm_smmu_master *master;
-	struct arm_smmu_device *smmu;
-
-	if (!fwspec || fwspec->ops != &arm_smmu_ops)
-		return;
-
-	master = fwspec->iommu_priv;
-	smmu = master->smmu;
-	arm_smmu_detach_dev(master);
-	iommu_group_remove_device(dev);
-	iommu_device_unlink(&smmu->iommu, dev);
-	kfree(master);
-	iommu_fwspec_free(dev);
 }
 
 static struct iommu_group *arm_smmu_device_group(struct device *dev)

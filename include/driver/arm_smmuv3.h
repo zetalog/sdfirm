@@ -682,7 +682,6 @@ void smmuv3_flush_iotlb_all(void);
 void smmuv3_iotlb_sync(struct iommu_iotlb_gather *gather);
 
 void smmu_group_select(void);
-iommu_grp_t smmu_group_alloc(int nr_sids, iommu_t *sids);
 void smmu_group_free(void);
 
 void smmu_stream_install(void);
