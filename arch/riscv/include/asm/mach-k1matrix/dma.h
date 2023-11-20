@@ -35,27 +35,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dma.h: DUOWEN specific DMA assignments
- * $Id: dma.h,v 1.1 2021-09-02 21:54:00 zhenglv Exp $
+ * @(#)dma.h: K1Matrix specific DMA assignments
+ * $Id: dma.h,v 1.1 2023-09-02 21:54:00 zhenglv Exp $
  */
 
-#ifndef __DMA_DUOWEN_H_INCLUDE__
-#define __DMA_DUOWEN_H_INCLUDE__
+#ifndef __DMA_K1MATRIX_H_INCLUDE__
+#define __DMA_K1MATRIX_H_INCLUDE__
 
 #define DMA_DMAC_CH0	0
 #define DMA_DMAC_CH1	1
 #define DMA_DMAC_CH2	2
 #define DMA_DMAC_CH3	3
-#define DMA_DMAC_CH4	4
-#define DMA_DMAC_CH5	5
-#define DMA_DMAC_CH6	6
-#define DMA_DMAC_CH7	7
-#define NR_DMAC_DMAS	8
-#define DMA_PCIE_DMA0	8
-#define DMA_PCIE_DMA1	9
-#define DMA_PCIE_DMA2	10
-#define DMA_PCIE_DMA3	11
-#define NR_PCIE_DMAS	4
-#define NR_DMAS		(NR_DMAC_DMAS + NR_PCIE_DMAS)
+#define NR_DMAC_DMAS	4
+#define NR_DMAS		(NR_DMAC_DMAS)
 
-#endif /* __DMA_DUOWEN_H_INCLUDE__ */
+#endif /* __DMA_K1MATRIX_H_INCLUDE__ */

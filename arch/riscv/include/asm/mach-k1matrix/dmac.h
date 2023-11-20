@@ -35,12 +35,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)dmac.h: DUOWEN specific DMA controller implementation
- * $Id: dmac.h,v 1.1 2021-09-02 21:52:00 zhenglv Exp $
+ * @(#)dmac.h: K1Matrix specific DMA controller implementation
+ * $Id: dmac.h,v 1.1 2023-09-02 21:52:00 zhenglv Exp $
  */
 
-#ifndef __DMAC_DUOWEN_H_INCLUDE__
-#define __DMAC_DUOWEN_H_INCLUDE__
+#ifndef __DMAC_K1MATRIX_H_INCLUDE__
+#define __DMAC_K1MATRIX_H_INCLUDE__
 
 #define DW_DMA_BASE(n)		DMA_BASE
 #define DW_DMA_MAX_CHIPS	1
@@ -58,13 +58,8 @@
 #endif
 #endif
 
-#ifdef CONFIG_DUOWEN_DMAC_IRQ_CHANNEL
-#define DW_DMA_DEV_IRQ		IRQ_DMAC_CMNREG
-#define DW_DMA_CHAN_IRQ(n)	(IRQ_DMAC_CH0 + (n))
-#else
 #define DW_DMA_CHIP_IRQ		IRQ_DMAC
 #define DW_DMA_CHAN_IRQ(n)	INVALID_IRQ
-#endif
 
 void smmu_dma_alloc_sme(void);
 
@@ -80,4 +75,4 @@ void dma_hw_unmap_single(dma_t dma, dma_addr_t addr,
 #define dmac_hw_irq_init()		do { } while (0)
 #define dmac_hw_irq_handle()		do { } while (0)
 
-#endif /* __DMAC_DUOWEN_H_INCLUDE__ */
+#endif /* __DMAC_K1MATRIX_H_INCLUDE__ */
