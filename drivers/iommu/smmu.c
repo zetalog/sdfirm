@@ -531,20 +531,21 @@ void smmu_stream_uninstall(void)
 	smmu_write_s2cr(SMMU_S2CR_TYPE_INIT, 0, 0, false);
 	smmu_write_smr(0, 0, false);
 }
-
-void smmu_stream_install(void)
-{
-	__unused smmu_gr_t gr, sm;
-	iommu_map_t map = smmu_stream_ctrl.sme;
-
-	gr = IOMMU_MAP_BASE(map);
-	sm = IOMMU_MAP_MASK(map);
-	smmu_write_smr(gr, sm, true);
 }
 #endif
 
 void smmu_master_init(void)
 {
+	int i;
+	__unused smmu_gr_t gr, sm;
+
+	/* Check the SIDs are in range of the SMMU and our stream table */
+	for (i = 0; i < iommu_group_ctrl.nr_iommus; i++) {
+		iommu_map_t map = iommu_group_ctrl.iommus[i];
+		gr = IOMMU_MAP_BASE(map);
+		sm = IOMMU_MAP_MASK(map);
+		smmu_write_smr(gr, sm, true);
+	}
 }
 
 void smmu_master_attach(void)
