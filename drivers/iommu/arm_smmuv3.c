@@ -2171,10 +2171,33 @@ void smmu_poll_irqs(void)
 }
 #define arm_smmu_setup_unique_irqs()	do { } while (0)
 #else /* SYS_REALTIME */
+#if NR_IOMMU_DEVICES > 1
 iommu_dev_t arm_smmu_save_irq(irq_t irq)
 {
-	return INVALID_IOMMU_DEV;
+	__unused iommu_dev_t dev, sdev;
+
+	sdev = iommu_device_save(dev);
+	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
+		iommu_device_restore(sdev);
+		sdev = iommu_device_save(dev);
+		if (iommu_device_ctrl.valid) {
+			if (irq == smmu_device_ctrl.evtq.q.irq)
+				goto found;
+			if (irq == smmu_device_ctrl.gerr_irq)
+				goto found;
+			if (smmu_device_ctrl.features & ARM_SMMU_FEAT_PRI)
+				if (irq == smmu_device_ctrl.priq.q.irq)
+					goto found;
+		}
+	}
+	dev = INVALID_IOMMU_DEV;
+found:
+	iommu_device_restore(sdev);
+	return dev;
 }
+#else
+#define arm_smmu_save_irq()		iommu_dev
+#endif
 
 static void arm_smmu_handle_evtq(irq_t irq)
 {
