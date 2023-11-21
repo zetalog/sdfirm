@@ -41,6 +41,9 @@
 
 #include <target/iommu.h>
 #include <target/panic.h>
+#include <target/bh.h>
+
+bh_t iommu_bh;
 
 /* ======================================================================
  * IOMMU Devices
@@ -432,6 +435,38 @@ void iommu_register_pci_dma(int nr_iommus, iommu_t *iommus)
 		/* iommu_map_direct(); */
 #endif
 
+#ifdef SYS_REALTIME
+static void iommu_poll_init(void)
+{
+	irq_register_poller(iommu_bh);
+}
+
+static void iommu_poll_handler(void)
+{
+	__unused iommu_dev_t dev, sdev;
+
+	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
+		sdev = iommu_device_save(dev);
+		if (iommu_device_ctrl.valid)
+			iommu_hw_poll_irqs();
+		iommu_device_restore(sdev);
+	}
+}
+#else
+#define iommu_poll_init()		do { } while (0)
+#define iommu_poll_handler()		do { } while (0)
+#endif
+
+static void iommu_bh_handler(uint8_t events)
+{
+	irq_flags_t flags;
+
+	if (events == BH_POLLIRQ) {
+		iommu_poll_handler();
+		return;
+	}
+}
+
 void iommu_init(void)
 {
 	__unused iommu_dev_t dev, sdev;
@@ -456,4 +491,6 @@ void iommu_init(void)
 		}
 		iommu_group_restore(sgrp);
 	}
+	iommu_bh = bh_register_handler(iommu_bh_handler);
+	iommu_poll_init();
 }
