@@ -2041,6 +2041,190 @@ static int arm_smmu_device_disable(void)
 	return ret;
 }
 
+iommu_dev_t arm_smmu_save_irq(irq_t irq)
+{
+	return INVALID_IOMMU_DEV;
+}
+
+/* IRQ and event handlers */
+static void arm_smmu_evtq_thread(irq_t irq)
+{
+	int i;
+	struct arm_smmu_queue *q = &smmu_device_ctrl.evtq.q;
+	struct arm_smmu_ll_queue *llq = &q->llq;
+	uint64_t evt[EVTQ_ENT_DWORDS];
+	__unused iommu_dev_t dev;
+
+	dev = arm_smmu_save_irq(irq);
+	do {
+		while (!queue_remove_raw(q, evt)) {
+			uint8_t id = FIELD_GET(EVTQ_0_ID, evt[0]);
+
+			con_log("event 0x%02x received:\n", id);
+			for (i = 0; i < ARRAY_SIZE(evt); ++i)
+				con_log("\t0x%016llx\n",
+					(unsigned long long)evt[i]);
+
+		}
+
+		/*
+		 * Not much we can do on overflow, so scream and pretend we're
+		 * trying harder.
+		 */
+		if (queue_sync_prod_in(q) == -EOVERFLOW)
+			con_err("EVTQ overflow detected -- events lost\n");
+	} while (!queue_empty(llq));
+
+	/* Sync our overflow flag, as we believe we're up to speed */
+	llq->u.cons = Q_OVF(llq->u.prod) | Q_WRP(llq, llq->u.cons) |
+		      Q_IDX(llq, llq->u.cons);
+	iommu_device_restore(dev);
+}
+
+static void arm_smmu_handle_ppr(uint64_t *evt)
+{
+	uint32_t sid, ssid;
+	uint16_t grpid;
+	bool ssv, last;
+
+	sid = FIELD_GET(PRIQ_0_SID, evt[0]);
+	ssv = FIELD_GET(PRIQ_0_SSID_V, evt[0]);
+	ssid = ssv ? FIELD_GET(PRIQ_0_SSID, evt[0]) : 0;
+	last = FIELD_GET(PRIQ_0_PRG_LAST, evt[0]);
+	grpid = FIELD_GET(PRIQ_1_PRG_IDX, evt[1]);
+
+	con_log("unexpected PRI request received:\n");
+	con_log("\tsid 0x%08x.0x%05x: [%u%s] %sprivileged %s%s%s access at iova 0x%016llx\n",
+		sid, ssid, grpid, last ? "L" : "",
+		evt[0] & PRIQ_0_PERM_PRIV ? "" : "un",
+		evt[0] & PRIQ_0_PERM_READ ? "R" : "",
+		evt[0] & PRIQ_0_PERM_WRITE ? "W" : "",
+		evt[0] & PRIQ_0_PERM_EXEC ? "X" : "",
+		evt[1] & PRIQ_1_ADDR_MASK);
+
+	if (last) {
+		struct arm_smmu_cmdq_ent cmd = {
+			.opcode			= CMDQ_OP_PRI_RESP,
+			.substream_valid	= ssv,
+			.pri			= {
+				.sid	= sid,
+				.ssid	= ssid,
+				.grpid	= grpid,
+				.resp	= PRI_RESP_DENY,
+			},
+		};
+
+		arm_smmu_cmdq_issue_cmd(&cmd);
+	}
+}
+
+static void arm_smmu_priq_thread(irq_t irq)
+{
+	struct arm_smmu_queue *q;
+	struct arm_smmu_ll_queue *llq;
+	uint64_t evt[PRIQ_ENT_DWORDS];
+	__unused iommu_dev_t dev;
+
+	dev = arm_smmu_save_irq(irq);
+	q = &smmu_device_ctrl.priq.q;
+	llq = &q->llq;
+	do {
+		while (!queue_remove_raw(q, evt))
+			arm_smmu_handle_ppr(evt);
+
+		if (queue_sync_prod_in(q) == -EOVERFLOW)
+			con_err("PRIQ overflow detected -- requests lost\n");
+	} while (!queue_empty(llq));
+
+	/* Sync our overflow flag, as we believe we're up to speed */
+	llq->u.cons = Q_OVF(llq->u.prod) | Q_WRP(llq, llq->u.cons) |
+		      Q_IDX(llq, llq->u.cons);
+	queue_sync_cons_out(q);
+	iommu_device_restore(dev);
+}
+
+static void arm_smmu_gerror_handler(irq_t irq)
+{
+	uint32_t gerror, gerrorn, active;
+	__unused iommu_dev_t dev;
+
+	dev = arm_smmu_save_irq(irq);
+	gerror = __raw_readl(SMMU_GERROR(iommu_dev));
+	gerrorn = __raw_readl(SMMU_GERRORN(iommu_dev));
+
+	active = gerror ^ gerrorn;
+	if (!(active & GERROR_ERR_MASK))
+		goto exit_no_err; /* No errors pending */
+
+	con_log("unexpected global error reported (0x%08x), this could be serious\n",
+		active);
+
+	if (active & GERROR_SFM_ERR) {
+		con_err("device has entered Service Failure Mode!\n");
+		arm_smmu_device_disable();
+	}
+
+	if (active & GERROR_MSI_GERROR_ABT_ERR)
+		con_log("GERROR MSI write aborted\n");
+
+	if (active & GERROR_MSI_PRIQ_ABT_ERR)
+		con_log("PRIQ MSI write aborted\n");
+
+	if (active & GERROR_MSI_EVTQ_ABT_ERR)
+		con_log("EVTQ MSI write aborted\n");
+
+	if (active & GERROR_MSI_CMDQ_ABT_ERR)
+		con_log("CMDQ MSI write aborted\n");
+
+	if (active & GERROR_PRIQ_ABT_ERR)
+		con_err("PRIQ write aborted -- events may have been lost\n");
+
+	if (active & GERROR_EVTQ_ABT_ERR)
+		con_err("EVTQ write aborted -- events may have been lost\n");
+
+	if (active & GERROR_CMDQ_ERR)
+		arm_smmu_cmdq_skip_err();
+
+	__raw_writel(gerror, SMMU_GERRORN(iommu_dev));
+exit_no_err:
+	iommu_device_restore(dev);
+}
+
+#ifdef CONFIG_SYS_NOIRQ
+static void arm_smmu_setup_unique_irqs(void)
+{
+#ifdef CONFIG_ARM_SMMU_MSI
+	arm_smmu_setup_msis();
+#endif
+
+	/* Request interrupt lines */
+	irq_register_vector(smmu_device_ctrl.evtq.q.irq,
+			    arm_smmu_evtq_thread);
+	irq_register_vector(smmu_device_ctrl.gerr_irq,
+			    arm_smmu_gerror_handler);
+	if (smmu_device_ctrl.features & ARM_SMMU_FEAT_PRI)
+		irq_register_vector(smmu_device_ctrl.priq.q.irq,
+				    arm_smmu_priq_thread);
+}
+#endif
+
+static void arm_smmu_setup_irqs(void)
+{
+	uint32_t irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
+
+	/* Disable IRQs first */
+	arm_smmu_write_reg_sync(0, SMMU_IRQ_CTRL(iommu_dev),
+				SMMU_IRQ_CTRLACK(iommu_dev));
+	arm_smmu_setup_unique_irqs();
+
+	if (smmu_device_ctrl.features & ARM_SMMU_FEAT_PRI)
+		irqen_flags |= IRQ_CTRL_PRIQ_IRQEN;
+
+	/* Enable interrupt generation on the SMMU */
+	arm_smmu_write_reg_sync(irqen_flags, SMMU_IRQ_CTRL(iommu_dev),
+				SMMU_IRQ_CTRLACK(iommu_dev));
+}
+
 static int arm_smmu_device_reset(bool bypass)
 {
 	int ret;
@@ -2157,13 +2341,7 @@ static int arm_smmu_device_reset(bool bypass)
 		}
 	}
 
-#if 0
-	ret = arm_smmu_setup_irqs(smmu);
-	if (ret) {
-		dev_err(smmu->dev, "failed to setup irqs\n");
-		return ret;
-	}
-#endif
+	arm_smmu_setup_irqs();
 
 	/* Enable the SMMU interface, or ensure bypass */
 	if (!bypass || smmu_disable_bypass) {
@@ -2284,9 +2462,17 @@ static void arm_smmu_disable_ats(void)
 	atomic_dec(&(smmu_domain_ctrl.nr_ats_masters));
 }
 
+static void smmu_master_detach(void)
+{
+	arm_smmu_disable_ats();
+	list_del(&smmu_group_ctrl.domain_head);
+	smmu_group_ctrl.ats_enabled = false;
+	arm_smmu_install_ste_for_dev();
+}
+
 void smmu_master_attach(void)
 {
-	//arm_smmu_detach_dev(master);
+	smmu_master_detach();
 	if (iommu_domain_ctrl.dev == INVALID_IOMMU_DEV) {
 		iommu_domain_ctrl.dev = iommu_dev;
 		arm_smmu_domain_finalise();
@@ -2330,185 +2516,6 @@ void smmu_device_exit(void)
 }
 
 #if 0
-/* IRQ and event handlers */
-static irqreturn_t arm_smmu_evtq_thread(int irq, void *dev)
-{
-	int i;
-	struct arm_smmu_device *smmu = dev;
-	struct arm_smmu_queue *q = &smmu->evtq.q;
-	struct arm_smmu_ll_queue *llq = &q->llq;
-	u64 evt[EVTQ_ENT_DWORDS];
-
-	do {
-		while (!queue_remove_raw(q, evt)) {
-			u8 id = FIELD_GET(EVTQ_0_ID, evt[0]);
-
-			dev_info(smmu->dev, "event 0x%02x received:\n", id);
-			for (i = 0; i < ARRAY_SIZE(evt); ++i)
-				dev_info(smmu->dev, "\t0x%016llx\n",
-					 (unsigned long long)evt[i]);
-
-		}
-
-		/*
-		 * Not much we can do on overflow, so scream and pretend we're
-		 * trying harder.
-		 */
-		if (queue_sync_prod_in(q) == -EOVERFLOW)
-			dev_err(smmu->dev, "EVTQ overflow detected -- events lost\n");
-	} while (!queue_empty(llq));
-
-	/* Sync our overflow flag, as we believe we're up to speed */
-	llq->cons = Q_OVF(llq->prod) | Q_WRP(llq, llq->cons) |
-		    Q_IDX(llq, llq->cons);
-	return IRQ_HANDLED;
-}
-
-static void arm_smmu_handle_ppr(struct arm_smmu_device *smmu, u64 *evt)
-{
-	u32 sid, ssid;
-	u16 grpid;
-	bool ssv, last;
-
-	sid = FIELD_GET(PRIQ_0_SID, evt[0]);
-	ssv = FIELD_GET(PRIQ_0_SSID_V, evt[0]);
-	ssid = ssv ? FIELD_GET(PRIQ_0_SSID, evt[0]) : 0;
-	last = FIELD_GET(PRIQ_0_PRG_LAST, evt[0]);
-	grpid = FIELD_GET(PRIQ_1_PRG_IDX, evt[1]);
-
-	dev_info(smmu->dev, "unexpected PRI request received:\n");
-	dev_info(smmu->dev,
-		 "\tsid 0x%08x.0x%05x: [%u%s] %sprivileged %s%s%s access at iova 0x%016llx\n",
-		 sid, ssid, grpid, last ? "L" : "",
-		 evt[0] & PRIQ_0_PERM_PRIV ? "" : "un",
-		 evt[0] & PRIQ_0_PERM_READ ? "R" : "",
-		 evt[0] & PRIQ_0_PERM_WRITE ? "W" : "",
-		 evt[0] & PRIQ_0_PERM_EXEC ? "X" : "",
-		 evt[1] & PRIQ_1_ADDR_MASK);
-
-	if (last) {
-		struct arm_smmu_cmdq_ent cmd = {
-			.opcode			= CMDQ_OP_PRI_RESP,
-			.substream_valid	= ssv,
-			.pri			= {
-				.sid	= sid,
-				.ssid	= ssid,
-				.grpid	= grpid,
-				.resp	= PRI_RESP_DENY,
-			},
-		};
-
-		arm_smmu_cmdq_issue_cmd(smmu, &cmd);
-	}
-}
-
-static irqreturn_t arm_smmu_priq_thread(int irq, void *dev)
-{
-	struct arm_smmu_device *smmu = dev;
-	struct arm_smmu_queue *q = &smmu->priq.q;
-	struct arm_smmu_ll_queue *llq = &q->llq;
-	u64 evt[PRIQ_ENT_DWORDS];
-
-	do {
-		while (!queue_remove_raw(q, evt))
-			arm_smmu_handle_ppr(smmu, evt);
-
-		if (queue_sync_prod_in(q) == -EOVERFLOW)
-			dev_err(smmu->dev, "PRIQ overflow detected -- requests lost\n");
-	} while (!queue_empty(llq));
-
-	/* Sync our overflow flag, as we believe we're up to speed */
-	llq->cons = Q_OVF(llq->prod) | Q_WRP(llq, llq->cons) |
-		      Q_IDX(llq, llq->cons);
-	queue_sync_cons_out(q);
-	return IRQ_HANDLED;
-}
-
-static int arm_smmu_device_disable(struct arm_smmu_device *smmu);
-
-static irqreturn_t arm_smmu_gerror_handler(int irq, void *dev)
-{
-	u32 gerror, gerrorn, active;
-	struct arm_smmu_device *smmu = dev;
-
-	gerror = readl_relaxed(smmu->base + ARM_SMMU_GERROR);
-	gerrorn = readl_relaxed(smmu->base + ARM_SMMU_GERRORN);
-
-	active = gerror ^ gerrorn;
-	if (!(active & GERROR_ERR_MASK))
-		return IRQ_NONE; /* No errors pending */
-
-	dev_warn(smmu->dev,
-		 "unexpected global error reported (0x%08x), this could be serious\n",
-		 active);
-
-	if (active & GERROR_SFM_ERR) {
-		dev_err(smmu->dev, "device has entered Service Failure Mode!\n");
-		arm_smmu_device_disable(smmu);
-	}
-
-	if (active & GERROR_MSI_GERROR_ABT_ERR)
-		dev_warn(smmu->dev, "GERROR MSI write aborted\n");
-
-	if (active & GERROR_MSI_PRIQ_ABT_ERR)
-		dev_warn(smmu->dev, "PRIQ MSI write aborted\n");
-
-	if (active & GERROR_MSI_EVTQ_ABT_ERR)
-		dev_warn(smmu->dev, "EVTQ MSI write aborted\n");
-
-	if (active & GERROR_MSI_CMDQ_ABT_ERR)
-		dev_warn(smmu->dev, "CMDQ MSI write aborted\n");
-
-	if (active & GERROR_PRIQ_ABT_ERR)
-		dev_err(smmu->dev, "PRIQ write aborted -- events may have been lost\n");
-
-	if (active & GERROR_EVTQ_ABT_ERR)
-		dev_err(smmu->dev, "EVTQ write aborted -- events may have been lost\n");
-
-	if (active & GERROR_CMDQ_ERR)
-		arm_smmu_cmdq_skip_err(smmu);
-
-	writel(gerror, smmu->base + ARM_SMMU_GERRORN);
-	return IRQ_HANDLED;
-}
-
-static irqreturn_t arm_smmu_combined_irq_thread(int irq, void *dev)
-{
-	struct arm_smmu_device *smmu = dev;
-
-	arm_smmu_evtq_thread(irq, dev);
-	if (smmu->features & ARM_SMMU_FEAT_PRI)
-		arm_smmu_priq_thread(irq, dev);
-
-	return IRQ_HANDLED;
-}
-
-static irqreturn_t arm_smmu_combined_irq_handler(int irq, void *dev)
-{
-	arm_smmu_gerror_handler(irq, dev);
-	return IRQ_WAKE_THREAD;
-}
-
-static const struct iommu_flush_ops arm_smmu_flush_ops = {
-	.tlb_flush_all	= arm_smmu_tlb_inv_context,
-	.tlb_flush_walk = arm_smmu_tlb_inv_walk,
-	.tlb_flush_leaf = arm_smmu_tlb_inv_leaf,
-	.tlb_add_page	= arm_smmu_tlb_inv_page_nosync,
-};
-
-/* IOMMU API */
-static bool arm_smmu_capable(enum iommu_cap cap)
-{
-	switch (cap) {
-	case IOMMU_CAP_CACHE_COHERENCY:
-		return true;
-	case IOMMU_CAP_NOEXEC:
-		return true;
-	default:
-		return false;
-	}
-}
-
 static struct iommu_domain *arm_smmu_domain_alloc(unsigned type)
 {
 	struct arm_smmu_domain *smmu_domain;
@@ -2565,25 +2572,6 @@ static void arm_smmu_domain_free(struct iommu_domain *domain)
 	kfree(smmu_domain);
 }
 
-static void arm_smmu_detach_dev(struct arm_smmu_master *master)
-{
-	irq_flags_t flags;
-	struct arm_smmu_domain *smmu_domain = master->domain;
-
-	if (!smmu_domain)
-		return;
-
-	arm_smmu_disable_ats(master);
-
-	spin_lock_irqsave(&smmu_domain->devices_lock, flags);
-	list_del(&master->domain_head);
-	spin_unlock_irqrestore(&smmu_domain->devices_lock, flags);
-
-	master->domain = NULL;
-	master->ats_enabled = false;
-	arm_smmu_install_ste_for_dev(master);
-}
-
 static phys_addr_t
 arm_smmu_iova_to_phys(struct iommu_domain *domain, dma_addr_t iova)
 {
@@ -2597,8 +2585,6 @@ arm_smmu_iova_to_phys(struct iommu_domain *domain, dma_addr_t iova)
 
 	return ops->iova_to_phys(ops, iova);
 }
-
-static struct iommu_ops arm_smmu_ops;
 
 static int arm_smmu_add_device(struct device *dev)
 {
@@ -2622,16 +2608,11 @@ static void arm_smmu_get_resv_regions(struct device *dev,
 }
 
 static struct iommu_ops arm_smmu_ops = {
-	.capable		= arm_smmu_capable,
 	.domain_alloc		= arm_smmu_domain_alloc,
 	.domain_free		= arm_smmu_domain_free,
-	.attach_dev		= arm_smmu_attach_dev,
 	.map			= arm_smmu_map,
 	.unmap			= arm_smmu_unmap,
-	.flush_iotlb_all	= arm_smmu_flush_iotlb_all,
-	.iotlb_sync		= arm_smmu_iotlb_sync,
 	.iova_to_phys		= arm_smmu_iova_to_phys,
-	.remove_device		= arm_smmu_remove_device,
 	.get_resv_regions	= arm_smmu_get_resv_regions,
 	.put_resv_regions	= generic_iommu_put_resv_regions,
 	.pgsize_bitmap		= -1UL, /* Restricted during device attach */
@@ -2706,92 +2687,5 @@ static void arm_smmu_setup_msis(struct arm_smmu_device *smmu)
 
 	/* Add callback to free MSIs on teardown */
 	devm_add_action(dev, arm_smmu_free_msis, dev);
-}
-
-static void arm_smmu_setup_unique_irqs(struct arm_smmu_device *smmu)
-{
-	int irq, ret;
-
-	arm_smmu_setup_msis(smmu);
-
-	/* Request interrupt lines */
-	irq = smmu->evtq.q.irq;
-	if (irq) {
-		ret = devm_request_threaded_irq(smmu->dev, irq, NULL,
-						arm_smmu_evtq_thread,
-						IRQF_ONESHOT,
-						"arm-smmu-v3-evtq", smmu);
-		if (ret < 0)
-			dev_warn(smmu->dev, "failed to enable evtq irq\n");
-	} else {
-		dev_warn(smmu->dev, "no evtq irq - events will not be reported!\n");
-	}
-
-	irq = smmu->gerr_irq;
-	if (irq) {
-		ret = devm_request_irq(smmu->dev, irq, arm_smmu_gerror_handler,
-				       0, "arm-smmu-v3-gerror", smmu);
-		if (ret < 0)
-			dev_warn(smmu->dev, "failed to enable gerror irq\n");
-	} else {
-		dev_warn(smmu->dev, "no gerr irq - errors will not be reported!\n");
-	}
-
-	if (smmu->features & ARM_SMMU_FEAT_PRI) {
-		irq = smmu->priq.q.irq;
-		if (irq) {
-			ret = devm_request_threaded_irq(smmu->dev, irq, NULL,
-							arm_smmu_priq_thread,
-							IRQF_ONESHOT,
-							"arm-smmu-v3-priq",
-							smmu);
-			if (ret < 0)
-				dev_warn(smmu->dev,
-					 "failed to enable priq irq\n");
-		} else {
-			dev_warn(smmu->dev, "no priq irq - PRI will be broken\n");
-		}
-	}
-}
-
-static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
-{
-	int ret, irq;
-	u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
-
-	/* Disable IRQs first */
-	ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
-				      ARM_SMMU_IRQ_CTRLACK);
-	if (ret) {
-		dev_err(smmu->dev, "failed to disable irqs\n");
-		return ret;
-	}
-
-	irq = smmu->combined_irq;
-	if (irq) {
-		/*
-		 * Cavium ThunderX2 implementation doesn't support unique irq
-		 * lines. Use a single irq line for all the SMMUv3 interrupts.
-		 */
-		ret = devm_request_threaded_irq(smmu->dev, irq,
-					arm_smmu_combined_irq_handler,
-					arm_smmu_combined_irq_thread,
-					IRQF_ONESHOT,
-					"arm-smmu-v3-combined-irq", smmu);
-		if (ret < 0)
-			dev_warn(smmu->dev, "failed to enable combined irq\n");
-	} else
-		arm_smmu_setup_unique_irqs(smmu);
-
-	if (smmu->features & ARM_SMMU_FEAT_PRI)
-		irqen_flags |= IRQ_CTRL_PRIQ_IRQEN;
-
-	/* Enable interrupt generation on the SMMU */
-	ret = arm_smmu_write_reg_sync(smmu, irqen_flags,
-				      ARM_SMMU_IRQ_CTRL, ARM_SMMU_IRQ_CTRLACK);
-	if (ret)
-		dev_warn(smmu->dev, "failed to enable irqs\n");
-
-	return 0;
 }
 #endif
