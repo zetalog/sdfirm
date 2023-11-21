@@ -338,7 +338,7 @@
  * When the SMMU only supports linear context descriptor tables, pick a
  * reasonable size limit (64kB).
  */
-#define CTXDESC_LINEAR_CDMAX		ilog2(SZ_64K / (CTXDESC_CD_DWORDS << 3))
+#define CTXDESC_LINEAR_CDMAX		ilog2_const(SZ_64K / (CTXDESC_CD_DWORDS << 3))
 
 /* Command queue */
 #define CMDQ_ENT_SZ_SHIFT		4
@@ -669,7 +669,7 @@ struct arm_smmu_priq {
 		struct arm_smmu_s1_cfg s1_cfg;		\
 		struct arm_smmu_s2_cfg s2_cfg;		\
 	};						\
-	struct list_head		devices;
+	struct list_head devices;
 
 #include <driver/smmu_common.h>
 
@@ -681,10 +681,7 @@ void smmuv3_tlb_inv_page_nosync(struct iommu_iotlb_gather *gather,
 void smmuv3_flush_iotlb_all(void);
 void smmuv3_iotlb_sync(struct iommu_iotlb_gather *gather);
 
-void smmu_group_select(void);
-void smmu_group_free(void);
-
-void smmu_stream_install(void);
-void smmu_stream_uninstall(void);
+void smmu_master_init(void);
+void smmu_master_attach(void);
 
 #endif /* __ARM_SMMUv3_H_INCLUDE__ */

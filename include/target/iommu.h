@@ -164,27 +164,35 @@ struct scatterlist {
 };
 
 struct iommu_device {
-	bool valid;
 	iommu_dev_t id;
+	bool valid;
 	dma_t dma;		/* contain DMA_PHYS_OFFSET */
 	unsigned long pgsize_bitmap;
-
-	/* RID and RID map count */
-	int count;
-	iommu_map_t iommus[MAX_IOMMU_RIDS];
 };
 
 struct iommu_group {
 	iommu_grp_t id;
+	bool valid;
 	iommu_dev_t dev;
 	iommu_dom_t default_dom;
 	iommu_dom_t dom;
+
+	/* RID and RID map count */
 	int nr_iommus;
-	iommu_t *iommus;
+	iommu_map_t iommus[MAX_IOMMU_RIDS];
+	bool is_pci;
+};
+
+struct iommu_domain_geometry {
+	dma_addr_t aperture_start; /* First address that can be mapped    */
+	dma_addr_t aperture_end;   /* Last address that can be mapped     */
+	bool force_aperture;       /* DMA only allowed in mappable range? */
 };
 
 struct iommu_domain {
 	iommu_dom_t id;
+	bool valid;
+	iommu_dev_t dev;
 	iommu_grp_t grp;
 	uint8_t type;
 #define IOMMU_DOMAIN_BLOCKED		0
@@ -199,14 +207,16 @@ struct iommu_domain {
 #endif
 	unsigned long pgsize_bitmap;
 	iommu_fmt_t fmt;
+	struct iommu_domain_geometry geometry;
 };
 
-iommu_grp_t iommu_alloc_group(int nr_iomms, iommu_t *iommus);
+iommu_grp_t iommu_alloc_group(void);
 void iommu_free_group(iommu_grp_t grp);
 iommu_dom_t iommu_alloc_domain(uint8_t type);
 void iommu_free_domain(iommu_dom_t dom);
 
 void iommu_register_dma(int nr_iommus, iommu_t *iommus);
+void iommu_register_pci_dma(int nr_iommus, iommu_t *iommus);
 
 int iommu_map(unsigned long iova, size_t size, phys_addr_t paddr, int prot);
 int iommu_unmap(unsigned long iova, size_t size);

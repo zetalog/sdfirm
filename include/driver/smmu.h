@@ -1129,9 +1129,6 @@ struct arm_smmu_domain {
 		} while ((size) -= (gran));				\
 	} while (0)
 
-void smmu_group_free(void);
-void smmu_stream_uninstall(void);
-void smmu_stream_install(void);
 void smmu_tlb_sync_global(void);
 void smmu_tlb_sync_context(void);
 void smmu_tlb_inv_context_s1(void);
