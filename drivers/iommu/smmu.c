@@ -543,6 +543,14 @@ void smmu_stream_install(void)
 }
 #endif
 
+void smmu_master_init(void)
+{
+}
+
+void smmu_master_attach(void)
+{
+}
+
 void smmu_device_exit(void)
 {
 	smmu_disable(iommu_dev);
@@ -554,3 +562,9 @@ void smmu_device_init(void)
 	smmu_device_reset();
 	smmu_test_smr_masks();
 }
+
+#ifdef SYS_REALTIME
+void smmu_poll_irqs(void)
+{
+}
+#endif
