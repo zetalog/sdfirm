@@ -1144,4 +1144,11 @@ void smmu_tlb_inv_any_s2_v1(unsigned long iova, size_t size, size_t granule);
 void smmu_tlb_add_page_s2_v1(unsigned long iova, size_t granule);
 #endif
 
+void smmu_master_init(void);
+void smmu_master_attach(void);
+
+#ifdef SYS_REALTIME
+void smmu_poll_irqs(void);
+#endif
+
 #endif /* __SMMU_H_INCLUDE__ */

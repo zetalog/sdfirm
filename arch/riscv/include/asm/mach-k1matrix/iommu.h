@@ -94,6 +94,9 @@
 #define iommu_hw_domain_select()			smmu_domain_select()
 #define iommu_hw_group_init()				smmu_master_init()
 #define iommu_hw_group_attach()				smmu_master_attach()
+#ifdef SYS_REALTIME
+#define iommu_hw_poll_irqs()				smmu_poll_irqs()
+#endif
 
 #ifdef CONFIG_K1MATRIX_SMMUv2
 #define iommu_hw_tlb_flush_all()			\

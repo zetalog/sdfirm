@@ -2,26 +2,6 @@
 #include <target/iommu-pgtable.h>
 #include <target/panic.h>
 
-#if 0
-static phys_addr_t arm_smmu_msi_cfg[ARM_SMMU_MAX_MSIS][3] = {
-	[EVTQ_MSI_INDEX] = {
-		SMMU_EVTQ_IRQ_CFG0,
-		SMMU_EVTQ_IRQ_CFG1,
-		SMMU_EVTQ_IRQ_CFG2,
-	},
-	[GERROR_MSI_INDEX] = {
-		SMMU_GERROR_IRQ_CFG0,
-		SMMU_GERROR_IRQ_CFG1,
-		SMMU_GERROR_IRQ_CFG2,
-	},
-	[PRIQ_MSI_INDEX] = {
-		SMMU_PRIQ_IRQ_CFG0,
-		SMMU_PRIQ_IRQ_CFG1,
-		SMMU_PRIQ_IRQ_CFG2,
-	},
-};
-#endif
-
 bool smmu_disable_bypass = false;
 
 static inline caddr_t arm_smmu_page1_fixup(caddr_t reg)
@@ -2041,11 +2021,6 @@ static int arm_smmu_device_disable(void)
 	return ret;
 }
 
-iommu_dev_t arm_smmu_save_irq(irq_t irq)
-{
-	return INVALID_IOMMU_DEV;
-}
-
 /* IRQ and event handlers */
 static void arm_smmu_evtq_thread(irq_t irq)
 {
@@ -2053,9 +2028,7 @@ static void arm_smmu_evtq_thread(irq_t irq)
 	struct arm_smmu_queue *q = &smmu_device_ctrl.evtq.q;
 	struct arm_smmu_ll_queue *llq = &q->llq;
 	uint64_t evt[EVTQ_ENT_DWORDS];
-	__unused iommu_dev_t dev;
 
-	dev = arm_smmu_save_irq(irq);
 	do {
 		while (!queue_remove_raw(q, evt)) {
 			uint8_t id = FIELD_GET(EVTQ_0_ID, evt[0]);
@@ -2078,7 +2051,6 @@ static void arm_smmu_evtq_thread(irq_t irq)
 	/* Sync our overflow flag, as we believe we're up to speed */
 	llq->u.cons = Q_OVF(llq->u.prod) | Q_WRP(llq, llq->u.cons) |
 		      Q_IDX(llq, llq->u.cons);
-	iommu_device_restore(dev);
 }
 
 static void arm_smmu_handle_ppr(uint64_t *evt)
@@ -2123,9 +2095,7 @@ static void arm_smmu_priq_thread(irq_t irq)
 	struct arm_smmu_queue *q;
 	struct arm_smmu_ll_queue *llq;
 	uint64_t evt[PRIQ_ENT_DWORDS];
-	__unused iommu_dev_t dev;
 
-	dev = arm_smmu_save_irq(irq);
 	q = &smmu_device_ctrl.priq.q;
 	llq = &q->llq;
 	do {
@@ -2140,21 +2110,18 @@ static void arm_smmu_priq_thread(irq_t irq)
 	llq->u.cons = Q_OVF(llq->u.prod) | Q_WRP(llq, llq->u.cons) |
 		      Q_IDX(llq, llq->u.cons);
 	queue_sync_cons_out(q);
-	iommu_device_restore(dev);
 }
 
 static void arm_smmu_gerror_handler(irq_t irq)
 {
 	uint32_t gerror, gerrorn, active;
-	__unused iommu_dev_t dev;
 
-	dev = arm_smmu_save_irq(irq);
 	gerror = __raw_readl(SMMU_GERROR(iommu_dev));
 	gerrorn = __raw_readl(SMMU_GERRORN(iommu_dev));
 
 	active = gerror ^ gerrorn;
 	if (!(active & GERROR_ERR_MASK))
-		goto exit_no_err; /* No errors pending */
+		return; /* No errors pending */
 
 	con_log("unexpected global error reported (0x%08x), this could be serious\n",
 		active);
@@ -2186,25 +2153,81 @@ static void arm_smmu_gerror_handler(irq_t irq)
 		arm_smmu_cmdq_skip_err();
 
 	__raw_writel(gerror, SMMU_GERRORN(iommu_dev));
-exit_no_err:
+}
+
+#ifdef SYS_REALTIME
+void smmu_poll_irqs(void)
+{
+	irq_t irq;
+
+	irq = smmu_device_ctrl.evtq.q.irq;
+	arm_smmu_evtq_thread(irq);
+	irq = smmu_device_ctrl.gerr_irq;
+	arm_smmu_gerror_handler(irq);
+	if (smmu_device_ctrl.features & ARM_SMMU_FEAT_PRI) {
+		irq = smmu_device_ctrl.priq.q.irq;
+		arm_smmu_priq_thread(irq);
+	}
+}
+#define arm_smmu_setup_unique_irqs()	do { } while (0)
+#else /* SYS_REALTIME */
+iommu_dev_t arm_smmu_save_irq(irq_t irq)
+{
+	return INVALID_IOMMU_DEV;
+}
+
+static void arm_smmu_handle_evtq(irq_t irq)
+{
+	__unused iommu_dev_t dev;
+
+	dev = arm_smmu_save_irq(irq);
+	arm_smmu_evtq_thread(irq);
 	iommu_device_restore(dev);
 }
 
-#ifdef CONFIG_SYS_NOIRQ
+static void arm_smmu_handle_gerr(irq_t irq)
+{
+	__unused iommu_dev_t dev;
+
+	dev = arm_smmu_save_irq(irq);
+	arm_smmu_handle_gerror(irq);
+	iommu_device_restore(dev);
+}
+
+static void arm_smmu_handle_priq(irq_t irq)
+{
+	__unused iommu_dev_t dev;
+
+	dev = arm_smmu_save_irq(irq);
+	arm_smmu_priq_thread(irq);
+	iommu_device_restore(dev);
+}
+
 static void arm_smmu_setup_unique_irqs(void)
 {
+	irq_t irq;
+
 #ifdef CONFIG_ARM_SMMU_MSI
 	arm_smmu_setup_msis();
 #endif
 
 	/* Request interrupt lines */
-	irq_register_vector(smmu_device_ctrl.evtq.q.irq,
-			    arm_smmu_evtq_thread);
-	irq_register_vector(smmu_device_ctrl.gerr_irq,
-			    arm_smmu_gerror_handler);
-	if (smmu_device_ctrl.features & ARM_SMMU_FEAT_PRI)
-		irq_register_vector(smmu_device_ctrl.priq.q.irq,
-				    arm_smmu_priq_thread);
+	irq = smmu_device_ctrl.evtq.q.irq;
+	irqc_configure_irq(irq, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(irq, arm_smmu_handle_evtq);
+	irqc_enable_irq(irq);
+
+	irq = smmu_device_ctrl.gerr_irq;
+	irqc_configure_irq(irq, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(irq, arm_smmu_handle_gerr);
+	irqc_enable_irq(irq);
+
+	if (smmu_device_ctrl.features & ARM_SMMU_FEAT_PRI) {
+		irq = smmu_device_ctrl.priq.q.irq;
+		irqc_configure_irq(irq, 0, IRQ_LEVEL_TRIGGERED);
+		irq_register_vector(irq, arm_smmu_handle_priq);
+		irqc_enable_irq(irq);
+	}
 }
 #endif
 
@@ -2516,7 +2539,7 @@ void smmu_device_exit(void)
 }
 
 #if 0
-static struct iommu_domain *arm_smmu_domain_alloc(unsigned type)
+iommu_dom_t arm_smmu_domain_alloc(unsigned type)
 {
 	struct arm_smmu_domain *smmu_domain;
 
@@ -2547,7 +2570,7 @@ static struct iommu_domain *arm_smmu_domain_alloc(unsigned type)
 	return &smmu_domain->domain;
 }
 
-static void arm_smmu_domain_free(struct iommu_domain *domain)
+static void arm_smmu_domain_free(iommu_dom_t dom)
 {
 	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
@@ -2603,7 +2626,6 @@ static void arm_smmu_get_resv_regions(struct device *dev,
 		return;
 
 	list_add_tail(&region->list, head);
-
 	iommu_dma_get_resv_regions(dev, head);
 }
 
@@ -2616,6 +2638,24 @@ static struct iommu_ops arm_smmu_ops = {
 	.get_resv_regions	= arm_smmu_get_resv_regions,
 	.put_resv_regions	= generic_iommu_put_resv_regions,
 	.pgsize_bitmap		= -1UL, /* Restricted during device attach */
+};
+
+static phys_addr_t arm_smmu_msi_cfg[ARM_SMMU_MAX_MSIS][3] = {
+	[EVTQ_MSI_INDEX] = {
+		SMMU_EVTQ_IRQ_CFG0,
+		SMMU_EVTQ_IRQ_CFG1,
+		SMMU_EVTQ_IRQ_CFG2,
+	},
+	[GERROR_MSI_INDEX] = {
+		SMMU_GERROR_IRQ_CFG0,
+		SMMU_GERROR_IRQ_CFG1,
+		SMMU_GERROR_IRQ_CFG2,
+	},
+	[PRIQ_MSI_INDEX] = {
+		SMMU_PRIQ_IRQ_CFG0,
+		SMMU_PRIQ_IRQ_CFG1,
+		SMMU_PRIQ_IRQ_CFG2,
+	},
 };
 
 static void arm_smmu_free_msis(void *data)
