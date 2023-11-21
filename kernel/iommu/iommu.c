@@ -88,7 +88,7 @@ iommu_grp_t iommu_group_save(iommu_grp_t grp)
 struct iommu_group iommu_group_ctrl;
 #endif
 
-iommu_grp_t iommu_alloc_group(int nr_iommus, iommu_t *iommus)
+iommu_grp_t iommu_alloc_group(void)
 {
 	__unused iommu_grp_t grp = INVALID_IOMMU_GRP, sgrp;
 
@@ -98,15 +98,13 @@ iommu_grp_t iommu_alloc_group(int nr_iommus, iommu_t *iommus)
 	for (grp = 0; grp < NR_IOMMU_GROUPS; grp++) {
 		iommu_group_restore(sgrp);
 		sgrp = iommu_group_save(grp);
-		if (iommu_group_ctrl.dev == INVALID_IOMMU_DEV) {
-			iommu_group_ctrl.dev = iommu_dev;
-			iommu_group_ctrl.nr_iommus = nr_iommus;
-			iommu_group_ctrl.iommus = iommus;
-			break;
+		if (!iommu_group_ctrl.valid) {
+			iommu_group_restore(sgrp);
+			return grp;
 		}
 	}
 	iommu_group_restore(sgrp);
-	return grp;
+	return INVALID_IOMMU_GRP;
 }
 
 void iommu_free_group(iommu_grp_t grp)
@@ -168,21 +166,20 @@ struct iommu_domain iommu_domain_ctrl;
 iommu_dom_t iommu_alloc_domain(uint8_t type)
 {
 	__unused iommu_dom_t dom = INVALID_IOMMU_DOM, sdom;
-	__unused iommu_dev_t sdev;
 
 	BUG_ON(iommu_grp == INVALID_IOMMU_GRP);
-
 	sdom = iommu_domain_save(dom);
 	for (dom = 0; dom < NR_IOMMU_DOMAINS; dom++) {
 		iommu_domain_restore(sdom);
 		sdom = iommu_domain_save(dom);
-		if (iommu_domain_ctrl.grp == INVALID_IOMMU_GRP) {
+		if (!iommu_domain_ctrl.valid) {
+			iommu_domain_ctrl.valid = true;
 			iommu_domain_ctrl.grp = iommu_grp;
+			iommu_domain_ctrl.dev = INVALID_IOMMU_DEV;
 			iommu_domain_ctrl.type = type;
-			sdev = iommu_device_save(iommu_group_ctrl.dev);
+			iommu_domain_ctrl.fmt = INVALID_IOMMU_FMT;
 			iommu_domain_ctrl.pgsize_bitmap =
 				iommu_device_ctrl.pgsize_bitmap;
-			iommu_device_restore(sdev);
 			break;
 		}
 	}
@@ -368,19 +365,27 @@ bool iommu_pgtable_alloc(iommu_cfg_t *cfg)
  * ====================================================================== */
 bool iommu_dma_mapped(iommu_map_t iommu)
 {
-	for (i = 0; i < iommu_device_ctrl.count; i++) {
-		if (iommu_device_ctrl.iommus[i] == iommu)
+	int i;
+
+	for (i = 0; i < iommu_group_ctrl.nr_iommus; i++) {
+		if (iommu_group_ctrl.iommus[i] == iommu)
 			return true;
 	}
 	return false;
 }
 
-void iommu_register_dma(int nr_iommus, iommu_t *iommus)
+void __iommu_register_dma(int nr_iommus, iommu_t *iommus, bool is_pci)
 {
 	__unused iommu_dev_t dev, sdev;
 	__unused iommu_map_t map;
+	__unused iommu_grp_t grp, sgrp;
+	__unused iommu_dom_t dom;
 	int i;
 
+	grp = iommu_alloc_group();
+	BUG_ON(grp == INVALID_IOMMU_GRP);
+
+	sgrp = iommu_group_save(grp);
 	for (i = 0; i < nr_iommus; i++) {
 		iommu_t iommu = iommus[i];
 
@@ -389,38 +394,42 @@ void iommu_register_dma(int nr_iommus, iommu_t *iommus)
 		if (!iommu_device_ctrl.valid) {
 			iommu_device_ctrl.valid = true;
 			iommu_device_ctrl.id = dev;
-			iommu_device_ctrl.count = 0;
 			iommu_device_ctrl.dma = DMA_DEFAULT;
 		}
+		if (!iommu_group_ctrl.valid) {
+			iommu_group_ctrl.valid = true;
+			iommu_group_ctrl.id = grp;
+			iommu_group_ctrl.dev = dev;
+			iommu_group_ctrl.is_pci = is_pci;
+			dom = iommu_alloc_domain(IOMMU_DOMAIN_DEFAULT);
+			BUG_ON(dom == INVALID_IOMMU_DOM);
+			iommu_group_ctrl.dom = dom;
+			iommu_group_ctrl.default_dom = dom;
+		}
+		BUG_ON(iommu_group_ctrl.dev != dev);
 		map = IOMMU_MAP(iommu);
 		if (!iommu_dma_mapped(map)) {
-			BUG_ON(iommu_device_ctrl.count >= MAX_IOMMU_RIDS);
-			iommu_device_ctrl.iommus[iommu_device_ctrl.count] = map;
-			iommu_device_ctrl.count++
+			BUG_ON(iommu_group_ctrl.nr_iommus >= MAX_IOMMU_RIDS);
+			iommu_group_ctrl.iommus[iommu_group_ctrl.nr_iommus] = map;
+			iommu_group_ctrl.nr_iommus++
 			iommu_device_restore(sdev);
 		}
 	}
+	iommu_group_restore(grp);
+}
+
+void iommu_register_dma(int nr_iommus, iommu_t *iommus)
+{
+	__iommu_register_dma(nr_iommus, iommus, false);
+}
+
+void iommu_register_pci_dma(int nr_iommus, iommu_t *iommus)
+{
+	__iommu_register_dma(nr_iommus, iommus, true);
 }
 
 #if 0
-iommu_grp_t iommu_probe_device(int nr_iommus, iommu_t *iommus)
-{
-	iommu_grp_t grp;
-	iommu_dom_t dom;
-
-	grp = iommu_hw_alloc_master(nr_iommus, iommus);
-	if (grp != INVALID_IOMMU_GRP) {
-		iommu_group_select(grp);
-		dom = iommu_alloc_domain(IOMMU_DOMAIN_DEFAULT);
-		con_log("iommu: No domain space.\n");
-		BUG_ON(dom == INVALID_IOMMU_DOM);
-		iommu_group_ctrl.dom = dom;
-		iommu_group_ctrl.default_dom = dom;
 		/* iommu_map_direct(); */
-	}
-
-	return grp;
-}
 #endif
 
 void iommu_init(void)
@@ -429,27 +438,22 @@ void iommu_init(void)
 	__unused iommu_grp_t grp, sgrp;
 	__unused iommu_dom_t dom, sdom;
 
-	/* Allocatable groups are initialized */
-	for (grp = 0; grp < NR_IOMMU_GROUPS; grp++) {
-		sgrp = iommu_group_save(grp);
-		iommu_group_ctrl.id = grp;
-		iommu_group_ctrl.dev = INVALID_IOMMU_DEV;
-		iommu_group_restore(sgrp);
-	}
-	/* Allocatable domains are initialized */
-	for (dom = 0; dom < NR_IOMMU_DOMAINS; dom++) {
-		sdom = iommu_domain_save(dom);
-		iommu_domain_ctrl.id = dom;
-		iommu_domain_ctrl.grp = INVALID_IOMMU_GRP;
-		iommu_domain_ctrl.fmt = INVALID_IOMMU_FMT;
-		iommu_domain_restore(sdom);
-	}
-
-	/* Non-allocatable devices are probed */
 	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
 		sdev = iommu_device_save(dev);
 		if (iommu_device_ctrl.valid)
-			iommu_hw_ctrl_init();
+			iommu_hw_ctrl_init(); /* .device_probe */
 		iommu_device_restore(sdev);
+	}
+	/* Non-allocatable groups are probed */
+	for (grp = 0; grp < NR_IOMMU_GROUPS; grp++) {
+		sgrp = iommu_group_save(grp);
+		if (iommu_group_ctrl.valid) {
+			iommu_hw_group_init(); /* .probe_device */
+			dom = iommu_group_ctrl.default_dom;
+			sdom = iommu_domain_save(dom);
+			iommu_hw_group_attach(); /* .attach_dev */
+			iommu_domain_restore(sdom);
+		}
+		iommu_group_restore(sgrp);
 	}
 }
