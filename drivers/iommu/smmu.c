@@ -525,6 +525,7 @@ static void smmu_device_reset(void)
 	smmu_enable(iommu_dev);
 }
 
+#if 0
 void smmu_stream_uninstall(void)
 {
 	smmu_write_s2cr(SMMU_S2CR_TYPE_INIT, 0, 0, false);
@@ -540,6 +541,7 @@ void smmu_stream_install(void)
 	sm = IOMMU_MAP_MASK(map);
 	smmu_write_smr(gr, sm, true);
 }
+#endif
 
 void smmu_device_exit(void)
 {

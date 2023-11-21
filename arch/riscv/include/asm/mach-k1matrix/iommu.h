@@ -92,6 +92,8 @@
 #ifdef ARCH_HAVE_IOMMU
 #define iommu_hw_ctrl_init()				smmu_device_init()
 #define iommu_hw_domain_select()			smmu_domain_select()
+#define iommu_hw_group_init()				smmu_master_init()
+#define iommu_hw_group_attach()				smmu_master_attach()
 
 #ifdef CONFIG_K1MATRIX_SMMUv2
 #define iommu_hw_tlb_flush_all()			\
@@ -116,6 +118,8 @@
 #define iommu_hw_iotlb_sync(gather)			\
 	smmuv3_iotlb_sync(gather)
 #endif
+
+#define smmu_hw_num_pasid_bits				0
 
 #define iommu_hw_map(iova, pgsize, paddr, prot)		0
 #define iommu_hw_unmap(iova, pgsize, gather)		0

@@ -57,6 +57,16 @@ void __set_bit(bits_t nr, volatile bits_t *addr)
 	*p |= mask;
 }
 
+bool __test_and_set_bit(bits_t nr, volatile bits_t *addr)
+{
+	bits_t mask = BITOP_MASK(nr);
+	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
+	bits_t old = *p;
+
+	*p = old | mask;
+	return (old & mask) != 0;
+}
+
 void __clear_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
@@ -77,6 +87,16 @@ void clear_bit(bits_t nr, volatile bits_t *addr)
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
 	atomic_andnot(mask, (atomic_t *)p);
+}
+
+bool test_and_set_bit(bits_t nr, volatile bits_t *addr)
+{
+	bits_t mask = BITOP_MASK(nr);
+	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
+	bits_t old = *p;
+
+	old = atomic_or_return(mask, (atomic_t *)p);
+	return (old & mask) != 0;
 }
 #endif
 
