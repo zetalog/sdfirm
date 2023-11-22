@@ -1980,10 +1980,12 @@ static int arm_smmu_write_reg_sync(uint32_t val,
 				   caddr_t reg_addr, caddr_t ack_addr)
 {
 	uint32_t reg;
+	bool ret
 
 	__raw_writel(val, reg_addr);
-	return __raw_read_poll(l, ack_addr, reg, reg == val,
-			       1, ARM_SMMU_POLL_TIMEOUT_US);
+	ret = __raw_read_poll(l, ack_addr, reg, reg == val,
+			      1, ARM_SMMU_POLL_TIMEOUT_US);
+	return ret ? 0 : -ETIMEDOUT;
 }
 
 /* GBPA is "special" */
