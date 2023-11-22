@@ -105,8 +105,10 @@ static void queue_write(uint64_t *dst, uint64_t *src, size_t n_dwords)
 {
 	int i;
 
-	for (i = 0; i < n_dwords; ++i)
+	for (i = 0; i < n_dwords; ++i) {
+		con_log("Q: %016llx=%016llx\n", (uint64_t)dst, *src);
 		*dst++ = cpu_to_le64(*src++);
+	}
 }
 
 static void queue_read(uint64_t *dst, uint64_t *src, size_t n_dwords)
@@ -996,8 +998,14 @@ static void arm_smmu_init_one_queue(struct arm_smmu_queue *q,
 
 	do {
 		qsz = ((1 << q->llq.max_n_shift) * dwords) << 3;
+#ifdef CONFIG_SIMULATION_SMMU
+		q->base = (void *)dma_alloc_coherent(iommu_device_ctrl.dma,
+						     qsz << 1, &q->base_dma);
+		q->base = (void *)ALIGN((caddr_t)q->base, qsz);
+#else
 		q->base = (void *)dma_alloc_coherent(iommu_device_ctrl.dma,
 						     qsz, &q->base_dma);
+#endif
 		if (q->base || qsz < PAGE_SIZE)
 			break;
 
@@ -1020,8 +1028,12 @@ static void arm_smmu_init_one_queue(struct arm_smmu_queue *q,
 	q->cons_reg	= arm_smmu_page1_fixup(cons_reg);
 	q->ent_dwords	= dwords;
 
+#ifdef CONFIG_SIMULATION_SMMU
+	q->q_base = q->base & Q_BASE_ADDR_MASK;
+#else
 	q->q_base  = Q_BASE_RWA;
 	q->q_base |= q->base_dma & Q_BASE_ADDR_MASK;
+#endif
 	q->q_base |= FIELD_PREP(Q_BASE_LOG2SIZE, q->llq.max_n_shift);
 
 	q->llq.u.prod = q->llq.u.cons = 0;
