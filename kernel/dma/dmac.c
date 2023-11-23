@@ -184,21 +184,20 @@ void dma_config_range(dma_t dma, phys_addr_t phys_base, dma_addr_t dma_base)
 	chan->dma_base = dma_base;
 }
 
-dma_t dma_request_channel(uint8_t direction, dma_handler h)
+void dma_request_channel(dma_t dma, uint8_t direction, dma_handler h)
 {
-	dma_t dma;
 	struct dma_channel *chan;
 
-	for (dma = 0; dma < MAX_CHANNELS; dma++) {
-		chan = dma2chan(dma);
-		if (chan->caps & _BV(direction) &&
-		    chan->direction == DMA_NONE) {
-			chan->direction = direction;
-			chan->handler = h;
-			return dma;
-		}
+	BUG_ON(dma == DMA_DEFAULT);
+
+	chan = dma2chan(dma);
+	if (chan->caps & direction &&
+	    chan->direction == DMA_NONE) {
+		chan->direction = direction;
+		chan->handler = h;
+		return;
 	}
-	return INVALID_DMA;
+	BUG();
 }
 
 #ifdef SYS_REALTIME

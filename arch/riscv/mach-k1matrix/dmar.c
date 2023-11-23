@@ -23,6 +23,10 @@ void dma_hw_unmap_single(dma_t dma, dma_addr_t addr,
 
 void dmac_hw_ctrl_init(void)
 {
+	dma_t dma;
+
+	for (dma = DMA_DEFAULT + 1; dma < NR_DMAS; dma++)
+		dma_register_channel(dma, SVT_DMAC_CAPS);
 	iommu_register_dma(ARRAY_SIZE(k1matrix_dmac_iommus),
 				      k1matrix_dmac_iommus);
 }

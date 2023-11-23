@@ -42,15 +42,12 @@
 #ifndef __DMAC_K1MATRIX_H_INCLUDE__
 #define __DMAC_K1MATRIX_H_INCLUDE__
 
-#define DW_DMA_BASE(n)		DMA_BASE
-#define DW_DMA_MAX_CHIPS	1
-#define DW_DMA_MAX_CHANS	8
-#define DW_DMAC_CAPS		(DMA_CAP_MEM_TO_DEV | DMA_CAP_DEV_TO_MEM | \
+#define SVT_DMAC_CAPS		(DMA_CAP_MEM_TO_DEV | DMA_CAP_DEV_TO_MEM | \
 				 DMA_CAP_MEM_TO_MEM | DMA_CAP_DEV_TO_DEV | \
 				 DMA_CAP_COHERENT)
 
-#if defined(CONFIG_DW_DMA)
-#include <driver/dw_dma.h>
+#if defined(CONFIG_DMA_SVT)
+#include <driver/svtdma.h>
 #ifndef ARCH_HAVE_DMAC
 #define ARCH_HAVE_DMAC		1
 #else
@@ -58,18 +55,12 @@
 #endif
 #endif
 
-#define DW_DMA_CHIP_IRQ		IRQ_DMAC
-#define DW_DMA_CHAN_IRQ(n)	INVALID_IRQ
-
 void smmu_dma_alloc_sme(void);
-
 void dmac_hw_ctrl_init(void);
-
 dma_addr_t dma_hw_map_single(dma_t dma, phys_addr_t ptr,
 			     size_t size, dma_dir_t dir);
 void dma_hw_unmap_single(dma_t dma, dma_addr_t addr,
 			 size_t size, dma_dir_t dir);
-
 
 #define dmac_hw_irq_poll()		do { } while (0)
 #define dmac_hw_irq_init()		do { } while (0)
