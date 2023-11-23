@@ -18,6 +18,7 @@ config K1MATRIX
 	select CPU_ZIOMMU if K1MATRIX_IOMMU
 	select K1MATRIX_DMAR if IOMMU
 	select K1MATRIX_DMAC if DMAC
+	select K1MATRIX_BMU if PERF
 	help
 	  This configuration contains server SoC design.
 
@@ -273,6 +274,10 @@ menuconfig K1MATRIX_DMAC
 if K1MATRIX_DMAC
 
 endif
+
+menuconfig K1MATRIX_BMU
+	bool "Enable K1Matrix bus monitor unit (BMU) support"
+	depends ARCH_HAS_PMU
 
 endmenu
 
