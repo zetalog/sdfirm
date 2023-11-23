@@ -879,19 +879,11 @@ out_free_data:
 	return false;
 }
 
-bool iommu_armv8_pgtable_alloc(struct io_pgtable_cfg *cfg)
+bool arm_lpae_pgtable_alloc(struct io_pgtable_cfg *cfg)
 {
 	if (iommu_domain_ctrl.fmt == ARM_64_LPAE_S1)
 		return arm_64_lpae_alloc_pgtable_s1(cfg);
 	else if (iommu_domain_ctrl.fmt == ARM_64_LPAE_S2)
 		return arm_64_lpae_alloc_pgtable_s2(cfg);
 	return false;
-}
-
-void iommu_armv8_pgtable_free(void)
-{
-	if (iommu_domain_ctrl.fmt == ARM_64_LPAE_S1)
-		arm_lpae_free_pgtable();
-	else if (iommu_domain_ctrl.fmt == ARM_64_LPAE_S2)
-		arm_lpae_free_pgtable();
 }

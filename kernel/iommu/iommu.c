@@ -275,7 +275,7 @@ static size_t iommu_pgsize(unsigned long addr_merge, size_t size)
 	return pgsize;
 }
 
-int iommu_map(unsigned long iova, size_t size, phys_addr_t paddr, int prot)
+int iommu_map(unsigned long iova, phys_addr_t paddr, size_t size, int prot)
 {
 	unsigned long orig_iova = iova;
 	unsigned long orig_size = size;
@@ -288,7 +288,7 @@ int iommu_map(unsigned long iova, size_t size, phys_addr_t paddr, int prot)
 	while (size) {
 		size_t pgsize = iommu_pgsize(iova | paddr, size);
 
-		ret = iommu_hw_map(iova, pgsize, paddr, prot);
+		ret = iommu_hw_map(iova, paddr, pgsize, prot);
 		if (ret)
 			break;
 

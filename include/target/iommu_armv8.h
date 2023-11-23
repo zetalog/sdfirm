@@ -42,15 +42,12 @@
 #ifndef __IOMMU_PGTABLE_ARM_H_INCLUDE__
 #define __IOMMU_PGTABLE_ARM_H_INCLUDE__
 
-bool arm_64_lpae_alloc_pgtable_s1(struct io_pgtable_cfg *cfg);
+bool arm_lpae_pgtable_alloc(struct io_pgtable_cfg *cfg);
 void arm_lpae_free_pgtable(void);
 int arm_lpae_map(unsigned long iova, phys_addr_t paddr,
 		 size_t size, int iommu_prot);
 size_t arm_lpae_unmap(unsigned long iova, size_t size,
 		      struct iommu_iotlb_gather *gather);
 phys_addr_t arm_lpae_iova_to_phys(unsigned long iova);
-
-bool iommu_armv8_pgtable_alloc(struct io_pgtable_cfg *cfg);
-void iommu_armv8_pgtable_free(void);
 
 #endif /* __IOMMU_PGTABLE_ARM_H_INCLUDE__ */
