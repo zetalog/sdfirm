@@ -42,21 +42,22 @@
 #ifndef __DMA_DUOWEN_H_INCLUDE__
 #define __DMA_DUOWEN_H_INCLUDE__
 
-#define DMA_DMAC_CH0	1
-#define DMA_DMAC_CH1	2
-#define DMA_DMAC_CH2	3
-#define DMA_DMAC_CH3	4
-#define DMA_DMAC_CH4	5
-#define DMA_DMAC_CH5	6
-#define DMA_DMAC_CH6	7
-#define DMA_DMAC_CH7	8
-#define DMA_DMAC_MAX	9
-#define DMA_PCIE_DMA0	9
-#define DMA_PCIE_DMA1	10
-#define DMA_PCIE_DMA2	11
-#define DMA_PCIE_DMA3	12
-#define DMA_PCIE_MAX	13
+#define DMA_DMAC_CH0	0
+#define DMA_DMAC_CH1	1
+#define DMA_DMAC_CH2	2
+#define DMA_DMAC_CH3	3
+#define DMA_DMAC_CH4	4
+#define DMA_DMAC_CH5	5
+#define DMA_DMAC_CH6	6
+#define DMA_DMAC_CH7	7
+#define DMA_DMAC_MAX	8
 
-#define NR_DMAS		13
+#define DMA_PCIE_DMA0	8
+#define DMA_PCIE_DMA1	9
+#define DMA_PCIE_DMA2	10
+#define DMA_PCIE_DMA3	11
+#define DMA_PCIE_MAX	12
+
+#define NR_DMAS		12
 
 #endif /* __DMA_DUOWEN_H_INCLUDE__ */
