@@ -114,15 +114,6 @@ typedef struct io_pgtable_cfg {
 	};
 } iommu_cfg_t;
 
-#ifdef CONFIG_IOMMU_MAX_PGTABLES
-#define NR_IOMMU_PGTABLES	CONFIG_IOMMU_MAX_PGTABLES
-#else
-#define NR_IOMMU_PGTABLES	1
-#endif
-#define INVALID_IOMMU_TBL	NR_IOMMU_PGTABLES
-
-typedef uint8_t iommu_tbl_t;
-
 struct io_pgtable {
 	enum io_pgtable_fmt fmt;
 	struct io_pgtable_cfg cfg;
