@@ -42,11 +42,11 @@
 #ifndef __DMA_K1MATRIX_H_INCLUDE__
 #define __DMA_K1MATRIX_H_INCLUDE__
 
-#define DMA_DMAC_CH0	1
-#define DMA_DMAC_CH1	2
-#define DMA_DMAC_CH2	3
-#define DMA_DMAC_CH3	4
-#define NR_DMAC_DMAS	5
-#define NR_DMAS		5
+#define DMA_DMAC_CH0	0
+#define DMA_DMAC_CH1	1
+#define DMA_DMAC_CH2	2
+#define DMA_DMAC_CH3	3
+#define NR_DMAC_DMAS	4
+#define NR_DMAS		4
 
 #endif /* __DMA_K1MATRIX_H_INCLUDE__ */

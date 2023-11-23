@@ -88,7 +88,7 @@ void dmac_hw_ctrl_init(void)
 	dma_t dma;
 
 	clk_enable(dma_clk);
-	for (dma = DMA_DEFAULT + 1; dma < NR_DMAS; dma++)
+	for (dma = 0; dma < NR_DMAS; dma++)
 		dma_register_channel(dma, DW_DMAC_CAPS);
         dw_dma_chip_init(0, DW_DMA_CHIP_IRQ);
 }

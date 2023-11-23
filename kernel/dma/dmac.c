@@ -147,7 +147,7 @@ bool do_DMA(dma_t dma, bool success)
 	uint8_t curr;
 	struct dma_channel *chan;
 
-	BUG_ON(dma >= NR_DMAS || dma <= 0);
+	BUG_ON(dma >= NR_DMAS || dma < 0);
 	for (curr = 0; curr < dma_nr_regs; curr++) {
 		if (dma == dma_nr_table[curr]) {
 			chan = dma2chan(dma);
@@ -165,7 +165,7 @@ void dma_register_channel(dma_t dma, dma_caps_t caps)
 	dma_t curr = dma_nr_regs;
 	struct dma_channel *chan = dma2chan(dma);
 
-	BUG_ON(dma <= 0 || dma >= NR_DMAS);
+	BUG_ON(dma < 0 || dma >= NR_DMAS);
 	BUG_ON(curr == MAX_CHANNELS);
 	dma_nr_table[curr] = dma;
 	dma_nr_regs++;
@@ -188,8 +188,7 @@ void dma_request_channel(dma_t dma, uint8_t direction, dma_handler h)
 {
 	struct dma_channel *chan;
 
-	BUG_ON(dma == DMA_DEFAULT);
-
+	BUG_ON(dma < 0 || dma >= NR_DMAS);
 	chan = dma2chan(dma);
 	if (chan->caps & direction &&
 	    chan->direction == DMA_NONE) {
