@@ -1693,9 +1693,6 @@ static void arm_smmu_domain_finalise(void)
 {
 	unsigned long ias, oas;
 	struct io_pgtable_cfg pgtbl_cfg;
-#if 0
-	struct io_pgtable_ops *pgtbl_ops;
-#endif
 	int (*finalise_stage_fn)(struct io_pgtable_cfg *);
 
 	if (iommu_domain_ctrl.type == IOMMU_DOMAIN_IDENTITY) {
@@ -1744,11 +1741,7 @@ static void arm_smmu_domain_finalise(void)
 		pgtbl_cfg.quirks |= IO_PGTABLE_QUIRK_NON_STRICT;
 #endif
 
-#if 0
-	pgtbl_ops = alloc_io_pgtable_ops(fmt, &pgtbl_cfg, smmu_domain);
-	if (!pgtbl_ops)
-		return -ENOMEM;
-#endif
+	BUG_ON(!iommu_pgtable_alloc(&pgtbl_cfg));
 
 	iommu_domain_ctrl.pgsize_bitmap = pgtbl_cfg.pgsize_bitmap;
 	iommu_domain_ctrl.geometry.aperture_end = (1UL << pgtbl_cfg.ias) - 1;

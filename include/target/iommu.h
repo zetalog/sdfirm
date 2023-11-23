@@ -208,6 +208,7 @@ struct iommu_domain {
 	unsigned long pgsize_bitmap;
 	iommu_fmt_t fmt;
 	struct iommu_domain_geometry geometry;
+	struct io_pgtable_cfg cfg;
 };
 
 iommu_grp_t iommu_alloc_group(void);
