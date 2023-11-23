@@ -183,6 +183,7 @@ iommu_dom_t iommu_alloc_domain(uint8_t type)
 			iommu_domain_ctrl.fmt = INVALID_IOMMU_FMT;
 			iommu_domain_ctrl.pgsize_bitmap =
 				iommu_device_ctrl.pgsize_bitmap;
+			iommu_hw_domain_init();
 			break;
 		}
 	}

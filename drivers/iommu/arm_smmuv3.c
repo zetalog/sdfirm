@@ -2533,6 +2533,25 @@ static void smmu_master_detach(void)
 	arm_smmu_install_ste_for_dev();
 }
 
+void smmu_domain_init(void)
+{
+	unsigned int type = iommu_domain_ctrl.type;
+
+	if (type != IOMMU_DOMAIN_UNMANAGED &&
+	    type != IOMMU_DOMAIN_DMA &&
+	    type != IOMMU_DOMAIN_IDENTITY)
+		return;
+
+#if 0
+	if (type == IOMMU_DOMAIN_DMA &&
+	    iommu_get_dma_cookie(&smmu_domain->domain)) {
+		return;
+	}
+#endif
+
+	INIT_LIST_HEAD(&smmu_domain_ctrl.devices);
+}
+
 void smmu_master_attach(void)
 {
 	smmu_master_detach();
@@ -2583,10 +2602,6 @@ iommu_dom_t arm_smmu_domain_alloc(unsigned type)
 {
 	struct arm_smmu_domain *smmu_domain;
 
-	if (type != IOMMU_DOMAIN_UNMANAGED &&
-	    type != IOMMU_DOMAIN_DMA &&
-	    type != IOMMU_DOMAIN_IDENTITY)
-		return NULL;
 
 	/*
 	 * Allocate the domain and initialise some of its data structures.
@@ -2597,14 +2612,6 @@ iommu_dom_t arm_smmu_domain_alloc(unsigned type)
 	if (!smmu_domain)
 		return NULL;
 
-	if (type == IOMMU_DOMAIN_DMA &&
-	    iommu_get_dma_cookie(&smmu_domain->domain)) {
-		kfree(smmu_domain);
-		return NULL;
-	}
-
-	mutex_init(&smmu_domain->init_mutex);
-	INIT_LIST_HEAD(&smmu_domain->devices);
 	spin_lock_init(&smmu_domain->devices_lock);
 
 	return &smmu_domain->domain;
