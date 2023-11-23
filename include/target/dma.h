@@ -138,7 +138,7 @@ uint8_t dma_direction(dma_t dma);
 phys_addr_t dma_to_phys(dma_t dma, dma_addr_t addr);
 dma_addr_t phys_to_dma(dma_t dma, phys_addr_t phys);
 
-dma_t dma_request_channel(uint8_t direction, dma_handler cmpl);
+void dma_request_channel(dma_t dma, uint8_t direction, dma_handler h);
 dma_t dma_current(void);
 bool do_DMA(dma_t dma, bool success);
 
