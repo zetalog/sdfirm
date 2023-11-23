@@ -133,6 +133,24 @@ bool dma_is_direct(dma_t dma)
 	return !chan->indirect;
 }
 
+void dma_set_direct(dma_t dma)
+{
+	struct dma_channel *chan = dma2chan(dma);
+
+	if (!chan)
+		return;
+	chan->indirect = false;
+}
+
+void dma_clr_direct(dma_t dma)
+{
+	struct dma_channel *chan = dma2chan(dma);
+
+	if (!chan)
+		return;
+	chan->indirect = true;
+}
+
 uint8_t dma_direction(dma_t dma)
 {
 	struct dma_channel *chan = dma2chan(dma);

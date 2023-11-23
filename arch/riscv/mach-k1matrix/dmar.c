@@ -32,8 +32,10 @@ void dmac_hw_ctrl_init(void)
 {
 	dma_t dma;
 
-	for (dma = 0; dma < NR_DMAS; dma++)
+	for (dma = 0; dma < NR_DMAS; dma++) {
 		dma_register_channel(dma, SVT_DMAC_CAPS);
+		dma_clr_direct(dma);
+	}
 	iommu_register_dma(ARRAY_SIZE(k1matrix_dmac_iommus),
 				      k1matrix_dmac_iommus);
 }

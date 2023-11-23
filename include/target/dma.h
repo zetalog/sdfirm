@@ -132,6 +132,8 @@ void dma_register_channel(dma_t dma, dma_caps_t caps);
 void dma_config_range(dma_t dma, phys_addr_t phys_base, dma_addr_t dma_base);
 bool dma_is_coherent(dma_t dma);
 bool dma_is_direct(dma_t dma);
+void dma_clr_direct(dma_t dma);
+void dma_set_direct(dma_t dma);
 uint8_t dma_direction(dma_t dma);
 
 /* TODO: device specific DMA_PHYS_OFFSET */
