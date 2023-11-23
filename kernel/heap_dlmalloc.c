@@ -1695,6 +1695,7 @@ void heap_alloc_init(void)
 	heap_dlmalloc_test();
 }
 
+#ifdef CONFIG_COMMAND
 static int do_heap_test(int argc, char **argv)
 {
 	caddr_t addr;
@@ -1711,7 +1712,7 @@ static int do_heap_test(int argc, char **argv)
 	for (i = 0; i < nr_heaps; i++) {
 		printf("Allocating heap...\n");
 		addr = heap_alloc(size);
-		printf("alloc = %016llx\n", (uint64_t)addr);
+		printf("alloc = %016llx\n", (unsigned long long)addr);
 		printf("Freeing heap...\n");
 		heap_free(addr);
 	}
@@ -1772,6 +1773,7 @@ static int do_heap(int argc, char **argv)
 		return do_heap_dump(argc, argv);
 	return 0;
 }
+#endif
 
 DEFINE_COMMAND(heap, do_heap, "Display free heap ranges",
 	"heap test size [N]\n"

@@ -106,7 +106,8 @@ static void queue_write(uint64_t *dst, uint64_t *src, size_t n_dwords)
 	int i;
 
 	for (i = 0; i < n_dwords; ++i) {
-		con_log("Q: %016llx=%016llx\n", (uint64_t)dst, *src);
+		con_log("Q: %016llx=%016llx\n",
+			(unsigned long long)dst, (unsigned long long)*src);
 		*dst++ = cpu_to_le64(*src++);
 	}
 }
@@ -1029,7 +1030,7 @@ static void arm_smmu_init_one_queue(struct arm_smmu_queue *q,
 	q->ent_dwords	= dwords;
 
 #ifdef CONFIG_SIMULATION_SMMU
-	q->q_base = q->base & Q_BASE_ADDR_MASK;
+	q->q_base = (uint64_t)(q->base) & Q_BASE_ADDR_MASK;
 #else
 	q->q_base  = Q_BASE_RWA;
 	q->q_base |= q->base_dma & Q_BASE_ADDR_MASK;
