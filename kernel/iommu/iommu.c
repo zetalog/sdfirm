@@ -46,29 +46,6 @@
 bh_t iommu_bh;
 
 /* ======================================================================
- * IOMMU Pgtables
- * ====================================================================== */
-#if NR_IOMMU_PGTABLES > 1
-struct io_pgtable iommu_pgtables[NR_IOMMU_PGTABLES];
-iommu_tbl_t iommu_tbl;
-
-void iommu_pgtable_restore(iommu_tbl_t tbl)
-{
-	iommu_tbl = tbl;
-}
-
-iommu_tbl_t iommu_pgtable_save(iommu_tbl_t tbl)
-{
-	iommu_tbl_t rtbl = iommu_tbl;
-
-	iommu_pgtable_restore(tbl);
-	return rtbl;
-}
-#else
-struct io_pgtable iommu_pgtable_ctrl;
-#endif
-
-/* ======================================================================
  * IOMMU Devices
  * ====================================================================== */
 #if NR_IOMMU_DEVICES > 1
