@@ -7,6 +7,7 @@
 #include <target/heap.h>
 
 #define ARM_LPAE_MAX_ADDR_BITS		52
+#define ARM_LPAE_S2_MAX_CONCAT_PAGES	16
 #define ARM_LPAE_MAX_LEVELS		4
 
 /* Calculate the right shift amount to get to the portion describing level l
@@ -779,4 +780,118 @@ bool arm_64_lpae_alloc_pgtable_s1(struct io_pgtable_cfg *cfg)
 	/* TTBR */
 	cfg->arm_lpae_s1_cfg.ttbr = virt_to_phys(data->pgd);
 	return true;
+}
+
+bool arm_64_lpae_alloc_pgtable_s2(struct io_pgtable_cfg *cfg)
+{
+	uint64_t sl;
+	struct arm_lpae_io_pgtable *data = &arm_io_pgtables[iommu_dom];
+	typeof(&cfg->arm_lpae_s2_cfg.vtcr) vtcr = &cfg->arm_lpae_s2_cfg.vtcr;
+
+#if 0
+	/* The NS quirk doesn't apply at stage 2 */
+	if (cfg->quirks & ~(IO_PGTABLE_QUIRK_NON_STRICT))
+		return NULL;
+#endif
+
+	/*
+	 * Concatenate PGDs at level 1 if possible in order to reduce
+	 * the depth of the stage-2 walk.
+	 */
+	if (data->start_level == 0) {
+		unsigned long pgd_pages;
+
+		pgd_pages = ARM_LPAE_PGD_SIZE(data) / sizeof(arm_lpae_iopte);
+		if (pgd_pages <= ARM_LPAE_S2_MAX_CONCAT_PAGES) {
+			data->pgd_bits += data->bits_per_level;
+			data->start_level++;
+		}
+	}
+
+	/* VTCR */
+	if (cfg->coherent_walk) {
+		vtcr->sh = ARM_LPAE_TCR_SH_IS;
+		vtcr->irgn = ARM_LPAE_TCR_RGN_WBWA;
+		vtcr->orgn = ARM_LPAE_TCR_RGN_WBWA;
+	} else {
+		vtcr->sh = ARM_LPAE_TCR_SH_OS;
+		vtcr->irgn = ARM_LPAE_TCR_RGN_NC;
+		vtcr->orgn = ARM_LPAE_TCR_RGN_NC;
+	}
+
+	sl = data->start_level;
+
+	switch (ARM_LPAE_GRANULE(data)) {
+	case SZ_4K:
+		vtcr->tg = ARM_LPAE_TCR_TG0_4K;
+		sl++; /* SL0 format is different for 4K granule size */
+		break;
+	case SZ_16K:
+		vtcr->tg = ARM_LPAE_TCR_TG0_16K;
+		break;
+	case SZ_64K:
+		vtcr->tg = ARM_LPAE_TCR_TG0_64K;
+		break;
+	}
+
+	switch (cfg->oas) {
+	case 32:
+		vtcr->ps = ARM_LPAE_TCR_PS_32_BIT;
+		break;
+	case 36:
+		vtcr->ps = ARM_LPAE_TCR_PS_36_BIT;
+		break;
+	case 40:
+		vtcr->ps = ARM_LPAE_TCR_PS_40_BIT;
+		break;
+	case 42:
+		vtcr->ps = ARM_LPAE_TCR_PS_42_BIT;
+		break;
+	case 44:
+		vtcr->ps = ARM_LPAE_TCR_PS_44_BIT;
+		break;
+	case 48:
+		vtcr->ps = ARM_LPAE_TCR_PS_48_BIT;
+		break;
+	case 52:
+		vtcr->ps = ARM_LPAE_TCR_PS_52_BIT;
+		break;
+	default:
+		goto out_free_data;
+	}
+
+	vtcr->tsz = 64ULL - cfg->ias;
+	vtcr->sl = ~sl & ARM_LPAE_VTCR_SL0_MASK;
+
+	/* Allocate pgd pages */
+	data->pgd = __arm_lpae_alloc_pages(ARM_LPAE_PGD_SIZE(data), cfg);
+	if (!data->pgd)
+		goto out_free_data;
+
+	/* Ensure the empty pgd is visible before any actual TTBR write */
+	wmb();
+
+	/* VTTBR */
+	cfg->arm_lpae_s2_cfg.vttbr = virt_to_phys(data->pgd);
+	return true;
+
+out_free_data:
+	return false;
+}
+
+bool iommu_armv8_pgtable_alloc(struct io_pgtable_cfg *cfg)
+{
+	if (iommu_domain_ctrl.fmt == ARM_64_LPAE_S1)
+		return arm_64_lpae_alloc_pgtable_s1(cfg);
+	else if (iommu_domain_ctrl.fmt == ARM_64_LPAE_S2)
+		return arm_64_lpae_alloc_pgtable_s2(cfg);
+	return false;
+}
+
+void iommu_armv8_pgtable_free(void)
+{
+	if (iommu_domain_ctrl.fmt == ARM_64_LPAE_S1)
+		arm_lpae_free_pgtable();
+	else if (iommu_domain_ctrl.fmt == ARM_64_LPAE_S2)
+		arm_lpae_free_pgtable();
 }

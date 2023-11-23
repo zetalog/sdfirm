@@ -84,9 +84,11 @@
 
 #ifdef CONFIG_K1MATRIX_SMMUv2
 #include <driver/arm_smmuv2.h>
+#include <target/iommu_armv8.h>
 #endif
 #ifdef CONFIG_K1MATRIX_SMMUv3
 #include <driver/arm_smmuv3.h>
+#include <target/iommu_armv8.h>
 #endif
 
 #ifdef ARCH_HAVE_IOMMU
@@ -128,8 +130,10 @@
 #define iommu_hw_map(iova, pgsize, paddr, prot)		0
 #define iommu_hw_unmap(iova, pgsize, gather)		0
 
-#define iommu_hw_alloc_table(cfg)			0
-#define iommu_hw_free_table()				do { } while (0)
+#define iommu_hw_alloc_table(cfg)			\
+	iommu_armv8_pgtable_alloc(cfg)
+#define iommu_hw_free_table()				\
+	iommu_armv8_pgtable_free()
 
 #define smmu_hw_ctrl_reset(reg)				(reg)
 
