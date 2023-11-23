@@ -127,13 +127,14 @@
 
 #define smmu_hw_num_pasid_bits				0
 
-#define iommu_hw_map(iova, pgsize, paddr, prot)		0
-#define iommu_hw_unmap(iova, pgsize, gather)		0
-
+#define iommu_hw_map(iova, paddr, pgsize, prot)		\
+	arm_lpae_map(iova, paddr, pgsize, prot)
+#define iommu_hw_unmap(iova, pgsize, gather)		\
+	arm_lpae_unmap(iova, pgsize, gather)
 #define iommu_hw_alloc_table(cfg)			\
-	iommu_armv8_pgtable_alloc(cfg)
+	arm_lpae_pgtable_alloc(cfg)
 #define iommu_hw_free_table()				\
-	iommu_armv8_pgtable_free()
+	arm_lpae_pgtable_free()
 
 #define smmu_hw_ctrl_reset(reg)				(reg)
 
