@@ -219,7 +219,8 @@ void iommu_free_domain(iommu_dom_t dom);
 void iommu_register_dma(int nr_iommus, iommu_t *iommus);
 void iommu_register_pci_dma(int nr_iommus, iommu_t *iommus);
 
-int iommu_map(unsigned long iova, size_t size, phys_addr_t paddr, int prot);
+int iommu_map(unsigned long iova, phys_addr_t paddr,
+	      size_t size, int prot);
 int iommu_unmap(unsigned long iova, size_t size);
 
 #if NR_IOMMU_DEVICES > 1
