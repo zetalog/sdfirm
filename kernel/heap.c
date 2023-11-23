@@ -93,8 +93,10 @@ void alloc_chunk(heap_size_t size, const char* name)
 {
 	heap_test_addrs[heap_test_last] = heap_alloc(size);
 	printf("M(%s:%d): %016llx - %08lx\r\n", name, heap_test_last,
-		heap_test_addrs[heap_test_last], size);
-	heap_test_chunks[heap_test_last] = heap_chunk(heap_test_addrs[heap_test_last]);
+	       (unsigned long long)heap_test_addrs[heap_test_last],
+	       (unsigned long)size);
+	heap_test_chunks[heap_test_last] =
+		(void *)heap_chunk(heap_test_addrs[heap_test_last]);
 	heap_test_last++;
 }
 
@@ -103,7 +105,7 @@ void free_chunk(int order, const char* name)
 	int heap_test_last = order;
 
 	printf("F(%s:%d): %016llx\r\n", name, heap_test_last,
-	       heap_test_addrs[heap_test_last]);
+	       (unsigned long long)heap_test_addrs[heap_test_last]);
 	heap_free(heap_test_addrs[heap_test_last]);
 	heap_test_addrs[heap_test_last] = 0;
 }
