@@ -703,7 +703,7 @@ static int arm_smmu_cmdq_issue_cmdlist(uint64_t *cmds, int n, bool sync)
 
 		/* b. Stop gathering work by clearing the owned flag */
 		prod = cmdq->q.llq.u.prod & (~CMDQ_PROD_OWNED_FLAG);
-		prod &= ~CMDQ_PROD_OWNED_FLAG;
+		cmdq->q.llq.u.prod = prod;
 
 		/*
 		 * c. Wait for any gathered work to be written to the queue.
@@ -1123,7 +1123,8 @@ static void arm_smmu_write_strtab_ent(struct smmu_group *group, uint32_t sid, ui
 		},
 	};
 
-	smmu_domain = group->domain;
+	if (group)
+		smmu_domain = group->domain;
 	if (smmu_domain) {
 		switch (smmu_domain->stage) {
 		case ARM_SMMU_DOMAIN_S1:
@@ -2435,6 +2436,8 @@ static bool arm_smmu_sid_in_range(uint32_t sid)
 void smmu_master_init(void)
 {
 	int i;
+
+	INIT_LIST_HEAD(&smmu_group_ctrl.domain_head);
 
 	/* Check the SIDs are in range of the SMMU and our stream table */
 	for (i = 0; i < iommu_group_ctrl.nr_iommus; i++) {
