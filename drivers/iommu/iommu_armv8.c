@@ -178,7 +178,6 @@ static dma_addr_t __arm_lpae_dma_addr(void *pages)
 static void *__arm_lpae_alloc_pages(size_t size, struct io_pgtable_cfg *cfg)
 {
 	struct page *p;
-	dma_addr_t dma;
 	int nr_pages = size >> PAGE_SHIFT;
 	void *pages;
 
@@ -187,23 +186,25 @@ static void *__arm_lpae_alloc_pages(size_t size, struct io_pgtable_cfg *cfg)
 		return NULL;
 
 	pages = page_address(p);
+#if 0
 	if (!cfg->coherent_walk) {
+		dma_addr_t dma;
+
 		dma = dma_map_single(iommu_group_ctrl.id, (phys_addr_t)pages,
 				     size, DMA_TO_DEVICE);
 		/* We depend on the IOMMU being able to work with any physical
 		 * address directly, so if the DMA layer suggests otherwise by
 		 * translating or truncating them, that bodes very badly...
 		 */
-		if (dma != virt_to_phys(pages))
-			goto out_unmap;
+		if (dma != virt_to_phys(pages)) {
+			con_err("iommu_armv8: Cannot accommodate DMA translation for IOMMU page tables\n");
+			dma_unmap_single(iommu_group_ctrl.id, dma, size, DMA_TO_DEVICE);
+			page_free_pages(p, nr_pages);
+			return NULL;
+		}
 	}
+#endif
 	return pages;
-
-out_unmap:
-	con_err("iommu_armv8: Cannot accommodate DMA translation for IOMMU page tables\n");
-	dma_unmap_single(iommu_group_ctrl.id, dma, size, DMA_TO_DEVICE);
-	page_free_pages(p, nr_pages);
-	return NULL;
 }
 
 static void __arm_lpae_free_pages(void *pages, size_t size,

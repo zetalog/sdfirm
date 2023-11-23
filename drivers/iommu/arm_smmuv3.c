@@ -2582,6 +2582,9 @@ void smmu_device_init(void)
 {
 	bool bypass = false;
 
+#if 0
+	smmu_device_ctrl.features |= ARM_SMMU_FEAT_COHERENCY;
+#endif
 	arm_smmu_device_hw_probe();
 	arm_smmu_init_structures();
 	arm_smmu_device_reset(bypass);
