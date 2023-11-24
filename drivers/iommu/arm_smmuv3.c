@@ -106,8 +106,10 @@ static void queue_write(uint64_t *dst, uint64_t *src, size_t n_dwords)
 	int i;
 
 	for (i = 0; i < n_dwords; ++i) {
+#if 0
 		con_log("Q: %016llx=%016llx\n",
 			(unsigned long long)dst, (unsigned long long)*src);
+#endif
 		*dst++ = cpu_to_le64(*src++);
 	}
 }
@@ -1092,6 +1094,9 @@ arm_smmu_write_strtab_l1_desc(uint64_t *dst, struct arm_smmu_strtab_l1_desc *des
 	val |= desc->l2ptr_dma & STRTAB_L1_DESC_L2PTR_MASK;
 
 	*dst = cpu_to_le64(val);
+	con_log("STE L1(%016llx)=%016llx\n",
+		(unsigned long long)dst,
+		(unsigned long long)cpu_to_le64(val));
 }
 
 static void arm_smmu_write_strtab_ent(struct smmu_group *group, uint32_t sid, uint64_t *dst)
@@ -1220,6 +1225,9 @@ static void arm_smmu_write_strtab_ent(struct smmu_group *group, uint32_t sid, ui
 	arm_smmu_sync_ste_for_sid(sid);
 	/* See comment in arm_smmu_write_ctx_desc() */
 	WRITE_ONCE(dst[0], cpu_to_le64(val));
+	con_log("SID(%d): STE(%016llx)=%016llx\n", sid,
+		(unsigned long long)dst,
+		(unsigned long long)cpu_to_le64(val));
 	arm_smmu_sync_ste_for_sid(sid);
 
 	/* It's likely that we'll want to use the new STE soon */
@@ -1448,6 +1456,9 @@ static void arm_smmu_write_cd_l1_desc(uint64_t *dst,
 		  CTXDESC_L1_DESC_V;
 
 	WRITE_ONCE(*dst, cpu_to_le64(val));
+	con_log("CD L1(%016llx)=%016llx\n",
+		(unsigned long long)dst,
+		(unsigned long long)cpu_to_le64(val));
 }
 
 static uint64_t *arm_smmu_get_cd_ptr(uint32_t ssid)
@@ -1542,6 +1553,9 @@ static void arm_smmu_write_ctx_desc(int ssid, struct arm_smmu_ctx_desc *cd)
 	 *   without first making the structure invalid.
 	 */
 	WRITE_ONCE(cdptr[0], cpu_to_le64(val));
+	con_log("SSID(%d): CD(%016llx)=%016llx\n", ssid,
+		(unsigned long long)cdptr,
+		(unsigned long long)cpu_to_le64(val));
 	arm_smmu_sync_cd(ssid, true);
 }
 
