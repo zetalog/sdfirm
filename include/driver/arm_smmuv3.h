@@ -653,7 +653,7 @@ struct arm_smmu_priq {
 #define SMMU_GROUP_ATTR					\
 	struct smmu_domain *domain;			\
 	struct list_head domain_head;			\
-	uint32_t *sids;					\
+	uint32_t sids[MAX_IOMMU_RIDS];			\
 	unsigned int num_sids;				\
 	bool ats_enabled;				\
 	unsigned int ssid_bits;

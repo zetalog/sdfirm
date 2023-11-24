@@ -2455,6 +2455,9 @@ void smmu_master_init(void)
 		/* Ensure l2 strtab is initialised */
 		if (smmu_device_ctrl.features & ARM_SMMU_FEAT_2_LVL_STRTAB)
 			arm_smmu_init_l2_strtab(sid);
+
+		smmu_group_ctrl.sids[smmu_group_ctrl.num_sids] = sid;
+		smmu_group_ctrl.num_sids++;
 	}
 
 	smmu_group_ctrl.ssid_bits = min(smmu_device_ctrl.ssid_bits,

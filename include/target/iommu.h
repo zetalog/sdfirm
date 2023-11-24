@@ -145,13 +145,13 @@ typedef uint32_t iommu_map_t;
 #define INVALID_IOMMU_MAP		IOMMU_BASE_MASK(0xffff, 0xffff)
 #define INVALID_IOMMU			IOMMU(INVALID_IOMMU_DEV, INVALID_IOMMU_MAP)
 
-#include <driver/iommu.h>
-
-#ifdef IOMMU_HW_MAX_RIDS
-#define MAX_IOMMU_RIDS			IOMMU_HW_MAX_RIDS
+#ifdef CONFIG_IOMMU_MAX_RIDS
+#define MAX_IOMMU_RIDS			CONFIG_IOMMU_MAX_RIDS
 #else
-#define MAX_IOMMU_RIDS			8
+#define MAX_IOMMU_RIDS			NR_DMAS
 #endif
+
+#include <driver/iommu.h>
 
 struct scatterlist {
 	unsigned long page_link;
