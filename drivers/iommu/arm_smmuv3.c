@@ -2,6 +2,8 @@
 #include <target/iommu-pgtable.h>
 #include <target/panic.h>
 
+#define CONFIG_SIMULATION_SMMU 1
+
 bool smmu_disable_bypass = false;
 
 static inline caddr_t arm_smmu_page1_fixup(caddr_t reg)
@@ -107,7 +109,7 @@ static void queue_write(uint64_t *dst, uint64_t *src, size_t n_dwords)
 
 	for (i = 0; i < n_dwords; ++i) {
 #if 0
-		con_log("Q: %016llx=%016llx\n",
+		con_log("smmuv3: CMDQ: %016llx=%016llx\n",
 			(unsigned long long)dst, (unsigned long long)*src);
 #endif
 		*dst++ = cpu_to_le64(*src++);
@@ -1002,9 +1004,15 @@ static void arm_smmu_init_one_queue(struct arm_smmu_queue *q,
 
 	do {
 		qsz = ((1 << q->llq.max_n_shift) * dwords) << 3;
+#ifdef CONFIG_SIMULATION_SMMU
 		q->base = (void *)dma_alloc_coherent(iommu_device_ctrl.dma,
 						     qsz << 1, &q->base_dma);
+		q->base = (void *)ALIGN((caddr_t)q->base, qsz);
 		q->base_dma = (dma_addr_t)ALIGN(q->base_dma, qsz);
+#else
+		q->base = (void *)dma_alloc_coherent(iommu_device_ctrl.dma,
+						     qsz, &q->base_dma);
+#endif
 		if (q->base || qsz < PAGE_SIZE)
 			break;
 
