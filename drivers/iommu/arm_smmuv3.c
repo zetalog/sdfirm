@@ -1027,7 +1027,7 @@ static void arm_smmu_init_one_queue(struct arm_smmu_queue *q,
 	}
 
 	if (!(q->base_dma & (qsz - 1))) {
-		con_log("allocated %u entries for %s\n",
+		con_log("smmuv3: allocated %u entries for %s\n",
 			1 << q->llq.max_n_shift, name);
 	}
 
