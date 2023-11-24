@@ -1042,7 +1042,7 @@ static void arm_smmu_init_one_queue(struct arm_smmu_queue *q,
 	q->q_base |= q->base_dma & Q_BASE_ADDR_MASK;
 #endif
 	con_log("smmuv3: %s: BASE=%016llx, SIZE=%d(%d), RWA=%08lx, MASK=%08lx\n",
-		name, (unsigned long long)q->base,
+		name, (unsigned long long)q->q_base,
 		(1 << q->llq.max_n_shift), (int)dwords,
 		(unsigned long)Q_BASE_RWA,
 		(unsigned long)Q_BASE_ADDR_MASK);
