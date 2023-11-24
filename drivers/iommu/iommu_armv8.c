@@ -228,6 +228,8 @@ static void __arm_lpae_set_pte(arm_lpae_iopte *ptep, arm_lpae_iopte pte,
 			       struct io_pgtable_cfg *cfg)
 {
 	*ptep = pte;
+	con_log("PTE(%016llx)=%016llx\n", (unsigned long long)ptep,
+		(unsigned long long)pte);
 
 	if (!cfg->coherent_walk)
 		__arm_lpae_sync_pte(ptep, cfg);
@@ -302,8 +304,11 @@ static arm_lpae_iopte arm_lpae_install_table(arm_lpae_iopte *table,
 
 	/* Even if it's not ours, there's no point waiting; just kick it */
 	__arm_lpae_sync_pte(ptep, cfg);
-	if (old == curr)
+	if (old == curr) {
 		WRITE_ONCE(*ptep, new | ARM_LPAE_PTE_SW_SYNC);
+		con_log("PTE_I(%016llx)=%016llx\n", (unsigned long long)ptep,
+			(unsigned long long)(new | ARM_LPAE_PTE_SW_SYNC));
+	}
 
 	return old;
 }
