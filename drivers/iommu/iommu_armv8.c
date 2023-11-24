@@ -190,15 +190,15 @@ static void *__arm_lpae_alloc_pages(size_t size, struct io_pgtable_cfg *cfg)
 	if (!cfg->coherent_walk) {
 		dma_addr_t dma;
 
-		dma = dma_map_single(iommu_group_ctrl.id, (phys_addr_t)pages,
+		dma = dma_map_single(iommu_device_ctrl.dma, (phys_addr_t)pages,
 				     size, DMA_TO_DEVICE);
 		/* We depend on the IOMMU being able to work with any physical
 		 * address directly, so if the DMA layer suggests otherwise by
 		 * translating or truncating them, that bodes very badly...
 		 */
 		if (dma != virt_to_phys(pages)) {
-			con_err("iommu_armv8: Cannot accommodate DMA translation for IOMMU page tables\n");
-			dma_unmap_single(iommu_group_ctrl.id, dma, size, DMA_TO_DEVICE);
+			con_err("lpae: Cannot accommodate DMA translation for IOMMU page tables\n");
+			dma_unmap_single(iommu_device_ctrl.dma, dma, size, DMA_TO_DEVICE);
 			page_free_pages(p, nr_pages);
 			return NULL;
 		}
@@ -228,7 +228,7 @@ static void __arm_lpae_set_pte(arm_lpae_iopte *ptep, arm_lpae_iopte pte,
 			       struct io_pgtable_cfg *cfg)
 {
 	*ptep = pte;
-	con_log("PTE(%016llx)=%016llx\n", (unsigned long long)ptep,
+	con_log("lpae: PTE(%016llx)=%016llx\n", (unsigned long long)ptep,
 		(unsigned long long)pte);
 
 	if (!cfg->coherent_walk)
@@ -306,7 +306,8 @@ static arm_lpae_iopte arm_lpae_install_table(arm_lpae_iopte *table,
 	__arm_lpae_sync_pte(ptep, cfg);
 	if (old == curr) {
 		WRITE_ONCE(*ptep, new | ARM_LPAE_PTE_SW_SYNC);
-		con_log("PTE_I(%016llx)=%016llx\n", (unsigned long long)ptep,
+		con_log("lpae: PTE_I(%016llx)=%016llx\n",
+			(unsigned long long)ptep,
 			(unsigned long long)(new | ARM_LPAE_PTE_SW_SYNC));
 	}
 
@@ -683,7 +684,7 @@ static bool arm_lpae_alloc_pgtable(struct io_pgtable_cfg *cfg)
 		return false;
 #if 0
 	if (cfg->dma_pfn_offset) {
-		con_err("iommu_armv8: Cannot accommodate DMA offset for IOMMU tables\n");
+		con_err("lpae: Cannot accommodate DMA offset for IOMMU tables\n");
 		return false;
 	}
 #endif
