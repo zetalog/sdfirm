@@ -1027,29 +1027,25 @@ static void arm_smmu_init_one_queue(struct arm_smmu_queue *q,
 	}
 
 	if (!(q->base_dma & (qsz - 1))) {
-		con_log("smmuv3: %s: BASE=%016llx, SIZE=%d(%d), RWA=%08lx, MASK=%08lx\n",
-			name, (unsigned long long)q->base_dma,
-			(1 << q->llq.max_n_shift), (int)dwords,
-			(unsigned long)Q_BASE_RWA,
-			(unsigned long)Q_BASE_ADDR_MASK);
-#if 0
-			con_log("allocated %u entries for %s\n",
-				1 << q->llq.max_n_shift, name);
-#endif
-	} else {
-		con_err("smmuv3: %s: BASE=%016llx, SIZE=%d/%d unaligned\n",
-			name, (unsigned long long)q->base_dma,
-			(1 << q->llq.max_n_shift), (int)dwords);
+		con_log("allocated %u entries for %s\n",
+			1 << q->llq.max_n_shift, name);
 	}
 
 	q->prod_reg	= arm_smmu_page1_fixup(prod_reg);
 	q->cons_reg	= arm_smmu_page1_fixup(cons_reg);
 	q->ent_dwords	= dwords;
 
-#ifndef CONFIG_SIMULATION_SMMU
+#ifdef CONFIG_SIMULATION_SMMU
+	q->q_base  = q->base_dma & Q_BASE_ADDR_MASK;
+#else
 	q->q_base  = Q_BASE_RWA;
-#endif
 	q->q_base |= q->base_dma & Q_BASE_ADDR_MASK;
+#endif
+	con_log("smmuv3: %s: BASE=%016llx, SIZE=%d(%d), RWA=%08lx, MASK=%08lx\n",
+		name, (unsigned long long)q->base,
+		(1 << q->llq.max_n_shift), (int)dwords,
+		(unsigned long)Q_BASE_RWA,
+		(unsigned long)Q_BASE_ADDR_MASK);
 	q->q_base |= FIELD_PREP(Q_BASE_LOG2SIZE, q->llq.max_n_shift);
 
 	q->llq.u.prod = q->llq.u.cons = 0;
