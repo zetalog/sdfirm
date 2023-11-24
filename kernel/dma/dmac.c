@@ -101,7 +101,9 @@ phys_addr_t dma_to_phys(dma_t dma, dma_addr_t addr)
 {
 	struct dma_channel *chan = dma2chan(dma);
 
-	if (!chan || !(chan->caps & DMA_CAP_HAS_RANGE))
+	if (!chan)
+		return virt_to_phys(addr);
+	if (!(chan->caps & DMA_CAP_HAS_RANGE))
 		return __dma_to_phys(addr);
 	return addr - chan->dma_base + chan->phys_base;
 }
@@ -110,7 +112,9 @@ dma_addr_t phys_to_dma(dma_t dma, phys_addr_t phys)
 {
 	struct dma_channel *chan = dma2chan(dma);
 
-	if (!chan || !(chan->caps & DMA_CAP_HAS_RANGE))
+	if (!chan)
+		return phys_to_virt(phys);
+	if (!(chan->caps & DMA_CAP_HAS_RANGE))
 		return __phys_to_dma(phys);
 	return phys - chan->phys_base + chan->dma_base;
 }
@@ -189,6 +193,11 @@ void dma_register_channel(dma_t dma, dma_caps_t caps)
 	dma_nr_regs++;
 	chan = dma2chan(dma);
 	chan->caps = caps;
+	/* Default __dma_to_phys, can be set by dma_config_range() */
+#if 0
+	chan->phys_base = DMA_PHYS_OFFSET;
+	chan->dma_base = 0;
+#endif
 }
 
 void dma_config_range(dma_t dma, phys_addr_t phys_base, dma_addr_t dma_base)

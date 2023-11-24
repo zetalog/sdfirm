@@ -257,12 +257,12 @@ static void arm_smmu_cmdq_skip_err(void)
 		.opcode = CMDQ_OP_CMD_SYNC,
 	};
 
-	con_err("CMDQ error (cons 0x%08x): %s\n", cons,
+	con_err("smmuv3: CMDQ error (cons 0x%08x): %s\n", cons,
 		idx < ARRAY_SIZE(cerror_str) ?  cerror_str[idx] : "Unknown");
 
 	switch (idx) {
 	case CMDQ_ERR_CERROR_ABT_IDX:
-		con_err("retrying command fetch\n");
+		con_err("smmuv3: retrying command fetch\n");
 	case CMDQ_ERR_CERROR_NONE_IDX:
 		return;
 	case CMDQ_ERR_CERROR_ATC_INV_IDX:
@@ -284,13 +284,13 @@ static void arm_smmu_cmdq_skip_err(void)
 	 * not to touch any of the shadow cmdq state.
 	 */
 	queue_read(cmd, Q_ENT(q, cons), q->ent_dwords);
-	con_err("skipping command in error state:\n");
+	con_err("smmuv3: skipping command in error state:\n");
 	for (i = 0; i < ARRAY_SIZE(cmd); ++i)
 		con_err("\t0x%016llx\n", (unsigned long long)cmd[i]);
 
 	/* Convert the erroneous command into a CMD_SYNC */
 	if (arm_smmu_cmdq_build_cmd(cmd, &cmd_sync)) {
-		con_err("failed to convert to CMD_SYNC\n");
+		con_err("smmuv3: failed to convert to CMD_SYNC\n");
 		return;
 	}
 
@@ -424,7 +424,8 @@ static int queue_poll(struct arm_smmu_queue_poll *qp)
  * full.
  */
 static void __arm_smmu_cmdq_poll_set_valid_map(struct arm_smmu_cmdq *cmdq,
-					       uint32_t sprod, uint32_t eprod, bool set)
+					       uint32_t sprod,
+					       uint32_t eprod, bool set)
 {
 	uint32_t swidx, sbidx, ewidx, ebidx;
 	struct arm_smmu_ll_queue llq = {
@@ -657,7 +658,7 @@ static int arm_smmu_cmdq_issue_cmdlist(uint64_t *cmds, int n, bool sync)
 		while (!queue_has_space(&llq, n + sync)) {
 			irq_local_restore(flags);
 			if (arm_smmu_cmdq_poll_until_not_full(&llq))
-				con_log("CMDQ timeout\n");
+				con_log("smmuv3: CMDQ timeout\n");
 			irq_local_save(flags);
 		}
 
@@ -734,7 +735,7 @@ static int arm_smmu_cmdq_issue_cmdlist(uint64_t *cmds, int n, bool sync)
 		llq.u.prod = queue_inc_prod_n(&llq, n);
 		ret = arm_smmu_cmdq_poll_until_sync(&llq);
 		if (ret) {
-			con_log("CMD_SYNC timeout at 0x%08x [hwprod 0x%08x, hwcons 0x%08x]\n",
+			con_log("smmuv3: CMD_SYNC timeout at 0x%08x [hwprod 0x%08x, hwcons 0x%08x]\n",
 				llq.u.prod,
 				__raw_readl(cmdq->q.prod_reg),
 				__raw_readl(cmdq->q.cons_reg));
@@ -759,7 +760,7 @@ static int arm_smmu_cmdq_issue_cmd(struct arm_smmu_cmdq_ent *ent)
 	uint64_t cmd[CMDQ_ENT_DWORDS];
 
 	if (arm_smmu_cmdq_build_cmd(cmd, ent)) {
-		con_log("ignoring unknown CMDQ opcode 0x%x\n",
+		con_log("smmuv3: ignoring unknown CMDQ opcode 0x%x\n",
 			ent->opcode);
 		return -EINVAL;
 	}
@@ -1001,14 +1002,9 @@ static void arm_smmu_init_one_queue(struct arm_smmu_queue *q,
 
 	do {
 		qsz = ((1 << q->llq.max_n_shift) * dwords) << 3;
-#ifdef CONFIG_SIMULATION_SMMU
 		q->base = (void *)dma_alloc_coherent(iommu_device_ctrl.dma,
 						     qsz << 1, &q->base_dma);
-		q->base = (void *)ALIGN((caddr_t)q->base, qsz);
-#else
-		q->base = (void *)dma_alloc_coherent(iommu_device_ctrl.dma,
-						     qsz, &q->base_dma);
-#endif
+		q->base_dma = (dma_addr_t)ALIGN(q->base_dma, qsz);
 		if (q->base || qsz < PAGE_SIZE)
 			break;
 
@@ -1016,27 +1012,36 @@ static void arm_smmu_init_one_queue(struct arm_smmu_queue *q,
 	} while (1);
 
 	if (!q->base) {
-		con_err("failed to allocate queue (0x%zx bytes) for %s\n",
+		con_err("smmuv3: failed to allocate queue (0x%zx bytes) for %s\n",
 			qsz, name);
 		BUG();
 		return;
 	}
 
 	if (!(q->base_dma & (qsz - 1))) {
-		con_log("allocated %u entries for %s\n",
-			1 << q->llq.max_n_shift, name);
+		con_log("smmuv3: %s: BASE=%016llx, SIZE=%d(%d), RWA=%08lx, MASK=%08lx\n",
+			name, (unsigned long long)q->base_dma,
+			(1 << q->llq.max_n_shift), (int)dwords,
+			(unsigned long)Q_BASE_RWA,
+			(unsigned long)Q_BASE_ADDR_MASK);
+#if 0
+			con_log("allocated %u entries for %s\n",
+				1 << q->llq.max_n_shift, name);
+#endif
+	} else {
+		con_err("smmuv3: %s: BASE=%016llx, SIZE=%d/%d unaligned\n",
+			name, (unsigned long long)q->base_dma,
+			(1 << q->llq.max_n_shift), (int)dwords);
 	}
 
 	q->prod_reg	= arm_smmu_page1_fixup(prod_reg);
 	q->cons_reg	= arm_smmu_page1_fixup(cons_reg);
 	q->ent_dwords	= dwords;
 
-#ifdef CONFIG_SIMULATION_SMMU
-	q->q_base = (uint64_t)(q->base) & Q_BASE_ADDR_MASK;
-#else
+#ifndef CONFIG_SIMULATION_SMMU
 	q->q_base  = Q_BASE_RWA;
-	q->q_base |= q->base_dma & Q_BASE_ADDR_MASK;
 #endif
+	q->q_base |= q->base_dma & Q_BASE_ADDR_MASK;
 	q->q_base |= FIELD_PREP(Q_BASE_LOG2SIZE, q->llq.max_n_shift);
 
 	q->llq.u.prod = q->llq.u.cons = 0;
@@ -1053,7 +1058,7 @@ static void arm_smmu_cmdq_init(void)
 
 	bitmap = (atomic_long_t *)heap_calloc(BITS_TO_UNITS(nents) * sizeof(bits_t));
 	if (!bitmap) {
-		con_err("failed to allocate cmdq bitmap\n");
+		con_err("smmuv3: failed to allocate cmdq bitmap\n");
 		BUG();
 		return;
 	}
@@ -1066,14 +1071,14 @@ static void arm_smmu_init_queues(void)
 	arm_smmu_init_one_queue(&smmu_device_ctrl.cmdq.q,
 				SMMU_CMDQ_PROD(iommu_dev),
 				SMMU_CMDQ_CONS(iommu_dev),
-				CMDQ_ENT_DWORDS, "cmdq");
+				CMDQ_ENT_DWORDS, "CMDQ");
 	arm_smmu_cmdq_init();
 
 	/* evtq */
 	arm_smmu_init_one_queue(&smmu_device_ctrl.evtq.q,
 				SMMU_EVTQ_PROD(iommu_dev),
 				SMMU_EVTQ_CONS(iommu_dev),
-				EVTQ_ENT_DWORDS, "evtq");
+				EVTQ_ENT_DWORDS, "EVTQ");
 
 	/* priq */
 	if (!(smmu_device_ctrl.features & ARM_SMMU_FEAT_PRI))
@@ -1081,12 +1086,13 @@ static void arm_smmu_init_queues(void)
 	arm_smmu_init_one_queue(&smmu_device_ctrl.priq.q,
 				SMMU_PRIQ_PROD(iommu_dev),
 				SMMU_PRIQ_CONS(iommu_dev),
-				PRIQ_ENT_DWORDS, "priq");
+				PRIQ_ENT_DWORDS, "PRIQ");
 }
 
 /* Stream table manipulation functions */
-static void
-arm_smmu_write_strtab_l1_desc(uint64_t *dst, struct arm_smmu_strtab_l1_desc *desc)
+static void arm_smmu_write_strtab_l1_desc(bool l1std, uint32_t sid,
+					  uint64_t *dst,
+					  struct arm_smmu_strtab_l1_desc *desc)
 {
 	uint64_t val = 0;
 
@@ -1094,12 +1100,14 @@ arm_smmu_write_strtab_l1_desc(uint64_t *dst, struct arm_smmu_strtab_l1_desc *des
 	val |= desc->l2ptr_dma & STRTAB_L1_DESC_L2PTR_MASK;
 
 	*dst = cpu_to_le64(val);
-	con_log("STE L1(%016llx)=%016llx\n",
+	con_log("smmuv3: %s(%d): %016llx=%016llx\n",
+		l1std ? "L1STD" : "STD", sid,
 		(unsigned long long)dst,
 		(unsigned long long)cpu_to_le64(val));
 }
 
-static void arm_smmu_write_strtab_ent(struct smmu_group *group, uint32_t sid, uint64_t *dst)
+static void arm_smmu_write_strtab_ent(struct smmu_group *group,
+				      uint32_t sid, uint64_t *dst)
 {
 	/*
 	 * This is hideously complicated, but we only really care about
@@ -1225,9 +1233,15 @@ static void arm_smmu_write_strtab_ent(struct smmu_group *group, uint32_t sid, ui
 	arm_smmu_sync_ste_for_sid(sid);
 	/* See comment in arm_smmu_write_ctx_desc() */
 	WRITE_ONCE(dst[0], cpu_to_le64(val));
-	con_log("SID(%d): STE(%016llx)=%016llx\n", sid,
-		(unsigned long long)dst,
-		(unsigned long long)cpu_to_le64(val));
+	con_log("smmuv3: STE(%d): %016llx=%016llx\n"
+		"                 %016llx=%016llx\n"
+		"                 %016llx=%016llx\n"
+		"                 %016llx=%016llx\n",
+		sid,
+		(unsigned long long)&dst[0], (unsigned long long)dst[0],
+		(unsigned long long)&dst[1], (unsigned long long)dst[1],
+		(unsigned long long)&dst[2], (unsigned long long)dst[2],
+		(unsigned long long)&dst[3], (unsigned long long)dst[3]);
 	arm_smmu_sync_ste_for_sid(sid);
 
 	/* It's likely that we'll want to use the new STE soon */
@@ -1254,13 +1268,17 @@ static void arm_smmu_init_l1_strtab(void)
 
 	cfg->l1_desc = (struct arm_smmu_strtab_l1_desc *)heap_calloc(size);
 	if (!cfg->l1_desc) {
-		con_err("failed to allocate l1 stream table desc\n");
+		con_err("smmuv3: failed to allocate l1 stream table desc\n");
 		BUG();
 		return;
 	}
 
+	con_log("smmuv3: L1STD: BASE=%016llx, SIZE=%d/%d\n",
+		(unsigned long long)cfg->l1_desc,
+		(int)cfg->num_l1_ents, (int)sizeof(*cfg->l1_desc));
 	for (i = 0; i < cfg->num_l1_ents; ++i) {
-		arm_smmu_write_strtab_l1_desc(strtab, &cfg->l1_desc[i]);
+		arm_smmu_write_strtab_l1_desc(true, i << STRTAB_SPLIT,
+					      strtab, &cfg->l1_desc[i]);
 		strtab += STRTAB_L1_DESC_DWORDS << 3;
 	}
 }
@@ -1282,13 +1300,13 @@ static void arm_smmu_init_l2_strtab(uint32_t sid)
 	desc->l2ptr = (void *)dma_alloc_coherent(iommu_device_ctrl.dma,
 						 size, &desc->l2ptr_dma);
 	if (!desc->l2ptr) {
-		con_err("failed to allocate l2 stream table for SID %u\n",
+		con_err("smmuv3: failed to allocate l2 stream table for SID %u\n",
 			sid);
 		BUG();
 	}
 
 	arm_smmu_init_bypass_stes(desc->l2ptr, 1 << STRTAB_SPLIT);
-	arm_smmu_write_strtab_l1_desc(strtab, desc);
+	arm_smmu_write_strtab_l1_desc(false, sid, strtab, desc);
 }
 
 static void arm_smmu_init_strtab_2lvl(void)
@@ -1305,18 +1323,21 @@ static void arm_smmu_init_strtab_2lvl(void)
 
 	size += STRTAB_SPLIT;
 	if (size < smmu_device_ctrl.sid_bits)
-		con_log("2-level strtab only covers %u/%u bits of SID\n",
+		con_log("smmuv3: 2-level strtab only covers %u/%u bits of SID\n",
 			size, smmu_device_ctrl.sid_bits);
 
 	l1size = cfg->num_l1_ents * (STRTAB_L1_DESC_DWORDS << 3);
 	strtab = (void *)dma_alloc_coherent(iommu_device_ctrl.dma, l1size,
 					    &cfg->strtab_dma);
 	if (!strtab) {
-		con_err("failed to allocate l1 stream table (%u bytes)\n", size);
+		con_err("smmuv3: failed to allocate l1 stream table (%u bytes)\n", size);
 		BUG();
 		return;
 	}
 	cfg->strtab = strtab;
+	con_log("smmuv3: 2-Level STD: BASE=%016llx, SIZE=%d/%d\n",
+		(unsigned long long)cfg->strtab,
+		(int)cfg->num_l1_ents, STRTAB_L1_DESC_DWORDS);
 
 	/* Configure strtab_base_cfg for 2 levels */
 	reg  = FIELD_PREP(STRTAB_BASE_CFG_FMT, STRTAB_BASE_CFG_FMT_2LVL);
@@ -1338,12 +1359,15 @@ static void arm_smmu_init_strtab_linear(void)
 	strtab = (void *)dma_alloc_coherent(iommu_device_ctrl.dma, size,
 					    &cfg->strtab_dma);
 	if (!strtab) {
-		con_err("failed to allocate linear stream table (%u bytes)\n", size);
+		con_err("smmuv3: failed to allocate linear stream table (%u bytes)\n", size);
 		BUG();
 		return;
 	}
 	cfg->strtab = strtab;
 	cfg->num_l1_ents = 1 << smmu_device_ctrl.sid_bits;
+	con_log("smmuv3: Linear STD: BASE=%016llx, SIZE=%d/%d\n",
+		(unsigned long long)cfg->strtab, cfg->num_l1_ents,
+		STRTAB_STE_DWORDS);
 
 	/* Configure strtab_base_cfg for a linear table covering all SIDs */
 	reg  = FIELD_PREP(STRTAB_BASE_CFG_FMT, STRTAB_BASE_CFG_FMT_LINEAR);
@@ -1444,7 +1468,7 @@ static void arm_smmu_alloc_cd_leaf_table(struct arm_smmu_l1_ctx_desc *l1_desc)
 	l1_desc->l2ptr = (void *)dma_alloc_coherent(iommu_device_ctrl.dma, size,
 						    &l1_desc->l2ptr_dma);
 	if (!l1_desc->l2ptr) {
-		con_log("failed to allocate context descriptor table\n");
+		con_log("smmuv3: failed to allocate context descriptor table\n");
 		BUG();
 	}
 }
@@ -1456,7 +1480,7 @@ static void arm_smmu_write_cd_l1_desc(uint64_t *dst,
 		  CTXDESC_L1_DESC_V;
 
 	WRITE_ONCE(*dst, cpu_to_le64(val));
-	con_log("CD L1(%016llx)=%016llx\n",
+	con_log("smmuv3: L1CD: (%016llx)=%016llx\n",
 		(unsigned long long)dst,
 		(unsigned long long)cpu_to_le64(val));
 }
@@ -1553,9 +1577,15 @@ static void arm_smmu_write_ctx_desc(int ssid, struct arm_smmu_ctx_desc *cd)
 	 *   without first making the structure invalid.
 	 */
 	WRITE_ONCE(cdptr[0], cpu_to_le64(val));
-	con_log("SSID(%d): CD(%016llx)=%016llx\n", ssid,
-		(unsigned long long)cdptr,
-		(unsigned long long)cpu_to_le64(val));
+	con_log("smmuv3: CD(%d): %016llx=%016llx\n"
+		"                %016llx=%016llx\n"
+		"                %016llx=%016llx\n"
+		"                %016llx=%016llx\n",
+		ssid,
+		(unsigned long long)&cdptr[0], (unsigned long long)cdptr[0],
+		(unsigned long long)&cdptr[1], (unsigned long long)cdptr[1],
+		(unsigned long long)&cdptr[2], (unsigned long long)cdptr[2],
+		(unsigned long long)&cdptr[3], (unsigned long long)cdptr[3]);
 	arm_smmu_sync_cd(ssid, true);
 }
 
@@ -1566,6 +1596,8 @@ static int arm_smmu_alloc_cd_tables(void)
 	size_t max_contexts;
 	struct arm_smmu_s1_cfg *cfg = &smmu_domain_ctrl.s1_cfg;
 	struct arm_smmu_ctx_desc_cfg *cdcfg = &cfg->cdcfg;
+	int ent_dwords;
+	bool cd2lvl;
 
 	max_contexts = 1 << cfg->s1cdmax;
 
@@ -1574,6 +1606,8 @@ static int arm_smmu_alloc_cd_tables(void)
 		cfg->s1fmt = STRTAB_STE_0_S1FMT_LINEAR;
 		cdcfg->num_l1_ents = max_contexts;
 
+		ent_dwords = CTXDESC_CD_DWORDS;
+		cd2lvl = false;
 		l1size = max_contexts * (CTXDESC_CD_DWORDS << 3);
 	} else {
 		cfg->s1fmt = STRTAB_STE_0_S1FMT_64K_L2;
@@ -1584,17 +1618,26 @@ static int arm_smmu_alloc_cd_tables(void)
 						     sizeof(*cdcfg->l1_desc));
 		if (!cdcfg->l1_desc)
 			return -ENOMEM;
+		con_log("smmuv3: L1CD: BASE=%016llx, SIZE=%d/%d\n",
+			(unsigned long long)cdcfg->l1_desc,
+			cdcfg->num_l1_ents, (int)sizeof(*cdcfg->l1_desc));
 
+		ent_dwords = CTXDESC_L1_DESC_DWORDS;
+		cd2lvl = true;
 		l1size = cdcfg->num_l1_ents * (CTXDESC_L1_DESC_DWORDS << 3);
 	}
 
 	cdcfg->cdtab = (void *)dma_alloc_coherent(iommu_device_ctrl.dma,
 						  l1size, &cdcfg->cdtab_dma);
 	if (!cdcfg->cdtab) {
-		con_log("failed to allocate context descriptor\n");
+		con_log("smmuv3: failed to allocate context descriptor\n");
 		ret = -ENOMEM;
 		goto err_free_l1;
 	}
+	con_log("smmuv3: %s: BASE=%016llx, SIZE=%d/%d\n",
+		cd2lvl ? "2-Level CD" : "Linear CD",
+		(unsigned long long)cdcfg->cdtab,
+		cdcfg->num_l1_ents, ent_dwords);
 
 	return 0;
 
@@ -1807,7 +1850,7 @@ static void arm_smmu_device_hw_probe(void)
 		break;
 #endif
 	default:
-		con_err("unknown/unsupported TT endianness!\n");
+		con_err("smmuv3: unknown/unsupported TT endianness!\n");
 		BUG();
 		return;
 	}
@@ -1833,7 +1876,7 @@ static void arm_smmu_device_hw_probe(void)
 	 * register, but warn on mismatch.
 	 */
 	if (!!(reg & IDR0_COHACC) != coherent)
-		con_err("IDR0.COHACC overridden by FW configuration (%s)\n",
+		con_err("smmuv3: IDR0.COHACC overridden by FW configuration (%s)\n",
 			coherent ? "true" : "false");
 
 	switch (FIELD_GET(IDR0_STALL_MODEL, reg)) {
@@ -1850,7 +1893,7 @@ static void arm_smmu_device_hw_probe(void)
 		smmu_device_ctrl.features |= ARM_SMMU_FEAT_TRANS_S2;
 
 	if (!(reg & (IDR0_S1P | IDR0_S2P))) {
-		con_err("no translation support!\n");
+		con_err("smmuv3: no translation support!\n");
 		BUG();
 		return;
 	}
@@ -1863,7 +1906,7 @@ static void arm_smmu_device_hw_probe(void)
 	case IDR0_TTF_AARCH64:
 		break;
 	default:
-		con_err("AArch64 table format not supported!\n");
+		con_err("smmuv3: AArch64 table format not supported!\n");
 		BUG();
 		return;
 	}
@@ -1875,7 +1918,7 @@ static void arm_smmu_device_hw_probe(void)
 	/* IDR1 */
 	reg = __raw_readl(SMMU_IDR1(iommu_dev));
 	if (reg & (IDR1_TABLES_PRESET | IDR1_QUEUES_PRESET | IDR1_REL)) {
-		con_err("embedded implementation not supported\n");
+		con_err("smmuv3: embedded implementation not supported\n");
 		BUG();
 		return;
 	}
@@ -1891,7 +1934,7 @@ static void arm_smmu_device_hw_probe(void)
 		 * queue. There's also no way we can handle the weird alignment
 		 * restrictions on the base pointer for a unit-length queue.
 		 */
-		con_err("command queue size <= %d entries not supported\n",
+		con_err("smmuv3: command queue size <= %d entries not supported\n",
 			CMDQ_BATCH_ENTRIES);
 		BUG();
 		return;
@@ -1960,7 +2003,7 @@ static void arm_smmu_device_hw_probe(void)
 		smmu_device_ctrl.pgsize_bitmap |= 1ULL << 42; /* 4TB */
 		break;
 	default:
-		con_log("unknown output address size. Truncating to 48-bit\n");
+		con_log("smmuv3: unknown output address size. Truncating to 48-bit\n");
 		/* Fallthrough */
 	case IDR5_OAS_48_BIT:
 		smmu_device_ctrl.oas = 48;
@@ -1991,7 +2034,7 @@ static void arm_smmu_device_hw_probe(void)
 		smmu_device_ctrl.features |= ARM_SMMU_FEAT_SVA;
 #endif
 
-	con_log("ias %lu-bit, oas %lu-bit (features 0x%08x)\n",
+	con_log("smmuv3: ias %lu-bit, oas %lu-bit (features 0x%08x)\n",
 		smmu_device_ctrl.ias, smmu_device_ctrl.oas,
 		smmu_device_ctrl.features);
 	return;
@@ -2028,7 +2071,7 @@ static int arm_smmu_update_gbpa(uint32_t set, uint32_t clr)
 			      1, ARM_SMMU_POLL_TIMEOUT_US);
 
 	if (ret)
-		con_err("GBPA not responding to update\n");
+		con_err("smmuv3: GBPA not responding to update\n");
 	return ret;
 }
 
@@ -2040,7 +2083,7 @@ static int arm_smmu_device_disable(void)
 				      SMMU_CR0(iommu_dev),
 				      SMMU_CR0ACK(iommu_dev));
 	if (ret)
-		con_err("failed to clear cr0\n");
+		con_err("smmuv3: failed to clear CR0\n");
 	return ret;
 }
 
@@ -2056,7 +2099,7 @@ static void arm_smmu_evtq_thread(irq_t irq)
 		while (!queue_remove_raw(q, evt)) {
 			uint8_t id = FIELD_GET(EVTQ_0_ID, evt[0]);
 
-			con_log("event 0x%02x received:\n", id);
+			con_log("smmuv3: event 0x%02x received:\n", id);
 			for (i = 0; i < ARRAY_SIZE(evt); ++i)
 				con_log("\t0x%016llx\n",
 					(unsigned long long)evt[i]);
@@ -2068,7 +2111,7 @@ static void arm_smmu_evtq_thread(irq_t irq)
 		 * trying harder.
 		 */
 		if (queue_sync_prod_in(q) == -EOVERFLOW)
-			con_err("EVTQ overflow detected -- events lost\n");
+			con_err("smmuv3: EVTQ overflow detected -- events lost\n");
 	} while (!queue_empty(llq));
 
 	/* Sync our overflow flag, as we believe we're up to speed */
@@ -2088,7 +2131,7 @@ static void arm_smmu_handle_ppr(uint64_t *evt)
 	last = FIELD_GET(PRIQ_0_PRG_LAST, evt[0]);
 	grpid = FIELD_GET(PRIQ_1_PRG_IDX, evt[1]);
 
-	con_log("unexpected PRI request received:\n");
+	con_log("smmuv3: unexpected PRI request received:\n");
 	con_log("\tsid 0x%08x.0x%05x: [%u%s] %sprivileged %s%s%s access at iova 0x%016llx\n",
 		sid, ssid, grpid, last ? "L" : "",
 		evt[0] & PRIQ_0_PERM_PRIV ? "" : "un",
@@ -2126,7 +2169,7 @@ static void arm_smmu_priq_thread(irq_t irq)
 			arm_smmu_handle_ppr(evt);
 
 		if (queue_sync_prod_in(q) == -EOVERFLOW)
-			con_err("PRIQ overflow detected -- requests lost\n");
+			con_err("smmuv3: PRIQ overflow detected -- requests lost\n");
 	} while (!queue_empty(llq));
 
 	/* Sync our overflow flag, as we believe we're up to speed */
@@ -2146,31 +2189,31 @@ static void arm_smmu_gerror_handler(irq_t irq)
 	if (!(active & GERROR_ERR_MASK))
 		return; /* No errors pending */
 
-	con_log("unexpected global error reported (0x%08x), this could be serious\n",
+	con_log("smmuv3: unexpected global error reported (0x%08x), this could be serious\n",
 		active);
 
 	if (active & GERROR_SFM_ERR) {
-		con_err("device has entered Service Failure Mode!\n");
+		con_err("smmuv3: device has entered Service Failure Mode!\n");
 		arm_smmu_device_disable();
 	}
 
 	if (active & GERROR_MSI_GERROR_ABT_ERR)
-		con_log("GERROR MSI write aborted\n");
+		con_log("smmuv3: GERROR MSI write aborted\n");
 
 	if (active & GERROR_MSI_PRIQ_ABT_ERR)
-		con_log("PRIQ MSI write aborted\n");
+		con_log("smmuv3: PRIQ MSI write aborted\n");
 
 	if (active & GERROR_MSI_EVTQ_ABT_ERR)
-		con_log("EVTQ MSI write aborted\n");
+		con_log("smmuv3: EVTQ MSI write aborted\n");
 
 	if (active & GERROR_MSI_CMDQ_ABT_ERR)
-		con_log("CMDQ MSI write aborted\n");
+		con_log("smmuv3: CMDQ MSI write aborted\n");
 
 	if (active & GERROR_PRIQ_ABT_ERR)
-		con_err("PRIQ write aborted -- events may have been lost\n");
+		con_err("smmuv3: PRIQ write aborted -- events may have been lost\n");
 
 	if (active & GERROR_EVTQ_ABT_ERR)
-		con_err("EVTQ write aborted -- events may have been lost\n");
+		con_err("smmuv3: EVTQ write aborted -- events may have been lost\n");
 
 	if (active & GERROR_CMDQ_ERR)
 		arm_smmu_cmdq_skip_err();
@@ -2303,7 +2346,7 @@ static int arm_smmu_device_reset(bool bypass)
 	/* Clear CR0 and sync (disables SMMU and queue processing) */
 	reg = __raw_readl(SMMU_CR0(iommu_dev));
 	if (reg & CR0_SMMUEN) {
-		con_log("SMMU currently enabled! Resetting...\n");
+		con_log("smmuv3: SMMU currently enabled! Resetting...\n");
 		/* WARN_ON(is_kdump_kernel() && !disable_bypass); */
 		arm_smmu_update_gbpa(GBPA_ABORT, 0);
 	}
@@ -2344,7 +2387,7 @@ static int arm_smmu_device_reset(bool bypass)
 				      SMMU_CR0(iommu_dev),
 				      SMMU_CR0ACK(iommu_dev));
 	if (ret) {
-		con_err("failed to enable command queue\n");
+		con_err("smmuv3: failed to enable command queue\n");
 		return ret;
 	}
 
@@ -2376,7 +2419,7 @@ static int arm_smmu_device_reset(bool bypass)
 				      SMMU_CR0(iommu_dev),
 				      SMMU_CR0ACK(iommu_dev));
 	if (ret) {
-		con_err("failed to enable event queue\n");
+		con_err("smmuv3: failed to enable event queue\n");
 		return ret;
 	}
 
@@ -2394,7 +2437,7 @@ static int arm_smmu_device_reset(bool bypass)
 					      SMMU_CR0(iommu_dev),
 					      SMMU_CR0ACK(iommu_dev));
 		if (ret) {
-			con_err("failed to enable PRI queue\n");
+			con_err("smmuv3: failed to enable PRI queue\n");
 			return ret;
 		}
 	}
@@ -2405,7 +2448,7 @@ static int arm_smmu_device_reset(bool bypass)
 					      SMMU_CR0(iommu_dev),
 					      SMMU_CR0ACK(iommu_dev));
 		if (ret) {
-			con_err("failed to enable ATS check\n");
+			con_err("smmuv3: failed to enable ATS check\n");
 			return ret;
 		}
 	}
@@ -2424,7 +2467,7 @@ static int arm_smmu_device_reset(bool bypass)
 				      SMMU_CR0(iommu_dev),
 				      SMMU_CR0ACK(iommu_dev));
 	if (ret) {
-		con_err("failed to enable SMMU interface\n");
+		con_err("smmuv3: failed to enable SMMU interface\n");
 		return ret;
 	}
 
@@ -2570,14 +2613,14 @@ void smmu_master_attach(void)
 		iommu_domain_ctrl.dev = iommu_dev;
 		arm_smmu_domain_finalise();
 	} else if (iommu_domain_ctrl.dev != iommu_dev) {
-		con_err("cannot attach to SMMU %d (upstream of %d)\n",
+		con_err("smmuv3: cannot attach to SMMU %d (upstream of %d)\n",
 			iommu_domain_ctrl.dev,
 			iommu_dev);
 		BUG();
 	} else if (smmu_domain_ctrl.stage == ARM_SMMU_DOMAIN_S1 &&
 		   smmu_group_ctrl.ssid_bits !=
 		   smmu_domain_ctrl.s1_cfg.s1cdmax) {
-		con_err("cannot attach to incompatible domain (%u SSID bits != %u)\n",
+		con_err("smmuv3: cannot attach to incompatible domain (%u SSID bits != %u)\n",
 			smmu_domain_ctrl.s1_cfg.s1cdmax,
 			smmu_group_ctrl.ssid_bits);
 		BUG();
