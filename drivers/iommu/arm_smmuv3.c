@@ -1187,6 +1187,19 @@ static void arm_smmu_write_strtab_ent(struct smmu_group *group,
 		dst[1] = cpu_to_le64(FIELD_PREP(STRTAB_STE_1_SHCFG,
 						STRTAB_STE_1_SHCFG_INCOMING));
 		dst[2] = 0; /* Nuke the VMID */
+		con_log("smmuv3: STE(%08x): %016llx=%016llx\n"
+			"                       %016llx=%016llx\n"
+			"                       %016llx=%016llx\n"
+			"                       %016llx=%016llx\n",
+			(unsigned int)sid,
+			(unsigned long long)&dst[0],
+			(unsigned long long)dst[0],
+			(unsigned long long)&dst[1],
+			(unsigned long long)dst[1],
+			(unsigned long long)&dst[2],
+			(unsigned long long)dst[2],
+			(unsigned long long)&dst[3],
+			(unsigned long long)dst[3]);
 		/*
 		 * The SMMU can perform negative caching, so we must sync
 		 * the STE regardless of whether the old value was live.
@@ -1237,15 +1250,19 @@ static void arm_smmu_write_strtab_ent(struct smmu_group *group,
 	arm_smmu_sync_ste_for_sid(sid);
 	/* See comment in arm_smmu_write_ctx_desc() */
 	WRITE_ONCE(dst[0], cpu_to_le64(val));
-	con_log("smmuv3: STE(%d): %016llx=%016llx\n"
-		"                 %016llx=%016llx\n"
-		"                 %016llx=%016llx\n"
-		"                 %016llx=%016llx\n",
-		sid,
-		(unsigned long long)&dst[0], (unsigned long long)dst[0],
-		(unsigned long long)&dst[1], (unsigned long long)dst[1],
-		(unsigned long long)&dst[2], (unsigned long long)dst[2],
-		(unsigned long long)&dst[3], (unsigned long long)dst[3]);
+	con_log("smmuv3: STE(%08x): %016llx=%016llx\n"
+		"                       %016llx=%016llx\n"
+		"                       %016llx=%016llx\n"
+		"                       %016llx=%016llx\n",
+		(unsigned int)sid,
+		(unsigned long long)&dst[0],
+		(unsigned long long)dst[0],
+		(unsigned long long)&dst[1],
+		(unsigned long long)dst[1],
+		(unsigned long long)&dst[2],
+		(unsigned long long)dst[2],
+		(unsigned long long)&dst[3],
+		(unsigned long long)dst[3]);
 	arm_smmu_sync_ste_for_sid(sid);
 
 	/* It's likely that we'll want to use the new STE soon */
@@ -1581,11 +1598,11 @@ static void arm_smmu_write_ctx_desc(int ssid, struct arm_smmu_ctx_desc *cd)
 	 *   without first making the structure invalid.
 	 */
 	WRITE_ONCE(cdptr[0], cpu_to_le64(val));
-	con_log("smmuv3: CD(%d): %016llx=%016llx\n"
-		"                %016llx=%016llx\n"
-		"                %016llx=%016llx\n"
-		"                %016llx=%016llx\n",
-		ssid,
+	con_log("smmuv3: CD(%06x): %016llx=%016llx\n"
+		"                    %016llx=%016llx\n"
+		"                    %016llx=%016llx\n"
+		"                    %016llx=%016llx\n",
+		(unsigned int)ssid,
 		(unsigned long long)&cdptr[0], (unsigned long long)cdptr[0],
 		(unsigned long long)&cdptr[1], (unsigned long long)cdptr[1],
 		(unsigned long long)&cdptr[2], (unsigned long long)cdptr[2],
