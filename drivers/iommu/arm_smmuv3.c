@@ -1294,9 +1294,11 @@ static void arm_smmu_init_l1_strtab(void)
 		return;
 	}
 
-	con_log("smmuv3: L1STD: BASE=%016llx, SIZE=%d/%d\n",
+#if 0
+	con_log("smmuv3: L1STD descriptors: BASE=%016llx, SIZE=%d/%d\n",
 		(unsigned long long)cfg->l1_desc,
 		(int)cfg->num_l1_ents, (int)sizeof(*cfg->l1_desc));
+#endif
 	for (i = 0; i < cfg->num_l1_ents; ++i) {
 		arm_smmu_write_strtab_l1_desc(true, i << STRTAB_SPLIT,
 					      strtab, &cfg->l1_desc[i]);
@@ -1310,6 +1312,8 @@ static void arm_smmu_init_l2_strtab(uint32_t sid)
 	void *strtab;
 	struct arm_smmu_strtab_cfg *cfg = &smmu_device_ctrl.strtab_cfg;
 	struct arm_smmu_strtab_l1_desc *desc = &cfg->l1_desc[sid >> STRTAB_SPLIT];
+	/* The level 2 array is aligned to its size by the SMMU */
+	uint8_t align = 1 << 6;
 
 	if (desc->l2ptr)
 		return;
@@ -1319,13 +1323,19 @@ static void arm_smmu_init_l2_strtab(uint32_t sid)
 
 	desc->span = STRTAB_SPLIT + 1;
 	desc->l2ptr = (void *)dma_alloc_coherent(iommu_device_ctrl.dma,
-						 size, &desc->l2ptr_dma);
+						 size + align,
+						 &desc->l2ptr_dma);
 	if (!desc->l2ptr) {
 		con_err("smmuv3: failed to allocate l2 stream table for SID %u\n",
 			sid);
 		BUG();
 	}
+	desc->l2ptr = (void *)ALIGN((caddr_t)desc->l2ptr, align);
+	desc->l2ptr_dma = ALIGN(desc->l2ptr_dma, align);
 
+	con_log("L2 Ptr (%d): BASE=%016llx SIZE=%d/%d\n",
+		sid, (unsigned long long)desc->l2ptr_dma,
+		1 << STRTAB_SPLIT, 1 << STRTAB_L1_DESC_DWORDS);
 	arm_smmu_init_bypass_stes(desc->l2ptr, 1 << STRTAB_SPLIT);
 	arm_smmu_write_strtab_l1_desc(false, sid, strtab, desc);
 }
@@ -1358,7 +1368,7 @@ static void arm_smmu_init_strtab_2lvl(void)
 	cfg->strtab = strtab;
 	con_log("smmuv3: 2-Level STD: BASE=%016llx, SIZE=%d/%d\n",
 		(unsigned long long)cfg->strtab,
-		(int)cfg->num_l1_ents, STRTAB_L1_DESC_DWORDS);
+		(int)cfg->num_l1_ents, STRTAB_L1_DESC_DWORDS << 3);
 
 	/* Configure strtab_base_cfg for 2 levels */
 	reg  = FIELD_PREP(STRTAB_BASE_CFG_FMT, STRTAB_BASE_CFG_FMT_2LVL);

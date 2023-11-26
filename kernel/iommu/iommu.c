@@ -423,7 +423,7 @@ void __iommu_register_dma(int nr_iommus, iommu_t *iommus, bool is_pci)
 			iommu_device_restore(sdev);
 		}
 	}
-	iommu_group_restore(grp);
+	iommu_group_restore(sgrp);
 }
 
 void iommu_register_dma(int nr_iommus, iommu_t *iommus)
