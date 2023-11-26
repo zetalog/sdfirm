@@ -205,8 +205,10 @@ struct iommu_domain {
 #ifdef CONFIG_IOMMU_DEF_DOMAIN_PASSTHROUGH
 #define IOMMU_DOMAIN_DEFAULT		IOMMU_DOMAIN_IDENTITY
 #endif
+#if 0
 	unsigned long pgsize_bitmap;
 	iommu_fmt_t fmt;
+#endif
 	struct iommu_domain_geometry geometry;
 	struct io_pgtable_cfg cfg;
 };

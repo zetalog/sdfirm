@@ -1799,14 +1799,14 @@ static void arm_smmu_domain_finalise(void)
 		ias = (smmu_device_ctrl.features & ARM_SMMU_FEAT_VAX) ? 52 : 48;
 		ias = min(ias, VA_BITS);
 		oas = smmu_device_ctrl.ias;
-		iommu_domain_ctrl.fmt = ARM_64_LPAE_S1;
+		iommu_domain_ctrl.cfg.fmt = ARM_64_LPAE_S1;
 		finalise_stage_fn = arm_smmu_domain_finalise_s1;
 		break;
 	case ARM_SMMU_DOMAIN_NESTED:
 	case ARM_SMMU_DOMAIN_S2:
 		ias = smmu_device_ctrl.ias;
 		oas = smmu_device_ctrl.oas;
-		iommu_domain_ctrl.fmt = ARM_64_LPAE_S2;
+		iommu_domain_ctrl.cfg.fmt = ARM_64_LPAE_S2;
 		finalise_stage_fn = arm_smmu_domain_finalise_s2;
 		break;
 	default:
@@ -1831,7 +1831,6 @@ static void arm_smmu_domain_finalise(void)
 
 	BUG_ON(!iommu_pgtable_alloc(&pgtbl_cfg));
 
-	iommu_domain_ctrl.pgsize_bitmap = pgtbl_cfg.pgsize_bitmap;
 	iommu_domain_ctrl.geometry.aperture_end = (1UL << pgtbl_cfg.ias) - 1;
 	iommu_domain_ctrl.geometry.force_aperture = true;
 

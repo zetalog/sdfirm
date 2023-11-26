@@ -115,8 +115,6 @@ typedef struct io_pgtable_cfg {
 } iommu_cfg_t;
 
 struct io_pgtable {
-	enum io_pgtable_fmt fmt;
-	struct io_pgtable_cfg cfg;
 	void *cookie;
 };
 

@@ -180,8 +180,8 @@ iommu_dom_t iommu_alloc_domain(uint8_t type)
 			iommu_domain_ctrl.grp = iommu_grp;
 			iommu_domain_ctrl.dev = INVALID_IOMMU_DEV;
 			iommu_domain_ctrl.type = type;
-			iommu_domain_ctrl.fmt = INVALID_IOMMU_FMT;
-			iommu_domain_ctrl.pgsize_bitmap =
+			iommu_domain_ctrl.cfg.fmt = INVALID_IOMMU_FMT;
+			iommu_domain_ctrl.cfg.pgsize_bitmap =
 				iommu_device_ctrl.pgsize_bitmap;
 			iommu_hw_domain_init();
 			break;
@@ -242,7 +242,7 @@ static size_t iommu_pgsize(unsigned long addr_merge, size_t size)
 	}
 
 	pgsize = (UL(1) << (pgsize_idx + 1)) - 1;
-	pgsize &= iommu_domain_ctrl.pgsize_bitmap;
+	pgsize &= iommu_domain_ctrl.cfg.pgsize_bitmap;
 
 	BUG_ON(!pgsize);
 
@@ -259,7 +259,7 @@ int iommu_map(unsigned long iova, phys_addr_t paddr, size_t size, int prot)
 	unsigned int min_pagesz;
 	int ret;
 
-	min_pagesz = 1 << __ffs64(iommu_domain_ctrl.pgsize_bitmap);
+	min_pagesz = 1 << __ffs64(iommu_domain_ctrl.cfg.pgsize_bitmap);
 	BUG_ON(!IS_ALIGNED(iova | paddr | size, min_pagesz));
 
 	while (size) {
@@ -337,7 +337,7 @@ int iommu_unmap(unsigned long iova, size_t size)
 
 	iommu_iotlb_gather_init(&iotlb_gather);
 
-	min_pagesz = 1 << __ffs64(iommu_domain_ctrl.pgsize_bitmap);
+	min_pagesz = 1 << __ffs64(iommu_domain_ctrl.cfg.pgsize_bitmap);
 	BUG_ON(!IS_ALIGNED(iova | size, min_pagesz));
 
 	while (unmapped < size) {
