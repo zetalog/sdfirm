@@ -240,6 +240,22 @@ static int delegate_traps(struct sbi_scratch *scratch, uint32_t hartid)
 	return 0;
 }
 
+unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch)
+{
+	struct sbi_hart_features *hfeatures =
+			sbi_scratch_offset_ptr(scratch, hart_features_offset);
+
+	return hfeatures->mhpm_count;
+}
+
+unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch)
+{
+	struct sbi_hart_features *hfeatures =
+		sbi_scratch_offset_ptr(scratch, hart_features_offset);
+
+	return hfeatures->mhpm_bits;
+}
+
 int sbi_hart_pmp_check_addr(struct sbi_scratch *scratch, unsigned long addr,
 			    unsigned long attr)
 {

@@ -8,6 +8,7 @@
  */
 
 #include <target/sbi.h>
+#include <sbi/sbi_pmu.h>
 
 static bool sbi_trap_log_on;
 
@@ -217,6 +218,8 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 		break;
 	case EXC_LOAD_ACCESS:
 	case EXC_STORE_ACCESS:
+		sbi_pmu_ctr_incr_fw(mcause == CAUSE_LOAD_ACCESS ?
+			SBI_PMU_FW_ACCESS_LOAD : SBI_PMU_FW_ACCESS_STORE);
 	case EXC_LOAD_PAGE_FAULT:
 	case EXC_STORE_PAGE_FAULT:
 		uptrap = sbi_hart_get_trap_info(scratch);

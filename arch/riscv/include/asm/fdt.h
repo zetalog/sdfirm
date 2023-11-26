@@ -107,6 +107,15 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
 int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
 			  const char *compatible);
 
+int fdt_pmu_setup(void *fdt);
+uint64_t fdt_pmu_get_select_value(uint32_t event_idx);
+int fdt_pmu_fixup(void *fdt);
+
+static inline void *fdt_get_address(void)
+{
+	return sbi_scratch_thishart_arg1_ptr();
+}
+
 #ifdef CONFIG_SBI_FDT
 void fdt_cpu_fixup(void *fdt);
 void fdt_irqs_fixup(void *fdt, const char *compat, int num);

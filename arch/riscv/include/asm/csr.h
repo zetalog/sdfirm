@@ -136,15 +136,157 @@
 #ifdef CONFIG_CPU_PMP
 #define CSR_PMPCFG(n)		(0x3A0+(n)) /* n=0..3 */
 #define CSR_PMPADDR(n)		(0x3B0+(n)) /* n=0..15 */
+/* Machine Memory Protection */
+#define CSR_PMPCFG0		0x3a0
+#define CSR_PMPCFG1		0x3a1
+#define CSR_PMPCFG2		0x3a2
+#define CSR_PMPCFG3		0x3a3
+#define CSR_PMPCFG4		0x3a4
+#define CSR_PMPCFG5		0x3a5
+#define CSR_PMPCFG6		0x3a6
+#define CSR_PMPCFG7		0x3a7
+#define CSR_PMPCFG8		0x3a8
+#define CSR_PMPCFG9		0x3a9
+#define CSR_PMPCFG10		0x3aa
+#define CSR_PMPCFG11		0x3ab
+#define CSR_PMPCFG12		0x3ac
+#define CSR_PMPCFG13		0x3ad
+#define CSR_PMPCFG14		0x3ae
+#define CSR_PMPCFG15		0x3af
+#define CSR_PMPADDR0		0x3b0
+#define CSR_PMPADDR1		0x3b1
+#define CSR_PMPADDR2		0x3b2
+#define CSR_PMPADDR3		0x3b3
+#define CSR_PMPADDR4		0x3b4
+#define CSR_PMPADDR5		0x3b5
+#define CSR_PMPADDR6		0x3b6
+#define CSR_PMPADDR7		0x3b7
+#define CSR_PMPADDR8		0x3b8
+#define CSR_PMPADDR9		0x3b9
+#define CSR_PMPADDR10		0x3ba
+#define CSR_PMPADDR11		0x3bb
+#define CSR_PMPADDR12		0x3bc
+#define CSR_PMPADDR13		0x3bd
+#define CSR_PMPADDR14		0x3be
+#define CSR_PMPADDR15		0x3bf
+#define CSR_PMPADDR16		0x3c0
+#define CSR_PMPADDR17		0x3c1
+#define CSR_PMPADDR18		0x3c2
+#define CSR_PMPADDR19		0x3c3
+#define CSR_PMPADDR20		0x3c4
+#define CSR_PMPADDR21		0x3c5
+#define CSR_PMPADDR22		0x3c6
+#define CSR_PMPADDR23		0x3c7
+#define CSR_PMPADDR24		0x3c8
+#define CSR_PMPADDR25		0x3c9
+#define CSR_PMPADDR26		0x3ca
+#define CSR_PMPADDR27		0x3cb
+#define CSR_PMPADDR28		0x3cc
+#define CSR_PMPADDR29		0x3cd
+#define CSR_PMPADDR30		0x3ce
+#define CSR_PMPADDR31		0x3cf
+#define CSR_PMPADDR32		0x3d0
+#define CSR_PMPADDR33		0x3d1
+#define CSR_PMPADDR34		0x3d2
+#define CSR_PMPADDR35		0x3d3
+#define CSR_PMPADDR36		0x3d4
+#define CSR_PMPADDR37		0x3d5
+#define CSR_PMPADDR38		0x3d6
+#define CSR_PMPADDR39		0x3d7
+#define CSR_PMPADDR40		0x3d8
+#define CSR_PMPADDR41		0x3d9
+#define CSR_PMPADDR42		0x3da
+#define CSR_PMPADDR43		0x3db
+#define CSR_PMPADDR44		0x3dc
+#define CSR_PMPADDR45		0x3dd
+#define CSR_PMPADDR46		0x3de
+#define CSR_PMPADDR47		0x3df
+#define CSR_PMPADDR48		0x3e0
+#define CSR_PMPADDR49		0x3e1
+#define CSR_PMPADDR50		0x3e2
+#define CSR_PMPADDR51		0x3e3
+#define CSR_PMPADDR52		0x3e4
+#define CSR_PMPADDR53		0x3e5
+#define CSR_PMPADDR54		0x3e6
+#define CSR_PMPADDR55		0x3e7
+#define CSR_PMPADDR56		0x3e8
+#define CSR_PMPADDR57		0x3e9
+#define CSR_PMPADDR58		0x3ea
+#define CSR_PMPADDR59		0x3eb
+#define CSR_PMPADDR60		0x3ec
+#define CSR_PMPADDR61		0x3ed
+#define CSR_PMPADDR62		0x3ee
+#define CSR_PMPADDR63		0x3ef
 #endif /* CONFIG_CPU_PMP */
 #define CSR_MCYCLE		0xB00
 #define CSR_MINSTRET		0xB02
 #define CSR_MHPMCOUNTER(n)	(0xB03+(n)) /* n=3..31 */
+#define CSR_MHPMCOUNTER3	0xb03
+#define CSR_MHPMCOUNTER4	0xb04
+#define CSR_MHPMCOUNTER5	0xb05
+#define CSR_MHPMCOUNTER6	0xb06
+#define CSR_MHPMCOUNTER7	0xb07
+#define CSR_MHPMCOUNTER8	0xb08
+#define CSR_MHPMCOUNTER9	0xb09
+#define CSR_MHPMCOUNTER10	0xb0a
+#define CSR_MHPMCOUNTER11	0xb0b
+#define CSR_MHPMCOUNTER12	0xb0c
+#define CSR_MHPMCOUNTER13	0xb0d
+#define CSR_MHPMCOUNTER14	0xb0e
+#define CSR_MHPMCOUNTER15	0xb0f
+#define CSR_MHPMCOUNTER16	0xb10
+#define CSR_MHPMCOUNTER17	0xb11
+#define CSR_MHPMCOUNTER18	0xb12
+#define CSR_MHPMCOUNTER19	0xb13
+#define CSR_MHPMCOUNTER20	0xb14
+#define CSR_MHPMCOUNTER21	0xb15
+#define CSR_MHPMCOUNTER22	0xb16
+#define CSR_MHPMCOUNTER23	0xb17
+#define CSR_MHPMCOUNTER24	0xb18
+#define CSR_MHPMCOUNTER25	0xb19
+#define CSR_MHPMCOUNTER26	0xb1a
+#define CSR_MHPMCOUNTER27	0xb1b
+#define CSR_MHPMCOUNTER28	0xb1c
+#define CSR_MHPMCOUNTER29	0xb1d
+#define CSR_MHPMCOUNTER30	0xb1e
+#define CSR_MHPMCOUNTER31	0xb1f
 #define CSR_MCYCLEH		0xB80
 #define CSR_MINSTRETH		0xB82
 #define CSR_MHPMCOUNTERH(n)	(0xB80+(n)) /* n=3..31 */
+
+/* Machine Counter Setup */
 #define CSR_MCOUNTINHIBIT	0x320
 #define CSR_MHPMEVENT(n)	(0x320+(n)) /* n=3..31 */
+#define CSR_MHPMEVENT3		0x323
+#define CSR_MHPMEVENT4		0x324
+#define CSR_MHPMEVENT5		0x325
+#define CSR_MHPMEVENT6		0x326
+#define CSR_MHPMEVENT7		0x327
+#define CSR_MHPMEVENT8		0x328
+#define CSR_MHPMEVENT9		0x329
+#define CSR_MHPMEVENT10		0x32a
+#define CSR_MHPMEVENT11		0x32b
+#define CSR_MHPMEVENT12		0x32c
+#define CSR_MHPMEVENT13		0x32d
+#define CSR_MHPMEVENT14		0x32e
+#define CSR_MHPMEVENT15		0x32f
+#define CSR_MHPMEVENT16		0x330
+#define CSR_MHPMEVENT17		0x331
+#define CSR_MHPMEVENT18		0x332
+#define CSR_MHPMEVENT19		0x333
+#define CSR_MHPMEVENT20		0x334
+#define CSR_MHPMEVENT21		0x335
+#define CSR_MHPMEVENT22		0x336
+#define CSR_MHPMEVENT23		0x337
+#define CSR_MHPMEVENT24		0x338
+#define CSR_MHPMEVENT25		0x339
+#define CSR_MHPMEVENT26		0x33a
+#define CSR_MHPMEVENT27		0x33b
+#define CSR_MHPMEVENT28		0x33c
+#define CSR_MHPMEVENT29		0x33d
+#define CSR_MHPMEVENT30		0x33e
+#define CSR_MHPMEVENT31		0x33f
+
 #define CSR_TSELECT		0x7A0
 #define CSR_TDATA1		0x7A1
 #define CSR_TDATA2		0x7A2
@@ -371,6 +513,30 @@
 #define SER_CS		_AC(0x0000000000000000, UL)
 #endif
 
+#define IRQ_S_SOFT			1
+#define IRQ_VS_SOFT			2
+#define IRQ_M_SOFT			3
+#define IRQ_S_TIMER			5
+#define IRQ_VS_TIMER			6
+#define IRQ_M_TIMER			7
+#define IRQ_S_EXT			9
+#define IRQ_VS_EXT			10
+#define IRQ_M_EXT			11
+#define IRQ_S_GEXT			12
+#define IRQ_PMU_OVF 			13
+
+#define MIP_SSIP			(_UL(1) << IRQ_S_SOFT)
+#define MIP_VSSIP			(_UL(1) << IRQ_VS_SOFT)
+#define MIP_MSIP			(_UL(1) << IRQ_M_SOFT)
+#define MIP_STIP			(_UL(1) << IRQ_S_TIMER)
+#define MIP_VSTIP			(_UL(1) << IRQ_VS_TIMER)
+#define MIP_MTIP			(_UL(1) << IRQ_M_TIMER)
+#define MIP_SEIP			(_UL(1) << IRQ_S_EXT)
+#define MIP_VSEIP			(_UL(1) << IRQ_VS_EXT)
+#define MIP_MEIP			(_UL(1) << IRQ_M_EXT)
+#define MIP_SGEIP			(_UL(1) << IRQ_S_GEXT)
+#define MIP_LCOFIP			(_UL(1) << IRQ_PMU_OVF)
+
 #define PRV_U				0
 #define PRV_S				1
 #define PRV_H				2
@@ -550,6 +716,32 @@
 #define SR_PIE		SR_SPIE
 #define SR_PP		SR_SPP
 #endif
+
+#if __riscv_xlen == 64
+#define MHPMEVENT_OF			(_UL(1) << 63)
+#define MHPMEVENT_MINH			(_UL(1) << 62)
+#define MHPMEVENT_SINH			(_UL(1) << 61)
+#define MHPMEVENT_UINH			(_UL(1) << 60)
+#define MHPMEVENT_VSINH			(_UL(1) << 59)
+#define MHPMEVENT_VUINH			(_UL(1) << 58)
+#else
+#define MHPMEVENTH_OF			(_ULL(1) << 31)
+#define MHPMEVENTH_MINH			(_ULL(1) << 30)
+#define MHPMEVENTH_SINH			(_ULL(1) << 29)
+#define MHPMEVENTH_UINH			(_ULL(1) << 28)
+#define MHPMEVENTH_VSINH		(_ULL(1) << 27)
+#define MHPMEVENTH_VUINH		(_ULL(1) << 26)
+
+#define MHPMEVENT_OF			(MHPMEVENTH_OF << 32)
+#define MHPMEVENT_MINH			(MHPMEVENTH_MINH << 32)
+#define MHPMEVENT_SINH			(MHPMEVENTH_SINH << 32)
+#define MHPMEVENT_UINH			(MHPMEVENTH_UINH << 32)
+#define MHPMEVENT_VSINH			(MHPMEVENTH_VSINH << 32)
+#define MHPMEVENT_VUINH			(MHPMEVENTH_VUINH << 32)
+
+#endif
+
+#define MHPMEVENT_SSCOF_MASK		_ULL(0xFFFF000000000000)
 
 #ifndef __ASSEMBLY__
 #define csr_swap(csr, val)					\

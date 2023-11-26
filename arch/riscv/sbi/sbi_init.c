@@ -10,6 +10,7 @@
 #include <target/smp.h>
 #include <target/sbi.h>
 #include <sbi/sbi_hsm.h>
+#include <sbi/sbi_pmu.h>
 
 #define BANNER                                              \
 	"   ____                    _____ ____ _____\n"     \
@@ -203,6 +204,13 @@ static void __noreturn init_coldboot(void)
 	if (rc)
 		bh_panic();
 
+	rc = sbi_pmu_init(scratch, true);
+	if (rc) {
+		sbi_printf("%s: pmu init failed (error %d)\n",
+			__func__, rc);
+		bh_panic();
+	}
+
 	rc = sbi_platform_irqchip_init(plat, true);
 	if (rc)
 		bh_panic();
@@ -272,6 +280,10 @@ static void __noreturn init_warmboot(void)
 		bh_panic();
 
 	rc = sbi_hart_init(scratch, hartid, false);
+	if (rc)
+		bh_panic();
+
+	rc = sbi_pmu_init(scratch, false);
 	if (rc)
 		bh_panic();
 

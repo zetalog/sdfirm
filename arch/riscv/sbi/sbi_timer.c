@@ -8,6 +8,7 @@
  */
 
 #include <target/sbi.h>
+#include <sbi/sbi_pmu.h>
 
 uint64_t sbi_timer_value(struct sbi_scratch *scratch)
 {
@@ -27,6 +28,8 @@ void sbi_timer_event_stop(struct sbi_scratch *scratch)
 #ifdef CONFIG_RISCV_SSTC
 void sbi_timer_event_start(struct sbi_scratch *scratch, uint64_t next_event)
 {
+	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SET_TIMER);
+
 	/**
 	 * Update the stimecmp directly if available. This allows
 	 * the older software to leverage sstc extension on newer hardware.
@@ -59,6 +62,7 @@ void sbi_timer_process(struct sbi_scratch *scratch)
 #else
 void sbi_timer_event_start(struct sbi_scratch *scratch, uint64_t next_event)
 {
+	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SET_TIMER);
 	sbi_platform_timer_event_start(sbi_platform_ptr(scratch), next_event);
 	csr_clear(CSR_MIP, IR_STI);
 	csr_set(CSR_MIE, IR_MTI);

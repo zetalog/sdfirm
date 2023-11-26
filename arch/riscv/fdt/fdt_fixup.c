@@ -306,4 +306,5 @@ int fdt_reserved_memory_nomap_fixup(void *fdt)
 void fdt_fixups(void *fdt)
 {
 	fdt_reserved_memory_fixup(fdt);
+	fdt_pmu_fixup(fdt);
 }
