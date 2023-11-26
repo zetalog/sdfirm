@@ -1716,7 +1716,8 @@ static int arm_smmu_domain_finalise_s1(struct io_pgtable_cfg *pgtbl_cfg)
 	int ret;
 	int asid;
 	struct arm_smmu_s1_cfg *cfg = &smmu_domain_ctrl.s1_cfg;
-	typeof(&pgtbl_cfg->arm_lpae_s1_cfg.tcr) tcr = &pgtbl_cfg->arm_lpae_s1_cfg.tcr;
+	typeof(&pgtbl_cfg->arm_lpae_s1_cfg.tcr) tcr =
+		&pgtbl_cfg->arm_lpae_s1_cfg.tcr;
 
 	asid = arm_smmu_bitmap_alloc(smmu_device_ctrl.asid_map,
 				     smmu_device_ctrl.asid_bits);
@@ -2685,25 +2686,6 @@ void smmu_device_exit(void)
 }
 
 #if 0
-iommu_dom_t arm_smmu_domain_alloc(unsigned type)
-{
-	struct arm_smmu_domain *smmu_domain;
-
-
-	/*
-	 * Allocate the domain and initialise some of its data structures.
-	 * We can't really do anything meaningful until we've added a
-	 * master.
-	 */
-	smmu_domain = kzalloc(sizeof(*smmu_domain), GFP_KERNEL);
-	if (!smmu_domain)
-		return NULL;
-
-	spin_lock_init(&smmu_domain->devices_lock);
-
-	return &smmu_domain->domain;
-}
-
 static void arm_smmu_domain_free(iommu_dom_t dom)
 {
 	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
