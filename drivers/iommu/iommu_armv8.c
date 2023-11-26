@@ -129,7 +129,6 @@
 #define iopte_prot(pte)			((pte) & ARM_LPAE_PTE_ATTR_MASK)
 
 struct arm_lpae_io_pgtable {
-	struct io_pgtable_cfg cfg;
 	int pgd_bits;
 	int start_level;
 	int bits_per_level;
@@ -252,7 +251,7 @@ static void __arm_lpae_init_pte(phys_addr_t paddr, arm_lpae_iopte prot,
 
 	pte |= paddr_to_iopte(paddr, data);
 
-	__arm_lpae_set_pte(ptep, pte, &data->cfg);
+	__arm_lpae_set_pte(ptep, pte, &iommu_domain_ctrl.cfg);
 }
 
 static int arm_lpae_init_pte(unsigned long iova, phys_addr_t paddr,
@@ -262,7 +261,7 @@ static int arm_lpae_init_pte(unsigned long iova, phys_addr_t paddr,
 	struct arm_lpae_io_pgtable *data = &arm_io_pgtables[iommu_dom];
 	arm_lpae_iopte pte = *ptep;
 
-	if (iopte_leaf(pte, lvl, data->cfg.fmt)) {
+	if (iopte_leaf(pte, lvl, iommu_domain_ctrl.cfg.fmt)) {
 		/* We require an unmap first */
 		return -EEXIST;
 	} else if (iopte_type(pte, lvl) == ARM_LPAE_PTE_TYPE_TABLE) {
@@ -322,7 +321,7 @@ static int __arm_lpae_map(unsigned long iova, phys_addr_t paddr,
 	arm_lpae_iopte *cptep = NULL, pte;
 	size_t block_size = ARM_LPAE_BLOCK_SIZE(lvl, data);
 	size_t tblsz = ARM_LPAE_GRANULE(data);
-	struct io_pgtable_cfg *cfg = &data->cfg;
+	struct io_pgtable_cfg *cfg = &iommu_domain_ctrl.cfg;
 
 	/* Find our entry at the current level */
 	ptep += ARM_LPAE_LVL_IDX(iova, lvl, data);
@@ -349,7 +348,7 @@ static int __arm_lpae_map(unsigned long iova, phys_addr_t paddr,
 		__arm_lpae_sync_pte(ptep, cfg);
 	}
 
-	if (pte && !iopte_leaf(pte, lvl, data->cfg.fmt)) {
+	if (pte && !iopte_leaf(pte, lvl, iommu_domain_ctrl.cfg.fmt)) {
 		cptep = iopte_deref(pte, data);
 	} else if (pte) {
 		/* We require an unmap first */
@@ -415,7 +414,7 @@ int arm_lpae_map(unsigned long iova, phys_addr_t paddr,
 		 size_t size, int iommu_prot)
 {
 	struct arm_lpae_io_pgtable *data = &arm_io_pgtables[iommu_dom];
-	struct io_pgtable_cfg *cfg = &data->cfg;
+	struct io_pgtable_cfg *cfg = &iommu_domain_ctrl.cfg;
 	arm_lpae_iopte *ptep = data->pgd;
 	int ret, lvl = data->start_level;
 	arm_lpae_iopte prot;
@@ -429,7 +428,7 @@ int arm_lpae_map(unsigned long iova, phys_addr_t paddr,
 	if (iaext || paddr >> cfg->oas)
 		return -ERANGE;
 
-	prot = arm_lpae_prot_to_pte(data->cfg.fmt, iommu_prot);
+	prot = arm_lpae_prot_to_pte(cfg->fmt, iommu_prot);
 	ret = __arm_lpae_map(iova, paddr, size, prot, lvl, ptep);
 	/* Synchronise all PTE updates for the new mapping before there's
 	 * a chance for anything to kick off a table walk for the new iova.
@@ -461,13 +460,13 @@ static void __arm_lpae_free_pgtable(int lvl, arm_lpae_iopte *ptep)
 	while (ptep != end) {
 		arm_lpae_iopte pte = *ptep++;
 
-		if (!pte || iopte_leaf(pte, lvl, data->cfg.fmt))
+		if (!pte || iopte_leaf(pte, lvl, iommu_domain_ctrl.cfg.fmt))
 			continue;
 
 		__arm_lpae_free_pgtable(lvl + 1, iopte_deref(pte, data));
 	}
 
-	__arm_lpae_free_pages(start, table_size, &data->cfg);
+	__arm_lpae_free_pages(start, table_size, &iommu_domain_ctrl.cfg);
 }
 
 void arm_lpae_free_pgtable(void)
@@ -483,7 +482,7 @@ static size_t arm_lpae_split_blk_unmap(struct iommu_iotlb_gather *gather,
 				       arm_lpae_iopte *ptep)
 {
 	struct arm_lpae_io_pgtable *data = &arm_io_pgtables[iommu_dom];
-	struct io_pgtable_cfg *cfg = &data->cfg;
+	struct io_pgtable_cfg *cfg = &iommu_domain_ctrl.cfg;
 	arm_lpae_iopte pte, *tablep;
 	phys_addr_t blk_paddr;
 	size_t tablesz = ARM_LPAE_GRANULE(data);
@@ -549,9 +548,9 @@ static size_t __arm_lpae_unmap(struct iommu_iotlb_gather *gather,
 
 	/* If the size matches this level, we're in the right place */
 	if (size == ARM_LPAE_BLOCK_SIZE(lvl, data)) {
-		__arm_lpae_set_pte(ptep, 0, &data->cfg);
+		__arm_lpae_set_pte(ptep, 0, &iommu_domain_ctrl.cfg);
 
-		if (!iopte_leaf(pte, lvl, data->cfg.fmt)) {
+		if (!iopte_leaf(pte, lvl, iommu_domain_ctrl.cfg.fmt)) {
 			/* Also flush any partial walks */
 			iommu_hw_tlb_flush_walk(iova, size,
 						ARM_LPAE_GRANULE(data));
@@ -562,7 +561,7 @@ static size_t __arm_lpae_unmap(struct iommu_iotlb_gather *gather,
 		}
 
 		return size;
-	} else if (iopte_leaf(pte, lvl, data->cfg.fmt)) {
+	} else if (iopte_leaf(pte, lvl, iommu_domain_ctrl.cfg.fmt)) {
 		/*
 		 * Insert a table at the next level to map the old region,
 		 * minus the part we want to unmap
@@ -580,7 +579,7 @@ size_t arm_lpae_unmap(unsigned long iova, size_t size,
 		      struct iommu_iotlb_gather *gather)
 {
 	struct arm_lpae_io_pgtable *data = &arm_io_pgtables[iommu_dom];
-	struct io_pgtable_cfg *cfg = &data->cfg;
+	struct io_pgtable_cfg *cfg = &iommu_domain_ctrl.cfg;
 	arm_lpae_iopte *ptep = data->pgd;
 	long iaext = (int64_t)iova >> cfg->ias;
 
@@ -612,7 +611,7 @@ phys_addr_t arm_lpae_iova_to_phys(unsigned long iova)
 			return 0;
 
 		/* Leaf entry? */
-		if (iopte_leaf(pte, lvl, data->cfg.fmt))
+		if (iopte_leaf(pte, lvl, iommu_domain_ctrl.cfg.fmt))
 			goto found_translation;
 
 		/* Take it to the next level */
@@ -888,9 +887,9 @@ out_free_data:
 
 bool arm_lpae_pgtable_alloc(struct io_pgtable_cfg *cfg)
 {
-	if (iommu_domain_ctrl.fmt == ARM_64_LPAE_S1)
+	if (iommu_domain_ctrl.cfg.fmt == ARM_64_LPAE_S1)
 		return arm_64_lpae_alloc_pgtable_s1(cfg);
-	else if (iommu_domain_ctrl.fmt == ARM_64_LPAE_S2)
+	else if (iommu_domain_ctrl.cfg.fmt == ARM_64_LPAE_S2)
 		return arm_64_lpae_alloc_pgtable_s2(cfg);
 	return false;
 }
