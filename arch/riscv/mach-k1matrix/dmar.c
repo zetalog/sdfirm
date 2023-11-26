@@ -13,14 +13,19 @@ iommu_grp_t k1matrix_dmac_iommu;
 dma_addr_t dma_hw_map_single(dma_t dma, phys_addr_t ptr,
 			     size_t size, dma_dir_t dir)
 {
-	iommu_dom_t dom = iommu_get_domain(k1matrix_dmac_iommus[dma]);
-	int prot = dma_info_to_prot(dma_direction(dma),
-				    dma_is_coherent(dma), 0);
-	dma_addr_t iova = iommu_iova_alloc(dom, size);
-	int ret;
+	iommu_dom_t dom, sdom;
+	dma_addr_t iova;
+	int prot, ret;
 
+	dom = iommu_get_domain(k1matrix_dmac_iommus[dma]);
+
+	sdom = iommu_domain_save(dom);
+	prot = dma_info_to_prot(dma_direction(dma),
+				dma_is_coherent(dma), 0);
+	iova = iommu_iova_alloc(dom, size);
 	ret = iommu_map(iova, ptr, size, prot);
-	return ret == 0 ? (dma_addr_t)ptr : 0;
+	iommu_domain_restore(sdom);
+	return ret == 0 ? (dma_addr_t)iova : 0;
 }
 
 void dma_hw_unmap_single(dma_t dma, dma_addr_t addr,
