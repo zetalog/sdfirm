@@ -201,6 +201,38 @@ static int k1max_timer_init(bool cold_boot)
 	return 0;
 }
 
+/*
+ * Initialize hw performance counters.
+ */
+static int platform_pmu_init(void)
+{
+    return fdt_pmu_setup(fdt_get_address());
+}
+
+/*
+ * Get platform specific mhpmevent value.
+ */
+static uint64_t platform_pmu_xlate_to_mhpmevent(uint32_t event_idx, uint64_t data)
+{
+    uint64_t evt_val = 0;
+
+    /* 'data' is valid only for raw events and is equal to event selector */
+    if (event_idx == SBI_PMU_EVENT_RAW_IDX) {
+        evt_val = data;
+    } else {
+        /*
+         * Follows the SBI specification recommendation
+         * i.e. zero extended event_idx is used as mhpmevent value for
+         * hardware general/cache events if platform does't define one.
+         */
+        evt_val = fdt_pmu_get_select_value(event_idx);
+        if (!evt_val)
+            evt_val = (uint64_t)event_idx;
+    }
+
+    return evt_val;
+}
+
 static int k1max_system_down(uint32_t type)
 {
 	/* Tell the "finisher" that the simulation
@@ -238,6 +270,8 @@ const struct sbi_platform_operations platform_ops = {
 	.timer_event_stop	= k1max_timer_event_stop,
 	.timer_event_start	= k1max_timer_event_start,
 	.timer_init		= k1max_timer_init,
+	.pmu_init		= platform_pmu_init,
+	.pmu_xlate_to_mhpmevent	= platform_pmu_xlate_to_mhpmevent,
 	.system_reboot		= k1max_system_down,
 	.system_shutdown	= k1max_system_down,
 	.system_finish		= k1max_system_finish,

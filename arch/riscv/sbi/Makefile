@@ -3,13 +3,16 @@ EXTRA_CFLAGS += -fno-strict-aliasing
 obj-y :=
 
 obj-y += riscv_unpriv.rel
+obj-y += riscv_asm.rel
 obj-y += sbi_entry.rel
 obj-y += sbi_fifo.rel
+obj-y += sbi_bitops.rel
 
 obj-y += sbi_hart.rel
 obj-y += sbi_init.rel
 obj-y += sbi_scratch.rel
 obj-y += sbi_system.rel
+obj-y += sbi_pmu.rel
 
 obj-y += sbi_trap.rel
 obj-y += sbi_emulate_csr.rel
@@ -25,6 +28,7 @@ obj-$(CONFIG_RISCV_H) += sbi_hfence.rel
 obj-$(CONFIG_SBI_ECALL_HSM) += sbi_ecall_hsm.rel
 obj-$(CONFIG_SBI_ECALL_HSM) += sbi_hsm.rel
 obj-y += sbi_tlb.rel
+obj-y += sbi_ecall_pmu.rel
 
 obj-$(CONFIG_CONSOLE_OUTPUT) += sbi_console.rel
 obj-$(CONFIG_ARCH_HAS_SBI_IPI) += sbi_ipi.rel

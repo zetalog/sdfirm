@@ -49,7 +49,7 @@ done:
 	spin_unlock(&extra_lock);
 
 	if (ret) {
-		for (i = 0; i <= MAX_HARTS; i++) {
+		for (i = 0; i < MAX_HARTS; i++) {
 			rscratch = sbi_scratches[i];
 			if (!rscratch)
 				continue;

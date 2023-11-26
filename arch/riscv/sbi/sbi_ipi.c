@@ -9,6 +9,7 @@
  */
 
 #include <target/sbi.h>
+#include <sbi/sbi_pmu.h>
 
 struct sbi_ipi_data {
 	atomic_t ipi_type;
@@ -42,6 +43,8 @@ static int sbi_ipi_send(struct sbi_scratch *scratch, cpu_t cpu,
 	atomic_or(_BV(event), &ipi_data->ipi_type);
 	smp_mb();
 	sbi_platform_ipi_send(plat, cpu);
+
+	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_SENT);
 
 	if (event == SBI_IPI_EVENT_RFENCE)
 		sbi_tlb_fifo_sync(scratch);
@@ -84,6 +87,8 @@ void sbi_ipi_process(struct sbi_scratch *scratch)
 			sbi_scratch_offset_ptr(scratch, ipi_data_off);
 
 	uint32_t hartid = sbi_current_hartid();
+
+	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_RECVD);
 	sbi_platform_ipi_clear(plat, smp_hw_hart_cpu(hartid));
 
 	ipi_type = atomic_xchg(&ipi_data->ipi_type, 0);

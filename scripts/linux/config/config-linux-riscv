@@ -153,7 +153,7 @@ CONFIG_HAVE_FUTEX_CMPXCHG=y
 CONFIG_EPOLL=y
 # CONFIG_SIGNALFD is not set
 # CONFIG_TIMERFD is not set
-# CONFIG_EVENTFD is not set
+CONFIG_EVENTFD=y
 CONFIG_SHMEM=y
 # CONFIG_AIO is not set
 # CONFIG_IO_URING is not set
@@ -169,7 +169,7 @@ CONFIG_HAVE_PERF_EVENTS=y
 #
 # Kernel Performance Events And Counters
 #
-# CONFIG_PERF_EVENTS is not set
+CONFIG_PERF_EVENTS=y
 # end of Kernel Performance Events And Counters
 
 # CONFIG_VM_EVENT_COUNTERS is not set

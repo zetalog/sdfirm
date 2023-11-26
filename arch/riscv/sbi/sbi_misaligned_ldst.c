@@ -8,6 +8,7 @@
  */
 
 #include <target/sbi.h>
+#include <sbi/sbi_pmu.h>
 
 union reg_data {
 	uint8_t data_bytes[8];
@@ -24,6 +25,8 @@ int sbi_misaligned_load_handler(uint32_t hartid, ulong mcause,
 	ulong insn = get_insn(regs->epc, NULL);
 	ulong addr = csr_read(CSR_MTVAL);
 	int i, fp = 0, shift = 0, len = 0;
+
+	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_LOAD);
 
 	if ((insn & INSN_MASK_LW) == INSN_MATCH_LW) {
 		len   = 4;
@@ -127,6 +130,8 @@ int sbi_misaligned_store_handler(uint32_t hartid, ulong mcause,
 	ulong insn = get_insn(regs->epc, NULL);
 	ulong addr = csr_read(CSR_MTVAL);
 	int i, len = 0;
+
+	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_STORE);
 
 	val.data_ulong = GET_RS2(insn, regs);
 
