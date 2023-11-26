@@ -1333,7 +1333,7 @@ static void arm_smmu_init_l2_strtab(uint32_t sid)
 	desc->l2ptr = (void *)ALIGN((caddr_t)desc->l2ptr, align);
 	desc->l2ptr_dma = ALIGN(desc->l2ptr_dma, align);
 
-	con_log("L2 Ptr (%d): BASE=%016llx SIZE=%d/%d\n",
+	con_log("smmuv3: L2 Ptr (%d): BASE=%016llx SIZE=%d/%d\n",
 		sid, (unsigned long long)desc->l2ptr_dma,
 		1 << STRTAB_SPLIT, 1 << STRTAB_L1_DESC_DWORDS);
 	arm_smmu_init_bypass_stes(desc->l2ptr, 1 << STRTAB_SPLIT);

@@ -203,6 +203,8 @@ static void *__arm_lpae_alloc_pages(size_t size, struct io_pgtable_cfg *cfg)
 		}
 	}
 #endif
+	con_log("lpae: PGD=%016llx, SIZE=%016llx\n",
+		(unsigned long long)p, (unsigned long long)size);
 	return pages;
 }
 
