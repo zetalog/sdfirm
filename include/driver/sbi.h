@@ -10,6 +10,11 @@
 #ifndef __SBI_PLATFORM_H__
 #define __SBI_PLATFORM_H__
 
+/** Offset of hart_stack_size in struct sbi_platform */
+#define SBI_PLATFORM_HART_STACK_SIZE_OFFSET (0x54)
+/** Offset of heap_size in struct sbi_platform */
+#define SBI_PLATFORM_HEAP_SIZE_OFFSET (0x58)
+
 /** OpenSBI 32-bit platform version with:
  *  1. upper 16-bits as major number
  *  2. lower 16-bits as minor number
@@ -56,6 +61,12 @@ struct sbi_platform_operations {
 	void (*console_putc)(char ch);
 	/** Read a character from the platform console input */
 	int (*console_getc)(void);
+
+	/** Initialize hw performance counters */
+	int (*pmu_init)(void);
+
+	/** Get platform specific mhpmevent value */
+	uint64_t (*pmu_xlate_to_mhpmevent)(uint32_t event_idx, uint64_t data);
 
 	/** Initialize the platform interrupt controller for current HART */
 	int (*irqchip_init)(bool cold_boot);
@@ -118,6 +129,10 @@ struct sbi_platform {
 	uint64_t features;
 	/** Total number of HARTs */
 	uint32_t hart_count;
+	/** Per-HART stack size for exception/interrupt handling */
+	uint32_t hart_stack_size;
+	/** Size of heap shared by all HARTs */
+	uint32_t heap_size;
 	/** Mask representing the set of disabled HARTs */
 	uint64_t disabled_hart_mask;
 	/** Pointer to sbi platform operations */
@@ -517,6 +532,39 @@ static inline int sbi_platform_process_irq(const struct sbi_platform *plat,
 {
 	if (plat && sbi_platform_ops(plat)->process_irq)
 		return sbi_platform_ops(plat)->process_irq(irq);
+	return 0;
+}
+
+/**
+ * Setup hw PMU events for the platform
+ *
+ * @param plat pointer to struct sbi_platform
+ *
+ * @return 0 on success and negative error code on failure
+ */
+static inline int sbi_platform_pmu_init(const struct sbi_platform *plat)
+{
+	if (plat && sbi_platform_ops(plat)->pmu_init)
+		return sbi_platform_ops(plat)->pmu_init();
+	return 0;
+}
+
+/**
+ * Get the value to be written in mhpmeventx for event_idx
+ *
+ * @param plat pointer to struct sbi_platform
+ * @param event_idx ID of the PMU event
+ * @param data Additional configuration data passed from supervisor software
+ *
+ * @return expected value by the platform or 0 if platform doesn't know about
+ * the event
+ */
+static inline uint64_t sbi_platform_pmu_xlate_to_mhpmevent(const struct sbi_platform *plat,
+                                                      uint32_t event_idx, uint64_t data)
+{
+	if (plat && sbi_platform_ops(plat)->pmu_xlate_to_mhpmevent)
+		return sbi_platform_ops(plat)->pmu_xlate_to_mhpmevent(event_idx,
+									data);
 	return 0;
 }
 #endif

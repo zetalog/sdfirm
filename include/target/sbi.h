@@ -278,6 +278,7 @@ enum sbi_pmu_ctr_type {
 #endif
 
 /* Helper macros to decode event idx */
+#define SBI_PMU_EVENT_IDX_OFFSET 20
 #define SBI_PMU_EVENT_IDX_MASK 0xFFFFF
 #define SBI_PMU_EVENT_IDX_TYPE_OFFSET 16
 #define SBI_PMU_EVENT_IDX_TYPE_MASK (0xF << SBI_PMU_EVENT_IDX_TYPE_OFFSET)
@@ -588,6 +589,23 @@ void sbi_scratch_free_offset(unsigned long offset);
 #define sbi_scratch_thishart_offset_ptr(offset)	\
 	((void *)sbi_scratch_thishart_ptr() + (offset))
 
+/** Allocate offset for a data type in sbi_scratch */
+#define sbi_scratch_alloc_type_offset(__type)				\
+	sbi_scratch_alloc_offset(sizeof(__type), "none")
+
+/** Read a data type from sbi_scratch at given offset */
+#define sbi_scratch_read_type(__scratch, __type, __offset)		\
+({									\
+	*((__type *)sbi_scratch_offset_ptr((__scratch), (__offset)));	\
+})
+
+/** Write a data type to sbi_scratch at given offset */
+#define sbi_scratch_write_type(__scratch, __type, __offset, __ptr)	\
+do {									\
+        *((__type *)sbi_scratch_offset_ptr((__scratch), (__offset)))	\
+					= (__type)(__ptr);		\
+} while (0)
+
 #ifdef CONFIG_ARCH_HAS_SBI_IPI
 int sbi_ipi_send_many(ulong hmask, ulong hbase, uint32_t event, void *data);
 void sbi_ipi_clear_smode(struct sbi_scratch *scratch);
@@ -745,6 +763,8 @@ void sbi_hart_set_trap_info(struct sbi_scratch *scratch, void *data);
 void sbi_hart_pmp_dump(struct sbi_scratch *scratch);
 int  sbi_hart_pmp_check_addr(struct sbi_scratch *scratch, unsigned long daddr,
 			     unsigned long attr);
+unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch);
+unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
 __noreturn void sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 				     unsigned long next_addr,
 				     unsigned long next_mode);
