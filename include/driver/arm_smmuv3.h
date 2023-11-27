@@ -651,7 +651,6 @@ struct arm_smmu_priq {
 	/* IOMMU core code handle */
 
 #define SMMU_GROUP_ATTR					\
-	struct smmu_domain *domain;			\
 	struct list_head domain_head;			\
 	uint32_t sids[MAX_IOMMU_RIDS];			\
 	unsigned int num_sids;				\
