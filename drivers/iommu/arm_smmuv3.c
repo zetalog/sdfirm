@@ -2620,6 +2620,7 @@ static void smmu_master_detach(void)
 {
 	arm_smmu_disable_ats();
 	list_del(&smmu_group_ctrl.domain_head);
+	iommu_group_ctrl.dom = INVALID_IOMMU_DOM;
 	smmu_group_ctrl.ats_enabled = false;
 	arm_smmu_install_ste_for_dev();
 }
