@@ -88,3 +88,6 @@ struct sbi_ecall_extension ecall_pmu = {
 	.handle = sbi_ecall_pmu_handler,
 	.probe = sbi_ecall_pmu_probe,
 };
+
+DEFINE_SBI_ECALL(pmu, SBI_EXT_PMU, SBI_EXT_PMU,
+                 NULL, sbi_ecall_pmu_handler);
