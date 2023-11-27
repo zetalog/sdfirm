@@ -130,7 +130,7 @@
 	smmuv3_handle_seq()
 #endif
 
-#define smmu_hw_num_pasid_bits				(_BV(20) - 1)
+#define smmu_hw_num_pasid_bits				20
 
 #define iommu_hw_map(iova, paddr, pgsize, prot)		\
 	arm_lpae_map(iova, paddr, pgsize, prot)
