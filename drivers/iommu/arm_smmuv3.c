@@ -2071,9 +2071,27 @@ static void arm_smmu_device_hw_probe(void)
 		smmu_device_ctrl.features |= ARM_SMMU_FEAT_SVA;
 #endif
 
-	con_log("smmuv3: ias %lu-bit, oas %lu-bit (features 0x%08x)\n",
-		smmu_device_ctrl.ias, smmu_device_ctrl.oas,
-		smmu_device_ctrl.features);
+	con_log("smmuv3: IDR0 ST_LVL: %d\n",
+		smmu_device_ctrl.features & ARM_SMMU_FEAT_2_LVL_STRTAB ? 2 : 1);
+	con_log("smmuv3: IDR0 CD_LVL: %d\n",
+		smmu_device_ctrl.features & ARM_SMMU_FEAT_2_LVL_CDTAB ? 2 : 1);
+	con_log("smmuv3: IDR1 SIDSIZE: %d-bit\n", smmu_device_ctrl.sid_bits);
+	con_log("smmuv3: IDR1 SSIDSIZE: %d-bit\n", smmu_device_ctrl.ssid_bits);
+	con_log("smmuv3: IDR5 IAS: %lu-bit\n", smmu_device_ctrl.ias);
+	con_log("smmuv3: IDR5 OAS: %lu-bit\n", smmu_device_ctrl.oas);
+	con_log("smmuv3: IDR5 GRAN: %08lx\n", smmu_device_ctrl.pgsize_bitmap);
+	con_log("smmuv3: IDR0 ASID: %d-bit\n", smmu_device_ctrl.asid_bits);
+	con_log("smmuv3: IDR0 VMID: %d-bit\n", smmu_device_ctrl.vmid_bits);
+	con_log("smmuv3: IDR0 Features(%08x): %c%c%c%c%c%c%c%c\n",
+		smmu_device_ctrl.features,
+		smmu_device_ctrl.features & ARM_SMMU_FEAT_ATS ? 'A' : ' ',
+		coherent ? 'c' : ' ',
+		smmu_device_ctrl.features & ARM_SMMU_FEAT_HYP ? 'H' : ' ',
+		smmu_device_ctrl.features & ARM_SMMU_FEAT_MSI ? 'M' : ' ',
+		smmu_device_ctrl.features & ARM_SMMU_FEAT_PRI ? 'P' : ' ',
+		smmu_device_ctrl.features & ARM_SMMU_FEAT_SEV ? 'S' : ' ',
+		smmu_device_ctrl.features & ARM_SMMU_FEAT_TRANS_S1 ? '1' : ' ',
+		smmu_device_ctrl.features & ARM_SMMU_FEAT_TRANS_S2 ? '2' : ' ');
 	return;
 }
 
