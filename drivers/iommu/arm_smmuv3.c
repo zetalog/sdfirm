@@ -1142,7 +1142,7 @@ static void arm_smmu_write_strtab_ent(struct smmu_group *group,
 	};
 
 	if (group)
-		smmu_domain = group->domain;
+		smmu_domain = &smmu_domain_ctrl;
 	if (smmu_domain) {
 		switch (smmu_domain->stage) {
 		case ARM_SMMU_DOMAIN_S1:
@@ -1462,6 +1462,7 @@ static void arm_smmu_install_ste_for_dev(void)
 				break;
 		if (j < i)
 			continue;
+
 		arm_smmu_write_strtab_ent(&smmu_group_ctrl, sid, step);
 	}
 }
@@ -2658,6 +2659,7 @@ void smmu_master_attach(void)
 	}
 
 	iommu_group_ctrl.dom = iommu_dom;
+	iommu_domain_select(iommu_dom);
 
 	if (smmu_domain_ctrl.stage != ARM_SMMU_DOMAIN_BYPASS)
 		smmu_group_ctrl.ats_enabled = arm_smmu_ats_supported();
