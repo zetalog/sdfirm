@@ -153,6 +153,9 @@ typedef uint32_t iommu_map_t;
 
 #include <driver/iommu.h>
 
+typedef uint8_t iommu_state_t;
+typedef uint8_t iommu_event_t;
+
 struct scatterlist {
 	unsigned long page_link;
 	unsigned int offset;
@@ -168,6 +171,8 @@ struct iommu_device {
 	bool valid;
 	dma_t dma;		/* contain DMA_PHYS_OFFSET */
 	unsigned long pgsize_bitmap;
+	iommu_state_t state;
+	iommu_event_t event;
 };
 
 struct iommu_group {
@@ -204,10 +209,6 @@ struct iommu_domain {
 #endif
 #ifdef CONFIG_IOMMU_DEF_DOMAIN_PASSTHROUGH
 #define IOMMU_DOMAIN_DEFAULT		IOMMU_DOMAIN_IDENTITY
-#endif
-#if 0
-	unsigned long pgsize_bitmap;
-	iommu_fmt_t fmt;
 #endif
 	struct iommu_domain_geometry geometry;
 	struct io_pgtable_cfg cfg;
@@ -271,7 +272,7 @@ iommu_dom_t iommu_get_domain(iommu_grp_t grp);
 iommu_dom_t iommu_get_dma_domain(iommu_grp_t grp);
 
 int dma_info_to_prot(uint8_t dir, bool coherent, unsigned long attrs);
-unsigned long iommu_iova_alloc(iommu_dom_t dom, size_t size);
+dma_addr_t iommu_iova_alloc(iommu_dom_t dom, size_t size);
 
 void iommu_iotlb_sync(struct iommu_iotlb_gather *gather);
 bool iommu_iotlb_gather_is_disjoint(struct iommu_iotlb_gather *gather,
@@ -280,5 +281,11 @@ void iommu_iotlb_gather_add_range(struct iommu_iotlb_gather *gather,
 				  unsigned long iova, size_t size);
 void iommu_iotlb_gather_add_page(struct iommu_iotlb_gather *gather,
 				 unsigned long iova, size_t size);
+
+void iommu_event_raise(iommu_event_t event);
+iommu_event_t iommu_event_save(void);
+void iommu_event_restore(iommu_event_t event);
+iommu_state_t iommu_state_get(void);
+void iommu_state_set(iommu_state_t state);
 
 #endif /* __IOMMU_H_INCLUDE__ */

@@ -45,6 +45,41 @@
 
 bh_t iommu_bh;
 
+#define iommu_debug_event(event)	do { } while (0)
+#define iommu_debug_state(event)	do { } while (0)
+
+void iommu_event_raise(iommu_event_t event)
+{
+	iommu_debug_event(event);
+	iommu_device_ctrl.event |= event;
+	bh_resume(iommu_bh);
+}
+
+iommu_event_t iommu_event_save(void)
+{
+	iommu_event_t events;
+	events = iommu_device_ctrl.event;
+	iommu_device_ctrl.event = 0;
+	return events;
+}
+
+void iommu_event_restore(iommu_event_t event)
+{
+	iommu_device_ctrl.event |= event;
+}
+
+iommu_state_t iommu_state_get(void)
+{
+	return iommu_device_ctrl.state;
+}
+
+void iommu_state_set(iommu_state_t state)
+{
+	iommu_debug_state(state);
+	iommu_device_ctrl.state = state;
+	iommu_hw_handle_seq();
+}
+
 /* ======================================================================
  * IOMMU Devices
  * ====================================================================== */
@@ -121,7 +156,7 @@ void iommu_free_group(iommu_grp_t grp)
 	}
 }
 
-unsigned long iommu_iova_alloc(iommu_dom_t dom, size_t size)
+dma_addr_t iommu_iova_alloc(iommu_dom_t dom, size_t size)
 {
 	return 0;
 }
@@ -197,6 +232,7 @@ void iommu_free_domain(iommu_dom_t dom)
 
 	if (dom < NR_IOMMU_DOMAINS) {
 		sdom = iommu_domain_save(dom);
+		iommu_hw_domain_exit();
 		iommu_domain_ctrl.grp = INVALID_IOMMU_GRP;
 		iommu_domain_restore(sdom);
 	}
@@ -368,6 +404,12 @@ bool iommu_pgtable_alloc(iommu_cfg_t *cfg)
 	return false;
 }
 
+void iommu_pgtable_free(void)
+{
+	iommu_hw_tlb_flush_all();
+	iommu_hw_free_table();
+}
+
 /* ======================================================================
  * IOMMU Initializers
  * ====================================================================== */
@@ -462,13 +504,30 @@ static void iommu_poll_handler(void)
 #define iommu_poll_handler()		do { } while (0)
 #endif
 
-static void iommu_bh_handler(uint8_t events)
+static void iommu_async_handler(void)
 {
-	irq_flags_t flags;
+	iommu_dev_t dev;
+	__unused iommu_dev_t sdev;
 
-	if (events == BH_POLLIRQ) {
+	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
+		sdev = iommu_device_save(dev);
+		iommu_hw_handle_stm();
+		iommu_device_restore(sdev);
+	}
+}
+
+static void iommu_bh_handler(uint8_t event)
+{
+	if (event == BH_POLLIRQ)
 		iommu_poll_handler();
-		return;
+	else {
+		switch (event) {
+		case BH_WAKEUP:
+			iommu_async_handler();
+			break;
+		default:
+			BUG();
+		}
 	}
 }
 

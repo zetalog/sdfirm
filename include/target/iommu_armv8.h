@@ -43,7 +43,7 @@
 #define __IOMMU_PGTABLE_ARM_H_INCLUDE__
 
 bool arm_lpae_pgtable_alloc(struct io_pgtable_cfg *cfg);
-void arm_lpae_free_pgtable(void);
+void arm_lpae_pgtable_free(void);
 int arm_lpae_map(unsigned long iova, phys_addr_t paddr,
 		 size_t size, int iommu_prot);
 size_t arm_lpae_unmap(unsigned long iova, size_t size,
