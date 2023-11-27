@@ -208,6 +208,9 @@ static int delegate_traps(struct sbi_scratch *scratch, uint32_t hartid)
 
 	/* Send M-mode interrupts and most exceptions to S-mode */
 	interrupts = IR_SSI | IR_STI | IR_SEI;
+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
+		interrupts |= MIP_LCOFIP;
+
 	exceptions = (1U << EXC_INSN_MISALIGNED) | (1U << EXC_BREAKPOINT) |
 		     (1U << EXC_ECALL_U) | EXC_LDST_MISALIGNED_DELEG;
 	if (sbi_platform_has_mfaults_delegation(plat))

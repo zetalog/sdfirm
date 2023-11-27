@@ -7,16 +7,6 @@
  *   Atish Patra <atish.patra@wdc.com>
  */
 
-//#include <sbi/sbi_ecall.h>
-//#include <sbi/sbi_ecall_interface.h>
-//#include <sbi/sbi_error.h>
-//#include <sbi/sbi_hart.h>
-//#include <sbi/sbi_trap.h>
-//#include <sbi/sbi_version.h>
-//#include <sbi/sbi_pmu.h>
-//#include <sbi/sbi_scratch.h>
-//#include <sbi/riscv_asm.h>
-
 #include <target/sbi.h>
 #include <sbi/sbi_pmu.h>
 
@@ -90,4 +80,4 @@ struct sbi_ecall_extension ecall_pmu = {
 };
 
 DEFINE_SBI_ECALL(pmu, SBI_EXT_PMU, SBI_EXT_PMU,
-                 NULL, sbi_ecall_pmu_handler);
+		 NULL, sbi_ecall_pmu_handler);
