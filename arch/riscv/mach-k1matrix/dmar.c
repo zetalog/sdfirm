@@ -13,7 +13,7 @@ iommu_grp_t k1matrix_dmac_iommu;
 dma_addr_t dma_hw_map_single(dma_t dma, phys_addr_t ptr,
 			     size_t size, dma_dir_t dir)
 {
-	iommu_dom_t dom, sdom;
+	__unused iommu_dom_t dom, sdom;
 	dma_addr_t iova;
 	int prot, ret;
 
