@@ -205,8 +205,6 @@ static void *__arm_lpae_alloc_pages(size_t size, struct io_pgtable_cfg *cfg)
 #endif
 	if (pages)
 		memory_set((caddr_t)pages, 0, size);
-	con_log("lpae: PGD=%016llx, SIZE=%016llx\n",
-		(unsigned long long)p, (unsigned long long)size);
 	return pages;
 }
 
@@ -231,7 +229,7 @@ static void __arm_lpae_set_pte(arm_lpae_iopte *ptep, arm_lpae_iopte pte,
 			       struct io_pgtable_cfg *cfg)
 {
 	*ptep = pte;
-	con_log("lpae: PTE(%016llx)=%016llx\n", (unsigned long long)ptep,
+	con_log("lpae: PTE: %016llx=%016llx\n", (unsigned long long)ptep,
 		(unsigned long long)pte);
 
 	if (!cfg->coherent_walk)
@@ -309,7 +307,7 @@ static arm_lpae_iopte arm_lpae_install_table(arm_lpae_iopte *table,
 	__arm_lpae_sync_pte(ptep, cfg);
 	if (old == curr) {
 		WRITE_ONCE(*ptep, new | ARM_LPAE_PTE_SW_SYNC);
-		con_log("lpae: PTE_I(%016llx)=%016llx\n",
+		con_log("lpae: PxD: %016llx=%016llx\n",
 			(unsigned long long)ptep,
 			(unsigned long long)(new | ARM_LPAE_PTE_SW_SYNC));
 	}
@@ -344,6 +342,9 @@ static int __arm_lpae_map(unsigned long iova, phys_addr_t paddr,
 		cptep = __arm_lpae_alloc_pages(tblsz, cfg);
 		if (!cptep)
 			return -ENOMEM;
+		con_log("lpae: CPTE: BASE=%016llx, SIZE=%016llx\n",
+			(unsigned long long)cptep,
+			(unsigned long long)tblsz);
 
 		pte = arm_lpae_install_table(cptep, ptep, 0, cfg);
 		if (pte)
@@ -499,6 +500,9 @@ static size_t arm_lpae_split_blk_unmap(struct iommu_iotlb_gather *gather,
 	tablep = __arm_lpae_alloc_pages(tablesz, cfg);
 	if (!tablep)
 		return 0; /* Bytes unmapped */
+	con_log("lpae: TABLE: BASE=%016llx, SIZE=%016llx\n",
+		(unsigned long long)tablep,
+		(unsigned long long)tablesz);
 
 	if (size == split_sz)
 		unmap_idx = ARM_LPAE_LVL_IDX(iova, lvl, data);
@@ -783,6 +787,9 @@ bool arm_64_lpae_alloc_pgtable_s1(struct io_pgtable_cfg *cfg)
 	data->pgd = __arm_lpae_alloc_pages(ARM_LPAE_PGD_SIZE(data), cfg);
 	if (!data->pgd)
 		return false;
+	con_log("lpae: PGD: BASE=%016llx, SIZE=%016llx\n",
+		(unsigned long long)data->pgd,
+		(unsigned long long)ARM_LPAE_PGD_SIZE(data));
 
 	/* Ensure the empty pgd is visible before any actual TTBR write */
 	wmb();
@@ -877,6 +884,9 @@ bool arm_64_lpae_alloc_pgtable_s2(struct io_pgtable_cfg *cfg)
 	data->pgd = __arm_lpae_alloc_pages(ARM_LPAE_PGD_SIZE(data), cfg);
 	if (!data->pgd)
 		goto out_free_data;
+	con_log("lpae: PGD=%016llx, SIZE=%016llx\n",
+		(unsigned long long)data->pgd,
+		(unsigned long long)ARM_LPAE_PGD_SIZE(data));
 
 	/* Ensure the empty pgd is visible before any actual TTBR write */
 	wmb();
