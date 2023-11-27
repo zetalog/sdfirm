@@ -474,7 +474,7 @@ static void __arm_lpae_free_pgtable(int lvl, arm_lpae_iopte *ptep)
 	__arm_lpae_free_pages(start, table_size, &iommu_domain_ctrl.cfg);
 }
 
-void arm_lpae_free_pgtable(void)
+void arm_lpae_pgtable_free(void)
 {
 	struct arm_lpae_io_pgtable *data = &arm_io_pgtables[iommu_dom];
 

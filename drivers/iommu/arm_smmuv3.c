@@ -2616,7 +2616,7 @@ static void arm_smmu_disable_ats(void)
 	atomic_dec(&(smmu_domain_ctrl.nr_ats_masters));
 }
 
-static void smmu_master_detach(void)
+void smmu_master_detach(void)
 {
 	arm_smmu_disable_ats();
 	list_del(&smmu_group_ctrl.domain_head);
@@ -2642,6 +2642,28 @@ void smmu_domain_init(void)
 #endif
 
 	INIT_LIST_HEAD(&smmu_domain_ctrl.devices);
+}
+
+void smmu_domain_exit(void)
+{
+	/* iommu_put_dma_cookie(domain); */
+	iommu_pgtable_free();
+
+	/* Free the CD and ASID, if we allocated them */
+	if (smmu_domain_ctrl.stage == ARM_SMMU_DOMAIN_S1) {
+		struct arm_smmu_s1_cfg *cfg = &smmu_domain_ctrl.s1_cfg;
+
+		if (cfg->cdcfg.cdtab) {
+			arm_smmu_free_cd_tables();
+			arm_smmu_bitmap_free(smmu_device_ctrl.asid_map,
+					     cfg->cd.asid);
+		}
+	} else {
+		struct arm_smmu_s2_cfg *cfg = &smmu_domain_ctrl.s2_cfg;
+		if (cfg->vmid)
+			arm_smmu_bitmap_free(smmu_device_ctrl.vmid_map,
+					     cfg->vmid);
+	}
 }
 
 void smmu_master_attach(void)
@@ -2676,6 +2698,14 @@ void smmu_master_attach(void)
 	arm_smmu_enable_ats();
 }
 
+void smmuv3_handle_seq(void)
+{
+}
+
+void smmuv3_handle_stm(void)
+{
+}
+
 void smmu_device_init(void)
 {
 	bool bypass = false;
@@ -2693,31 +2723,6 @@ void smmu_device_exit(void)
 }
 
 #if 0
-static void arm_smmu_domain_free(iommu_dom_t dom)
-{
-	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
-	struct arm_smmu_device *smmu = smmu_domain->smmu;
-
-	iommu_put_dma_cookie(domain);
-	free_io_pgtable_ops(smmu_domain->pgtbl_ops);
-
-	/* Free the CD and ASID, if we allocated them */
-	if (smmu_domain->stage == ARM_SMMU_DOMAIN_S1) {
-		struct arm_smmu_s1_cfg *cfg = &smmu_domain->s1_cfg;
-
-		if (cfg->cdcfg.cdtab) {
-			arm_smmu_free_cd_tables(smmu_domain);
-			arm_smmu_bitmap_free(smmu->asid_map, cfg->cd.asid);
-		}
-	} else {
-		struct arm_smmu_s2_cfg *cfg = &smmu_domain->s2_cfg;
-		if (cfg->vmid)
-			arm_smmu_bitmap_free(smmu->vmid_map, cfg->vmid);
-	}
-
-	kfree(smmu_domain);
-}
-
 static phys_addr_t
 arm_smmu_iova_to_phys(struct iommu_domain *domain, dma_addr_t iova)
 {
@@ -2730,11 +2735,6 @@ arm_smmu_iova_to_phys(struct iommu_domain *domain, dma_addr_t iova)
 		return 0;
 
 	return ops->iova_to_phys(ops, iova);
-}
-
-static int arm_smmu_add_device(struct device *dev)
-{
-	group = iommu_group_get_for_dev(dev);
 }
 
 static void arm_smmu_get_resv_regions(struct device *dev,
@@ -2753,10 +2753,6 @@ static void arm_smmu_get_resv_regions(struct device *dev,
 }
 
 static struct iommu_ops arm_smmu_ops = {
-	.domain_alloc		= arm_smmu_domain_alloc,
-	.domain_free		= arm_smmu_domain_free,
-	.map			= arm_smmu_map,
-	.unmap			= arm_smmu_unmap,
 	.iova_to_phys		= arm_smmu_iova_to_phys,
 	.get_resv_regions	= arm_smmu_get_resv_regions,
 	.put_resv_regions	= generic_iommu_put_resv_regions,
