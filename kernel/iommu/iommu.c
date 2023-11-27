@@ -411,7 +411,7 @@ void __iommu_register_dma(int nr_iommus, iommu_t *iommus, bool is_pci)
 			iommu_group_ctrl.is_pci = is_pci;
 			dom = iommu_alloc_domain(IOMMU_DOMAIN_DEFAULT);
 			BUG_ON(dom == INVALID_IOMMU_DOM);
-			iommu_group_ctrl.dom = dom;
+			iommu_group_ctrl.dom = INVALID_IOMMU_DOM;
 			iommu_group_ctrl.default_dom = dom;
 		}
 		BUG_ON(iommu_group_ctrl.dev != dev);
