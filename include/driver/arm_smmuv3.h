@@ -682,7 +682,12 @@ void smmuv3_iotlb_sync(struct iommu_iotlb_gather *gather);
 
 void smmu_master_init(void);
 void smmu_master_attach(void);
+void smmu_master_detach(void);
 void smmu_domain_init(void);
+void smmu_domain_exit(void);
+
+void smmuv3_handle_stm(void);
+void smmuv3_handle_seq(void);
 
 #ifdef SYS_REALTIME
 void smmu_poll_irqs(void);

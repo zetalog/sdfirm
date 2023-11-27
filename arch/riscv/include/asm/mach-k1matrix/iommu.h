@@ -96,6 +96,7 @@
 #define iommu_hw_domain_select()			smmu_domain_select()
 #define iommu_hw_group_init()				smmu_master_init()
 #define iommu_hw_domain_init()				smmu_domain_init()
+#define iommu_hw_domain_exit()				smmu_domain_exit()
 #define iommu_hw_group_attach()				smmu_master_attach()
 #ifdef SYS_REALTIME
 #define iommu_hw_poll_irqs()				smmu_poll_irqs()
@@ -123,6 +124,10 @@
 	smmuv3_tlb_inv_page_nosync(gather, iova, granule)
 #define iommu_hw_iotlb_sync(gather)			\
 	smmuv3_iotlb_sync(gather)
+#define iommu_hw_handle_stm()				\
+	smmuv3_handle_stm()
+#define iommu_hw_handle_seq()				\
+	smmuv3_handle_seq()
 #endif
 
 #define smmu_hw_num_pasid_bits				(_BV(20) - 1)
