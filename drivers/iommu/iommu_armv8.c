@@ -412,6 +412,9 @@ static arm_lpae_iopte arm_lpae_prot_to_pte(iommu_fmt_t fmt, int prot)
 	if (prot & IOMMU_NOEXEC)
 		pte |= ARM_LPAE_PTE_XN;
 
+	if (fmt != ARM_MALI_LPAE)
+		pte |= ARM_LPAE_PTE_AF;
+
 	return pte;
 }
 
