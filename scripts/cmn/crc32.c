@@ -42,7 +42,7 @@
 static uint32_t crc32_body(uint32_t crc, unsigned char const *buf,
 			   size_t len, const uint32_t (*tab)[256])
 {
-# ifdef __LITTLE_ENDIAN
+# ifdef ENDIAN_LE
 #  define DO_CRC(x) crc = tab[0][(crc ^ (x)) & 255] ^ (crc >> 8)
 #  define DO_CRC4 crc = tab[3][(crc) & 255] ^ \
 		tab[2][(crc >> 8) & 255] ^ \

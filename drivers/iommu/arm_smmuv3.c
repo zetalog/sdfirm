@@ -1237,7 +1237,7 @@ static void arm_smmu_write_strtab_ent(struct smmu_group *group,
 		dst[2] = cpu_to_le64(
 			 FIELD_PREP(STRTAB_STE_2_S2VMID, s2_cfg->vmid) |
 			 FIELD_PREP(STRTAB_STE_2_VTCR, s2_cfg->vtcr) |
-#ifdef __BIG_ENDIAN
+#ifdef ENDIAN_BE
 			 STRTAB_STE_2_S2ENDI |
 #endif
 			 STRTAB_STE_2_S2PTW | STRTAB_STE_2_S2AA64 |
@@ -1340,7 +1340,7 @@ static void arm_smmu_init_l2_strtab(uint32_t sid)
 
 	con_log("smmuv3: L2 Ptr (%d): BASE=%016llx SIZE=%d/%d\n",
 		sid, (unsigned long long)desc->l2ptr_dma,
-		1 << STRTAB_SPLIT, 1 << STRTAB_L1_DESC_DWORDS);
+		1 << STRTAB_SPLIT, STRTAB_STE_DWORDS << 3);
 	arm_smmu_init_bypass_stes(desc->l2ptr, 1 << STRTAB_SPLIT);
 	arm_smmu_write_strtab_l1_desc(false, sid, strtab, desc);
 }
@@ -1591,7 +1591,7 @@ static void arm_smmu_write_ctx_desc(int ssid, struct arm_smmu_ctx_desc *cd)
 		arm_smmu_sync_cd(ssid, true);
 
 		val = cd->tcr |
-#ifdef __BIG_ENDIAN
+#ifdef ENDIAN_BE
 			CTXDESC_CD_0_ENDI |
 #endif
 			CTXDESC_CD_0_R | CTXDESC_CD_0_A | CTXDESC_CD_0_ASET |
@@ -1877,7 +1877,7 @@ static void arm_smmu_device_hw_probe(void)
 	case IDR0_TTENDIAN_MIXED:
 		smmu_device_ctrl.features |= ARM_SMMU_FEAT_TT_LE | ARM_SMMU_FEAT_TT_BE;
 		break;
-#ifdef __BIG_ENDIAN
+#ifdef ENDIAN_BE
 	case IDR0_TTENDIAN_BE:
 		smmu_device_ctrl.features |= ARM_SMMU_FEAT_TT_BE;
 		break;
