@@ -428,7 +428,7 @@ static void smmu_write_context_bank(struct arm_smmu_cb *cb,
 	      SMMU_C_TRE | SMMU_C_M;
 	if (stage1)
 		reg |= SMMU_C_ASIDPNE;
-#ifdef CONFIG_SMMU_BIG_ENDIAN
+#ifdef ENDIAN_BE
 	reg |= SMMU_C_E;
 #endif
 	__raw_writel(reg, SMMU_CB_SCTLR(iommu_dev, smmu_cb));
