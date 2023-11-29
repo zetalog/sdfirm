@@ -274,7 +274,7 @@ typedef uint32_t acpi_ddb_t;
 
 /* Unalignment support */
 #ifndef ACPI_MISALIGNMENT_NOT_SUPPORTED
-#ifdef __BIG_ENDIAN
+#ifdef ENDIAN_BE
 #ifndef ACPI_GET16
 #define ACPI_GET16(ptr) ((uint16_t)(						\
 	((uint16_t)(*(((uint8_t *)(ptr))+1))) |					\
@@ -305,7 +305,7 @@ typedef uint32_t acpi_ddb_t;
 	(ACPI_PUT32(((uint32_t *)(ptr))+1, (uint32_t)((uint64_t)(val))),	\
 	 ACPI_PUT32(((uint32_t *)(ptr))+0, (uint32_t)((uint64_t)(val) >> 32)))
 #endif
-#else /* __BIG_ENDIAN */
+#else /* ENDIAN_BE */
 #ifndef ACPI_GET16
 #define ACPI_GET16(ptr) ((uint16_t)(						\
 	((uint16_t)(*(((uint8_t *)(ptr))+0))) |					\
@@ -336,7 +336,7 @@ typedef uint32_t acpi_ddb_t;
 	(ACPI_PUT32(((uint32_t *)(ptr))+0, (uint32_t)((uint64_t)(val))),	\
 	 ACPI_PUT32(((uint32_t *)(ptr))+1, (uint32_t)((uint64_t)(val) >> 32)))
 #endif
-#endif /* __BIG_ENDIAN */
+#endif /* ENDIAN_BE */
 #else /* ACPI_MISALIGNMENT_NOT_SUPPORTED */
 #ifndef ACPI_GET16
 #define ACPI_GET16(ptr)		(*(uint16_t *)(ptr))
@@ -385,21 +385,21 @@ typedef uint32_t acpi_ddb_t;
 
 #define ACPI_DECODE8(ptr)	(*(uint8_t *)(ptr))
 #define ACPI_ENCODE8(ptr, val)	(*(uint8_t *)(ptr) = (uint8_t)(val))
-#ifdef __BIG_ENDIAN
+#ifdef ENDIAN_BE
 #define ACPI_DECODE16(ptr)	ACPI_SWAB16(ACPI_GET16(ptr))
 #define ACPI_DECODE32(ptr)	ACPI_SWAB32(ACPI_GET32(ptr))
 #define ACPI_DECODE64(ptr)	ACPI_SWAB64(ACPI_GET64(ptr))
 #define ACPI_ENCODE16(ptr, val)	ACPI_PUT16(ptr, ACPI_SWAB16(val))
 #define ACPI_ENCODE32(ptr, val)	ACPI_PUT32(ptr, ACPI_SWAB32(val))
 #define ACPI_ENCODE64(ptr, val)	ACPI_PUT64(ptr, ACPI_SWAB64(val))
-#else /* __BIG_ENDIAN */
+#else /* ENDIAN_BE */
 #define ACPI_DECODE16(ptr)	ACPI_GET16(ptr)
 #define ACPI_DECODE32(ptr)	ACPI_GET32(ptr)
 #define ACPI_DECODE64(ptr)	ACPI_GET64(ptr)
 #define ACPI_ENCODE16(ptr, val)	ACPI_PUT16(ptr, val)
 #define ACPI_ENCODE32(ptr, val)	ACPI_PUT32(ptr, val)
 #define ACPI_ENCODE64(ptr, val)	ACPI_PUT64(ptr, val)
-#endif /* __BIG_ENDIAN */
+#endif /* ENDIAN_BE */
 
 /* A name tag is a string in nature, thus needn't be endian converted */
 #define ACPI_GET16_PAD(ptr, pad)		(ACPI_GET16(ptr) ? ACPI_GET16(ptr) : (pad))

@@ -95,6 +95,9 @@ config ARCH_HAS_BOOT_LOAD
 	bool
 	select XIP
 
+config ARCH_IS_BIG_ENDIAN
+	bool
+
 menu "Scheduling facility (irq) support"
 	depends !SYS_NOIRQ
 
