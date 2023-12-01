@@ -11,3 +11,4 @@ obj-$(CONFIG_K1MATRIX_SMMU) += smmu.rel
 obj-$(CONFIG_K1MATRIX_DMAR) += iommu.rel
 obj-$(CONFIG_K1MATRIX_DMAR) += dmar.rel
 obj-$(CONFIG_K1MATRIX_BMU) += bmu.rel
+obj-$(CONFIG_K1MATRIX_MBOX) += mbox.rel
