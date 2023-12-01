@@ -280,6 +280,9 @@ menuconfig K1MATRIX_BMU
 	depends ARCH_HAS_PMU
 	select BIT_HWEIGHT32
 
+menuconfig K1MATRIX_MBOX
+	bool "Enable K1Matrix mailbox support"
+
 endmenu
 
 endif
