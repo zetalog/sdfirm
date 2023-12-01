@@ -26,3 +26,4 @@ obj-y += spd/
 obj-y += noc/
 obj-y += net/
 obj-y += phy/
+obj-y += espi/
