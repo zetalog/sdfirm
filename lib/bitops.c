@@ -18,6 +18,17 @@ uint8_t hweight64(uint64_t quad)
 }
 #endif
 
+#ifdef CONFIG_BIT_HWEIGHT32
+uint8_t hweight32(uint32_t dword)
+{
+	uint32_t res = dword - ((dword >> 1) & 0x55555555);
+	res = (res & 0x33333333) + ((res >> 2) & 0x33333333);
+	res = (res + (res >> 4)) & 0x0F0F0F0F;
+	res = res + (res >> 8);
+	return (res + (res >> 16)) & 0x000000FF;
+}
+#endif
+
 uint8_t hweight16(uint16_t word)
 {
 	uint16_t res = word - ((word >> 1) & 0x5555);

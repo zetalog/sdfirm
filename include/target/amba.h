@@ -77,6 +77,11 @@
 #define AXI_AXLOCK_NORMAL		0
 #define AXI_AXLOCK_EXCLUSIVE		1
 
+#define AXI_RESP_OKAY			0
+#define AXI_RESP_EXOKAY			1
+#define AXI_RESP_SLVERR			2
+#define AXI_RESP_DECERR			3
+
 #define __bus_aligned			__align(AXI_AXSIZE_BYTES)
 
 #endif /* __AMBA_H_INCLUDE__ */
