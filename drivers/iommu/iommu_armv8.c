@@ -814,6 +814,9 @@ bool arm_64_lpae_alloc_pgtable_s2(struct io_pgtable_cfg *cfg)
 		return NULL;
 #endif
 
+	if (!arm_lpae_alloc_pgtable(cfg))
+		return false;
+
 	/*
 	 * Concatenate PGDs at level 1 if possible in order to reduce
 	 * the depth of the stage-2 walk.
