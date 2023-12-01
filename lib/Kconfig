@@ -27,6 +27,9 @@ config BIT_FFS32
 config BIT_FFS64
 	bool "ffs64"
 
+config BIT_HWEIGHT32
+	bool "hweight32"
+
 config BIT_HWEIGHT64
 	bool "hweight64"
 

@@ -173,6 +173,7 @@ extern __noreturn uint8_t ____ilog2_NaN(void);
 uint8_t bitrev8(uint8_t byte);
 uint8_t hweight8(uint8_t byte);
 uint8_t hweight16(uint16_t word);
+uint8_t hweight32(uint32_t word);
 uint8_t hweight64(uint64_t quad);
 
 #define swap16(x) ((uint16_t)(						\

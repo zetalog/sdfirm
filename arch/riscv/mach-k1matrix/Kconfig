@@ -278,6 +278,7 @@ endif
 menuconfig K1MATRIX_BMU
 	bool "Enable K1Matrix bus monitor unit (BMU) support"
 	depends ARCH_HAS_PMU
+	select BIT_HWEIGHT32
 
 endmenu
 
