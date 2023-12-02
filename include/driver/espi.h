@@ -9,20 +9,17 @@
 #define ESPI_OFFSET_FROM_BAR			0x10000
 
 #define ESPI_DECODE				0x40
-/* more bits defined in soc/common/amd/blocks/lpc/espi_def.h */
+
 #define  ESPI_DECODE_IO_0x80_EN			(1 << 2)
 #define  ESPI_DECODE_IO_0X60_0X64_EN		(1 << 1)
 #define  ESPI_DECODE_IO_0X2E_0X2F_EN		(1 << 0)
 
-/* The extended IO/MMIO decode ranges are only available in SoCs that select
-   SOC_AMD_COMMON_BLOCK_ESPI_EXTENDED_DECODE_RANGES */
 #define ESPI_GENERIC_IO_WIN_COUNT		4
 #define ESPI_GENERIC_MMIO_WIN_COUNT		4
 
 #define ESPI_GENERIC_IO_MAX_WIN_SIZE		0x100
 #define ESPI_GENERIC_MMIO_MAX_WIN_SIZE		0x10000
 
-//#define ESPI_SLAVE0_CONFIG			0x68
 #define  ESPI_CRC_CHECKING_EN			(1 << 31)
 #define  ESPI_ALERT_MODE			(1 << 30)
 
@@ -76,6 +73,11 @@
 #define ESPI_VW_IRQ_LEVEL_LOW(x)		(1 << (x))
 #define ESPI_VW_IRQ_EDGE_HIGH(x)		(0 << (x))
 #define ESPI_VW_IRQ_EDGE_LOW(x)			(1 << (x))
+
+enum espi_upcmd_type {
+	ESPI_UPCMD_FLASH_CHANNEL = 0,
+	ESPI_UPCMD_OOB_CHANNEL = 1,
+};
 
 enum espi_io_mode {
 	ESPI_IO_MODE_SINGLE = 0,

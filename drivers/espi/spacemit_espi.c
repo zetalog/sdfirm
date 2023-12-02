@@ -77,6 +77,80 @@ static void espi_write8(unsigned int reg, uint8_t val)
 	__raw_writeb(val, reg);
 }
 
+static inline void espi_clear_upcmd_status(void)
+{
+	espi_write32(ESPI_UP_RXHDR_0, UP_RXHDR_0_UPCMD_STATUS);
+}
+
+static inline enum espi_upcmd_type espi_get_upcmd_type(void)
+{
+	return espi_read32(ESPI_UP_RXHDR_0) & UP_RXHDR_0_UPCMD_TYPE_MASK;
+}
+
+static inline uint32_t espi_get_up_rxdata(void)
+{
+	return espi_read32(ESPI_UP_RXDATA_PORT);
+}
+
+static inline uint32_t espi_get_flash_max_size(void)
+{
+	return (espi_read32(ESPI_MASTER_CAP) & MASTER_CAP_FLASH_MAX_SIZE_MASK)
+		>> MASTER_CAP_FLASH_MAX_SIZE_SHIFT;
+}
+
+static inline uint32_t espi_get_oob_max_size(void)
+{
+	return (espi_read32(ESPI_MASTER_CAP) & MASTER_CAP_OOB_MAX_SIZE_MASK)
+		>> MASTER_CAP_OOB_MAX_SIZE_SHIFT;
+}
+
+static inline uint32_t espi_get_vw_max_size(void)
+{
+	return (espi_read32(ESPI_MASTER_CAP) & MASTER_CAP_VW_MAX_SIZE_MASK)
+		>> MASTER_CAP_VW_MAX_SIZE_SHIFT;
+}
+
+static inline uint32_t espi_get_pr_max_size(void)
+{
+	return (espi_read32(ESPI_MASTER_CAP) & MASTER_CAP_PR_MAX_SIZE_MASK)
+		>> MASTER_CAP_PR_MAX_SIZE_SHIFT;
+}
+
+static inline void espi_wdg_enable(void)
+{
+	espi_write32(espi_read32(ESPI_GLOBAL_CONTROL_0) | GLOBAL_CONTROL_0_WDG_EN_MASK,
+		ESPI_GLOBAL_CONTROL_0);
+}
+
+static inline void espi_set_wdt_count(uint32_t count)
+{
+	espi_write32(espi_read32(ESPI_GLOBAL_CONTROL_0) |
+		GLOBAL_CONTROL_0_WDG_CNT(count), ESPI_GLOBAL_CONTROL_0);
+}
+
+static inline void espi_set_master_wait_count(uint32_t count)
+{
+	espi_write32(espi_read32(ESPI_GLOBAL_CONTROL_0) |
+		GLOBAL_CONTROL_0_WAIT_CNT(count), ESPI_GLOBAL_CONTROL_0);
+}
+
+static inline void espi_soft_reset(void)
+{
+	espi_write32(GLOBAL_CONTROL_1_SW_RST, ESPI_GLOBAL_CONTROL_1);
+}
+
+static inline void espi_vw_channel_slave_suspend_enter(void)
+{
+	espi_write32(espi_read32(ESPI_GLOBAL_CONTROL_1) |
+		GLOBAL_CONTROL_1_SUS_STAT, ESPI_GLOBAL_CONTROL_1);
+}
+
+static inline void espi_vw_channel_slave_suspend_exit(void)
+{
+	espi_write32(espi_read32(ESPI_GLOBAL_CONTROL_1) &
+		~GLOBAL_CONTROL_1_SUS_STAT, ESPI_GLOBAL_CONTROL_1);
+}
+
 static inline uint32_t espi_decode_io_range_en_bit(unsigned int idx)
 {
 	asm("j .");

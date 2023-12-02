@@ -27,6 +27,7 @@ source drivers/i2c/Kconfig
 source drivers/spi/Kconfig
 source drivers/dma/Kconfig
 source drivers/iommu/Kconfig
+source drivers/espi/Kconfig
 
 source drivers/lcd/Kconfig
 source drivers/video/Kconfig
