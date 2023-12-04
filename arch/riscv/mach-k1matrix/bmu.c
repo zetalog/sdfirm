@@ -1,7 +1,10 @@
 #include <target/generic.h>
 #include <target/perf.h>
+#include <target/cmdline.h>
 
 #define bmu_irq2unit(irq)	0
+
+static bool bmu_once = false;
 
 void bmu_dump_rd(int n)
 {
@@ -120,7 +123,23 @@ void bmu_reinit(int n)
 	bmu_config_ovtime_threshold(n, 0);
 	bmu_config_awready_threshold(n, 0);
 	bmu_config_arready_threshold(n, 0);
-	bmu_ctrl_start(n, true);
+	bmu_ctrl_start(n, bmu_once);
+}
+
+void bmu_match_data(int n, uint32_t data[], uint64_t mask)
+{
+	bmu_ctrl_stop(n);
+	bmu_status_clr(n);
+	bmu_config_data_match(n, data, mask);
+	bmu_ctrl_start(n, bmu_once);
+}
+
+void bmu_match_addr(int n, uint64_t addr, uint64_t mask)
+{
+	bmu_ctrl_stop(n);
+	bmu_status_clr(n);
+	bmu_config_addr_match(n, addr, mask);
+	bmu_ctrl_start(n, bmu_once);
 }
 
 void bmu_init(void)
@@ -160,3 +179,89 @@ void bmu_init(void)
 		bmu_ctrl_start(n, true);
 	}
 }
+
+void bmu_toggle_once(int n)
+{
+	bmu_once = !bmu_once;
+
+	bmu_ctrl_stop(n);
+	bmu_status_clr(n);
+	bmu_ctrl_start(n, bmu_once);
+
+	if (bmu_once)
+		printf("Switched to once.\n");
+	else
+		printf("Switched from once.\n");
+}
+
+static int do_bmu_config(int n, int argc, char *argv[])
+{
+	return 0;
+}
+
+static int do_bmu_filter(int n, int argc, char *argv[])
+{
+	return 0;
+}
+
+static int do_bmu_match(int n, int argc, char *argv[])
+{
+	uint32_t bmu_data[4];
+	uint64_t bmu_addr, bmu_mask;
+	int i;
+
+	if (argc < 4)
+		return -EINVAL;
+	if (strcmp(argv[3], "data") == 0) {
+		if (argc < 9)
+			return -EINVAL;
+		for (i = 0; i < 4; i++)
+			bmu_data[i] = (uint32_t)strtoul(argv[4 + i], 0, 0);
+		bmu_mask = (uint64_t)strtoull(argv[8], 0, 0);
+		bmu_match_data(n, bmu_data, bmu_mask);
+		return 0;
+	}
+	if (strcmp(argv[3], "addr") == 0) {
+		if (argc < 6)
+			return -EINVAL;
+		bmu_addr = (uint64_t)strtoull(argv[4], 0, 0);
+		bmu_mask = (uint64_t)strtoull(argv[5], 0, 0);
+		bmu_match_addr(n, bmu_addr, bmu_mask);
+		return 0;
+	}
+	return -EINVAL;
+}
+
+static int do_bmu(int argc, char *argv[])
+{
+	int bmu;
+
+	if (argc < 3)
+		return -EINVAL;
+
+	bmu = (int)strtoull(argv[2], 0, 0);
+	if (strcmp(argv[1], "config") == 0)
+		return do_bmu_config(bmu, argc, argv);
+	if (strcmp(argv[1], "filter") == 0)
+		return do_bmu_filter(bmu, argc, argv);
+	if (strcmp(argv[1], "match") == 0)
+		return do_bmu_match(bmu, argc, argv);
+	if (strcmp(argv[1], "once") == 0) {
+		bmu_toggle_once(bmu);
+		return 0;
+	}
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(bmu, do_bmu, "K1Matrix bus monitor unit commands",
+	"bmu config\n"
+	"    -config bmu conter\n"
+	"bmu filter\n"
+	"    -config bmu counter filter\n"
+	"bmu match unit data d0 d1 d2 d3 mask\n"
+	"    -match bus data\n"
+	"bmu match unit addr addr mask\n"
+	"    -match bus address\n"
+	"bmu once unit\n"
+	"    -toggle once/multiple times\n"
+);
