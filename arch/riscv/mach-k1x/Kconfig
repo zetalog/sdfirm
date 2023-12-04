@@ -1,6 +1,6 @@
-if ARCH_K1MAX
+if ARCH_K1X
 
-menu "Spacemit K1MAX board options"
+menu "Spacemit K1X board options"
 
 config K1M_SOC
 	bool
