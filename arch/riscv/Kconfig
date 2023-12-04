@@ -333,6 +333,32 @@ config ARCH_K1MAX
 	help
 	  This enables support for spacemit k1max IoT platform.
 
+config ARCH_K1X
+	bool "Spacemit K1X"
+	select CPU_SPACEMIT
+	select ARCH_IS_MMIO_32BIT
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
+	select ARCH_HAS_IRQC
+	select ARCH_HAS_CLINT
+	select ARCH_HAS_PLIC
+	select ARCH_HAS_FDT
+	select ARCH_HAS_UART
+	select ARCH_HAS_CLK
+	select ARCH_HAS_CLK_GENERIC
+	select ARCH_HAS_BOOT0
+	select ARCH_HAS_BOOT1
+	select ARCH_HAS_BOOT2
+	select CLINT
+	select PLIC if !SYS_NOIRQ
+	select ARCH_HAS_NOC if K1M_SOC || K1M_K1X
+	select K1M_UART if CONSOLE || DEBUG_PRINT
+	help
+	  This enables support for spacemit k1max IoT platform.
+
 config ARCH_K1MATRIX
 	bool "SpacemiT K1Matrix Family"
 	select CPU_SPACEMIT

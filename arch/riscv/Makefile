@@ -119,6 +119,10 @@ ifeq ($(CONFIG_ARCH_K1MATRIX),y)
  machine-$(CONFIG_ARCH_K1MATRIX)	:= k1matrix
  incdir-$(CONFIG_ARCH_K1MATRIX)		:= k1matrix
 endif
+ifeq ($(CONFIG_ARCH_K1X),y)
+ machine-$(CONFIG_ARCH_K1X)		:= k1x
+ incdir-$(CONFIG_ARCH_K1X)		:= k1x
+endif
 ifeq ($(CONFIG_ARCH_COREV),y)
  machine-$(CONFIG_ARCH_COREV)		:= corev
  incdir-$(CONFIG_ARCH_COREV)		:= corev
