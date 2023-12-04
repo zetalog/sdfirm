@@ -3,7 +3,7 @@
 
 /dts-v1/;
 
-/memreserve/ DDR_BASE 0x02000000;
+/memreserve/ RAM_BASE 0x02000000;
 
 / {
 	#address-cells = <0x2>;
@@ -12,7 +12,7 @@
 	model = "riscv-spacemit,k1matrix";
 
 	aliases {
-		uart0 = "/soc/uart0@10010000";
+		uart0 = "/soc/uart0@8000";
 	};
 
 	chosen {
@@ -207,7 +207,7 @@
 			interrupts = <20>;
 			interrupt-parent = <&plic>;
 			clock-frequency = <APB_CLK_FREQ>;
-			reg = <DT_REGHI(UART0_BASE) DT_REGLO(UART0_BASE)
+			reg = <DT_REGHI(__UART0_BASE) DT_REGLO(__UART0_BASE)
 			       0x0 0x1000
 			>;
 			reg-io-width = <4>;
@@ -250,7 +250,7 @@
 			#address-cells = <0x0>;
 		};
 
-		clint: clint@34000000 {
+		clint: clint@14000000 {
 			interrupts-extended = <
 				&cpu0_intc 0x3 &cpu0_intc 0x7
 #ifdef CONFIG_SMP
@@ -267,7 +267,7 @@
 				&cpu7_intc 0x3 &cpu7_intc 0x7
 #endif
 			>;
-			reg = <DT_REGHI(CLINT_BASE) DT_REGLO(CLINT_BASE)
+			reg = <DT_REGHI(__CLINT_BASE) DT_REGLO(__CLINT_BASE)
 			       0x0 0x00010000
 			>;
 			compatible = "riscv,clint0";
@@ -276,7 +276,7 @@
 #endif
 		};
 
-		reset: reset-controller@F00110000 {
+		reset: reset-controller@f00110000 {
 			#address-cells = <0x1>;
 			#size-cells = <0x1>;
 			compatible = "spacemit,k1matrix-reset";
@@ -285,7 +285,7 @@
 			status = "okay";
 		};
 
-		pcie0: pcie@02000000 {
+		pcie0: pcie@2000000 {
 			compatible = "spacemit,k1-pro-pcie";
 			reg = <0x0 0x02000000 0x0 0x400000>,
 			      <0x0 0x02800000 0x0 0x100000>,
