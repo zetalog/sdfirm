@@ -94,26 +94,22 @@ static inline uint32_t espi_get_up_rxdata(void)
 
 static inline uint32_t espi_get_flash_max_size(void)
 {
-	return (espi_read32(ESPI_MASTER_CAP) & MASTER_CAP_FLASH_MAX_SIZE_MASK)
-		>> MASTER_CAP_FLASH_MAX_SIZE_SHIFT;
+	return FIELD_GET(MASTER_CAP_FLASH_MAX_SIZE_MASK, espi_read32(ESPI_MASTER_CAP));
 }
 
 static inline uint32_t espi_get_oob_max_size(void)
 {
-	return (espi_read32(ESPI_MASTER_CAP) & MASTER_CAP_OOB_MAX_SIZE_MASK)
-		>> MASTER_CAP_OOB_MAX_SIZE_SHIFT;
+	return FIELD_GET(MASTER_CAP_OOB_MAX_SIZE_MASK, espi_read32(ESPI_MASTER_CAP));
 }
 
 static inline uint32_t espi_get_vw_max_size(void)
 {
-	return (espi_read32(ESPI_MASTER_CAP) & MASTER_CAP_VW_MAX_SIZE_MASK)
-		>> MASTER_CAP_VW_MAX_SIZE_SHIFT;
+	return FIELD_GET(MASTER_CAP_VW_MAX_SIZE_MASK, espi_read32(ESPI_MASTER_CAP));
 }
 
 static inline uint32_t espi_get_pr_max_size(void)
 {
-	return (espi_read32(ESPI_MASTER_CAP) & MASTER_CAP_PR_MAX_SIZE_MASK)
-		>> MASTER_CAP_PR_MAX_SIZE_SHIFT;
+	return FIELD_GET(MASTER_CAP_PR_MAX_SIZE_MASK, espi_read32(ESPI_MASTER_CAP));
 }
 
 static inline void espi_wdg_enable(void)
@@ -969,7 +965,7 @@ static int espi_setup_vw_channel(const struct espi_config *mb_cfg, uint32_t slav
 		return -1;
 
 	ctrlr_vw_caps = espi_read32(ESPI_MASTER_CAP);
-	ctrlr_vw_count_supp = (ctrlr_vw_caps & MASTER_CAP_VW_MAX_SIZE_MASK) >> MASTER_CAP_VW_MAX_SIZE_SHIFT;
+	ctrlr_vw_count_supp = FIELD_GET(MASTER_CAP_VW_MAX_SIZE_MASK, ctrlr_vw_caps);
 
 	slave_vw_count_supp = espi_slave_get_vw_count_supp(slave_vw_caps);
 	use_vw_count = MIN(ctrlr_vw_count_supp, slave_vw_count_supp);
@@ -1206,5 +1202,94 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 
 	printf("Finished initializing eSPI.\n");
 
+	return 0;
+}
+
+int espi_send_vw(uint32_t id, int level)
+{
+	return 0;
+}
+
+int espi_receive_vw(uint32_t id, int *level)
+{
+	return 0;
+}
+
+/* eSPI tag + len[11:8] field */
+#define ESPI_TAG_LEN_FIELD(tag, len) \
+		((((tag) & 0xF) << 4) | (((len) >> 8) & 0xF))
+int espi_send_oob_smbus(uint8_t *buf, int len)
+{
+	uint32_t status;
+	uint32_t data[16];
+
+	uint32_t val = *(uint32_t *)buf | 0x00FFFFFFU;
+
+	espi_write32(ESPI_DN_TXHDR_1, val);
+
+	memset(&data, 0, 64);
+	memcpy(&data, &buf[3], len - 3);
+
+	for (int i = 0; i < (len - 3 + 3) / 4; i++) {
+		espi_write32(ESPI_DN_TXDATA_PORT, data[i]);
+	}
+
+	espi_write32(ESPI_DN_TXHDR_0, DN_TXHDR_0_DNCMD_TYPE(CMD_TYPE_OOB) |
+		DN_TXHDR_0_DNCMD_EN | DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL(0) |
+		DN_TXHDR_0_DNCMD_HDATA0(ESPI_CYCLE_TYPE_OOB_MESSAGE) |
+		DN_TXHDR_0_DNCMD_HDATA1(ESPI_TAG_LEN_FIELD(0, len)) |
+		DN_TXHDR_0_DNCMD_HDATA2(len & 0xFFU));
+
+	if (espi_wait_ready() != 0) {
+		return -1;
+	}
+
+	if (espi_poll_status(&status) != 0) {
+		return -1;
+	}
+
+	/* If command did not complete downstream, return error. */
+	if (!(status & SLAVE0_INT_STS_DNCMD_INT)) {
+		return -1;
+	}
+
+//	if (status & ~(SLAVE0_INT_STS_DNCMD_INT | cmd->expected_status_codes)) {
+//		return -1;
+//	}
+
+	return 0;
+}
+
+int espi_receive_oob_smbus(uint8_t *buf)
+{
+	int len = 0;
+	uint32_t data[16];
+	uint32_t rxhdr0 = espi_read32(ESPI_UP_RXHDR_0);
+
+	len = FIELD_GET(UP_RXHDR_0_UPCMD_HDATA2_MASK, rxhdr0);
+
+	*(uint32_t *)buf = espi_read32(ESPI_UP_RXHDR_1) & 0x00FFFFFFU;
+
+	for (int i = 0; i < (len - 3 + 3) / 4; i++) {
+		data[i] = espi_read32(ESPI_UP_RXDATA_PORT);
+	}
+
+	memcpy(&buf[3], &data, len - 3);
+
+	return len;
+}
+
+int espi_flash_read(uint8_t *buf)
+{
+	return 0;
+}
+
+int espi_flash_write(uint8_t *buf, int len)
+{
+	return 0;
+}
+
+int espi_flash_erase(uint32_t flash_addr, int len)
+{
 	return 0;
 }

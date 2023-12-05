@@ -36,6 +36,8 @@
 #define  ESPI_OOB_CH_EN				(1 << 1)
 #define  ESPI_FLASH_CH_EN			(1 << 0)
 
+#define ESPI_CYCLE_TYPE_OOB_MESSAGE		0x21
+
 /*
  * Internally the SoC uses active low signals for the IRQs. This means what when
  * the eSPI controller comes out of reset, it's driving its IRQ lines high.
@@ -143,20 +145,24 @@ void espi_update_static_bar(uintptr_t bar);
 /*
  * Perform eSPI connection setup to the slave. Currently, this supports slave0 only.
  */
-int espi_setup(void);
+int espi_hw_ctrl_init(struct espi_config *cfg);
 
 int espi_send_vw(uint32_t id, int level);
 
 int espi_receive_vw(uint32_t id, int *level);
 
-int espi_send_oob(uint8_t *buf, size_t size);
+int espi_send_oob_smbus(uint8_t *buf, int len);
 
-int espi_receive_oob(uint8_t *buf);
+int espi_receive_oob_smbus(uint8_t *buf);
+
+int espi_send_oob_mctp(uint8_t *buf, int len);
+
+int espi_receive_oob_mctp(uint8_t *buf);
 
 int espi_flash_read(uint8_t *buf);
 
-int espi_flash_write(uint8_t *buf, size_t size);
+int espi_flash_write(uint8_t *buf, int len);
 
-int espi_flash_erase(uint32_t flash_addr, size_t size);
+int espi_flash_erase(uint32_t flash_addr, int len);
 
 #endif /* __ESPI_H__ */
