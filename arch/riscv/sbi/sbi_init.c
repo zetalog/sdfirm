@@ -354,7 +354,7 @@ void __noreturn sbi_init(void)
 
 	sbi_scratches[hartid] = scratch;
 
-	if (atomic_xchg(&coldboot_lottery, 1) == 0)
+	if ((atomic_xchg(&coldboot_lottery, 1) == 0) && sbi_platform_cold_boot_allowed(plat, hartid))
 		coldboot = true;
 
 	if (coldboot)

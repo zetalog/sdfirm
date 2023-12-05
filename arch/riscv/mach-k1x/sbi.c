@@ -252,6 +252,14 @@ static bool k1max_hart_disabled(uint32_t hartid)
 	return ~BOOT_MASK & CPU_TO_MASK(hartid);
 }
 
+static bool k1max_cold_boot_allowed(uint32_t hartid, const struct fdt_match *match)
+{
+	/* enable core snoop */
+	csr_set(CSR_ML2SETUP, 1 << (hartid % CPUS_PER_CLUSTER));
+
+	return ((hartid == 0) ? true : false);
+}
+
 const struct sbi_platform_operations platform_ops = {
 	.pmp_region_count	= k1max_pmp_region_count,
 	.pmp_region_info	= k1max_pmp_region_info,
@@ -271,13 +279,15 @@ const struct sbi_platform_operations platform_ops = {
 	.system_shutdown	= k1max_system_down,
 	.system_finish		= k1max_system_finish,
 	.hart_disabled		= k1max_hart_disabled,
+	.cold_boot_allowed	= k1max_cold_boot_allowed,
 };
 
 const struct sbi_platform platform = {
 	.opensbi_version	= OPENSBI_VERSION,
 	.platform_version	= SBI_PLATFORM_VERSION(0x0, 0x01),
-	.name			= "Spacemit K1MAX Machine",
+	.name			= "Spacemit K1X Machine",
 	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
 	.disabled_hart_mask	= 0,
-	.platform_ops_addr	= (unsigned long)&platform_ops
+	.platform_ops_addr	= (unsigned long)&platform_ops,
+	.hart_count		= 4
 };
