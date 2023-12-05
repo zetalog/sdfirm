@@ -16,7 +16,7 @@
 	};
 
 	chosen {
-#ifdef CONFIG_K1M_UART_DTS_CON
+#ifdef CONFIG_K1X_UART_DTS_CON
 		bootargs = "earlycon=sbi console=ttyS0,115200n8 debug loglevel=8,initcall_debug=1 rdinit=/sdfirm_init";
 		stdout-path = "uart0:115200n8";
 #else
@@ -39,7 +39,7 @@
 					cpu = <&cpu1>;
 				};
 #endif
-#if CONFIG_K1M_SMP_CPUS >= 4
+#if CONFIG_K1X_SMP_CPUS >= 4
 				core2 {
 					cpu = <&cpu2>;
 				};
@@ -48,8 +48,7 @@
 				};
 #endif
 			};
-#if CONFIG_K1M_SMP_CPUS >= 8
-#ifndef CONFIG_K1M_PARTIAL_GOOD
+#if CONFIG_K1X_SMP_CPUS >= 8
 			cluster1 {
 				core4 {
 					cpu = <&cpu4>;
@@ -65,7 +64,6 @@
 				};
 			};
 #endif
-#endif
 		};
 
 		cpu0: cpu@0 {
@@ -73,11 +71,9 @@
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
-			riscv,cbom-block-size = <64>;
-			cpu-cacheline = "64Bytes";
 
 			cpu0_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -91,11 +87,9 @@
 			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
-			riscv,cbom-block-size = <64>;
-			cpu-cacheline = "64Bytes";
 
 			cpu1_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -104,55 +98,15 @@
 			};
 		};
 #endif
-#ifdef CONFIG_K1M_PARTIAL_GOOD
-#if CONFIG_K1M_SMP_CPUS == 8
-		cpu2: cpu@2 {
-			device_type = "cpu";
-			reg = <4>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
-			mmu-type = "riscv,sv48";
-			cpu-ai = "true";
-			riscv,cbom-block-size = <64>;
-			cpu-cacheline = "64Bytes";
-
-			cpu2_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-		cpu3: cpu@3 {
-			device_type = "cpu";
-			reg = <5>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
-			mmu-type = "riscv,sv48";
-			cpu-ai = "true";
-			riscv,cbom-block-size = <64>;
-			cpu-cacheline = "64Bytes";
-
-			cpu3_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-#endif
-#else
-#if CONFIG_K1M_SMP_CPUS >= 4
+#if CONFIG_K1X_SMP_CPUS >= 4
 		cpu2: cpu@2 {
 			device_type = "cpu";
 			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
-			riscv,cbom-block-size = <64>;
-			cpu-cacheline = "64Bytes";
 
 			cpu2_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -165,11 +119,9 @@
 			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
-			riscv,cbom-block-size = <64>;
-			cpu-cacheline = "64Bytes";
 
 			cpu3_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -178,17 +130,14 @@
 			};
 		};
 #endif
-#if CONFIG_K1M_SMP_CPUS >= 8
-#ifndef CONFIG_K1M_PARTIAL_GOOD
+#if CONFIG_K1X_SMP_CPUS >= 8
 		cpu4: cpu@4 {
 			device_type = "cpu";
 			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
-			riscv,cbom-block-size = <64>;
-			cpu-cacheline = "64Bytes";
 
 			cpu4_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -201,10 +150,8 @@
 			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
-			riscv,cbom-block-size = <64>;
-			cpu-cacheline = "64Bytes";
 
 			cpu5_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -217,10 +164,8 @@
 			reg = <6>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
-			riscv,cbom-block-size = <64>;
-			cpu-cacheline = "64Bytes";
 
 			cpu6_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -233,10 +178,8 @@
 			reg = <7>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
-			riscv,cbom-block-size = <64>;
-			cpu-cacheline = "64Bytes";
 
 			cpu7_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -244,8 +187,6 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
-#endif
-#endif
 #endif
 	};
 
@@ -274,7 +215,7 @@
 			reg-shift = <2>;
 			hw-flow-control = "unsupport";
 			compatible = "snps,dw-apb-uart";
-#ifdef CONFIG_K1M_UART_DTS_CON
+#ifdef CONFIG_K1X_UART_DTS_CON
 			status = "okay";
 #else
 			status = "disabled";
@@ -319,26 +260,25 @@
 			};
 		};
 
-		plic: interrupt-controller@30000000 {
-			reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
-			       0x0 0x08000000
-			>;
+		plic: interrupt-controller@e0000000 {
+			reg = <0x00 0xe0000000 0x00 0x2000000>;
+			//reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
+			//        0x0 0x08000000
+			// >;
 			interrupts-extended = <
 				&cpu0_intc 0xb &cpu0_intc 0x9
 #ifdef CONFIG_SMP
 				&cpu1_intc 0xb &cpu1_intc 0x9
 #endif
-#if CONFIG_K1M_SMP_CPUS >= 4
+#if CONFIG_K1X_SMP_CPUS >= 4
 				&cpu2_intc 0xb &cpu2_intc 0x9
 				&cpu3_intc 0xb &cpu3_intc 0x9
 #endif
-#if CONFIG_K1M_SMP_CPUS >= 8
-#ifndef CONFIG_K1M_PARTIAL_GOOD
+#if CONFIG_K1X_SMP_CPUS >= 8
 				&cpu4_intc 0xb &cpu4_intc 0x9
 				&cpu5_intc 0xb &cpu5_intc 0x9
 				&cpu6_intc 0xb &cpu6_intc 0x9
 				&cpu7_intc 0xb &cpu7_intc 0x9
-#endif
 #endif
 			>;
 			interrupt-controller;
@@ -371,17 +311,15 @@
 #ifdef CONFIG_SMP
 				&cpu1_intc 0x3 &cpu1_intc 0x7
 #endif
-#if CONFIG_K1M_SMP_CPUS >= 4
+#if CONFIG_K1X_SMP_CPUS >= 4
 				&cpu2_intc 0x3 &cpu2_intc 0x7
 				&cpu3_intc 0x3 &cpu3_intc 0x7
 #endif
-#if CONFIG_K1M_SMP_CPUS >= 8
-#ifndef CONFIG_K1M_PARTIAL_GOOD
+#if CONFIG_K1X_SMP_CPUS >= 8
 				&cpu4_intc 0x3 &cpu4_intc 0x7
 				&cpu5_intc 0x3 &cpu5_intc 0x7
 				&cpu6_intc 0x3 &cpu6_intc 0x7
 				&cpu7_intc 0x3 &cpu7_intc 0x7
-#endif
 #endif
 			>;
 			reg = <DT_REGHI(CLINT_BASE) DT_REGLO(CLINT_BASE)
