@@ -120,8 +120,22 @@ uint8_t lpc_set_serirq_slot_clr(uint8_t byte)
 	return spacemit_lpc_set_serirq_slot_clr(byte);
 }
 
-uint8_t lpc_get_serirq_slot_debug(void)
+uint8_t lpc_get_serirq_debug(void)
 {
-	return spacemit_lpc_get_serirq_slot_debug;
+	return spacemit_lpc_get_serirq_debug;
 }
 
+uint8_t lpc_get_mem_cfg(void)
+{
+	return spacemit_lpc_get_mem_cfg;
+}
+
+uint8_t lpc_set_mem_cfg(uint8_t byte)
+{
+	return spacemit_lpc_set_mem_cfg(byte);
+}
+
+uint8_t lpc_get_err_addr(void)
+{
+	return spacemit_lpc_get_err_addr;
+}
