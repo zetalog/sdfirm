@@ -48,7 +48,7 @@
 #define MMU_HW_MAX_FIXMAP	(FIX_HOLE + FIX_MAX)
 
 void k1max_mmu_dump_maps(void);
-#ifdef CONFIG_K1M_UART
+#ifdef CONFIG_K1X_UART
 extern caddr_t k1max_uart_reg_base;
 void k1max_mmu_map_uart(int n);
 void k1max_mmu_dump_uart(void);

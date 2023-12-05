@@ -206,6 +206,30 @@ static int k1max_timer_init(bool cold_boot)
 	return 0;
 }
 
+/*
+ * Get platform specific mhpmevent value.
+ */
+static uint64_t platform_pmu_xlate_to_mhpmevent(uint32_t event_idx, uint64_t data)
+{
+	uint64_t evt_val = 0;
+
+	/* 'data' is valid only for raw events and is equal to event selector */
+	if (event_idx == SBI_PMU_EVENT_RAW_IDX) {
+		evt_val = data;
+	} else {
+		/*
+		 * Follows the SBI specification recommendation
+		 * i.e. zero extended event_idx is used as mhpmevent value for
+		 * hardware general/cache events if platform does't define one.
+		 */
+		evt_val = fdt_pmu_get_select_value(event_idx);
+		if (!evt_val)
+			evt_val = (uint64_t)event_idx;
+	}
+
+	return evt_val;
+}
+
 static int k1max_system_down(uint32_t type)
 {
 	/* Tell the "finisher" that the simulation

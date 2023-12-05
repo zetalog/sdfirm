@@ -45,6 +45,7 @@
 #include <asm/mach/cpus.h>
 #include <asm/x100.h>
 #include <asm/mach/sysreg.h>
+#include <asm/mach/k1xreset.h>
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	boot0_hook
@@ -56,6 +57,9 @@
 #endif
 #ifdef CONFIG_K1M_SOC
 	jal	ra, k1max_cpu_reset
+#endif
+#ifdef CONFIG_K1M_K1X
+	jal ra, k1x_cpu_reset
 #endif
 	.endm
 	.macro	boot2_hook

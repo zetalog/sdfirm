@@ -5,9 +5,6 @@ menu "Spacemit K1MAX board options"
 config K1M_SOC
 	bool
 
-config K1M_K1X
-	bool
-
 choice
 	prompt "Simulation chip"
 
@@ -32,19 +29,6 @@ config K1M_S2C
 	  where pad_clk is fed by S2CCLK1 and cpu_clk might be fed by
 	  S2CCLK2.
 
-config K1X_S2C
-	bool "S2C FPGA verification for K1-X"
-	select K1M_K1X
-	help
-	  This configuration contains S2C FPGA bit developed by dev-A-dep.
-	  Where:
-	         CPU clk: S2CCLK_3(20M) /2 10M
-            BUS(CCI) clk: S2CCLK_4(10M)
-	         DDR clk: S2CCLK_1(20M) /4 5M (dfi, axi)
-	    BUS(NCI) clk: S2CCLK_5(30M)
-	        UART clk: S2CCLK_2(29M) /2 14.75M
-	         PIC clk: S2CCLK_4(10M)
-
 endchoice
 
 config K1M_S2C_SPEEDUP
@@ -64,9 +48,6 @@ if K1M_SOC
 
 choice
 	prompt "SoC evaluation (STEV10) chip model"
-
-config K1M_SOC_K1X
-	bool "K1-X"
 
 config K1M_K1PRO
 	bool "K1Pro"
@@ -142,10 +123,6 @@ config K1M_DDR
 
 endchoice
 
-config K1X_DDR_HIGH
-	bool "Use high range of DDR DRAM"
-	depends K1M_K1X
-
 config K1M_DDR_SIZE_CUSTOM
 	bool "Enable customized DRAM size"
 	depends K1M_DDR
@@ -198,12 +175,6 @@ config K1M_UART_DW
 	select ARCH_HAS_DW_UART_FIFO_STAT
 	select ARCH_HAS_DW_UART_SHADOW
 	select ARCH_HAS_DW_UART_ADD_ENCODED_PARAMS
-
-config K1M_K1X_UART
-	bool
-	select NS16550
-	select ARCH_HAS_NS16550
-	select ARCH_HAS_NS16550_MEM32
 
 endmenu
 
