@@ -2,35 +2,8 @@ if ARCH_K1X
 
 menu "Spacemit K1X board options"
 
-config K1M_SOC
-	bool
-
 config K1M_K1X
 	bool
-
-choice
-	prompt "Simulation chip"
-
-config K1M_CPU
-	bool "CPU verification TB (X60/X100)"
-	help
-	  This configuration contains only CPU subsystem running in RTL
-	  environment.
-
-config K1M_PZ1
-	bool "Palladium Z1 verification TB (STEV10)"
-	select K1M_SOC
-	help
-	  This configuration contains SoC configuration running in RTL
-	  environment or on palladium Z1 platform.
-
-config K1M_S2C
-	bool "S2C FPGA verification TB (STEV10)"
-	select K1M_SOC
-	help
-	  This configuration contains S2C FPGA bit related information
-	  where pad_clk is fed by S2CCLK1 and cpu_clk might be fed by
-	  S2CCLK2.
 
 config K1X_S2C
 	bool "S2C FPGA verification for K1-X"
@@ -45,65 +18,44 @@ config K1X_S2C
 	        UART clk: S2CCLK_2(29M) /2 14.75M
 	         PIC clk: S2CCLK_4(10M)
 
-endchoice
-
-config K1M_S2C_SPEEDUP
-	bool "Speed up configuration on S2C FPGA"
-	depends K1M_S2C && K1M_SOC_K1X
-	help
-	  This configuration is only applied on SPACET_K1X, where S2CCLK2
-	  is used as CPU clock, when it is configured as 50MHz, CPU clock
-	  gets a doubled rate, that is to say, 100MHz.
-
-config K1M_S2C_SPEEDUP_QUIRK_RDTIME
-	bool "Enable RDTIME quirk on S2C FPGA"
-	depends K1M_S2C_SPEEDUP
-	depends !RISCV_SSTC
-
-if K1M_SOC
+if K1M_K1X
 
 choice
-	prompt "SoC evaluation (STEV10) chip model"
+	prompt "SoC evaluation chip model"
 
 config K1M_SOC_K1X
 	bool "K1-X"
-
-config K1M_K1PRO
-	bool "K1Pro"
-
-config K1M_K1MAX
-	bool "K1Max"
 
 endchoice
 
 endif
 
-config K1M_SMP_CPUS
+config K1X_SMP_CPUS
 	int "Number of cores"
 	depends SMP
 	range 1 32
 	default 4
 
-config K1M_SMP_SPARSE_HART_ID
+config K1X_SMP_SPARSE_HART_ID
 	bool "Enable sparse hart ID support"
-	depends K1M_SOC
+	depends K1M_K1X
 	depends EXPERIMENTAL
 	help
 	 Requires lots of changes to the software to determine if the ID
 	 is a hart ID or a CPU ID.
 
-menuconfig K1M_PARTIAL_GOOD
+menuconfig K1X_PARTIAL_GOOD
 	bool "Partial goods"
 	select ARCH_HAS_CLINT_CTX
 
-if K1M_PARTIAL_GOOD
+if K1X_PARTIAL_GOOD
 
-config K1M_BOOT_HART_ID
+config K1X_BOOT_HART_ID
 	int "Boot hart ID"
 	range 0 7
 	default 0
 
-config K1M_PARTIAL_GOOD_MASK
+config K1X_PARTIAL_GOOD_MASK
 	hex "Good hart mask"
 	default 0x0033
 
@@ -112,13 +64,13 @@ endif
 choice
 	prompt "Program type"
 
-config K1M_TB
+config K1X_TB
 	bool "Test bench"
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select SYS_EXIT_S
 
-config K1M_BBL
+config K1X_BBL
 	bool "SBI loader"
 	select ARCH_HAS_BOOT_LOAD
 	select SYS_ENTR_M
@@ -132,13 +84,13 @@ endchoice
 choice
 	prompt "Program residency"
 
-config K1M_SRAM
+config K1X_SRAM
 	bool "SRAM"
-	depends K1M_TB || K1M_BBL
+	depends K1X_TB || K1X_BBL
 
-config K1M_DDR
+config K1X_DDR
 	bool "DDR"
-	depends K1M_TB || K1M_BBL
+	depends K1X_TB || K1X_BBL
 
 endchoice
 
@@ -146,36 +98,35 @@ config K1X_DDR_HIGH
 	bool "Use high range of DDR DRAM"
 	depends K1M_K1X
 
-config K1M_DDR_SIZE_CUSTOM
+config K1X_DDR_SIZE_CUSTOM
 	bool "Enable customized DRAM size"
-	depends K1M_DDR
+	depends K1X_DDR
 
-config K1M_MEM_SIZE
+config K1X_MEM_SIZE
 	hex "Memory size"
 	default 0x2000000
-	depends K1M_CPU || K1M_DDR_SIZE_CUSTOM
+	depends K1X_CPU || K1X_DDR_SIZE_CUSTOM
 
-menuconfig K1M_CCI
+menuconfig K1X_CCI
 	bool "K1MAX cache coherent interconnect support"
 	select CCI550
 	depends ARCH_HAS_NOC
 
-menuconfig K1M_TIMER
+menuconfig K1X_TIMER
 	bool "K1MAX timer controller support"
 	select ARCH_HAS_SBI_TIMER
 
-if K1M_TIMER
+if K1X_TIMER
 
 endif
 
-menuconfig K1M_UART
+menuconfig K1X_UART
 	bool "K1MAX UART controller support"
-	select K1M_UART_DW if !K1M_K1X
 	select K1M_K1X_UART if K1M_K1X
 
-if K1M_UART
+if K1X_UART
 
-config K1M_UART_ACCEL
+config K1X_UART_ACCEL
 	bool "Enable K1MAX UART acceleration support"
 	depends SIMULATION
 	help
@@ -187,17 +138,6 @@ config K1M_UART_ACCEL
 	  If unsure, say 'N'.
 
 endif
-
-config K1M_UART_DW
-	bool
-	select DW_UART
-	select ARCH_HAS_NS16550_FIFO_64
-	select ARCH_HAS_DW_UART_FIFO_MEM_USER
-	select ARCH_HAS_DW_UART_AFCE_MODE
-	select ARCH_HAS_DW_UART_FIFO_ACCESS
-	select ARCH_HAS_DW_UART_FIFO_STAT
-	select ARCH_HAS_DW_UART_SHADOW
-	select ARCH_HAS_DW_UART_ADD_ENCODED_PARAMS
 
 config K1M_K1X_UART
 	bool

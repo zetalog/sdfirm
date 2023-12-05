@@ -47,7 +47,7 @@
 
 extern const int cci_hw_slave_map[];
 
-#ifdef CONFIG_K1M_CCI
+#ifdef CONFIG_K1X_CCI
 void k1max_cci_init(void);
 #else
 #define k1max_cci_init()		do { } while (0)
