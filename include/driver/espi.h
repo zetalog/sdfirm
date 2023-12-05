@@ -113,7 +113,7 @@ struct espi_config {
 	enum espi_op_freq op_freq_mhz;
 	enum espi_alert_pin alert_pin;
 
-	uint32_t crc_check_enable:1;
+	uint32_t crc_check_en:1;
 	uint32_t periph_ch_en:1;
 	uint32_t vw_ch_en:1;
 	uint32_t oob_ch_en:1;
@@ -145,10 +145,18 @@ void espi_update_static_bar(uintptr_t bar);
  */
 int espi_setup(void);
 
-/* Run mainboard configuration needed to set up eSPI */
-void mb_set_up_early_espi(void);
+int espi_send_vw(uint32_t id, int level);
 
-/* Setup eSPI with any mainboard specific initialization. */
-void configure_espi_with_mb_hook(void);
+int espi_receive_vw(uint32_t id, int *level);
+
+int espi_send_oob(uint8_t *buf, size_t size);
+
+int espi_receive_oob(uint8_t *buf);
+
+int espi_flash_read(uint8_t *buf);
+
+int espi_flash_write(uint8_t *buf, size_t size);
+
+int espi_flash_erase(uint32_t flash_addr, size_t size);
 
 #endif /* __ESPI_H__ */
