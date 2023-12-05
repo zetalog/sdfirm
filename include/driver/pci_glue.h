@@ -16,10 +16,6 @@
 #endif
 
 #define __bf_shf(x) (__builtin_ffsll(x) - 1)
-#define FIELD_PREP(_mask, _val)						\
-	({								\
-		((typeof(_mask))(_val) << __bf_shf(_mask)) & (_mask);	\
-	})
 
 #ifndef SDFIRM
 typedef unsigned long size_t;
