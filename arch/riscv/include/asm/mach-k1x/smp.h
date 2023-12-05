@@ -42,7 +42,7 @@
 #ifndef __SMP_K1MAX_H_INCLUDE__
 #define __SMP_K1MAX_H_INCLUDE__
 
-#ifdef CONFIG_K1M_SMP_SPARSE_HART_ID
+#ifdef CONFIG_K1X_SMP_SPARSE_HART_ID
 #define smp_hw_cpu_hart(cpu)	CPU_TO_HART(cpu)
 #define smp_hw_hart_cpu(hart)	HART_TO_CPU(hart)
 #else
