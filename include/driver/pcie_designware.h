@@ -116,6 +116,8 @@
 
 #define PCIE_PL_CHK_REG_ERR_ADDR			0xB28
 
+#define CCIX_CTRL			0xC20
+
 /*
  * iATU Unroll-specific register definitions
  * From 4.80 core version the address translation will be made by unroll
