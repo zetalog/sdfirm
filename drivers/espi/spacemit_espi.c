@@ -875,7 +875,7 @@ static int espi_set_general_configuration(const struct espi_config *mb_cfg,
 	uint32_t slave_config = 0;
 	uint32_t ctrlr_config = 0;
 
-	if (mb_cfg->crc_check_enable) {
+	if (mb_cfg->crc_check_en) {
 		slave_config |= ESPI_SLAVE_CRC_ENABLE;
 		ctrlr_config |= ESPI_CRC_CHECKING_EN;
 	}
