@@ -43,6 +43,8 @@ enum sbi_platform_features {
 
 /** Platform functions */
 struct sbi_platform_operations {
+	/* Check if specified HART is allowed to do cold boot */
+	bool (*cold_boot_allowed)(uint32_t hartid);
 	/** Platform early initialization */
 	int (*early_init)(bool cold_boot);
 	/** Platform final initialization */
@@ -567,6 +569,16 @@ static inline uint64_t sbi_platform_pmu_xlate_to_mhpmevent(const struct sbi_plat
 									data);
 	return 0;
 }
+
+static inline bool sbi_platform_cold_boot_allowed(
+					const struct sbi_platform *plat,
+					uint32_t hartid)
+{
+	if (plat && sbi_platform_ops(plat)->cold_boot_allowed)
+		return sbi_platform_ops(plat)->cold_boot_allowed(hartid);
+	return true;
+}
+
 #endif
 
 #endif
