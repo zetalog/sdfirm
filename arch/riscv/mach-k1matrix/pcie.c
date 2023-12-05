@@ -42,6 +42,7 @@
 #include <target/arch.h>
 #include <target/delay.h>
 #include <target/sbi.h>
+#include <target/pci.h>
 #include <driver/pcie_designware.h>
 
 void pcie_config_rc_ep_mode(void)
@@ -59,7 +60,7 @@ void pcie_link_ctrl_setup(void)
 {
 	uint32_t val;
 
-	val = PORT_LINK_MODE_4_LANES | PORT_LINK_RATE(1) |
+	val = PCIE_LINK_MODE | PORT_LINK_RATE(1) |
 		PORT_FASK_LINK_MODE_ENABLE | PORT_DLL_LINK_ENABLE;
 	__raw_writel(val, CCIX_DBI_BASE + PCIE_PORT_LINK_CONTROL);
 }
@@ -143,7 +144,7 @@ void pcie_vc_resource_config(void)
 
 void pcie_ccix_set_id(int id)
 {
-	__raw_writel(id, CCIX_DBI_BASE + 0xC20);
+	__raw_writel(id, CCIX_DBI_BASE + CCIX_CTRL);
 }
 
 void pcie_ccix_linkup(void)
