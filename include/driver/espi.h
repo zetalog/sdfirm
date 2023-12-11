@@ -147,9 +147,7 @@ void espi_update_static_bar(uintptr_t bar);
  */
 int espi_hw_ctrl_init(struct espi_config *cfg);
 
-int espi_send_vw(uint32_t id, int level);
-
-int espi_receive_vw(uint32_t id, int *level);
+int espi_send_vw(uint8_t *ids, uint8_t *data, int num);
 
 int espi_send_oob_smbus(uint8_t *buf, int len);
 
