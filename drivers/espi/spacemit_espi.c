@@ -1205,13 +1205,49 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 	return 0;
 }
 
-int espi_send_vw(uint32_t id, int level)
+int espi_send_vw(uint8_t *ids, uint8_t *data, int num)
 {
-	return 0;
-}
+	int i;
+	uint32_t status;
+	uint32_t val = 0;
 
-int espi_receive_vw(uint32_t id, int *level)
-{
+	if (num > 64 || num < 1) {
+		return -1;
+	}
+
+	for (i = 0; i < num; i++) {
+		val |= ids[i] << ((i % 4) << 1) | data[i] << (((i % 4) << 1) + 1);
+		if ((i % 2) == 1) {
+			espi_write32(ESPI_DN_TXDATA_PORT, val);
+			val = 0;
+		}
+	}
+
+	if ((i % 2) == 1) {
+		espi_write32(ESPI_DN_TXDATA_PORT, val);
+	}
+
+	espi_write32(ESPI_DN_TXHDR_0, DN_TXHDR_0_DNCMD_TYPE(CMD_TYPE_VW) |
+		DN_TXHDR_0_DNCMD_EN | DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL(0) |
+		DN_TXHDR_0_DNCMD_HDATA0(num));
+
+	if (espi_wait_ready() != 0) {
+		return -1;
+	}
+
+	if (espi_poll_status(&status) != 0) {
+		return -1;
+	}
+
+	/* If command did not complete downstream, return error. */
+	if (!(status & SLAVE0_INT_STS_DNCMD_INT)) {
+		return -1;
+	}
+
+//	if (status & ~(SLAVE0_INT_STS_DNCMD_INT | cmd->expected_status_codes)) {
+//		return -1;
+//	}
+
 	return 0;
 }
 
