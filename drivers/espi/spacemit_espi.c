@@ -1090,6 +1090,48 @@ static void espi_setup_subtractive_decode(const struct espi_config *mb_cfg)
 //	espi_write32(ESPI_GLOBAL_CONTROL_1, global_ctrl_reg);
 }
 
+static void espi_enable_all_irqs(void)
+{
+	espi_write32(ESPI_SLAVE0_INT_EN, SLAVE0_CONFIG_FLASH_REQ_INT_EN |
+					 SLAVE0_INT_EN_RXOOB_INT_EN |
+					 SLAVE0_INT_EN_RXMSG_INT_EN |
+					 SLAVE0_INT_EN_DNCMD_INT_EN |
+					 SLAVE0_INT_EN_RXVW_GPR3_INT_EN |
+					 SLAVE0_INT_EN_RXVW_GPR2_INT_EN |
+					 SLAVE0_INT_EN_RXVW_GPR1_INT_EN |
+					 SLAVE0_INT_EN_RXVW_GPR0_INT_EN |
+					 SLAVE0_INT_EN_PR_INT_EN |
+					 SLAVE0_INT_EN_PROTOCOL_ERR_INT_EN |
+					 SLAVE0_INT_EN_RXFLASH_OFLOW_INT_EN |
+					 SLAVE0_INT_EN_RXMSG_OFLOW_INT_EN |
+					 SLAVE0_INT_EN_RXOOB_OFLOW_INT_EN |
+					 SLAVE0_INT_EN_ILLEGAL_LEN_INT_EN |
+					 SLAVE0_INT_EN_ILLEGAL_TAG_INT_EN |
+					 SLAVE0_INT_EN_UNSUCSS_CPL_INT_EN |
+					 SLAVE0_INT_EN_INVALID_CT_RSP_INT_EN |
+					 SLAVE0_INT_EN_INVALID_ID_RSP_INT_EN |
+					 SLAVE0_INT_EN_NON_FATAL_INT_EN |
+					 SLAVE0_INT_EN_FATAL_ERR_INT_EN |
+					 SLAVE0_INT_EN_NO_RSP_INT_EN |
+					 SLAVE0_INT_EN_CRC_ERR_INT_EN |
+					 SLAVE0_INT_EN_WAIT_TIMEOUT_INT_EN |
+					 SLAVE0_INT_EN_BUS_ERR_INT_EN
+	);
+}
+
+void espi_handle_irq(irq_t irq)
+{
+
+}
+
+static void espi_irq_init(void)
+{
+	irqc_configure_irq(100, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(100, espi_handle_irq);
+	irqc_enable_irq(100);
+	espi_enable_all_irqs();
+}
+
 int espi_hw_ctrl_init(struct espi_config *cfg)
 {
 	uint32_t slave_caps;
@@ -1199,6 +1241,8 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 //	ctrl |= ESPI_ALERT_ENABLE;
 //
 //	espi_write32(ESPI_GLOBAL_CONTROL_1, ctrl);
+
+	espi_irq_init();
 
 	printf("Finished initializing eSPI.\n");
 
