@@ -41,14 +41,17 @@ typedef uint8_t bits_t;
 void __set_bit(bits_t nr, volatile bits_t *addr);
 void __clear_bit(bits_t nr, volatile bits_t *addr);
 bool __test_and_set_bit(bits_t nr, volatile bits_t *addr);
+bool __test_and_clear_bit(bits_t nr, volatile bits_t *addr);
 #ifdef CONFIG_SMP
 void set_bit(bits_t nr, volatile bits_t *addr);
 void clear_bit(bits_t nr, volatile bits_t *addr);
-void test_and_set_bit(bits_t nr, volatile bits_t *addr);
+bool test_and_set_bit(bits_t nr, volatile bits_t *addr);
+bool test_and_clear_bit(bits_t nr, volatile bits_t *addr);
 #else
 #define set_bit(nr, addr)		__set_bit(nr, addr)
 #define clear_bit(nr, addr)		__clear_bit(nr, addr)
 #define test_and_set_bit(nr, addr)	__test_and_set_bit(nr, addr)
+#define test_and_clear_bit(nr, addr)	__test_and_clear_bit(nr, addr)
 #endif
 boolean test_bit(bits_t nr, const bits_t *addr);
 #define find_first_set_bit(addr, size)		\
