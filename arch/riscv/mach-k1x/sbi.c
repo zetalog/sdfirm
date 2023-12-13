@@ -209,6 +209,7 @@ static int k1max_timer_init(bool cold_boot)
 /*
  * Get platform specific mhpmevent value.
  */
+#if 0
 static uint64_t platform_pmu_xlate_to_mhpmevent(uint32_t event_idx, uint64_t data)
 {
 	uint64_t evt_val = 0;
@@ -229,6 +230,7 @@ static uint64_t platform_pmu_xlate_to_mhpmevent(uint32_t event_idx, uint64_t dat
 
 	return evt_val;
 }
+#endif
 
 static int k1max_system_down(uint32_t type)
 {
@@ -252,7 +254,7 @@ static bool k1max_hart_disabled(uint32_t hartid)
 	return ~BOOT_MASK & CPU_TO_MASK(hartid);
 }
 
-static bool k1max_cold_boot_allowed(uint32_t hartid, const struct fdt_match *match)
+static bool k1max_cold_boot_allowed(uint32_t hartid)
 {
 	/* enable core snoop */
 	csr_set(CSR_ML2SETUP, 1 << (hartid % CPUS_PER_CLUSTER));
