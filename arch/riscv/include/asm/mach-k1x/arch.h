@@ -52,7 +52,7 @@
 	x100_init
 	.endm
 	.macro	boot1_hook
-#ifdef CONFIG_K1M_CCI
+#ifdef CONFIG_K1X_CCI
 	jal	ra, k1max_cci_init
 #endif
 #ifdef CONFIG_K1M_SOC
