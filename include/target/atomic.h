@@ -345,7 +345,6 @@ ATOMIC_NOP(xor, ^)
 #define atomic_dec_and_test(v)		(atomic_sub_return(1, (v)) == 0)
 #define atomic_xchg(ptr, v)		(xchg(&(ptr)->counter, (v)))
 #define atomic_cmpxchg(v, old, new)	(cmpxchg(&((v)->counter), (old), (new)))
-#define atomic_fetch_andnot(i, v)	atomic_fetch_and(~(i), (v))
 
 #define ATOMIC64_OP(op, c_op)						\
 static inline void atomic64_##op(atomic64_count_t i, atomic64_t *v)	\
@@ -440,7 +439,7 @@ typedef atomic_t atomic_long_t;
 
 #define atomic_cond_read_relaxed(v, c)		smp_cond_load_relaxed(&(v)->counter, (c))
 #define atomic64_cond_read_relaxed(v, c)	smp_cond_load_relaxed(&(v)->counter, (c))
-#define atomic_fetch_andnot_relaxed(v, c)	atomic_fetch_andnot((c), (v))
+#define atomic_fetch_andnot(i, v)		atomic_fetch_and(~(i), (v))
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ATOMIC_H_INCLUDE__ */

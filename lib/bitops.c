@@ -68,6 +68,13 @@ void __set_bit(bits_t nr, volatile bits_t *addr)
 	*p |= mask;
 }
 
+void __clear_bit(bits_t nr, volatile bits_t *addr)
+{
+	bits_t mask = BITOP_MASK(nr);
+	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
+	*p &= ~mask;
+}
+
 bool __test_and_set_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
@@ -78,11 +85,14 @@ bool __test_and_set_bit(bits_t nr, volatile bits_t *addr)
 	return (old & mask) != 0;
 }
 
-void __clear_bit(bits_t nr, volatile bits_t *addr)
+bool __test_and_clear_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
-	*p &= ~mask;
+	bits_t old = *p;
+
+	*p = old & ~mask;
+	return (old & mask) != 0;
 }
 
 #ifdef CONFIG_SMP
@@ -106,7 +116,17 @@ bool test_and_set_bit(bits_t nr, volatile bits_t *addr)
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
 	bits_t old = *p;
 
-	old = atomic_or_return(mask, (atomic_t *)p);
+	old = atomic_fetch_or(mask, (atomic_t *)p);
+	return (old & mask) != 0;
+}
+
+bool test_and_clear_bit(bits_t nr, volatile bits_t *addr)
+{
+	bits_t mask = BITOP_MASK(nr);
+	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
+	bits_t old = *p;
+
+	old = atomic_fetch_andnot(mask, (atomic_t *)p);
 	return (old & mask) != 0;
 }
 #endif
