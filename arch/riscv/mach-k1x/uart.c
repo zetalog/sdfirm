@@ -3,6 +3,7 @@
 
 void k1max_k1x_uart_init(void)
 {
+	#if 0
 	uint32_t data;
 
 	data = __raw_readl(0xD4090104); // pll
@@ -30,5 +31,6 @@ void k1max_k1x_uart_init(void)
 	data &= ~7;
 	data |= 1;
 	__raw_writel(data, MFPR_BASE+0x294);
+	#endif
 
 }
