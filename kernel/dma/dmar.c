@@ -120,6 +120,8 @@ caddr_t dma_alloc_coherent(dma_t dma, size_t size, dma_addr_t *dma_handle)
 	struct page *page;
 
 	page = page_alloc_pages(nr_pages);
+	if (page)
+		memory_set((caddr_t)page, 0, PAGE_SIZE * nr_pages);
 	*dma_handle = phys_to_dma(dma, (phys_addr_t)page);
 	return phys_to_virt((phys_addr_t)page);
 }
