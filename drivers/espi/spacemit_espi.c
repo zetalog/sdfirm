@@ -1339,37 +1339,3 @@ int espi_send_oob_smbus(uint8_t *buf, int len)
 
 	return 0;
 }
-
-int espi_receive_oob_smbus(uint8_t *buf)
-{
-	int len = 0;
-	uint32_t data[16];
-	uint32_t rxhdr0 = espi_read32(ESPI_UP_RXHDR_0);
-
-	len = FIELD_GET(UP_RXHDR_0_UPCMD_HDATA2_MASK, rxhdr0);
-
-	*(uint32_t *)buf = espi_read32(ESPI_UP_RXHDR_1) & 0x00FFFFFFU;
-
-	for (int i = 0; i < (len - 3 + 3) / 4; i++) {
-		data[i] = espi_read32(ESPI_UP_RXDATA_PORT);
-	}
-
-	memcpy(&buf[3], &data, len - 3);
-
-	return len;
-}
-
-int espi_flash_read(uint8_t *buf)
-{
-	return 0;
-}
-
-int espi_flash_write(uint8_t *buf, int len)
-{
-	return 0;
-}
-
-int espi_flash_erase(uint32_t flash_addr, int len)
-{
-	return 0;
-}

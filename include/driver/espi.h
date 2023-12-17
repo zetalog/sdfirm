@@ -151,16 +151,6 @@ int espi_send_vw(uint8_t *ids, uint8_t *data, int num);
 
 int espi_send_oob_smbus(uint8_t *buf, int len);
 
-int espi_receive_oob_smbus(uint8_t *buf);
-
 int espi_send_oob_mctp(uint8_t *buf, int len);
-
-int espi_receive_oob_mctp(uint8_t *buf);
-
-int espi_flash_read(uint8_t *buf);
-
-int espi_flash_write(uint8_t *buf, int len);
-
-int espi_flash_erase(uint32_t flash_addr, int len);
 
 #endif /* __ESPI_H__ */
