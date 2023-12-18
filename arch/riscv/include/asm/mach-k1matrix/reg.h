@@ -109,6 +109,7 @@ extern unsigned long k1matrix_die_base;
 #define SMMU_BASE(n)		ULL(0x0000000000)
 #define BMU_BASE(n)		ULL(0x0000000000)
 #define MBOX_BASE		ULL(0x0000000000)
+#define RV_IOMMU_BASE(n)	ULL(0x0000000000)
 #endif
 
 #include <asm/mach/cprint.h>
