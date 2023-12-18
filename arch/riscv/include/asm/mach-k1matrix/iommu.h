@@ -43,108 +43,12 @@
 #define __IOMMU_K1MATRIX_H_INCLUDE__
 
 #include <target/arch.h>
-
-#define SMMU_HW_MAX_CTRLS	1
-#define SMMU_HW_TRANS		SMMU_FEAT_TRANS_S1
-#define SMMU_HW_PTFS		(SMMU_FEAT_PTFS_RISCV_SV39 | \
-				 SMMU_FEAT_PTFS_RISCV_SV48 | \
-				 SMMU_FEAT_PTFS_ARCH64_4K | \
-				 SMMU_FEAT_PTFS_ARCH64_64K)
-#define SMMU_HW_NUMSIDB		15
-#define SMMU_HW_NUMSMRG		32
-#define SMMU_HW_PAGESIZE	0x1000
-#define SMMU_HW_NUMPAGENDXB	3
-#define SMMU_HW_NUMCB		16
-#define SMMU_HW_NUMS2CB		0
-#define SMMU_HW_IAS		48
-#define SMMU_HW_OAS		48
-#define SMMU_HW_UBS		48
-
-/* iommu_dev_t */
-#define IOMMU_DMAC		0
-
-#if defined(CONFIG_K1MATRIX_DMAR)
-#ifndef ARCH_HAVE_IOMMU
-#define ARCH_HAVE_IOMMU		1
-
-#define SMMU_HW_NUMSMES(n)	smmu_num_sms[n]
-
-/* iommu_t */
-#define IOMMU_DMA_TBU0		IOMMU(IOMMU_DMAC, 0)
-#define IOMMU_DMA_TBU1		IOMMU(IOMMU_DMAC, 1)
-#define IOMMU_DMA_TBU2		IOMMU(IOMMU_DMAC, 2)
-#define IOMMU_DMA_TBU3		IOMMU(IOMMU_DMAC, 3)
-#define NR_DMA_IOMMUS		4
-
-#define NR_IOMMUS		(NR_DMA_IOMMUS)
-#else
-#error "Multiple IOMMU controller defined"
-#endif
+#ifdef CONFIG_K1MATRIX_SMMU
+#include <asm/mach/smmu.h>
 #endif
 
-#ifdef CONFIG_K1MATRIX_SMMUv2
-#include <driver/arm_smmuv2.h>
-#include <target/iommu_armv8.h>
+#ifdef CONFIG_K1MATRIX_IOMMU
+#include <asm/mach/rv_iommu.h>
 #endif
-#ifdef CONFIG_K1MATRIX_SMMUv3
-#include <driver/arm_smmuv3.h>
-#include <target/iommu_armv8.h>
-#endif
-
-#ifdef ARCH_HAVE_IOMMU
-#define iommu_hw_ctrl_init()				smmu_device_init()
-#define iommu_hw_domain_select()			smmu_domain_select()
-#define iommu_hw_group_init()				smmu_master_init()
-#define iommu_hw_domain_init()				smmu_domain_init()
-#define iommu_hw_domain_exit()				smmu_domain_exit()
-#define iommu_hw_group_attach()				smmu_master_attach()
-#ifdef SYS_REALTIME
-#define iommu_hw_poll_irqs()				smmu_poll_irqs()
-#endif
-
-#ifdef CONFIG_K1MATRIX_SMMUv2
-#define iommu_hw_tlb_flush_all()			\
-	smmu_tlb_inv_context_s1()
-#define iommu_hw_tlb_flush_walk(iova, size, granule)	\
-	smmu_tlb_inv_walk_s1(iova, size, granule)
-#define iommu_hw_tlb_flush_leaf(iova, size, granule)	\
-	smmu_tlb_inv_leaf_s1(iova, size, granule)
-#define iommu_hw_tlb_add_page(gather, iova, granule)	\
-	smmu_tlb_add_page_s1(iova, granule)
-#define iommu_hw_iotlb_sync(gather)			do { } while (0)
-#endif
-#ifdef CONFIG_K1MATRIX_SMMUv3
-#define iommu_hw_tlb_flush_all()			\
-	smmuv3_tlb_inv_context()
-#define iommu_hw_tlb_flush_walk(iova, size, granule)	\
-	smmuv3_tlb_inv_walk(iova, size, granule)
-#define iommu_hw_tlb_flush_leaf(iova, size, granule)	\
-	smmuv3_tlb_inv_leaf(iova, size, granule)
-#define iommu_hw_tlb_add_page(gather, iova, granule)	\
-	smmuv3_tlb_inv_page_nosync(gather, iova, granule)
-#define iommu_hw_iotlb_sync(gather)			\
-	smmuv3_iotlb_sync(gather)
-#define iommu_hw_handle_stm()				\
-	smmuv3_handle_stm()
-#define iommu_hw_handle_seq()				\
-	smmuv3_handle_seq()
-#endif
-
-#define smmu_hw_num_pasid_bits				20
-
-#define iommu_hw_map(iova, paddr, pgsize, prot)		\
-	arm_lpae_map(iova, paddr, pgsize, prot)
-#define iommu_hw_unmap(iova, pgsize, gather)		\
-	arm_lpae_unmap(iova, pgsize, gather)
-#define iommu_hw_alloc_table(cfg)			\
-	arm_lpae_pgtable_alloc(cfg)
-#define iommu_hw_free_table()				\
-	arm_lpae_pgtable_free()
-
-#define smmu_hw_ctrl_reset(reg)				(reg)
-
-extern unsigned long smmu_hw_pgsize_bitmap;
-extern smmu_gr_t smmu_num_sms[];
-#endif /* ARCH_HAVE_IOMMU */
 
 #endif /* __IOMMU_K1MATRIX_H_INCLUDE__ */
