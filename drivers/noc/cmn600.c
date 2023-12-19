@@ -598,7 +598,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			}
 
 			memregion = CMN_valid_region(CMN_region_target_HNF,
-						     region->base, region->size);
+						     base, region->size);
 			cmn_writeq_mask(CMN_region(region_sys_count, memregion),
 					CMN_region(region_sys_count, CMN_region_MASK),
 					CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count),
