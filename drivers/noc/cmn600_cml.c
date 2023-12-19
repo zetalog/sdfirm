@@ -287,10 +287,10 @@ static void cmn_cml_start_ccix_link(void)
 				 CMN_lnk_link_ack, false);
 
 	con_dbg(CMN_MODNAME ": Requesting CCIX %d...\n", cml_link_id);
-	cmn_writeq(CMN_lnk_link_req,
+	cmn_setq(CMN_lnk_link_req,
 		   CMN_cxg_cxprtcl_link_ctl(CMN_CXRA_BASE, cml_link_id),
 		   "CMN_cxg_ra_cxprtcl_link_ctl", cml_link_id);
-	cmn_writeq(CMN_lnk_link_req,
+	cmn_setq(CMN_lnk_link_req,
 		   CMN_cxg_cxprtcl_link_ctl(CMN_CXHA_BASE, cml_link_id),
 		   "CMN_cxg_ha_cxprtcl_link_ctl", cml_link_id);
 	cmn_cml_wait_link_status(cml_link_id, CMN_MXP_CXRH,
