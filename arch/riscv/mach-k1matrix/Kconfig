@@ -283,6 +283,11 @@ menuconfig K1MATRIX_BMU
 menuconfig K1MATRIX_MBOX
 	bool "Enable K1Matrix mailbox support"
 
+menuconfig K1MATRIX_LPC
+	bool "Enable K1Matrix low pin count bridge (LPC) support"
+	depends ARCH_HAS_LPC
+	select SPACEMIT_LPC
+
 endmenu
 
 endif
