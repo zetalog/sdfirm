@@ -376,6 +376,7 @@ config ARCH_K1MATRIX
 	select ARCH_HAS_NOC
 	select ARCH_HAS_PCI
 	select ARCH_HAS_CLK
+	select ARCH_HAS_LPC
 	select ARCH_HAS_CLK_GENERIC
 	select ARCH_HAS_BOOT0
 	select ARCH_HAS_BOOT1

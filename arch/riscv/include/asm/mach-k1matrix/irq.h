@@ -69,6 +69,8 @@
 #define IRQ_SMMU_CMDQ		EXT_IRQ(50)
 #define IRQ_SMMU_GERR		EXT_IRQ(51)
 
+#define IRQ_LPC			EXT_IRQ(56)
+
 #define NR_EXT_IRQS		64
 #define NR_IRQS			(NR_INT_IRQS + NR_EXT_IRQS)
 
