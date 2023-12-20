@@ -1,7 +1,7 @@
-/* Reference,  https, //spacemit.feishu.cn/wiki/I5OBwa11Ei7Ycrk5QdMcEvrdndg */
-
 #ifndef __SPACEMIT_LPC_H_INCLUDE__
 #define __SPACEMIT_LPC_H_INCLUDE__
+
+#include <target/arch.h>
 
 #ifndef SPACEMIT_LPC_BASE
 #define SPACEMIT_LPC_BASE			0x02010000
@@ -9,6 +9,8 @@
 #ifndef SPACEMIT_LPC_REG
 #define SPACEMIT_LPC_REG(offset)		(SPACEMIT_LPC_BASE + (offset))
 #endif
+
+#define LPC_IRQ					IRQ_LPC
 
 /* Register offset */
 #define LPC_CFG 				SPACEMIT_LPC_REG(0x00)
@@ -38,54 +40,38 @@
 #define LPC_CFG_FW_BYTE_LEN_OFFSET		8
 #define LPC_CFG_FW_BYTE_LEN_MASK		REG_2BIT_MASK
 #define LPC_CFG_FW_BYTE_LEN(value)		_SET_FV(LPC_CFG_FW_BYTE_LEN, value)
+#define LPC_CFG_FW_BYTE_LEN_8			0x00
+#define LPC_CFG_FW_BYTE_LEN_16			0x01
+#define LPC_CFG_FW_BYTE_LEN_32			0x02
 #define LPC_CFG_CYCLE_TYPE_OFFSET		4
 #define LPC_CFG_CYCLE_TYPE_MASK			REG_2BIT_MASK
 #define LPC_CFG_CYCLE_TYPE(value)		_SET_FV(LPC_CFG_CYCLE_TYPE, value)
+#define LPC_CFG_CYCLE_IO			0x00
+#define LPC_CFG_CYCLE_MEM			0x01
+#define LPC_CFG_CYCLE_FIRM			0x02
 #define LPC_CFG_LFRAME_WIDE_OFFSET		0
 #define LPC_CFG_LFRAME_WIDE_MASK		REG_2BIT_MASK
 #define LPC_CFG_LFRAME_WIDE(value)		_SET_FV(LPC_CFG_LFRAME_WIDE, value)
 
 /* 8.2 LPC_CMD_OP */
-#define LPC_CMD_OP				_BV(0)
+#define LPC_CMD_OP_READ				0
+#define LPC_CMD_OP_WRITE			1
 
 /* 8.3 LPC_STATUS */
 #define LPC_STATUS_SERIRQ_BUSY			_BV(4)
 #define LPC_STATUS_LPC_BUSY			_BV(0)
 
 /* 8.4 LPC_INT_MASK */
-#define LPC_INT_SYNC_ERR_MASK			_BV(24)
-#define LPC_INT_NO_SYNC_MASK			_BV(20)
-#define LPC_INT_LWAIT_TIMEOUT_MASK		_BV(16)
-#define LPC_INT_SWAIT_TIMEOUT_MASK		_BV(12)
-#define LPC_INT_SERIRQ_INT_MASK			_BV(8)
-#define LPC_INT_SERIRQ_DONE_MASK		_BV(4)
-#define LPC_INT_OP_DONE_MASK			_BV(0)
-
 /* 8.5 LPC_INT_STATUS */
-#define LPC_INT_STATUS_SYNC_ERR			_BV(24)
-#define LPC_INT_STATUS_NO_SYNC			_BV(20)
-#define LPC_INT_STATUS_LWAIT_TIMEOUT		_BV(16)
-#define LPC_INT_STATUS_SWAIT_TIMEOUT		_BV(12)
-#define LPC_INT_STATUS_SERIRQ_INT		_BV(8)
-#define LPC_INT_STATUS_SERIRQ_DONE		_BV(4)
-#define LPC_INT_STATUS_OP_DONE			_BV(0)
-
 /* 8.6 LPC_INT_RAW_STATUS */
-#define LPC_INT_RAW_STATUS_SYNCEER		_BV(24)
-#define LPC_INT_RAW_STATUS_NO_SYNC		_BV(20)
-#define LPC_INT_RAW_STATUS_LWAIT_TIMEOUT	_BV(16)
-#define LPC_INT_RAW_STATUS_SWAIT_TIMEOUT	_BV(12)
-#define LPC_INT_RAW_STATUS_SERIRQ_INT		_BV(8)
-#define LPC_INT_RAW_STATUS_SERIRQ_DONE		_BV(4)
-#define LPC_INT_RAW_STATUS_OP_DONE		_BV(0)
-
 /* 8.7 LPC_INT_CLR */
-#define LPC_INT_SYNCERR_CLR			_BV(24)
-#define LPC_INT_NO_SYNC_CLR			_BV(20)
-#define LPC_INT_LWAIT_TIMEOUT_CLR		_BV(16)
-#define LPC_INT_SWAIT_TIMEOUT_CLR		_BV(12)
-#define LPC_INT_SERIRQ_DONE_CLR			_BV(4)
-#define LPC_INT_OP_DONE_CLR			_BV(0)
+#define LPC_INT_SYNC_ERR			24
+#define LPC_INT_NO_SYNC				_BV(20)
+#define LPC_INT_LWAIT_TIMEOUT			_BV(16)
+#define LPC_INT_SWAIT_TIMEOUT			_BV(12)
+#define LPC_INT_SERIRQ_INT			_BV(8)
+#define LPC_INT_SERIRQ_DONE			_BV(4)
+#define LPC_INT_OP_DONE				_BV(0)
 
 /* 8.8 LPC_WAIT_COUNT */
 #define LPC_WAIT_ABORT_COUNT_OFFSET		24
@@ -97,21 +83,6 @@
 #define LPC_WAIT_LWAIT_COUNT_OFFSET		0
 #define LPC_WAIT_LWAIT_COUNT_MASK		REG_16BIT_MASK
 #define LPC_WAIT_LWAIT_COUNT(value)		_SET_FV(LPC_WAIT_LWAIT_COUNT, value)
-
-/* 8.9 LPC_ADDR */
-#define LPC_ADDR_REG_OFFSET			0
-#define LPC_ADDR_REG_MASK			REG_32BIT_MASK
-#define LPC_ADDR_REG(value)			_SET_FV(LPC_ADDR_REG, value)
-
-/* 8.10 LPC_WDATA */
-#define LPC_WDATA_REG_OFFSET			0
-#define LPC_WDATA_REG_MASK			REG_32BIT_MASK
-#define LPC_WDATA_REG(value)			_SET_FV(LPC_WDATA_REG, value)
-
-/* 8.11 LPC_RDATA */
-#define LPC_RDATA_REG_OFFSET			0
-#define LPC_RDATA_REG_MASK			REG_32BIT_MASK
-#define LPC_RDATA_REG(value)			_GET_FV(LPC_RDATA_REG, value)
 
 /* 8.12 LPC_DEBUG */
 #define LPC_DEBUG_LAD_I_OFFSET			28
@@ -127,35 +98,27 @@
 #define LPC_DEBUG_LPC_FSM_MASK			REG_6BIT_MASK
 #define LPC_DEBUG_LPC_FSM(value)		_GET_FV(LPC_DEBUG_LPC_FSM, value)
 
-/* 8.13 SEIRQ_CFG */
-#define SEIRQ_CFG_SERIRQ_NUM_OFFSET		12
-#define SEIRQ_CFG_SERIRQ_NUM_MASK		REG_4BIT_MASK
-#define SEIRQ_CFG_SERIRQ_NUM(value)		_SET_FV(SEIRQ_CFG_SERIRQ_NUM, value)
-#define SEIRQ_CFG_SERIRQ_IDLE_WIDE_OFFSET	8
-#define SEIRQ_CFG_SERIRQ_IDLE_WIDE_MASK		REG_2BIT_MASK
-#define SEIRQ_CFG_SERIRQ_IDLE_WIDE(value)	_SET_FV(SEIRQ_CFG_SERIRQ_NUM, value)
-#define SEIRQ_CFG_SERIRQ_START_WIDE_OFFSET	4
-#define SEIRQ_CFG_SERIRQ_START_WIDE_MASK	REG_2BIT_MASK
-#define SEIRQ_CFG_SERIRQ_START_WIDE(value)	_SET_FV(SEIRQ_CFG_SERIRQ_NUM, value)
-#define SEIRQ_CFG_SERIRQ_MODE			_BV(0)
-
-/* 8.14 SERIRQ_OP */
-#define SERIRQ_OP_REG				_BV(0)
+/* 8.13 SERIRQ_CFG */
+#define SERIRQ_CFG_SERIRQ_NUM_OFFSET		12
+#define SERIRQ_CFG_SERIRQ_NUM_MASK		REG_4BIT_MASK
+#define SERIRQ_CFG_SERIRQ_NUM(value)		_SET_FV(SERIRQ_CFG_SERIRQ_NUM, value)
+#define SERIRQ_NUM_MIN				17
+#define SERIRQ_NUM_MAX				32
+#define SERIRQ_NUM(num)				((num)-SERIRQ_NUM_MIN)
+#define SERIRQ_CFG_SERIRQ_IDLE_WIDE_OFFSET	8
+#define SERIRQ_CFG_SERIRQ_IDLE_WIDE_MASK	REG_2BIT_MASK
+#define SERIRQ_CFG_SERIRQ_IDLE_WIDE(value)	_SET_FV(SERIRQ_CFG_SERIRQ_NUM, value)
+#define SERIRQ_CFG_SERIRQ_START_WIDE_OFFSET	4
+#define SERIRQ_CFG_SERIRQ_START_WIDE_MASK	REG_2BIT_MASK
+#define SERIRQ_CFG_SERIRQ_START_WIDE(value)	_SET_FV(SERIRQ_CFG_SERIRQ_NUM, value)
+#define SERIRQ_CFG_SERIRQ_MODE			_BV(0)
+#define SERIRQ_MODE_CONTINUOUS			0
+#define SERIRQ_MODE_QUIET			1
 
 /* 8.15 SERIRQ_SLOT_MASK */
-#define SERIRQ_SLOT_MASK_REG_OFFSET		REG32_1BIT_OFFSET(n)
-#define SERIRQ_SLOT_MASK_REG_MASK		REG_1BIT_MASK
-#define SERIRQ_SLOT_MASK_REG(n, value)		_SET_FVn(n, SERIRQ_SLOT_MASK_REG, value)
-
 /* 8.16 SERIRQ_SLOT_IRQ */
-#define SERIRQ_SLOT_IRQ_REG_OFFSET		REG32_1BIT_OFFSET(n)
-#define SERIRQ_SLOT_IRQ_REG_MASK		REG_1BIT_MASK
-#define SERIRQ_SLOT_IRQ_REG(n, value)		_GET_FVn(n, SERIRQ_SLOT_IRQ_REG, value)
-
 /* 8.17 SERIRQ_SLOT_CLR */
-#define SERIRQ_SLOT_CLR_REG_OFFSET		REG32_1BIT_OFFSET(n)
-#define SERIRQ_SLOT_CLR_REG_MASK		REG_1BIT_MASK
-#define SERIRQ_SLOT_CLR_REG(n, value)		_SET_FVn(n, SERIRQ_SLOT_CLR_REG, value)
+#define SERIRQ_SLOT(slot)			_BV(slot)
 
 /* 8.18 SERIRQ_DEBUG */
 #define SERIRQ_DEBUG_SERIRQ_I			_BV(29)
@@ -177,74 +140,201 @@
 #define SERIRQ_DEBUG_SERIRQ_FSM(value)		_GET_FV(SERIRQ_DEBUG_SERIRQ_FSM, value)
 
 /* 8.19 LPC_MEM_CFG */
-#define LPC_MEM_CFG_TRANS_OFFSET		16
-#define LPC_MEM_CFG_TRANS_MASK			REG_7BIT_MASK
-#define LPC_MEM_CFG_TRANS(value)		_SET_FV(LPC_MEM_CFG_TRANS, value)
-#define LPC_MEM_CFG_TRANS_SEL			_BV(8)
-#define LPC_MEM_CFG_CYCLE			_BV(4)
-#define LPC_MEM_CFG_RESERVED			_BV(0)
+#define LPC_MEM_TRANS1_OFFSET			23
+#define LPC_MEM_TRANS1_MASK			REG_8BIT_MASK
+#define LPC_MEM_TRANS1(value)			_SET_FV(LPC_MEM_TRANS1, value)
+#define LPC_MEM_TRANS0_OFFSET			16
+#define LPC_MEM_TRANS0_MASK			REG_8BIT_MASK
+#define LPC_MEM_TRANS0(value)			_SET_FV(LPC_MEM_TRANS0, value)
+#define LPC_MEM_TRANS_SEL			_BV(4)
+#define SEL_FROM_MEM_TRANS			0
+#define SEL_FROM_MEM_HADDR			1
+#define LPC_MEM_CYCLE				_BV(0)
+
 
 /* 8.20 LPC_ERR_ADDR */
 #define LPC_ERR_ADDR_REG_OFFSET			0
 #define LPC_ERR_ADDR_REG_MASK			REG_32BIT_MASK
 #define LPC_ERR_ADDR_REG(value)			_SET_FV(LPC_ERR_ADDR_REG, value)
 
+#define lpc_get_serirq_status()			(!!(__raw_readl(LPC_STATUS) & LPC_STATUS_SERIRQ_BUSY))
+#define lpc_get_lpc_status()			(!!(__raw_readl(LPC_STATUS) & LPC_STATUS_LPC_BUSY))
 
-#define spacemit_lpc_get_config			__raw_readl(LPC_CFG)
-#define spacemit_lpc_set_config(byte)		__raw_writel(byte, LPC_CFG)
-#define spacemit_lpc_read_start			__raw_writel(0, LPC_CMD_OP)
-#define spacemit_lpc_write_start		__raw_writel(1, LPC_CMD_OP)
-#define spacemit_lpc_get_status			__raw_read(LPC_STATUS)
-#define spacemit_lpc_get_int_mask		__raw_read(LPC_INT_MASK)
-#define spacemit_lpc_set_int_mask(byte)		__raw_writel(byte, LPC_INT_MASK)
-#define spacemit_get_int_status			__raw_read(LPC_INT_STATUS)
-#define spacemit_get_int_raw_status		__raw_read(LPC_INT_RAW_STATUS)
-#define spacemit_lpc_int_clear(byte)		__raw_writel(byte, LPC_INT_CLR)
-#define spacemit_lpc_get_wait_count		__raw_read(LPC_WAIT_COUNT)
-#define spacemit_lpc_set_wait_count(byte)	__raw_writel(byte, LPC_WAIT_COUNT)
-#define spacemit_lpc_get_addr			__raw_read(LPC_ADDR)
-#define spacemit_lpc_set_addr(byte)		__raw_writel(byte, LPC_ADDR)
-#define spacemit_lpc_write_data(byte)		__raw_writel(byte, LPC_WDATA)
-#define spacemit_lpc_read_data			__raw_read(LPC_RDATA)
-#define spacemit_lpc_get_debug			__raw_read(LPC_DEBUG)
-#define spacemit_lpc_get_serirq_cfg		__raw_read(SERIRQ_CFG)
-#define spacemit_lpc_set_serirq_cfg(byte)	__raw_writel(byte, SERIRQ_CFG)
-#define spacemit_lpc_set_serirq_op(byte)	__raw_writel(byte, SERIRQ_OP)
-#define spacemit_lpc_get_serirq_slot_mask	__raw_read(SERIRQ_SLOT_MASK)
-#define spacemit_lpc_set_serirq_slot_mask(byte)	__raw_writel(byte, SERIRQ_SLOT_MASK)
-#define spacemit_lpc_get_serirq_slot_irq	__raw_read(SERIRQ_SLOT_IRQ)
-#define spacemit_lpc_set_serirq_slot_clr(byte)	__raw_writel(byte, SERIRQ_SLOT_CLR)
-#define spacemit_lpc_get_serirq_debug		__raw_read(SERIRQ_DEBUG)
-#define spacemit_lpc_get_mem_cfg		__raw_read(SERIRQ_CFG)
-#define spacemit_lpc_set_mem_cfg(byte)		__raw_writel(byte, LPC_MEM_CFG)
-#define spacemit_lpc_get_err_addr		__raw_read(LPC_ERR_ADDR)
+static inline uint8_t lpc_io_read8(uint16_t a)
+{
+	__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);
+	__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_IO),
+			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),
+			LPC_CFG);
+	__raw_writel(a, LPC_ADDR);
+	return __raw_readl(LPC_RDATA);
+}				
 
-uint8_t lpc_get_config(void);
-uint8_t lpc_set_config(uint8_t byte);
-uint8_t lpc_read_start(void);
-uint8_t lpc_write_start(void);
-uint8_t lpc_get_status(void);
-uint8_t lpc_get_int_mask(void);
-uint8_t lpc_set_int_mask(uint8_t byte);
-uint8_t lpc_get_int_status(void);
-uint8_t lpc_get_int_raw_status(void);
-uint8_t lpc_int_clear(uint8_t byte);
-uint8_t lpc_set_wait_count(uint8_t byte);
-uint8_t lpc_get_addr(void);
-uint8_t lpc_set_addr(uint8_t byte);
-uint8_t lpc_write_data(uint8_t byte);
-uint8_t lpc_read_data(void);
-uint8_t lpc_get_debug(void);
-uint8_t lpc_get_serirq_cfg(void);
-uint8_t lpc_set_serirq_cfg(uint8_t byte);
-uint8_t lpc_set_serirq_op(uint8_t byte);
-uint8_t lpc_get_serirq_slot_mask(void);
-uint8_t lpc_set_serirq_slot_mask(uint8_t byte);
-uint8_t lpc_get_serirq_slot_irq(void);
-uint8_t lpc_set_serirq_slot_clr(uint8_t byte);
-uint8_t lpc_get_serirq_debug(void);
-uint8_t lpc_get_mem_cfg(void);
-uint8_t lpc_set_mem_cfg(uint8_t byte);
-uint8_t lpc_get_err_addr(void);
+#define lpc_io_write8(v, a)								\
+	do {										\
+		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
+		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_IO),			\
+			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),			\
+			LPC_CFG);							\
+		__raw_writel((a), LPC_ADDR);						\
+		__raw_writel((v), LPC_WDATA);						\
+	} while (0)
+
+static inline uint8_t lpc_mem_read8(uint32_t a)
+{
+	__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);
+	__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_MEM),
+			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),
+			LPC_CFG);
+	__raw_writel(a, LPC_ADDR);
+	return __raw_readl(LPC_RDATA);
+}
+
+#define lpc_mem_write8(v, a)								\
+	do {										\
+		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
+		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_MEM),		\
+			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),			\
+			LPC_CFG);							\
+		__raw_writel((a), LPC_ADDR);						\
+		__raw_writel((v), LPC_WDATA);						\
+	} while (0)
+
+static inline uint8_t lpc_firm_read8(uint32_t a)
+{
+	__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);
+	__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_FIRM),
+			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),
+			LPC_CFG);
+	__raw_writel_mask(LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_8),
+			LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_MASK),
+			LPC_CFG);
+	__raw_writel(a, LPC_ADDR);
+	return __raw_readl(LPC_RDATA);
+}				
+
+static inline uint16_t lpc_firm_read16(uint32_t a)
+{
+	__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);
+	__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_FIRM),
+			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),
+			LPC_CFG);
+	__raw_writel_mask(LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_16),
+			LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_MASK),
+			LPC_CFG);
+	__raw_writel(a, LPC_ADDR);
+	return __raw_readl(LPC_RDATA);
+}
+
+static inline uint32_t lpc_firm_read32(uint32_t a)
+{
+	__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);
+	__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_FIRM),
+			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),
+			LPC_CFG);
+	__raw_writel_mask(LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_32),
+			LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_MASK),
+			LPC_CFG);
+	__raw_writel(a, LPC_ADDR);
+	return __raw_readl(LPC_RDATA);
+}
+
+#define lpc_firm_write8(v, a)								\
+	do {										\
+		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
+		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_FIRM),		\
+			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),			\
+			LPC_CFG);							\
+		__raw_writel_mask(LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_8),		\
+			LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_MASK),			\
+			LPC_CFG);							\
+		__raw_writel((a), LPC_ADDR);						\
+		__raw_writel(v, LPC_WDATA);						\
+	} while (0)
+#define lpc_firm_write16(v, a)								\
+	do {										\
+		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
+		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_FIRM),		\
+			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),			\
+			LPC_CFG);							\
+		__raw_writel_mask(LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_16),		\
+			LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_MASK),			\
+			LPC_CFG);							\
+		__raw_writel((a), LPC_ADDR);						\
+		__raw_writel(v, LPC_WDATA);						\
+	} while (0)
+#define lpc_firm_write32(v, a)								\
+	do {										\
+		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
+		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_FIRM),		\
+			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),			\
+			LPC_CFG);							\
+		__raw_writel_mask(LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_32),		\
+			LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_MASK),			\
+			LPC_CFG);							\
+		__raw_writel((a), LPC_ADDR);						\
+		__raw_writel(v, LPC_WDATA);						\
+	} while (0)
+
+#define lpc_clear_irq(irq)				__raw_setl(_BV(irq), LPC_INT_CLR)
+#define lpc_get_irq(irq)				(!!(__raw_readl(LPC_INT_STATUS) & _BV(irq)))
+#define lpc_mask_irq(irq)				__raw_setl(_BV(irq), LPC_INT_MASK)
+#define lpc_unmask_irq(irq)				__raw_clearl(_BV(irq), LPC_INT_MASK)
+#define lpc_mask_all_irqs()				__raw_writel(0xffffffff, LPC_INT_MASK)
+#define lpc_get_raw_irq(irq)				(!!(__raw_readl(LPC_INT_RAW_STATUS) & _BV(irq)))
+
+#define lpc_serirq_config(num, idwd, stwd, mode)					\
+	do {										\
+		__raw_writel_mask(SERIRQ_CFG_SERIRQ_NUM(SERIRQ_NUM(num)),		\
+			SERIRQ_CFG_SERIRQ_NUM(SERIRQ_CFG_SERIRQ_NUM_MASK),		\
+			SERIRQ_CFG);							\
+		__raw_writel_mask(SERIRQ_CFG_SERIRQ_IDLE_WIDE(idwd),			\
+			SERIRQ_CFG_SERIRQ_IDLE_WIDE(SERIRQ_CFG_SERIRQ_IDLE_WIDE_MASK),	\
+			SERIRQ_CFG);							\
+		__raw_writel_mask(SERIRQ_CFG_SERIRQ_START_WIDE((stwd - 2) >> 1),	\
+			SERIRQ_CFG_SERIRQ_START_WIDE(SERIRQ_CFG_SERIRQ_START_WIDE_MASK),\
+			SERIRQ_CFG);							\
+		__raw_writel(SERIRQ_CFG_SERIRQ_MODE | SERIRQ_CFG, (mode));		\
+	} while (0)
+
+#define lpc_mask_serirq(slot)								\
+	do {										\
+		__raw_writel(1, SERIRQ_OP);						\
+		__raw_setl(_BV(slot), SERIRQ_SLOT_MASK);				\
+	} while (0)
+
+#define lpc_mask_all_serirqs()				__raw_setl(0xffffffff, SERIRQ_SLOT_MASK)
+
+#define lpc_unmask_serirq(slot)								\
+	do {										\
+		__raw_writel(1, SERIRQ_OP);						\
+		__raw_clearl(_BV(slot), SERIRQ_SLOT_MASK);				\
+	} while (0)
+
+static inline uint8_t lpc_get_serirq(int slot)
+{
+	__raw_writel(1, SERIRQ_OP);
+	return (!!(__raw_readl(SERIRQ_SLOT_IRQ) & _BV(slot)));
+}
+
+#define lpc_clear_serirq(slot)								\
+	do {										\
+		__raw_writel(1, SERIRQ_OP);						\
+		__raw_setl(_BV(slot), SERIRQ_SLOT_CLR);					\
+	} while (0)
+
+#define lpc_mem_cfg(sel, address0, address1, cycle)					\
+	do {										\
+		__raw_writel(LPC_MEM_TRANS_SEL | LPC_MEM_CFG, (sel));			\
+		__raw_writel(LPC_MEM_CYCLE | LPC_MEM_CFG, (cycle));			\
+		__raw_writel_mask(LPC_MEM_TRANS0(address0), 				\
+			LPC_MEM_TRANS0(LPC_MEM_TRANS0_MASK), 				\
+			LPC_MEM_CFG);							\
+		__raw_writel_mask(LPC_MEM_TRANS1(address1), 				\
+			LPC_MEM_TRANS1(LPC_MEM_TRANS1_MASK), 				\
+			LPC_MEM_CFG);							\
+	} while (0)
+
+void spacemit_lpc_init(void);
 
 #endif /* __SPACEMIT_LPC_H_INCLUDE__ */

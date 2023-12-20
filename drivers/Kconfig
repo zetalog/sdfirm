@@ -44,4 +44,6 @@ source drivers/noc/Kconfig
 source drivers/net/Kconfig
 source drivers/phy/Kconfig
 
+source drivers/lpc/Kconfig
+
 endmenu
