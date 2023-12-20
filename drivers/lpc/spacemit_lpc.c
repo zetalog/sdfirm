@@ -1,141 +1,213 @@
-#include <spacemit_lpc.h>
+#include <target/lpc.h>
+#include <target/cmdline.h>
+#include <target/irq.h>
 
-uint8_t lpc_get_config(void)
+#ifdef SYS_REALTIME
+#define lpc_poll_init()		(irq_register_poller(lpc_bh))
+#define lpc_irq_init()		do { } while (0)
+#else /* SYS_REALTIME */
+#define lpc_poll_init()		do { } while (0)
+#define lpc_irq_init()		spacemit_lpc_irq_init()
+#endif /* SYS_REALTIME */
+
+bh_t lpc_bh;
+
+static void lpc_handle_irq(irq_t irq)
 {
-	return spacemit_lpc_get_config;
+	if (lpc_get_serirq_status())
+		printf("SERIRQ Received!");
+	else {
+		if (lpc_get_lpc_status())
+			printf("LPC Received!");
+	}
+	irqc_ack_irq(LPC_IRQ);
 }
 
-uint8_t lpc_set_config(uint8_t byte)
+static void lpc_bh_handler(uint8_t events)
 {
-	return spacemit_lpc_set_config(byte);
+	if (events == BH_POLLIRQ) {
+		lpc_handle_irq(LPC_IRQ);
+		return;
+	}
 }
 
-uint8_t lpc_read_start(void)
+static void spacemit_lpc_irq_init(void)
 {
-	return spacemit_lpc_read_start;
+	lpc_mask_all_irqs();
+	lpc_mask_all_serirqs();
+	irqc_configure_irq(LPC_IRQ, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(LPC_IRQ, lpc_handle_irq);
+	irqc_enable_irq(LPC_IRQ);
+	/* TODO enable irqs */
 }
 
-uint8_t lpc_write_start(void)
+void spacemit_lpc_init(void)
 {
-	return spacemit_lpc_write_start;
+	lpc_bh = bh_register_handler(lpc_bh_handler);
+	lpc_irq_init();
+	lpc_poll_init();
 }
 
-uint8_t lpc_get_status(void)
+static int do_lpc_read(int argc, char *argv[])
 {
-	return spacemit_lpc_get_status;
+	caddr_t addr;
+
+	if (argc < 3) 
+		return -EINVAL;
+
+	if (strcmp(argv[2], "fw") == 0) {
+		if (argc < 4) 
+			return -EINVAL;
+		addr = (caddr_t)(uint16_t)strtoull(argv[4], 0, 0);
+		if (strcmp(argv[3], "1"))
+			return lpc_firm_read8(addr);
+		else if (strcmp(argv[3], "2"))
+			return lpc_firm_read16(addr);
+		else if (strcmp(argv[3], "4"))
+			return lpc_firm_read32(addr);
+		return -EINVAL;
+	} else {
+		addr = (caddr_t)(uint16_t)strtoull(argv[3], 0, 0);
+		if (strcmp(argv[2], "io") == 0)
+			return lpc_io_read8(addr);
+		else if (strcmp(argv[2], "mem") == 0)
+			return lpc_mem_read8(addr);
+	}
+	return -EINVAL;
 }
 
-uint8_t lpc_get_int_mask(void)
+static int do_lpc_write(int argc, char *argv[])
 {
-	return spacemit_lpc_get_int_mask;
+	caddr_t addr;
+
+	if (argc < 5)
+		return -EINVAL;
+	if (strcmp(argv[2], "fw") == 0) {
+		uint32_t v;
+		int size;
+		if (argc < 6) 
+			return -EINVAL;
+		size = (uint32_t)strtoull(argv[3], 0, 0);
+		v = (uint32_t)strtoull(argv[4], 0, 0);
+		addr = (caddr_t)strtoull(argv[5], 0, 0);
+		if (size == 1)
+			lpc_firm_write8(v, addr);
+		else if (size == 2)
+			lpc_firm_write16(v, addr);
+		else if (size == 4)
+			lpc_firm_write32(v, addr);
+		else
+			return -EINVAL;
+		return 0;
+	} else {
+		uint8_t v;
+
+		v = (uint32_t)strtoull(argv[34], 0, 0);
+		addr = (caddr_t)strtoull(argv[4], 0, 0);
+		if (strcmp(argv[2], "io") == 0)
+			lpc_io_write8(v, addr);
+		else if (strcmp(argv[2], "mem") == 0)
+			lpc_mem_write8(v, addr);
+		else
+			return -EINVAL;
+		return 0;
+	}
+	return -EINVAL;
 }
 
-uint8_t lpc_set_int_mask(uint8_t byte)
+static int do_lpc_irq(int argc, char *argv[])
 {
-	return spacemit_lpc_set_int_mask(byte);
+	uint8_t irq;
+	if (argc < 4)
+		return -EINVAL;
+	lpc_mask_irq(1);
+	irq = (uint8_t)strtoull(argv[3], 0, 0);
+	if (strcmp(argv[2], "mask") == 0)
+		lpc_mask_irq(irq);
+	else if (strcmp(argv[2], "unmask") == 0)
+		lpc_unmask_irq(irq);
+	else if (strcmp(argv[2], "clear") == 0)
+		lpc_clear_irq(irq);
+	else if (strcmp(argv[2], "get") == 0)
+		return lpc_get_irq(irq);
+	else
+		return -EINVAL;
+	return 0;
 }
 
-uint8_t lpc_get_int_status(void)
+static int do_lpc_serirq(int argc, char *argv[])
 {
-	return spacemit_get_int_status;
+	uint8_t slot;
+	if (argc < 4)
+		return -EINVAL;
+	slot = (uint8_t)strtoull(argv[3], 0, 0);
+	if (strcmp(argv[2], "mask") == 0)
+		lpc_mask_serirq(slot);
+	else if (strcmp(argv[2], "unmask") == 0)
+		lpc_unmask_serirq(slot);
+	else if (strcmp(argv[2], "clear") == 0)
+		lpc_clear_serirq(slot);
+	else if (strcmp(argv[2], "get") == 0)
+		return lpc_get_serirq(slot);
+	else if (strcmp(argv[2], "config") == 0)
+		lpc_serirq_config(slot, 
+			(uint8_t)strtoull(argv[4], 0, 0), 
+			(uint8_t)strtoull(argv[5], 0, 0), 
+			(uint8_t)strtoull(argv[6], 0, 0));
+	else
+		return -EINVAL;
+	return 0;
 }
 
-uint8_t lpc_get_int_raw_status(void)
+static int do_lpc_trans(int argc, char *argv[])
 {
-	return spacemit_get_int_raw_status;
+	if (argc < 6)
+		return -EINVAL;
+	lpc_mem_cfg((uint8_t)strtoull(argv[5], 0, 0), 
+		(uint8_t)strtoull(argv[2], 0, 0), 
+		(uint8_t)strtoull(argv[3], 0, 0),
+		(uint8_t)strtoull(argv[4], 0, 0));
+	return 0;
 }
 
-uint8_t lpc_int_clear(uint8_t byte)
+static int do_lpc(int argc, char *argv[])
 {
-	return spacemit_lpc_int_clear(byte);
+	if (argc < 2)
+		return -EINVAL;
+	if (strcmp(argv[1], "read") == 0)
+		return do_lpc_read(argc, argv);
+	if (strcmp(argv[1], "write") == 0)
+		return do_lpc_write(argc, argv);
+	if (strcmp(argv[1], "irq") == 0)
+		return do_lpc_irq(argc, argv);
+	if (strcmp(argv[1], "serirq") == 0)
+		return do_lpc_serirq(argc, argv);
+	if (strcmp(argv[1], "trans") == 0)
+		return do_lpc_trans(argc, argv);
+	return -EINVAL;
 }
 
-uint8_t lpc_get_wait_count(void)
-{
-	return spacemit_lpc_get_wait_count;
-}
-
-uint8_t lpc_set_wait_count(uint8_t byte)
-{
-	return spacemit_lpc_set_wait_count(byte);
-}
-
-uint8_t lpc_get_addr(void)
-{
-	return spacemit_lpc_get_addr;
-}
-
-uint8_t lpc_set_addr(uint8_t byte)
-{
-	return spacemit_lpc_set_addr(byte);
-}
-
-uint8_t lpc_write_data(uint8_t byte)
-{
-	return spacemit_lpc_write_data(byte);
-}
-
-uint8_t lpc_read_data(void)
-{
-	return spacemit_lpc_read_data;
-}
-
-uint8_t lpc_get_debug(void)
-{
-	return spacemit_lpc_get_debug;
-}
-
-uint8_t lpc_get_serirq_cfg(void)
-{
-	return spacemit_lpc_get_serirq_cfg;
-}
-
-uint8_t lpc_set_serirq_cfg(uint8_t byte)
-{
-	return spacemit_lpc_set_serirq_cfg(byte);
-}
-
-uint8_t lpc_set_serirq_op(uint8_t byte)
-{
-	return spacemit_lpc_set_serirq_op(byte);
-}
-
-uint8_t lpc_get_serirq_slot_mask(void)
-{
-	return spacemit_lpc_get_serirq_slot_mask;
-}
-
-uint8_t lpc_set_serirq_slot_mask(uint8_t byte)
-{
-	return spacemit_lpc_set_serirq_slot_mask(byte);
-}
-
-uint8_t lpc_get_serirq_slot_irq(void)
-{
-	return spacemit_lpc_get_serirq_slot_irq;
-}
-
-uint8_t lpc_set_serirq_slot_clr(uint8_t byte)
-{
-	return spacemit_lpc_set_serirq_slot_clr(byte);
-}
-
-uint8_t lpc_get_serirq_debug(void)
-{
-	return spacemit_lpc_get_serirq_debug;
-}
-
-uint8_t lpc_get_mem_cfg(void)
-{
-	return spacemit_lpc_get_mem_cfg;
-}
-
-uint8_t lpc_set_mem_cfg(uint8_t byte)
-{
-	return spacemit_lpc_set_mem_cfg(byte);
-}
-
-uint8_t lpc_get_err_addr(void)
-{
-	return spacemit_lpc_get_err_addr;
-}
+DEFINE_COMMAND(lpc, do_lpc, "SpacemiT low pin count commands",
+	"lpc read io\n"
+	"lpc read mem\n"
+	"lpc read fw [1|2|4]\n"
+	"    -LPC read sequence\n"
+	"lpc write io value\n"
+	"lpc write mem value\n"
+	"lpc read fw value [1|2|4]\n"
+	"    -LPC write sequence\n"
+	"lpc trans address0 address1 cycle [0|1]\n"
+	"    -config LPC address translation\n"
+	"lpc irq mask irq\n"
+	"lpc irq unmask irq\n"
+	"lpc irq clear irq\n"
+	"lpc irq get irq\n"
+	"    -LPC control IRQs\n"
+	"lpc serirq mask slot\n"
+	"lpc serirq unmask slot\n"
+	"lpc serirq clear slot\n"
+	"lpc serirq get slot\n"
+	"    -LPC control SERIRQs\n"
+	"lpc serirq config slot idle start mode\n"
+	"    -LPC configure SERIRQs\n"
+);
