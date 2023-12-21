@@ -287,9 +287,9 @@
 			#address-cells = <0x0>;
 		};
 
-		dma: dma-controller@10030000{
+		dma: dma-controller@d4000000{
 			compatible = "snps,dma-spear1340";
-			reg = <0x0 0x10030000 0x0 0x1000>;
+			reg = <0x0 0xd4000000 0x0 0x1000>;
 			interrupt-parent = <&plic>;
 			interrupts = <21>;
 			dma-masters = <1>;
