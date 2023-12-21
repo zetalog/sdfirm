@@ -2,7 +2,7 @@
 #include <target/delay.h>
 
 #define BOOT_CLUSTER	CPU_TO_CLUSTER(BOOT_HART)
-#define BOOT_ADDR	CONFIG_BOOT_BASE
+#define BOOT_ADDR	((uint64_t)CONFIG_BOOT_BASE)
 
 void k1x_cpu_reset(void)
 {
