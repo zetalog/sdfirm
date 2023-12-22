@@ -188,12 +188,21 @@
 #endif
 	};
 
-	memory@40000000 {
+	memory@00000000 {
 		device_type = "memory";
 		reg = <DT_REGHI(RAM_BASE) DT_REGLO(RAM_BASE)
 		       DT_REGHI(RAM_SIZE) DT_REGLO(RAM_SIZE)
 		>;
 	};
+
+#ifdef CONFIG_K1X_DDR_HIGH
+	memory@100000000 {
+		device_type = "memory";
+		reg = <0x00000001 0x00000000
+                       0x00000000 0x80000000
+                >;
+	};
+#endif
 
 	soc {
 		#address-cells = <0x2>;
