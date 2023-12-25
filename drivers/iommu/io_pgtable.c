@@ -9,22 +9,20 @@
  *	Sebastien Boeuf <seb@rivosinc.com>
  */
 
-#include <linux/atomic.h>
-#include <linux/bitops.h>
-#include <linux/io-pgtable.h>
-#include <linux/kernel.h>
-#include <linux/sizes.h>
-#include <linux/slab.h>
-#include <linux/types.h>
-#include <linux/dma-mapping.h>
+#include <target/iommu.h>
+#include <target/iommu-pgtable.h>
+#include <target/panic.h>
+#include <target/iommu.h>
+#include <target/page.h>
 
 #include "iommu.h"
 
-#define io_pgtable_to_domain(x) \
-	container_of((x), struct riscv_iommu_domain, pgtbl)
+struct io_pgtable riscv_io_pgtables[NR_IOMMU_DOMAINS];
 
-#define io_pgtable_ops_to_domain(x) \
-	io_pgtable_to_domain(container_of((x), struct io_pgtable, ops))
+#define pmd_leaf(x)	0
+#define _PAGE_PFN_MASK  GENMASK(53, 10)
+#define _PAGE_PFN_SHIFT 10
+#define __page_val_to_pfn(_val)  (((_val) & _PAGE_PFN_MASK) >> _PAGE_PFN_SHIFT)
 
 static inline size_t get_page_size(size_t size)
 {
@@ -63,20 +61,19 @@ static void riscv_iommu_pt_walk_free(pmd_t * ptp, unsigned shift, bool root)
 
 	/* Now free the current page table page */
 	if (!root && pmd_present(*pt_base))
-		free_page((unsigned long)pt_base);
+		page_free_pages((struct page *)pt_base, shift);
 }
 
 static void riscv_iommu_free_pgtable(struct io_pgtable *iop)
 {
-	struct riscv_iommu_domain *domain = io_pgtable_to_domain(iop);
+	struct riscv_iommu_domain *domain = &riscv_iommu_domain_ctrl;
 	riscv_iommu_pt_walk_free((pmd_t *) domain->pgd_root, PGDIR_SHIFT, true);
 }
 
 static pte_t *riscv_iommu_pt_walk_alloc(pmd_t * ptp, unsigned long iova,
 					unsigned shift, bool root,
 					size_t pgsize,
-					unsigned long (*pd_alloc)(gfp_t),
-					gfp_t gfp)
+					unsigned long (*pd_alloc)(void))
 {
 	pmd_t *pte;
 	unsigned long pfn;
@@ -94,14 +91,14 @@ static pte_t *riscv_iommu_pt_walk_alloc(pmd_t * ptp, unsigned long iova,
 	}
 
 	if (pmd_none(*pte)) {
-		pfn = pd_alloc ? virt_to_pfn(pd_alloc(gfp)) : 0;
+		pfn = pd_alloc ? virt_to_pfn(pd_alloc()) : 0;
 		if (!pfn)
 			return NULL;
 		set_pmd(pte, __pmd((pfn << _PAGE_PFN_SHIFT) | _PAGE_TABLE));
 	}
 
 	return riscv_iommu_pt_walk_alloc(pte, iova, shift - 9, false,
-					 pgsize, pd_alloc, gfp);
+					 pgsize, pd_alloc);
 }
 
 static pte_t *riscv_iommu_pt_walk_fetch(pmd_t * ptp,
@@ -125,13 +122,11 @@ static pte_t *riscv_iommu_pt_walk_fetch(pmd_t * ptp,
 
 	return riscv_iommu_pt_walk_fetch(pte, iova, shift - 9, false);
 }
-
-static int riscv_iommu_map_pages(struct io_pgtable_ops *ops,
-				 unsigned long iova, phys_addr_t phys,
-				 size_t pgsize, size_t pgcount, int prot,
-				 gfp_t gfp, size_t *mapped)
+	
+int riscv_iommu_map_pages(unsigned long iova, phys_addr_t phys,
+				 size_t pgsize, size_t pgcount, int prot)
 {
-	struct riscv_iommu_domain *domain = io_pgtable_ops_to_domain(ops);
+	struct riscv_iommu_domain *domain = &riscv_iommu_domain_ctrl;
 	size_t size = 0;
 	size_t page_size = get_page_size(pgsize);
 	pte_t *pte;
@@ -142,7 +137,6 @@ static int riscv_iommu_map_pages(struct io_pgtable_ops *ops,
 		return -ENODEV;
 
 	if (domain->domain.type == IOMMU_DOMAIN_IDENTITY) {
-		*mapped = pgsize * pgcount;
 		return 0;
 	}
 
@@ -154,9 +148,8 @@ static int riscv_iommu_map_pages(struct io_pgtable_ops *ops,
 		pte =
 		    riscv_iommu_pt_walk_alloc((pmd_t *) domain->pgd_root, iova,
 					      PGDIR_SHIFT, true, page_size,
-					      get_zeroed_page, gfp);
+					      page_alloc_zeroed);
 		if (!pte) {
-			*mapped = size;
 			return -ENOMEM;
 		}
 
@@ -169,16 +162,14 @@ static int riscv_iommu_map_pages(struct io_pgtable_ops *ops,
 		phys += page_size;
 	}
 
-	*mapped = size;
 	return 0;
 }
 
-static size_t riscv_iommu_unmap_pages(struct io_pgtable_ops *ops,
-				      unsigned long iova, size_t pgsize,
+size_t riscv_iommu_unmap_pages(unsigned long iova, size_t pgsize,
 				      size_t pgcount,
 				      struct iommu_iotlb_gather *gather)
 {
-	struct riscv_iommu_domain *domain = io_pgtable_ops_to_domain(ops);
+	struct riscv_iommu_domain *domain = &riscv_iommu_domain_ctrl;
 	size_t size = 0;
 	size_t page_size = get_page_size(pgsize);
 	pte_t *pte;
@@ -194,8 +185,7 @@ static size_t riscv_iommu_unmap_pages(struct io_pgtable_ops *ops,
 
 		set_pte(pte, __pte(0));
 
-		iommu_iotlb_gather_add_page(&domain->domain, gather, iova,
-					    pgsize);
+		iommu_iotlb_gather_add_page(gather, iova, pgsize);
 
 		size += page_size;
 		iova += page_size;
@@ -204,10 +194,9 @@ static size_t riscv_iommu_unmap_pages(struct io_pgtable_ops *ops,
 	return size;
 }
 
-static phys_addr_t riscv_iommu_iova_to_phys(struct io_pgtable_ops *ops,
-					    unsigned long iova)
+static phys_addr_t riscv_iommu_iova_to_phys(unsigned long iova)
 {
-	struct riscv_iommu_domain *domain = io_pgtable_ops_to_domain(ops);
+	struct riscv_iommu_domain *domain;
 	pte_t *pte;
 
 	if (domain->domain.type == IOMMU_DOMAIN_IDENTITY)
@@ -236,31 +225,19 @@ static void riscv_iommu_tlb_add_page(struct iommu_iotlb_gather *gather,
 {
 }
 
-static const struct iommu_flush_ops riscv_iommu_flush_ops = {
-	.tlb_flush_all = riscv_iommu_tlb_inv_all,
-	.tlb_flush_walk = riscv_iommu_tlb_inv_walk,
-	.tlb_add_page = riscv_iommu_tlb_add_page,
-};
-
 /* NOTE: cfg should point to riscv_iommu_domain structure member pgtbl.cfg */
-static struct io_pgtable *riscv_iommu_alloc_pgtable(struct io_pgtable_cfg *cfg,
-						    void *cookie)
+struct io_pgtable *riscv_iommu_alloc_pgtable(struct io_pgtable_cfg *cfg)
 {
-	struct io_pgtable *iop = container_of(cfg, struct io_pgtable, cfg);
+	struct io_pgtable *iop = &riscv_io_pgtables[iommu_dom];
 
 	cfg->pgsize_bitmap = SZ_4K | SZ_2M | SZ_1G;
 	cfg->ias = 57;		// va mode, SvXX -> ias
 	cfg->oas = 57;		// pa mode, or SvXX+4 -> oas
-	cfg->tlb = &riscv_iommu_flush_ops;
+	// cfg->tlb = &riscv_iommu_flush_ops;
 
-	iop->ops.map_pages = riscv_iommu_map_pages;
-	iop->ops.unmap_pages = riscv_iommu_unmap_pages;
-	iop->ops.iova_to_phys = riscv_iommu_iova_to_phys;
+	// iop->ops.map_pages = riscv_iommu_map_pages;
+	// iop->ops.unmap_pages = riscv_iommu_unmap_pages;
+	// iop->ops.iova_to_phys = riscv_iommu_iova_to_phys;
 
 	return iop;
 }
-
-struct io_pgtable_init_fns io_pgtable_riscv_init_fns = {
-	.alloc = riscv_iommu_alloc_pgtable,
-	.free = riscv_iommu_free_pgtable,
-};
