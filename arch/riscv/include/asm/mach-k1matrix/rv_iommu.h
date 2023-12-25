@@ -137,11 +137,15 @@
 	arm_lpae_pgtable_free()
 #endif
 
-#define iommu_hw_map(iova, pgsize, paddr, prot)		0
-#define iommu_hw_unmap(iova, pgsize, gather)		0
+#define iommu_hw_map(iova, pgsize, paddr, prot)		\
+	riscv_iommu_map_pages(iova, paddr, pgsize, 1, prot)
+#define iommu_hw_unmap(iova, pgsize, gather)		\
+	riscv_iommu_unmap_pages(iova, pgsize, 1, gather)
+#define iommu_hw_alloc_table(cfg)			\
+	riscv_iommu_alloc_pgtable(cfg)
+
 #define iommu_hw_iotlb_sync(gather)			do { } while (0)
 
-#define iommu_hw_alloc_table(cfg)			0
 #define iommu_hw_free_table()				do { } while (0)
 
 

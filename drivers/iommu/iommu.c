@@ -17,9 +17,10 @@
 #include <target/iommu-pgtable.h>
 #include <target/panic.h>
 #include <target/iommu.h>
-
-#include "iommu-bits.h"
 #include <stdlib.h>
+
+#include "iommu.h"
+#include "iommu-bits.h"
 
 
 #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
@@ -243,11 +244,6 @@ struct iommu_page_response {
 	uint32_t	code;
 };
 
-#define IOMMU_PAGE_SIZE_4K	BIT_ULL(12)
-#define IOMMU_PAGE_SIZE_2M	BIT_ULL(21)
-#define IOMMU_PAGE_SIZE_1G	BIT_ULL(30)
-#define IOMMU_PAGE_SIZE_512G	BIT_ULL(39)
-
 struct riscv_iommu_queue {
 	dma_addr_t base_dma;	/* ring buffer bus address */
 	void *base;		/* ring buffer pointer */
@@ -326,23 +322,6 @@ struct riscv_iommu_device {
 	struct rb_root eps;
 
 	uint32_t max_pasids;
-};
-
-struct riscv_iommu_domain {
-	struct iommu_device_t *iommu;	/* iommu core interface */
-	struct iommu_domain domain;
-	struct io_pgtable pgtbl;
-
-	struct list_head endpoints;
-	struct list_head notifiers;
-	// struct mmu_notifier mn;
-
-	unsigned mode;		/* RIO_ATP_MODE_* enum */
-	unsigned pscid;		/* RISC-V IOMMU PSCID / GSCID */
-	uint32_t pasid;		/* IOMMU_DOMAIN_SVA: Cached PASID */
-	bool g_stage;		/* 2nd stage translation domain */
-
-	pgd_t *pgd_root;	/* page table root pointer */
 };
 
 /* Private dev_iommu_priv object, device-domain relationship. */
