@@ -166,5 +166,6 @@ void pcie_ccix_linkup(void)
 
 	pcie_vc_resource_config();
 
-	pcie_ccix_set_id(0);
+	/* use default ccix vendor id */
+	/* pcie_ccix_set_id(CCIX_VENDOR_ID); */
 }
