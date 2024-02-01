@@ -190,7 +190,7 @@
 #endif
 	};
 
-	memory@40000000 {
+	memory@200000000 {
 		device_type = "memory";
 		reg = <DT_REGHI(RAM_BASE) DT_REGLO(RAM_BASE)
 		       DT_REGHI(RAM_SIZE) DT_REGLO(RAM_SIZE)
