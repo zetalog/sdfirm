@@ -48,10 +48,12 @@
 void pcie_config_rc_ep_mode(void)
 {
 	if (sysreg_die_id() == 0) {
-		printf("rc\n");
+		printf("I'm RC!\n");
+		printf("Wait ccix linup!\n");
 		__raw_writel(0x4, CCIX_APP_BASE);
 	} else {
-		printf("ep\n");
+		printf("I'm EP!\n");
+		printf("Wait ccix linup!\n");
 		__raw_writel(0x0, CCIX_APP_BASE);
 	}
 }
@@ -74,7 +76,7 @@ int pcie_wait_linkup(void)
 {
 	int32_t timeout;
 
-	timeout = 10000000;
+	timeout = 100000000;
 	while (__raw_readl(CCIX_APP_BASE + 0x104) != 3) {
 		if (timeout-- <= 0) {
 			printf("wait linkup timeout\n");
@@ -100,7 +102,7 @@ int pcie_ccix_wait_vc0_ready(void)
 {
 	int32_t timeout;
 
-	timeout = 10000000;
+	timeout = 100000000;
 	while (__raw_readl(CCIX_DBI_BASE + PORT_RESOURCE_STATUS_REG_VC0) != 0) {
 		if (timeout-- <= 0) {
 			printf("wait vc0 ready timeout\n");
@@ -115,7 +117,7 @@ int pcie_ccix_wait_vc1_ready(void)
 {
 	int32_t timeout;
 
-	timeout = 10000000;
+	timeout = 100000000;
 	while (__raw_readl(CCIX_DBI_BASE + PORT_RESOURCE_STATUS_REG_VC1) != 0) {
 		if (timeout-- <= 0) {
 			printf("wait vc1 ready timeout\n");
@@ -168,4 +170,6 @@ void pcie_ccix_linkup(void)
 
 	/* use default ccix vendor id */
 	/* pcie_ccix_set_id(CCIX_VENDOR_ID); */
+
+	printf("ccix linkup successfully!\n");
 }
