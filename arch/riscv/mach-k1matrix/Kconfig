@@ -61,6 +61,7 @@ config K1MATRIX_BBL
 	select SBI_PAYLOAD
 	select XIP
 	select K1MATRIX_NUMA if K1MATRIX_D2D
+	select CLINT_MULTI if K1MATRIX_D2D
 
 config K1MATRIX_TB
 	bool "Test bench"

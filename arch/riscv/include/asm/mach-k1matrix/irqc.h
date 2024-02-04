@@ -58,6 +58,10 @@ extern caddr_t k1matrix_plic_ctx_base[2];
 #define PLIC_CTX_BASE		(PLIC_REG_BASE + PLIC_CONTEXT_BASE)
 #endif
 
+#ifdef CONFIG_ARCH_HAS_CLINT_MULTI
+#define clint_hw_chip(cpu)		((cpu) >> 5)
+#endif
+
 #define PLIC_HW_PRI_MAX			31
 #define plic_hw_m_ctx(cpu)		(cpu)
 #define plic_hw_s_ctx(cpu)		((cpu) + 1)

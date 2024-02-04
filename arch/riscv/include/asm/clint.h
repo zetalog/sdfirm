@@ -51,15 +51,28 @@
 #define CLINT_MTIME_BASE	0xBFF8
 #endif
 
-#define CLINT_REG(offset)	(CLINT_BASE + (offset))
-#ifdef CONFIG_ARCH_HAS_CLINT_CTX
-#define CLINT_MSIP(hart)	CLINT_REG((clint_hw_ctx(hart)) << 2)
-#define CLINT_MTIMECMP(hart)	CLINT_REG(CLINT_MTIMECMP_BASE + ((clint_hw_ctx(hart)) << 3))
+#ifdef CONFIG_CLINT_MULTI
+#define CLINT_REG_BASE(n)	CLINT_BASE(n)
 #else
-#define CLINT_MSIP(hart)	CLINT_REG((hart) << 2)
-#define CLINT_MTIMECMP(hart)	CLINT_REG(CLINT_MTIMECMP_BASE + ((hart) << 3))
+#define CLINT_REG_BASE(n)	CLINT_BASE
+#define clint_hw_chip(hart)	0
 #endif
-#define CLINT_MTIME		CLINT_REG(CLINT_MTIME_BASE)
+
+#define CLINT_REG(n, offset)	(CLINT_REG_BASE(n) + (offset))
+#ifdef CONFIG_ARCH_HAS_CLINT_CTX
+#define CLINT_MSIP(hart)		\
+	CLINT_REG(clint_hw_chip(hart), (clint_hw_ctx(hart)) << 2)
+#define CLINT_MTIMECMP(hart)		\
+	CLINT_REG(clint_hw_chip(hart),	\
+		  CLINT_MTIMECMP_BASE + ((clint_hw_ctx(hart)) << 3))
+#else
+#define CLINT_MSIP(hart)		\
+	CLINT_REG(clint_hw_chip(hart), (hart) << 2)
+#define CLINT_MTIMECMP(hart)		\
+	CLINT_REG(clint_hw_chip(hart), CLINT_MTIMECMP_BASE + ((hart) << 3))
+#endif
+#define CLINT_MTIME			\
+	CLINT_REG(clint_hw_chip(BOOT_HART), CLINT_MTIME_BASE)
 
 #if !defined(__ASSEMBLY__) && !defined(LINKER_SCRIPT)
 #ifdef CONFIG_CLINT

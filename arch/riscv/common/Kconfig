@@ -846,6 +846,20 @@ menuconfig CLINT
 
 if CLINT
 
+config ARCH_HAS_CLINT_MULTI
+	bool
+
+config CLINT_MULTI
+	bool "Enable multiple clint support"
+	depends ARCH_HAS_CLINT_MULTI
+	help
+	  Each CLINT may work for one chip or one die in NUMA systems.
+
+config CLINT_MAX_CHIPS
+	int "Maximum clint chips"
+	depends CLINT_MULTI
+	default 1
+
 config CLINT_XCHG_LLSC
 	bool "Use LL/SC style xchg"
 	help
