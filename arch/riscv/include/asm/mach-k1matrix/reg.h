@@ -82,7 +82,9 @@ extern unsigned long k1matrix_die_base;
 #define PCIE1_APP_BASE		(DIE_BASE + ULL(0x0002900000))
 #define PIC_BASE		(DIE_BASE + ULL(0x0010000000))
 #define PLIC_REG_BASE		PIC_BASE
-#define CLINT_BASE		(PIC_BASE + ULL(0x4000000))
+#ifdef CONFIG_CLINT_MULTI
+#define CLINT_BASE(die)		(__DIE_BASE(die) + __CLINT_BASE)
+#endif
 /* PCIE SUB */
 #define PCIE0_SLV_CFG_BASE	(DIE_BASE + __PCIE0_SLV_CFG_BASE)
 #define PCIE1_SLV_CFG_BASE	(DIE_BASE + __PCIE1_SLV_CFG_BASE)
