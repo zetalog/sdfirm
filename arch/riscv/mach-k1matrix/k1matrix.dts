@@ -64,7 +64,38 @@
 				};
 			};
 #endif
+
+#if CONFIG_K1MATRIX_SMP_CPUS >= 32
+			cluster8 {
+				core32 {
+					cpu = <&cpu32>;
+				};
+				core33 {
+					cpu = <&cpu33>;
+				};
+				core34 {
+					cpu = <&cpu34>;
+				};
+				core35 {
+					cpu = <&cpu35>;
+				};
+			};
+			cluster9 {
+				core36 {
+					cpu = <&cpu36>;
+				};
+				core37 {
+					cpu = <&cpu37>;
+				};
+				core38 {
+					cpu = <&cpu38>;
+				};
+				core39 {
+					cpu = <&cpu39>;
+				};
+			};
 		};
+#endif
 
 		cpu0: cpu@0 {
 			device_type = "cpu";
@@ -74,6 +105,7 @@
 			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
+			numa-node-id = <0>;
 
 			cpu0_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -90,6 +122,7 @@
 			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
+			numa-node-id = <0>;
 
 			cpu1_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -107,6 +140,7 @@
 			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
+			numa-node-id = <0>;
 
 			cpu2_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -122,6 +156,7 @@
 			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
+			numa-node-id = <0>;
 
 			cpu3_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -138,6 +173,7 @@
 			compatible = "riscv";
 			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
+			numa-node-id = <0>;
 
 			cpu4_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -152,6 +188,7 @@
 			compatible = "riscv";
 			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
+			numa-node-id = <0>;
 
 			cpu5_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -166,6 +203,7 @@
 			compatible = "riscv";
 			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
+			numa-node-id = <0>;
 
 			cpu6_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -180,6 +218,7 @@
 			compatible = "riscv";
 			riscv,isa = "rv64imafdcvhsu_sstc";
 			mmu-type = "riscv,sv48";
+			numa-node-id = <0>;
 
 			cpu7_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -188,14 +227,156 @@
 			};
 		};
 #endif
+
+#if CONFIG_K1MATRIX_SMP_CPUS >= 32
+		cpu32: cpu@32 {
+			device_type = "cpu";
+			reg = <32>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcvhsu_sstc";
+			mmu-type = "riscv,sv48";
+			numa-node-id = <1>;
+
+			cpu32_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu33: cpu@33 {
+			device_type = "cpu";
+			reg = <33>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcvhsu_sstc";
+			mmu-type = "riscv,sv48";
+			numa-node-id = <1>;
+
+			cpu33_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu34: cpu@34 {
+			device_type = "cpu";
+			reg = <34>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcvhsu_sstc";
+			mmu-type = "riscv,sv48";
+			numa-node-id = <1>;
+
+			cpu34_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu35: cpu@35 {
+			device_type = "cpu";
+			reg = <35>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcvhsu_sstc";
+			mmu-type = "riscv,sv48";
+			numa-node-id = <1>;
+
+			cpu35_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu36: cpu@36 {
+			device_type = "cpu";
+			reg = <36>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcvhsu_sstc";
+			mmu-type = "riscv,sv48";
+			numa-node-id = <1>;
+
+			cpu36_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu37: cpu@37 {
+			device_type = "cpu";
+			reg = <37>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcvhsu_sstc";
+			mmu-type = "riscv,sv48";
+			numa-node-id = <1>;
+
+			cpu37_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu38: cpu@38 {
+			device_type = "cpu";
+			reg = <38>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcvhsu_sstc";
+			mmu-type = "riscv,sv48";
+			numa-node-id = <1>;
+
+			cpu38_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu39: cpu@39 {
+			device_type = "cpu";
+			reg = <39>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcvhsu_sstc";
+			mmu-type = "riscv,sv48";
+			numa-node-id = <1>;
+
+			cpu39_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
 	};
+#endif
 
 	memory@200000000 {
 		device_type = "memory";
 		reg = <DT_REGHI(RAM_BASE) DT_REGLO(RAM_BASE)
 		       DT_REGHI(RAM_SIZE) DT_REGLO(RAM_SIZE)
 		>;
+		numa-node-id = <0>;
 	};
+
+#if CONFIG_K1MATRIX_SMP_CPUS >= 32
+	memory@8200000000 {
+		device_type = "memory";
+		reg = <0x00000082 0x00000000
+		       DT_REGHI(RAM_SIZE) DT_REGLO(RAM_SIZE)
+		>;
+		numa-node-id = <1>;
+	};
+
+	distance-map {
+		compatible = "numa-distance-map-v1";
+		distance-matrix = <0 0	10>,
+				  <0 1	20>,
+				  <1 0	20>,
+				  <1 1	10>;
+	};
+#endif
 
 	soc {
 		#address-cells = <0x2>;
@@ -241,6 +422,14 @@
 				&cpu6_intc 0xb &cpu6_intc 0x9
 				&cpu7_intc 0xb &cpu7_intc 0x9
 #endif
+				&cpu32_intc 0xb &cpu32_intc 0x9
+				&cpu33_intc 0xb &cpu33_intc 0x9
+				&cpu34_intc 0xb &cpu34_intc 0x9
+				&cpu35_intc 0xb &cpu35_intc 0x9
+				&cpu36_intc 0xb &cpu36_intc 0x9
+				&cpu37_intc 0xb &cpu37_intc 0x9
+				&cpu38_intc 0xb &cpu38_intc 0x9
+				&cpu39_intc 0xb &cpu39_intc 0x9
 			>;
 			interrupt-controller;
 			riscv,ndev = <39>;
@@ -266,6 +455,14 @@
 				&cpu6_intc 0x3 &cpu6_intc 0x7
 				&cpu7_intc 0x3 &cpu7_intc 0x7
 #endif
+				&cpu32_intc 0x3 &cpu32_intc 0x7
+				&cpu33_intc 0x3 &cpu33_intc 0x7
+				&cpu34_intc 0x3 &cpu34_intc 0x7
+				&cpu35_intc 0x3 &cpu35_intc 0x7
+				&cpu36_intc 0x3 &cpu36_intc 0x7
+				&cpu37_intc 0x3 &cpu37_intc 0x7
+				&cpu38_intc 0x3 &cpu38_intc 0x7
+				&cpu39_intc 0x3 &cpu39_intc 0x7
 			>;
 			reg = <DT_REGHI(__CLINT_BASE) DT_REGLO(__CLINT_BASE)
 			       0x0 0x00010000
