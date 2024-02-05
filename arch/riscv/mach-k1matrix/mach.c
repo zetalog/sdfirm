@@ -77,7 +77,7 @@ void board_boot_ddr(void)
 {
 	void (*boot_entry)(void);
 
-	boot_entry = (void *)DDR_BASE;
+	boot_entry = (void *)__DDR_BASE;
 	printf("B(D)\n");
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
 	local_flush_icache_all();
