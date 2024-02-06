@@ -508,5 +508,21 @@
 			reset-names = "cold", "button", "warm";
 			status = "okay";
 		};
+
+		dma:dma@0000100000 {
+			compatible = "snps,axi-dma-1.01a";
+			reg = < 0x0 0x100000 0x0 0x100000 >;
+			interrupt-parent = <&plic>;
+			interrupts = <26>;
+			interrupts-names = "dma";
+			dma-channels = <2>;
+			snps,dma-masters = <1>;
+			snps,data-width = <4>;
+			snps,block-size = <0x1000 0x1000>;
+			snps,priority = <0 1>;
+			snps,axi-max-burst-len = <16>;
+			#dma-cells = <1>;
+			status = "okay";
+		};
 	};
 };
