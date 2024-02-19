@@ -289,6 +289,11 @@ menuconfig K1MATRIX_LPC
 	depends ARCH_HAS_LPC
 	select SPACEMIT_LPC
 
+menuconfig K1MATRIX_KCS
+	bool "Enable K1Matrix Keyboard Controller Style (KCS) support"
+	depends ARCH_HAS_KCS
+	select KCS_MICROSEMI_CORELPC
+
 endmenu
 
 endif

@@ -1,0 +1,1 @@
+obj-$(CONFIG_KCS_MICROSEMI_CORELPC) := kcs.rel
