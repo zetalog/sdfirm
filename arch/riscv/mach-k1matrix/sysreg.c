@@ -46,10 +46,10 @@ void k1matrix_cpu_reset(void)
 	cpu_t cpu, hart;
 	cpu_t boot_hart = sysreg_boot_cpu();
 
-	if (boot_hart == csr_read(CSR_MHARTID)) {
+	if (boot_hart == csr_read(CSR_MHARTID) || 32 == csr_read(CSR_MHARTID)) {
 		for (cpu = 0; cpu < MAX_CPU_NUM; cpu++) {
 			hart = smp_hw_cpu_hart(cpu);
-			if (hart == boot_hart)
+			if (hart == boot_hart || hart == 32)
 				continue;
 			if (_BV(hart) & acpu_get_cpu_map())
 				sysreg_soft_reset_cpu(cpu);
