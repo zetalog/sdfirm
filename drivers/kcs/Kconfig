@@ -1,0 +1,9 @@
+config ARCH_HAS_KCS
+	bool
+
+menu "KCS drivers"
+
+menuconfig KCS_MICROSEMI_CORELPC
+	bool "Enable KCS Microsemi CoreLPC support"
+
+endmenu
