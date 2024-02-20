@@ -2,7 +2,7 @@
 #define __KCS_K1MATRIX_H_INCLUDE__
 
 #ifdef CONFIG_KCS_MICROSEMI_CORELPC
-#define ARCH_HAS_KCS			1
+#define ARCH_HAS_KCS				1
 #include <driver/corelpc.h>
 
 #define kcs_hw_read_cmd()			corelpc_read_kibr()
