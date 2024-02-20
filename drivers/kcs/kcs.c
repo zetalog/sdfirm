@@ -22,6 +22,8 @@ void kcs_obf_write(void)
 	if (txn_write_idx > 0) {
 		kcs_hw_write_obf(txn_write_buf[txn_write_idx]);
 		kcs_obf_set_index(txn_write_idx - 1);
+	} else {
+		kcs_enter_state(KCS_IDLE_STATE);
 	}
 }
 
@@ -54,7 +56,6 @@ void kcs_enter_state(uint8_t state)
 	if (state == KCS_READ_STATE)
 		kcs_obf_write();
 	kcs_hw_write_state(kcs_state);
-
 }
 
 void kcs_raise_event(uint8_t event)
@@ -97,13 +98,16 @@ void kcs_read_cmd(void)
 			break;
 	}
 }
+
 void kcs_handle_event(void)
 {
 	uint8_t event = kcs_event;
-	switch (kcs_state) {
-		case KCS_IDLE_STATE:
-		if (event & KCS_EVENT_IBF)
-			kcs_read_cmd();
+	uint8_t state = kcs_state;
+	if (event & KCS_EVENT_IBF) {
+		kcs_read_cmd();
+	} else if (event & KCS_EVENT_OBF) {
+		if (state & KCS_READ_STATE)
+			kcs_obf_write();
 	}
 }
 
