@@ -94,15 +94,15 @@
 					cpu = <&cpu39>;
 				};
 			};
-		};
 #endif
+		};
 
 		cpu0: cpu@0 {
 			device_type = "cpu";
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			numa-node-id = <0>;
@@ -119,7 +119,7 @@
 			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			numa-node-id = <0>;
@@ -137,7 +137,7 @@
 			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			numa-node-id = <0>;
@@ -153,7 +153,7 @@
 			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			numa-node-id = <0>;
@@ -171,7 +171,7 @@
 			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <0>;
 
@@ -186,7 +186,7 @@
 			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <0>;
 
@@ -201,7 +201,7 @@
 			reg = <6>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <0>;
 
@@ -216,7 +216,7 @@
 			reg = <7>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <0>;
 
@@ -234,7 +234,7 @@
 			reg = <32>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -249,7 +249,7 @@
 			reg = <33>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -264,7 +264,7 @@
 			reg = <34>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -279,7 +279,7 @@
 			reg = <35>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -294,7 +294,7 @@
 			reg = <36>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -309,7 +309,7 @@
 			reg = <37>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -324,7 +324,7 @@
 			reg = <38>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -339,7 +339,7 @@
 			reg = <39>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_sscofpmf_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -349,8 +349,8 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
-	};
 #endif
+	};
 
 	memory@200000000 {
 		device_type = "memory";
@@ -422,6 +422,7 @@
 				&cpu6_intc 0xb &cpu6_intc 0x9
 				&cpu7_intc 0xb &cpu7_intc 0x9
 #endif
+#if CONFIG_K1MATRIX_SMP_CPUS >= 32
 				&cpu32_intc 0xb &cpu32_intc 0x9
 				&cpu33_intc 0xb &cpu33_intc 0x9
 				&cpu34_intc 0xb &cpu34_intc 0x9
@@ -430,6 +431,7 @@
 				&cpu37_intc 0xb &cpu37_intc 0x9
 				&cpu38_intc 0xb &cpu38_intc 0x9
 				&cpu39_intc 0xb &cpu39_intc 0x9
+#endif
 			>;
 			interrupt-controller;
 			riscv,ndev = <39>;
@@ -455,6 +457,7 @@
 				&cpu6_intc 0x3 &cpu6_intc 0x7
 				&cpu7_intc 0x3 &cpu7_intc 0x7
 #endif
+#if CONFIG_K1MATRIX_SMP_CPUS >= 32
 				&cpu32_intc 0x3 &cpu32_intc 0x7
 				&cpu33_intc 0x3 &cpu33_intc 0x7
 				&cpu34_intc 0x3 &cpu34_intc 0x7
@@ -463,6 +466,7 @@
 				&cpu37_intc 0x3 &cpu37_intc 0x7
 				&cpu38_intc 0x3 &cpu38_intc 0x7
 				&cpu39_intc 0x3 &cpu39_intc 0x7
+#endif
 			>;
 			reg = <DT_REGHI(__CLINT_BASE) DT_REGLO(__CLINT_BASE)
 			       0x0 0x00010000
@@ -515,13 +519,13 @@
 			#clock-cells = <0>;
 		};
 
-		dmac_cfg_clk: dmac-gpu-cfg-clk {
+		dmac_cfg_clk: dmac-cfg-clk {
 			compatible = "fixed-clock";
 			clock-frequency = <APB_CLK_FREQ>;
 			#clock-cells = <0>;
 		};
 
-		dma:dma@0000100000 {
+		dma: dma@0000100000 {
 			compatible = "snps,axi-dma-1.01a";
 			reg = < 0x0 0x100000 0x0 0x100000 >;
 			interrupt-parent = <&plic>;
