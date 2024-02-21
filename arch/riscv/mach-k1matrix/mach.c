@@ -80,7 +80,7 @@ static void d2d_wait_boot(void)
 		__raw_writel(D2D_DIE1_BOOT, D2D_REG(2));
 	else {
 		while (!(__raw_readl(D2D_REG(2)) & D2D_DIE1_BOOT));
-		delay(1); //FIXME
+		delay(10); //FIXME
 	}
 }
 
