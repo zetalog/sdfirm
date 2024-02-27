@@ -66,11 +66,19 @@
 	CLINT_REG(clint_hw_chip(hart),	\
 		  CLINT_MTIMECMP_BASE + ((clint_hw_ctx(hart)) << 3))
 #else
+#ifdef CONFIG_CLINT_MULTI
 #define CLINT_MSIP(hart)		\
 	CLINT_REG(clint_hw_chip(hart), clint_hw_hart_offset(hart) << 2)
 #define CLINT_MTIMECMP(hart)		\
 	CLINT_REG(clint_hw_chip(hart), CLINT_MTIMECMP_BASE + (clint_hw_hart_offset(hart) << 3))
+#else
+#define CLINT_MSIP(hart)		\
+	CLINT_REG(clint_hw_chip(hart), hart << 2)
+#define CLINT_MTIMECMP(hart)		\
+	CLINT_REG(clint_hw_chip(hart), CLINT_MTIMECMP_BASE + (hart << 3))
 #endif
+#endif
+
 #define CLINT_MTIME			\
 	CLINT_REG(clint_hw_chip(BOOT_HART), CLINT_MTIME_BASE)
 
