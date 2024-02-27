@@ -536,9 +536,9 @@
 			dma-channels = <2>;
 			snps,dma-masters = <1>;
 			snps,data-width = <4>;
-			snps,block-size = <0x1000 0x1000>;
+			snps,block-size = <0x200000 0x200000>;
 			snps,priority = <0 1>;
-			snps,axi-max-burst-len = <16>;
+			snps,axi-max-burst-len = <16 16>;
 			#dma-cells = <1>;
 			status = "okay";
 		};
