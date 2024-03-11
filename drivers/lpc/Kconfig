@@ -1,9 +1,6 @@
-config ARCH_HAS_LPC
-	bool
-
 menu "LPC drivers"
 
 menuconfig SPACEMIT_LPC
 	bool "Enable SpacemiT low pin counter bridge (LPC) support"
-
+	depends LPC
 endmenu

@@ -3,7 +3,7 @@
 #include <target/irq.h>
 
 #ifdef SYS_REALTIME
-#define lpc_poll_init()		(irq_register_poller(lpc_bh))
+#define lpc_poll_init()		spacemit_lpc_poll_init()
 #define lpc_irq_init()		do { } while (0)
 #else /* SYS_REALTIME */
 #define lpc_poll_init()		do { } while (0)
@@ -31,6 +31,12 @@ static void lpc_bh_handler(uint8_t events)
 	}
 }
 
+#ifdef SYS_REALTIME
+static void spacemit_lpc_poll_init(void)
+{
+	irq_register_poller(lpc_bh);
+}
+#else
 static void spacemit_lpc_irq_init(void)
 {
 	lpc_mask_all_irqs();
@@ -40,6 +46,7 @@ static void spacemit_lpc_irq_init(void)
 	irqc_enable_irq(LPC_IRQ);
 	/* TODO enable irqs */
 }
+#endif
 
 void spacemit_lpc_init(void)
 {

@@ -16,7 +16,7 @@
 #define KIRQ					CORELPC_REG(0x08)
 #define KOBR					CORELPC_REG(0x10)
 #define KIBR					CORELPC_REG(0x14)
-#define KADRL					CORELPC_REG(0x18)  \\0ca2
+#define KADRL					CORELPC_REG(0x18)
 #define KADRH					CORELPC_REG(0x1c)
 #define MIRQ					CORELPC_REG(0x34)
 
@@ -61,7 +61,6 @@ extern uint16_t corelpc_kadr;
 #define KCS_REG(offset)				(corelpc_kadr + (offset))
 
 void corelpc_config_kadr(uint16_t kadr);
-
 #define corelpc_read_kibr()			corelpc_read_reg(KIBR)
 #define corelpc_write_kobr(dat)			corelpc_write_reg(dat, KOBR)
 #define corelpc_write_state(state)		__raw_writel_mask(state, KCS_STATE_MASK, STS)
@@ -70,6 +69,6 @@ void corelpc_config_kadr(uint16_t kadr);
 
 void corelpc_init(void);
 
-
+void corelpc_poll_irqs(void);
 
 #endif /* __CORELPC_H_INCLUDE__ */

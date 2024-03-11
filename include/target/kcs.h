@@ -2,6 +2,8 @@
 #define __KCS_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/bh.h>
+#include <target/irq.h>
 
 #define KCS_BASE				0x0ca2
 
@@ -44,7 +46,7 @@
 #define KCS_EVENT_OBF				0x2
 
 #ifdef CONFIG_ARCH_HAS_KCS
-#include <asm/mach/kcs.h>
+#include <driver/kcs.h>
 #endif
 
 #ifdef CONFIG_KCS

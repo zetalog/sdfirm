@@ -387,6 +387,8 @@ config ARCH_K1MATRIX
 	select CLINT
 	select PLIC if !SYS_NOIRQ
 	select K1MATRIX_UART if CONSOLE || DEBUG_PRINT
+	select K1MATRIX_LPC if LPC
+	select K1MATRIX_KCS if KCS
 	help
 	  This enables support for SpacemiT K1Matrix server platforms.
 
