@@ -1,1 +1,2 @@
-obj-$(CONFIG_KCS_MICROSEMI_CORELPC) := kcs.rel
+obj-y:=
+obj-$(CONFIG_KCS_MICROSEMI_CORELPC) += corelpc.rel

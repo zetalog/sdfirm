@@ -21,6 +21,11 @@ void corelpc_config_kadr(uint16_t kadr)
 	corelpc_kadr = kadr;
 }
 
+void corelpc_poll_irqs(void)
+{
+	corelpc_irq_handler();
+}
+
 void corelpc_init(void)
 {
 	//kcs->apb  APB BASE(arch)

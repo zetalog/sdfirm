@@ -14,4 +14,6 @@
 #define kcs_hw_clear_status(status)		do { } while (0)
 #endif
 
+#define KCS_IRQ					IRQ_KCS
+
 #endif /* __KCS_DRIVER_H_INCLUDE__ */

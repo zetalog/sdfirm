@@ -1,1 +1,2 @@
-obj-$(CONFIG_SPACEMIT_LPC) := spacemit_lpc.rel
+obj-y:=
+obj-$(CONFIG_SPACEMIT_LPC) += spacemit_lpc.rel

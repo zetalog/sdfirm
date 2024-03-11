@@ -51,3 +51,4 @@ obj-$(CONFIG_DDR) += ddr/
 obj-$(CONFIG_PERF) += perf.rel
 obj-$(CONFIG_FDT) += fdt/
 obj-$(CONFIG_UEFI) += uefi/
+obj-$(CONFIG_IPMI) += ipmi/
