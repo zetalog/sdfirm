@@ -1,0 +1,17 @@
+config ARCH_HAS_LPC
+	bool
+config ARCH_HAS_KCS
+	bool
+
+menuconfig IPMI
+	bool "Intelligent Platform Management Interface (IPMI) support"
+
+if IPMI
+
+config KCS
+	bool "Keyboard Control Service (KCS) support"
+
+config LPC
+	bool "Low Pin Count (LPC) support"
+
+endif
