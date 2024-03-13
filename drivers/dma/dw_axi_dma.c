@@ -373,7 +373,7 @@ static int do_dmatest(int argc, char *argv[])
 	dw_dma_init();
 }
 
-DEFINE_COMMAND(dmatest, do_dmatest, "K1Matrix SoC global commands",
+DEFINE_COMMAND(dmatest, do_dmatest, "K1MXLite SoC global commands",
 	"dmatest\n"
 	"    -simulation/boot mode information\n"
 );
