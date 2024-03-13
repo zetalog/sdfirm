@@ -115,9 +115,9 @@ ifeq ($(CONFIG_ARCH_K1MAX),y)
  machine-$(CONFIG_ARCH_K1MAX)		:= k1max
  incdir-$(CONFIG_ARCH_K1MAX)		:= k1max
 endif
-ifeq ($(CONFIG_ARCH_K1MATRIX),y)
- machine-$(CONFIG_ARCH_K1MATRIX)	:= k1matrix
- incdir-$(CONFIG_ARCH_K1MATRIX)		:= k1matrix
+ifeq ($(CONFIG_ARCH_K1MXLITE),y)
+ machine-$(CONFIG_ARCH_K1MXLITE)	:= k1mxlite
+ incdir-$(CONFIG_ARCH_K1MXLITE)		:= k1mxlite
 endif
 ifeq ($(CONFIG_ARCH_K1X),y)
  machine-$(CONFIG_ARCH_K1X)		:= k1x
