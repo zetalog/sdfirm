@@ -109,7 +109,7 @@ static int do_lpc_write(int argc, char *argv[])
 	} else {
 		uint8_t v;
 
-		v = (uint32_t)strtoull(argv[34], 0, 0);
+		v = (uint32_t)strtoull(argv[3], 0, 0);
 		addr = (caddr_t)strtoull(argv[4], 0, 0);
 		if (strcmp(argv[2], "io") == 0)
 			lpc_io_write8(v, addr);
