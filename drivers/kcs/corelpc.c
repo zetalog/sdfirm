@@ -26,8 +26,15 @@ void corelpc_poll_irqs(void)
 	corelpc_irq_handler();
 }
 
+void corelpc_kcs_init(void)
+{
+	__raw_writel(KEINTR | GCFG, 1);
+	__raw_writel(KELPC | GCFG, 1);
+}
+
 void corelpc_init(void)
 {
 	//kcs->apb  APB BASE(arch)
 	corelpc_config_kadr(KCS_BASE);
+	corelpc_kcs_init();
 }

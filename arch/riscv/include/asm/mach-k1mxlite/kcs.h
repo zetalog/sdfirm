@@ -12,6 +12,7 @@
 #define kcs_hw_write_obf(obf)			corelpc_write_obf(obf)
 #define kcs_hw_clear_status(status)		corelpc_clear_status(status)
 #define kcs_hw_poll_irqs()			corelpc_poll_irqs()
+#define kcs_hw_irq_init()			corelpc_kcs_init()
 #endif
 
 #ifdef CONFIG_K1MXLITE_KCS
