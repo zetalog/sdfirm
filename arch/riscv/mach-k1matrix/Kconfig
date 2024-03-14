@@ -1,0 +1,287 @@
+if ARCH_K1MATRIX
+
+menu "SpacemiT K1Matrix board options"
+
+choice
+	prompt "Simulation chip"
+
+config K1MATRIX
+	bool "K1MATRIX test chip"
+	help
+	  This configuration contains only CPU subsystem running in RTL
+	  environment.
+endchoice
+
+config K1MATRIX_SMP_CPUS
+	int "Number of cores"
+	depends SMP_BOOT
+	range 1 64
+	default 64
+
+config K1MATRIX_NUMA
+	bool
+
+choice
+	prompt "Program type"
+
+config K1MATRIX_ZSBL
+	bool "ZSBL loader"
+	select K1MATRIX_ROM if K1MATRIX
+	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select XIP
+
+config K1MATRIX_FSBL
+	bool "FSBL loader"
+	select ARCH_HAS_BOOT_LOAD
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select XIP
+	select K1MATRIX_BOOT
+
+config K1MATRIX_BBL
+	bool "SBI loader"
+	select ARCH_HAS_BOOT_LOAD
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SBI
+	select SBI_PAYLOAD
+	select XIP
+	select K1MATRIX_NUMA if K1MATRIX_D2D
+	select CLINT_MULTI if K1MATRIX_D2D
+
+config K1MATRIX_TB
+	bool "Test bench"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+	select XIP
+
+endchoice
+
+config K1MATRIX_ROM
+	bool "Enable head 64KB SRAM as ROM support"
+
+choice
+	prompt "BOOT mode"
+
+config K1MATRIX_BOOT_LLP
+	bool "SRAM0 (LLP)"
+
+config K1MATRIX_BOOT_SYS
+	bool "SRAM1 (SYS)"
+	depends K1MATRIX
+
+endchoice
+
+choice
+	prompt "Platform type"
+	default K1MATRIX_ASIC
+
+config K1MATRIX_ASIC
+	bool "ASIC"
+	select K1MATRIX_CPRINT if FINISH
+
+config K1MATRIX_FPGA
+	bool "FPGA"
+
+endchoice
+
+config K1MATRIX_FPGA_TDM
+	bool "FPGA time-division multiplexing (TDM) partition support"
+	depends K1MATRIX_FPGA
+	default y
+
+if K1MATRIX_TB
+
+choice
+	prompt "Testbench residency"
+	default K1MATRIX_TB_DDR
+
+config K1MATRIX_TB_ROM
+	bool "ROM"
+	select LOAD_DATA
+
+config K1MATRIX_TB_SRAM
+	bool "SRAM"
+	select ARCH_HAS_BOOT_LOAD
+
+config K1MATRIX_TB_DDR
+	bool "DDR"
+	select ARCH_HAS_BOOT_LOAD
+	select K1MATRIX_NUMA if K1MATRIX_D2D
+
+endchoice
+
+endif
+
+menuconfig K1MATRIX_PARTIAL_GOOD
+	bool "Partial goods"
+
+if K1MATRIX_PARTIAL_GOOD
+
+config K1MATRIX_BOOT_HART_ID
+	int "Boot hart ID"
+	range 0 63
+	default 0
+
+config K1MATRIX_PARTIAL_GOOD_MASK
+	hex "Good hart mask"
+	default 0x0000000000030003
+
+endif
+
+config K1MATRIX_D2D
+	bool "Enable die2die link support"
+
+config K1MATRIX_DDR_SIZE_CUSTOM
+	bool "Enable customized DRAM size"
+
+config K1MATRIX_DDR_SIZE
+	hex "Memory size"
+	default 0x2000000
+	depends K1MATRIX_DDR_SIZE_CUSTOM
+
+config K1MATRIX_BOOT
+	bool
+	select K1MATRIX_N100
+	select K1MATRIX_PCIE if K1MATRIX_D2D
+
+if K1MATRIX_BOOT
+
+menu "Bootloader options"
+
+choice
+	prompt "Boot mode"
+
+config K1MATRIX_BOOT_DDR
+	bool "DDR"
+	help
+	  Boot to the DDR base address, useful for FSBL. Note, depending
+	  on the configurations, program may be loaded via back doors, and
+	  FSBL may just directly jump to the DDR base address.
+
+endchoice
+
+endmenu
+
+endif
+
+config K1MATRIX_CPRINT
+	bool "K1Matrix C_Print simulation support"
+	depends !K1MATRIX_FPGA
+
+menuconfig K1MATRIX_N100
+	bool "K1Matrix N100 on-chip networking support"
+	depends ARCH_HAS_NOC
+
+if K1MATRIX_N100
+
+endif
+
+config K1MATRIX_PCIE
+	bool "K1Matrix PCIe subsystem support"
+
+menuconfig K1MATRIX_UART
+	bool "K1Mmatrix UART controller support"
+	select DW_UART
+	select DW_UART_DLF
+	select ARCH_HAS_DW_AMBA_ADVANCED
+	select ARCH_HAS_NS16550_FIFO_64
+	select ARCH_HAS_DW_UART_FIFO_MEM_USER
+	select ARCH_HAS_DW_UART_AFCE_MODE
+	select ARCH_HAS_DW_UART_FIFO_ACCESS
+	select ARCH_HAS_DW_UART_FIFO_STAT
+	select ARCH_HAS_DW_UART_SHADOW
+	select ARCH_HAS_DW_UART_ADD_ENCODED_PARAMS
+
+if K1MATRIX_UART
+
+choice
+	prompt "Console port"
+	default K1MATRIX_UART_CON0
+
+config K1MATRIX_UART_CON0
+	bool "UART0"
+
+config K1MATRIX_UART_CON1
+	bool "UART1"
+
+endchoice
+
+config K1MATRIX_UART_ACCEL
+	bool "Enable K1Mmatrix UART acceleration support"
+	depends SIMULATION
+	help
+	  When this is selected, the UART baudrate generator frequency will
+	  be Fsrc/16, making things happening quicker.
+	  In case your are using a UART master DPI VIP, selecting this is
+	  safe as the VIP cares no about the baudrate.
+	  This option is also useful for simulation acceleration.
+	  If unsure, say 'N'.
+
+endif
+
+menuconfig K1MATRIX_DMAR
+	bool "Enable K1Matrix DMA remapping support"
+	depends ARCH_HAS_IOMMU
+
+if K1MATRIX_DMAR
+
+config K1MATRIX_SMMU
+	bool
+
+choice
+	prompt "IOMMU specification"
+
+config K1MATRIX_IOMMU
+	bool "RISC-V IOMMU"
+	select RISCV_ZIOMMU
+	select IOMMU_PGTABLE_RISCV
+
+config K1MATRIX_SMMUv2
+	bool "ARM SMMUv2"
+	select SMMU_MMU500
+	select IOMMU_PGTABLE_ARMv8
+	select K1MATRIX_SMMU
+
+config K1MATRIX_SMMUv3
+	bool "ARM SMMUv3"
+	select SMMU_MMU600
+	select IOMMU_PGTABLE_ARMv8
+	select K1MATRIX_SMMU
+
+endchoice
+
+endif
+
+menuconfig K1MATRIX_DMAC
+	bool "Enable K1Matrix DMA channel support"
+	depends ARCH_HAS_DMAC
+
+if K1MATRIX_DMAC
+
+endif
+
+menuconfig K1MATRIX_BMU
+	bool "Enable K1Matrix bus monitor unit (BMU) support"
+	depends ARCH_HAS_PMU
+	select BIT_HWEIGHT32
+
+menuconfig K1MATRIX_MBOX
+	bool "Enable K1Matrix mailbox support"
+
+menuconfig K1MATRIX_LPC
+	bool "Enable K1Matrix low pin count bridge (LPC) support"
+	depends ARCH_HAS_LPC
+	select SPACEMIT_LPC
+
+menuconfig K1MATRIX_KCS
+	bool "Enable K1Matrix Keyboard Controller Style (KCS) support"
+	depends ARCH_HAS_KCS
+	select KCS_MICROSEMI_CORELPC
+
+endmenu
+
+endif

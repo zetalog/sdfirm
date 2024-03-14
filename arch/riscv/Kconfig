@@ -392,6 +392,39 @@ config ARCH_K1MXLITE
 	help
 	  This enables support for SpacemiT K1MXLite server platforms.
 
+config ARCH_K1MATRIX
+	bool "SpacemiT K1Matrix Family"
+	select CPU_SPACEMIT
+	select ARCH_IS_MMIO_32BIT
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
+	select ARCH_HAS_IRQC
+	select ARCH_HAS_CLINT
+	select ARCH_HAS_PLIC
+	select ARCH_HAS_FDT
+	select ARCH_HAS_UART
+	select ARCH_HAS_NOC
+	select ARCH_HAS_PCI
+	select ARCH_HAS_CLK
+	select ARCH_HAS_LPC
+	select ARCH_HAS_KCS
+	select ARCH_HAS_CLK_GENERIC
+	select ARCH_HAS_BOOT0
+	select ARCH_HAS_BOOT1
+	select ARCH_HAS_BOOT2
+	select ARCH_HAS_PMU if K1MATRIX
+	select ARCH_HAS_CLINT_MULTI if K1MATRIX_D2D && (K1MATRIX_BBL || K1MATRIX_TB)
+	select CLINT
+	select PLIC if !SYS_NOIRQ
+	select K1MATRIX_UART if CONSOLE || DEBUG_PRINT
+	select K1MATRIX_LPC if LPC
+	select K1MATRIX_KCS if KCS
+	help
+	  This enables support for SpacemiT K1Matrix server platforms.
+
 config ARCH_COREV
 	bool "OpenHW Group Core-V Family"
 	select RISCV_VIRQ
@@ -465,6 +498,7 @@ source "arch/riscv/mach-vega/Kconfig"
 source "arch/riscv/mach-k1max/Kconfig"
 source "arch/riscv/mach-k1x/Kconfig"
 source "arch/riscv/mach-k1mxlite/Kconfig"
+source "arch/riscv/mach-k1matrix/Kconfig"
 source "arch/riscv/mach-corev/Kconfig"
 source "arch/riscv/mach-spike/Kconfig"
 source "arch/riscv/mach-virt/Kconfig"
