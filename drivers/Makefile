@@ -22,6 +22,7 @@ obj-$(CONFIG_PCI) += pci/
 obj-$(CONFIG_RIO) += rio/
 obj-$(CONFIG_IOMMU) += iommu/
 obj-y += espi/
+obj-y += stm/
 obj-$(CONFIG_DDR) += ddr/
 obj-y += spd/
 obj-y += noc/

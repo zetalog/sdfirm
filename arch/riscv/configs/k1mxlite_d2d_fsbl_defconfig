@@ -429,6 +429,11 @@ CONFIG_DW_UART_DLF_SIZE=4
 # CONFIG_SPACEMIT_ESPI is not set
 
 #
+# STM drivers
+#
+CONFIG_SPACEMIT_STM=y
+
+#
 # LCD drivers
 #
 

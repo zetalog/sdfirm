@@ -61,6 +61,7 @@ extern unsigned long k1mxlite_die_base;
 #define __UART0_BASE		ULL(0x0000008000)
 #define __PIC_BASE		ULL(0x0010000000)
 #define __CLINT_BASE		(__PIC_BASE + ULL(0x4000000))
+#define __STM_BASE		ULL(0x0006114000)
 
 /* SYS_IO global SUB */
 #define SYS_IO_GLOBAL_BASE	(DIE_BASE + __SYS_IO_GLOBAL_BASE)
