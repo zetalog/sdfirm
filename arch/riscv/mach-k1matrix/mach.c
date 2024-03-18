@@ -74,29 +74,10 @@ void k1matrix_die_init(void)
 
 #ifdef CONFIG_K1MATRIX_BOOT_DDR
 
-static void __delay__(int n)
-{
-	volatile int i;
-
-	for (i = 0; i < n; i++) {
-	}
-}
-
-static void d2d_wait_boot(void)
-{
-	if (sysreg_die_id() == 0)
-		__raw_writel(D2D_DIE1_BOOT, D2D_REG(2));
-	else {
-		while (!(__raw_readl(D2D_REG(2)) & D2D_DIE1_BOOT));
-		__delay__(3000000); //FIXME
-	}
-}
-
 void board_boot_ddr(void)
 {
 	void (*boot_entry)(void);
 
-	d2d_wait_boot();
 	boot_entry = (void *)__DDR_BASE;
 	printf("B(D)\n");
 	smp_boot_secondary_cpus((caddr_t)boot_entry);

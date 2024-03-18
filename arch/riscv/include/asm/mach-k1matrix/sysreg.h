@@ -44,7 +44,7 @@
 
 #include <asm/mach/reg.h>
 
-#define SYSREG_REG(offset)	(SYSCTL_BASE + (offset))
+#define SYSREG_REG(offset)	(SYS_REG_BASE + (offset))
 
 #define CPU_SW_RESET		SYSREG_REG(0x000)
 #define CORE_SW_RESET		SYSREG_REG(0x004)
