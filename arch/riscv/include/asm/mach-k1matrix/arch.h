@@ -75,22 +75,24 @@
 	.endm
 #else
 	.macro get_arch_hartboot reg
-	li	\reg, BOOT_HART
-	li	t0, PAD_IN_STATUS
-	lw	t0, 0(t0)
-	andi	t0, t0, __PAD_DIE_ID
-	beqz	t0, 4444f
-	addi	\reg, \reg, DIE1_HART
-4444:
+	li	\reg, 0x0  //FIXME
+//	li	\reg, BOOT_HART  //FIXME
+//	li	t0, PAD_IN_STATUS
+//	lw	t0, 0(t0)
+//	andi	t0, t0, __PAD_DIE_ID
+//	beqz	t0, 4444f
+//	addi	\reg, \reg, DIE1_HART
+//4444:
 	.endm
 	.macro get_arch_hartmask reg
-	li	\reg, BOOT_MASK
-	li	t0, PAD_IN_STATUS
-	lw	t0, 0(t0)
-	andi	t0, t0, __PAD_DIE_ID
-	beqz	t0, 5555f
-	slli	\reg, \reg, DIE1_HART
-5555:
+	li	\reg, 0x1  //FIXME
+//	li	\reg, BOOT_MASK
+//	li	t0, PAD_IN_STATUS
+//	lw	t0, 0(t0)
+//	andi	t0, t0, __PAD_DIE_ID
+//	beqz	t0, 5555f
+//	slli	\reg, \reg, DIE1_HART
+//5555:
 	.endm
 #endif
 #define ARCH_HAVE_BOOT_SMP	1
