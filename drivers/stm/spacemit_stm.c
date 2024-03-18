@@ -56,22 +56,14 @@ static void stm_write64(uint64_t reg, uint64_t val)
 	__raw_writel((uint32_t)(val >> 32), reg + 4);
 }
 
-//static uint32_t stm_read32(uint64_t reg)
-//{
-//	return __raw_readl(reg);
-//}
+static uint32_t stm_read32(uint64_t reg)
+{
+	return __raw_readl(reg);
+}
 
 static void stm_write32(uint64_t reg, uint32_t val)
 {
 	__raw_writel(val, reg);
-}
-
-static void __delay__(int n)
-{
-	volatile int i;
-
-	for (i = 0; i < n; i++) {
-	}
 }
 
 void stm_sync_2dies(void)
@@ -83,10 +75,9 @@ void stm_sync_2dies(void)
 
 	stm_write32(STM_SS_CTRL, STM_SS_CTRL_BIT1_EN);
 
-//	while (!stm_read32(STM_INT_FLAG) & STM_INT_FLAG_BIT0_EN);
-//	while (!stm_read32(STM_INT_FLAG + DIE1_BASE) & STM_INT_FLAG_BIT0_EN);
+	while (!stm_read32(STM_INT_FLAG + DIE1_BASE) & STM_INT_FLAG_BIT0_EN);
 
-	__delay__(10);
+	stm_write32(STM_INT_FLAG + DIE1_BASE, STM_INT_FLAG_BIT0_EN); //clear int flag
 
 	die0_tsp_ss = stm_read64(STM_TSP_SS_L);
 	die1_tsp_ss = stm_read64(STM_TSP_SS_L + DIE1_BASE);
@@ -104,10 +95,9 @@ void stm_hw_ctrl_init(void)
 {
 	if (sysreg_die_id() == 0) {
 		stm_write32(STM_SS_CFG, STM_SS_CFG_BIT1_EN | STM_SS_CFG_BIT2_EN);
-//		stm_write32(STM_INT_EN, STM_INT_EN_BIT0_EN);
 	} else if (sysreg_die_id() == 1) {
 		stm_write32(STM_SS_CFG + DIE1_BASE, STM_SS_CFG_BIT2_EN);
-//		stm_write32(STM_INT_EN + DIE1_BASE, STM_INT_EN_BIT0_EN);
+		stm_write32(STM_INT_EN + DIE1_BASE, STM_INT_EN_BIT0_EN);
 	}
 }
 
