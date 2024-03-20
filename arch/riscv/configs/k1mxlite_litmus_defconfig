@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Oct 19 15:25:12 2023
+# Wed Mar 20 15:42:39 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -63,15 +63,15 @@ CONFIG_CONSOLE_VERBOSE=y
 #
 # CONFIG_ARCH_DUOWEN is not set
 # CONFIG_ARCH_DPU is not set
-# CONFIG_ARCH_GUANGMU is not set
 # CONFIG_ARCH_VAISRA is not set
 # CONFIG_ARCH_VIRAPA is not set
-# CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_K1MAX is not set
+# CONFIG_ARCH_K1X is not set
 CONFIG_ARCH_K1MXLITE=y
+# CONFIG_ARCH_K1MATRIX is not set
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
 # CONFIG_ARCH_VIRT is not set
@@ -187,6 +187,7 @@ CONFIG_ARCH_HAS_SBI_TIMER=y
 # SpacemiT K1MXLite board options
 #
 CONFIG_K1MXLITE=y
+# CONFIG_K1MXLITEIOMMU is not set
 CONFIG_K1MXLITE_SMP_CPUS=32
 # CONFIG_K1MXLITE_ZSBL is not set
 # CONFIG_K1MXLITE_FSBL is not set
@@ -197,6 +198,7 @@ CONFIG_K1MXLITE_BOOT_LLP=y
 # CONFIG_K1MXLITE_BOOT_SYS is not set
 CONFIG_K1MXLITE_ASIC=y
 # CONFIG_K1MXLITE_FPGA is not set
+# CONFIG_K1MXLITE_TB_ROM is not set
 # CONFIG_K1MXLITE_TB_SRAM is not set
 CONFIG_K1MXLITE_TB_DDR=y
 CONFIG_K1MXLITE_PARTIAL_GOOD=y
@@ -206,10 +208,15 @@ CONFIG_K1MXLITE_PARTIAL_GOOD_MASK=0x0000000000000033
 # CONFIG_K1MXLITE_DDR_SIZE_CUSTOM is not set
 CONFIG_K1MXLITE_CPRINT=y
 # CONFIG_K1MXLITE_N100 is not set
+# CONFIG_K1MXLITE_PCIE is not set
 CONFIG_K1MXLITE_UART=y
 CONFIG_K1MXLITE_UART_CON0=y
 # CONFIG_K1MXLITE_UART_CON1 is not set
 # CONFIG_K1MXLITE_UART_ACCEL is not set
+# CONFIG_K1MXLITE_BMU is not set
+# CONFIG_K1MXLITE_MBOX is not set
+# CONFIG_K1MXLITE_LPC is not set
+# CONFIG_K1MXLITE_KCS is not set
 
 #
 # Feature setup
@@ -332,11 +339,17 @@ CONFIG_UART_115200=y
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
 # CONFIG_DDR is not set
+CONFIG_ARCH_HAS_PCI=y
+# CONFIG_PCI is not set
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
 # CONFIG_UEFI is not set
+CONFIG_ARCH_HAS_LPC=y
+CONFIG_ARCH_HAS_KCS=y
+# CONFIG_IPMI is not set
 # CONFIG_RAS is not set
+CONFIG_ARCH_HAS_PMU=y
 # CONFIG_PERF is not set
 
 #
@@ -416,11 +429,26 @@ CONFIG_DW_UART_DLF_SIZE=4
 #
 # IO MMU drivers
 #
-# CONFIG_SMMU is not set
+# CONFIG_SMMU_ARCH64 is not set
+# CONFIG_SMMU_ARCH32_S is not set
+# CONFIG_SMMU_ARCH32_L is not set
+# CONFIG_SMMU_SV39 is not set
+# CONFIG_SMMU_SV48 is not set
 # CONFIG_SMMU_MMU500 is not set
 # CONFIG_SMARCO_RVSMMU is not set
+# CONFIG_SMMU_MMU600 is not set
 # CONFIG_IOMMU_PGTABLE_ARMv8 is not set
 # CONFIG_IOMMU_PGTABLE_RISCV is not set
+
+#
+# eSPI Master drivers
+#
+# CONFIG_SPACEMIT_ESPI is not set
+
+#
+# STM drivers
+#
+# CONFIG_SPACEMIT_STM is not set
 
 #
 # LCD drivers
@@ -456,6 +484,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # PCI drivers
 #
+# CONFIG_DW_PCIE is not set
 
 #
 # RIO controller drivers
@@ -481,6 +510,14 @@ CONFIG_ARCH_HAS_NOC=y
 # Physical medium drivers
 #
 # CONFIG_DW_E16MP_TSMC12FFC is not set
+
+#
+# LPC drivers
+#
+
+#
+# KCS drivers
+#
 
 #
 # Test setup
@@ -530,6 +567,7 @@ CONFIG_BIT_FLS64=y
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FFS32 is not set
 CONFIG_BIT_FFS64=y
+# CONFIG_BIT_HWEIGHT32 is not set
 CONFIG_BIT_HWEIGHT64=y
 
 #

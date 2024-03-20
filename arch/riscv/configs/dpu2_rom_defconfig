@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Jul 30 15:43:35 2023
+# Wed Mar 20 15:39:48 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -62,14 +62,15 @@ CONFIG_CONSOLE_VERBOSE=y
 #
 # CONFIG_ARCH_DUOWEN is not set
 CONFIG_ARCH_DPU=y
-# CONFIG_ARCH_GUANGMU is not set
 # CONFIG_ARCH_VAISRA is not set
 # CONFIG_ARCH_VIRAPA is not set
-# CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_K1MAX is not set
+# CONFIG_ARCH_K1X is not set
+# CONFIG_ARCH_K1MXLITE is not set
+# CONFIG_ARCH_K1MATRIX is not set
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
 # CONFIG_ARCH_VIRT is not set
@@ -92,6 +93,7 @@ CONFIG_CPU_D=y
 CONFIG_CPU_C=y
 CONFIG_CPU_ZIFENCEI=y
 CONFIG_CPU_ZICSR=y
+CONFIG_CPU_PMP=y
 CONFIG_CPU_SV39=y
 CONFIG_RISCV_S=y
 CONFIG_RISCV_M=y
@@ -99,6 +101,8 @@ CONFIG_RISCV_A=y
 # CONFIG_RISCV_F is not set
 # CONFIG_RISCV_D is not set
 CONFIG_RISCV_C=y
+CONFIG_RISCV_PMP=y
+# CONFIG_RISCV_ZIFENCEI is not set
 
 #
 # CPU architecture options
@@ -136,6 +140,7 @@ CONFIG_SYS_LOADER=y
 #
 # System peripherals
 #
+# CONFIG_IMSIC is not set
 CONFIG_ARCH_HAS_PLIC=y
 CONFIG_ARCH_HAS_PLIC_EOI_EARLY=y
 # CONFIG_PLIC is not set
@@ -354,6 +359,7 @@ CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
 CONFIG_UEFI=y
 CONFIG_UEFI_GPT=y
+# CONFIG_IPMI is not set
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
 
@@ -446,11 +452,26 @@ CONFIG_DW_SSI_SPI_MODE_STD=y
 #
 # IO MMU drivers
 #
-# CONFIG_SMMU is not set
+# CONFIG_SMMU_ARCH64 is not set
+# CONFIG_SMMU_ARCH32_S is not set
+# CONFIG_SMMU_ARCH32_L is not set
+# CONFIG_SMMU_SV39 is not set
+# CONFIG_SMMU_SV48 is not set
 # CONFIG_SMMU_MMU500 is not set
 # CONFIG_SMARCO_RVSMMU is not set
+# CONFIG_SMMU_MMU600 is not set
 # CONFIG_IOMMU_PGTABLE_ARMv8 is not set
 # CONFIG_IOMMU_PGTABLE_RISCV is not set
+
+#
+# eSPI Master drivers
+#
+# CONFIG_SPACEMIT_ESPI is not set
+
+#
+# STM drivers
+#
+# CONFIG_SPACEMIT_STM is not set
 
 #
 # LCD drivers
@@ -513,6 +534,14 @@ CONFIG_SPD_BUS_KHZ=60
 # CONFIG_DW_E16MP_TSMC12FFC is not set
 
 #
+# LPC drivers
+#
+
+#
+# KCS drivers
+#
+
+#
 # Test setup
 #
 # CONFIG_TEST_VERBOSE is not set
@@ -539,6 +568,7 @@ CONFIG_BIT_FLS64=y
 # CONFIG_BIT_FFS16 is not set
 CONFIG_BIT_FFS32=y
 CONFIG_BIT_FFS64=y
+# CONFIG_BIT_HWEIGHT32 is not set
 # CONFIG_BIT_HWEIGHT64 is not set
 
 #
