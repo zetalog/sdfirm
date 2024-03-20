@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Feb 21 16:22:00 2024
+# Wed Mar 20 15:33:46 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -64,16 +64,15 @@ CONFIG_CONSOLE_BANNER=y
 #
 # CONFIG_ARCH_DUOWEN is not set
 # CONFIG_ARCH_DPU is not set
-# CONFIG_ARCH_GUANGMU is not set
 # CONFIG_ARCH_VAISRA is not set
 # CONFIG_ARCH_VIRAPA is not set
-# CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_K1MAX is not set
 # CONFIG_ARCH_K1X is not set
 CONFIG_ARCH_K1MXLITE=y
+# CONFIG_ARCH_K1MATRIX is not set
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
 # CONFIG_ARCH_VIRT is not set
@@ -203,6 +202,7 @@ CONFIG_SBI_ECALL_LEGACY=y
 # CONFIG_SBI_ECALL_IPI is not set
 # CONFIG_SBI_ECALL_RFENCE is not set
 # CONFIG_SBI_ECALL_HSM is not set
+# CONFIG_SBI_ECALL_PMU is not set
 CONFIG_SBI_RISCV_F=y
 CONFIG_SBI_RISCV_D=y
 CONFIG_SBI_RISCV_C=y
@@ -220,6 +220,7 @@ CONFIG_SBI_PAYLOAD=y
 CONFIG_SBI_PAYLOAD_PATH="Image"
 # CONFIG_SBI_PAYLOAD_ALIGN_RELAXED is not set
 # CONFIG_SBI_PAYLOAD_DUMP is not set
+# CONFIG_SBI_PMU is not set
 CONFIG_SBI_FDT=y
 CONFIG_SBI_FDT_BUILTIN=y
 # CONFIG_SBI_LDST_MISALIGNED_DELEG is not set
@@ -229,12 +230,13 @@ CONFIG_SBI_FDT_BUILTIN=y
 # RISCV specific device tree options
 #
 # CONFIG_FDT_FIXUP_RESIZE is not set
+# CONFIG_FDT_PMU is not set
 
 #
 # SpacemiT K1MXLite board options
 #
 CONFIG_K1MXLITE=y
-# CONFIG_K1MXLITE is not set
+# CONFIG_K1MXLITEIOMMU is not set
 CONFIG_K1MXLITE_SMP_CPUS=64
 CONFIG_K1MXLITE_NUMA=y
 # CONFIG_K1MXLITE_ZSBL is not set
@@ -258,8 +260,10 @@ CONFIG_K1MXLITE_UART=y
 CONFIG_K1MXLITE_UART_CON0=y
 # CONFIG_K1MXLITE_UART_CON1 is not set
 # CONFIG_K1MXLITE_UART_ACCEL is not set
+# CONFIG_K1MXLITE_BMU is not set
 # CONFIG_K1MXLITE_MBOX is not set
 # CONFIG_K1MXLITE_LPC is not set
+# CONFIG_K1MXLITE_KCS is not set
 
 #
 # Feature setup
@@ -380,7 +384,11 @@ CONFIG_ARCH_HAS_PCI=y
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
 # CONFIG_UEFI is not set
+CONFIG_ARCH_HAS_LPC=y
+CONFIG_ARCH_HAS_KCS=y
+# CONFIG_IPMI is not set
 # CONFIG_RAS is not set
+CONFIG_ARCH_HAS_PMU=y
 # CONFIG_PERF is not set
 
 #
@@ -477,6 +485,11 @@ CONFIG_DW_UART_DLF_SIZE=4
 # CONFIG_SPACEMIT_ESPI is not set
 
 #
+# STM drivers
+#
+# CONFIG_SPACEMIT_STM is not set
+
+#
 # LCD drivers
 #
 
@@ -536,12 +549,14 @@ CONFIG_ARCH_HAS_NOC=y
 # Physical medium drivers
 #
 # CONFIG_DW_E16MP_TSMC12FFC is not set
-CONFIG_ARCH_HAS_LPC=y
 
 #
 # LPC drivers
 #
-# CONFIG_SPACEMIT_LPC is not set
+
+#
+# KCS drivers
+#
 
 #
 # Test setup

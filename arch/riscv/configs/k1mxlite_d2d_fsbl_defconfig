@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Feb 19 17:12:18 2024
+# Wed Mar 20 15:42:29 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -63,16 +63,15 @@ CONFIG_CONSOLE_BANNER=y
 #
 # CONFIG_ARCH_DUOWEN is not set
 # CONFIG_ARCH_DPU is not set
-# CONFIG_ARCH_GUANGMU is not set
 # CONFIG_ARCH_VAISRA is not set
 # CONFIG_ARCH_VIRAPA is not set
-# CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_K1MAX is not set
 # CONFIG_ARCH_K1X is not set
 CONFIG_ARCH_K1MXLITE=y
+# CONFIG_ARCH_K1MATRIX is not set
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
 # CONFIG_ARCH_VIRT is not set
@@ -183,7 +182,7 @@ CONFIG_ARCH_HAS_SBI_TIMER=y
 # SpacemiT K1MXLite board options
 #
 CONFIG_K1MXLITE=y
-# CONFIG_K1MXLITE is not set
+# CONFIG_K1MXLITEIOMMU is not set
 CONFIG_K1MXLITE_SMP_CPUS=64
 # CONFIG_K1MXLITE_ZSBL is not set
 CONFIG_K1MXLITE_FSBL=y
@@ -213,6 +212,7 @@ CONFIG_K1MXLITE_UART=y
 CONFIG_K1MXLITE_UART_CON0=y
 # CONFIG_K1MXLITE_UART_CON1 is not set
 # CONFIG_K1MXLITE_UART_ACCEL is not set
+# CONFIG_K1MXLITE_BMU is not set
 # CONFIG_K1MXLITE_MBOX is not set
 # CONFIG_K1MXLITE_LPC is not set
 # CONFIG_K1MXLITE_KCS is not set
@@ -332,7 +332,11 @@ CONFIG_ARCH_HAS_PCI=y
 CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
 # CONFIG_UEFI is not set
+CONFIG_ARCH_HAS_LPC=y
+CONFIG_ARCH_HAS_KCS=y
+# CONFIG_IPMI is not set
 # CONFIG_RAS is not set
+CONFIG_ARCH_HAS_PMU=y
 # CONFIG_PERF is not set
 
 #
@@ -493,18 +497,14 @@ CONFIG_ARCH_HAS_NOC=y
 # Physical medium drivers
 #
 # CONFIG_DW_E16MP_TSMC12FFC is not set
-CONFIG_ARCH_HAS_LPC=y
 
 #
 # LPC drivers
 #
-# CONFIG_SPACEMIT_LPC is not set
-CONFIG_ARCH_HAS_KCS=y
 
 #
 # KCS drivers
 #
-# CONFIG_KCS_MICROSEMI_CORELPC is not set
 
 #
 # Test setup

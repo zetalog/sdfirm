@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sun Jul 30 15:39:47 2023
+# Wed Mar 20 15:34:32 2024
 #
 CONFIG_ARM64=y
 
@@ -302,6 +302,7 @@ CONFIG_UART_230400=y
 # CONFIG_IOMMU is not set
 # CONFIG_FDT is not set
 # CONFIG_UEFI is not set
+# CONFIG_IPMI is not set
 # CONFIG_RAS is not set
 CONFIG_ARCH_HAS_PMU=y
 # CONFIG_PERF is not set
@@ -359,11 +360,26 @@ CONFIG_UART_PL011=y
 #
 # IO MMU drivers
 #
-# CONFIG_SMMU is not set
+# CONFIG_SMMU_ARCH64 is not set
+# CONFIG_SMMU_ARCH32_S is not set
+# CONFIG_SMMU_ARCH32_L is not set
+# CONFIG_SMMU_SV39 is not set
+# CONFIG_SMMU_SV48 is not set
 # CONFIG_SMMU_MMU500 is not set
 # CONFIG_SMARCO_RVSMMU is not set
+# CONFIG_SMMU_MMU600 is not set
 # CONFIG_IOMMU_PGTABLE_ARMv8 is not set
 # CONFIG_IOMMU_PGTABLE_RISCV is not set
+
+#
+# eSPI Master drivers
+#
+# CONFIG_SPACEMIT_ESPI is not set
+
+#
+# STM drivers
+#
+# CONFIG_SPACEMIT_STM is not set
 
 #
 # LCD drivers
@@ -423,6 +439,14 @@ CONFIG_SPD_BUS_KHZ=60
 # Physical medium drivers
 #
 # CONFIG_DW_E16MP_TSMC12FFC is not set
+
+#
+# LPC drivers
+#
+
+#
+# KCS drivers
+#
 CONFIG_TEST_VERBOSE=y
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
@@ -469,6 +493,7 @@ CONFIG_BIT_FLS32=y
 # CONFIG_BIT_FFS16 is not set
 CONFIG_BIT_FFS32=y
 # CONFIG_BIT_FFS64 is not set
+# CONFIG_BIT_HWEIGHT32 is not set
 CONFIG_BIT_HWEIGHT64=y
 
 #

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Aug  2 11:07:00 2023
+# Wed Mar 20 15:31:31 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -62,14 +62,15 @@ CONFIG_CONSOLE_VERBOSE=y
 #
 CONFIG_ARCH_DUOWEN=y
 # CONFIG_ARCH_DPU is not set
-# CONFIG_ARCH_GUANGMU is not set
 # CONFIG_ARCH_VAISRA is not set
 # CONFIG_ARCH_VIRAPA is not set
-# CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_K1MAX is not set
+# CONFIG_ARCH_K1X is not set
+# CONFIG_ARCH_K1MXLITE is not set
+# CONFIG_ARCH_K1MATRIX is not set
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
 # CONFIG_ARCH_VIRT is not set
@@ -105,6 +106,7 @@ CONFIG_RISCV_D=y
 CONFIG_RISCV_C=y
 CONFIG_RISCV_COUNTERS=y
 CONFIG_RISCV_PMP=y
+# CONFIG_RISCV_ZIFENCEI is not set
 
 #
 # CPU architecture options
@@ -145,6 +147,7 @@ CONFIG_ARCH_HAS_BOOT2=y
 #
 # System peripherals
 #
+# CONFIG_IMSIC is not set
 CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
 # CONFIG_CLINT_XCHG_LLSC is not set
@@ -185,14 +188,17 @@ CONFIG_SBI_PAYLOAD=y
 CONFIG_SBI_PAYLOAD_PATH="Image"
 # CONFIG_SBI_PAYLOAD_ALIGN_RELAXED is not set
 # CONFIG_SBI_PAYLOAD_DUMP is not set
+# CONFIG_SBI_PMU is not set
 CONFIG_SBI_FDT=y
 CONFIG_SBI_FDT_BUILTIN=y
+# CONFIG_SBI_LDST_MISALIGNED_DELEG is not set
 # CONFIG_SBI_CSR_MIMPID is not set
 
 #
 # RISCV specific device tree options
 #
 # CONFIG_FDT_FIXUP_RESIZE is not set
+# CONFIG_FDT_PMU is not set
 
 #
 # Smart Core Duowen board options
@@ -438,6 +444,7 @@ CONFIG_ARCH_HAS_IOMMU=y
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
 # CONFIG_UEFI is not set
+# CONFIG_IPMI is not set
 CONFIG_ARCH_HAS_ETH=y
 CONFIG_ARCH_HAS_RAS=y
 CONFIG_RAS=y
@@ -536,11 +543,26 @@ CONFIG_ARCH_HAS_SSI_SPI_1WIRE=y
 #
 # IO MMU drivers
 #
-# CONFIG_SMMU is not set
+# CONFIG_SMMU_ARCH64 is not set
+# CONFIG_SMMU_ARCH32_S is not set
+# CONFIG_SMMU_ARCH32_L is not set
+# CONFIG_SMMU_SV39 is not set
+# CONFIG_SMMU_SV48 is not set
 # CONFIG_SMMU_MMU500 is not set
 # CONFIG_SMARCO_RVSMMU is not set
+# CONFIG_SMMU_MMU600 is not set
 # CONFIG_IOMMU_PGTABLE_ARMv8 is not set
 # CONFIG_IOMMU_PGTABLE_RISCV is not set
+
+#
+# eSPI Master drivers
+#
+# CONFIG_SPACEMIT_ESPI is not set
+
+#
+# STM drivers
+#
+# CONFIG_SPACEMIT_STM is not set
 
 #
 # LCD drivers
@@ -604,6 +626,14 @@ CONFIG_NCORE=y
 # CONFIG_DW_E16MP_TSMC12FFC is not set
 
 #
+# LPC drivers
+#
+
+#
+# KCS drivers
+#
+
+#
 # Test setup
 #
 # CONFIG_TEST_VERBOSE is not set
@@ -630,6 +660,7 @@ CONFIG_BIT_FLS64=y
 CONFIG_BIT_FFS16=y
 CONFIG_BIT_FFS32=y
 CONFIG_BIT_FFS64=y
+# CONFIG_BIT_HWEIGHT32 is not set
 # CONFIG_BIT_HWEIGHT64 is not set
 
 #
