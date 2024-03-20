@@ -115,6 +115,7 @@ config CPU_ARIANE
 	select CPU_C
 	select CPU_S
 	select CPU_SV39
+	select CPU_PMP
 
 config CPU_CVA6
 	bool

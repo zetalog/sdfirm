@@ -80,10 +80,6 @@
 #endif
 #endif
 
-#ifdef CONFIG_K1MATRIX_SMMUv2
-#include <driver/arm_smmuv2.h>
-#include <target/iommu_armv8.h>
-#endif
 #ifdef CONFIG_K1MATRIX_SMMUv3
 #include <driver/arm_smmuv3.h>
 #include <target/iommu_armv8.h>
@@ -100,17 +96,6 @@
 #define iommu_hw_poll_irqs()				smmu_poll_irqs()
 #endif
 
-#ifdef CONFIG_K1MATRIX_SMMUv2
-#define iommu_hw_tlb_flush_all()			\
-	smmu_tlb_inv_context_s1()
-#define iommu_hw_tlb_flush_walk(iova, size, granule)	\
-	smmu_tlb_inv_walk_s1(iova, size, granule)
-#define iommu_hw_tlb_flush_leaf(iova, size, granule)	\
-	smmu_tlb_inv_leaf_s1(iova, size, granule)
-#define iommu_hw_tlb_add_page(gather, iova, granule)	\
-	smmu_tlb_add_page_s1(iova, granule)
-#define iommu_hw_iotlb_sync(gather)			do { } while (0)
-#endif
 #ifdef CONFIG_K1MATRIX_SMMUv3
 #define iommu_hw_tlb_flush_all()			\
 	smmuv3_tlb_inv_context()

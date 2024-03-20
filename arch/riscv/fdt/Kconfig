@@ -9,6 +9,9 @@ menu "RISCV specific device tree options"
 config FDT_FIXUP_RESIZE
 	bool "Enable resizing for the FDT fixups"
 
+config FDT_PMU
+	bool "Enable PMU FDT fixups"
+
 endmenu
 
 endif

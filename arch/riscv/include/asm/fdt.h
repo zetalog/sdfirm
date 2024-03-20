@@ -107,9 +107,15 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
 int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
 			  const char *compatible);
 
+#ifdef CONFIG_FDT_PMU
 int fdt_pmu_setup(void *fdt);
 uint64_t fdt_pmu_get_select_value(uint32_t event_idx);
 int fdt_pmu_fixup(void *fdt);
+#else
+#define fdt_pmu_setup(fdt)			0
+#define fdt_pmu_get_select_value(event_idx)	0
+#define fdt_pmu_fixup(fdt)			do { } while (0)
+#endif
 
 static inline void *fdt_get_address(void)
 {

@@ -135,29 +135,6 @@ config ARCH_DPU
 	help
 	  This enables support for smart core (SmarCo) DPU platform.
 
-config ARCH_GUANGMU
-	bool "SmarCo MC Guangmu"
-	select CPU_VAISRA
-	select ARCH_IS_TICKLESS
-	select ARCH_HAS_TSC
-	select ARCH_HAS_TSC_CONST
-	select ARCH_HAS_IRQC
-	select ARCH_HAS_CLINT
-	select ARCH_HAS_PLIC
-	select ARCH_HAS_PLIC_EOI_EARLY
-	select ARCH_HAS_NOVEC
-	select ARCH_HAS_DDR
-	select ARCH_HAS_UART
-	select ARCH_HAS_NOC
-	select ARCH_HAS_BOOT0
-	select CLINT
-	select PLIC if !SYS_NOIRQ
-	select GM_CRU
-	select GM_UART if CONSOLE || DEBUG_PRINT
-	help
-	  This enables support for smart core (SmarCo) guangmu cluster
-	  platforms.
-
 config ARCH_VAISRA
 	bool "SmarCo MC Vaisra"
 	select CPU_VAISRA
@@ -201,44 +178,6 @@ config ARCH_VIRAPA
 	  features are added to virapa via small projects (virapa_rvh,
 	  virapa_rvv, virapa_imsic...). Currently there is only virapa_chi
 	  project feature implemented in this test bench.
-
-config ARCH_DPULP
-	bool "SmarCo DPU-LP"
-	select CPU_VAISRA
-	select ARCH_IS_TICKLESS
-	select ARCH_HAS_TSC
-	select ARCH_HAS_TSC_CONST
-	select ARCH_HAS_GPT
-	select ARCH_HAS_IRQC
-	select ARCH_HAS_CLINT
-	select ARCH_HAS_PLIC
-	select ARCH_HAS_PLIC_EOI_EARLY
-	select ARCH_HAS_APB_40
-	select ARCH_HAS_CLK
-	select ARCH_HAS_FDT
-	select ARCH_HAS_NOVEC
-	select ARCH_HAS_GPIO
-	select ARCH_HAS_SPI
-	select ARCH_HAS_SD
-	select ARCH_HAS_DDR
-	select ARCH_HAS_PCI
-	select ARCH_HAS_RIO
-	select ARCH_HAS_ETH
-	select ARCH_HAS_VAISRA_PMA_FORCE
-	select FDT_BUILTIN if SBI_FDT
-	select DPULP_TCSR
-	select DPULP_TMR
-	select DPULP_CRU if CLK
-	select DPULP_GPIO if GPIO
-	select DPULP_UART if CONSOLE || DEBUG_PRINT
-	select DPULP_SSI_FLASH if SPI_MASTER
-	select DPULP_SD if MMCSD
-	select DPULP_DDR if DDR
-	select DPULP_PCIE if PCI
-	select DPULP_RIO if RIO
-	select VAISRA_RAS if RAS
-	help
-	  This enables support for smart core (SmarCo) DPU-LP platform.
 
 config ARCH_UNLEASHED
 	bool "SiFive HiFive Unleashed (FU540)"
@@ -487,10 +426,8 @@ source "arch/riscv/fdt/Kconfig"
 endmenu
 
 source "arch/riscv/mach-duowen/Kconfig"
-source "arch/riscv/mach-guangmu/Kconfig"
 source "arch/riscv/mach-dpu/Kconfig"
 source "arch/riscv/mach-vaisra/Kconfig"
-source "arch/riscv/mach-dpulp/Kconfig"
 source "arch/riscv/mach-virapa/Kconfig"
 source "arch/riscv/mach-unleashed/Kconfig"
 source "arch/riscv/mach-k210/Kconfig"

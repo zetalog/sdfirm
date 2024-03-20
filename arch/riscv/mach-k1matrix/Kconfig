@@ -3,13 +3,14 @@ if ARCH_K1MATRIX
 menu "SpacemiT K1Matrix board options"
 
 choice
-	prompt "Simulation chip"
+	prompt "Boot CPU"
 
-config K1MATRIX
-	bool "K1MATRIX test chip"
-	help
-	  This configuration contains only CPU subsystem running in RTL
-	  environment.
+config K1MATRIX_RMU
+	bool "RMU subsystem"
+
+config K1MATRIX_CPU
+	bool "CPU subsystem"
+
 endchoice
 
 config K1MATRIX_SMP_CPUS
@@ -239,12 +240,6 @@ config K1MATRIX_IOMMU
 	bool "RISC-V IOMMU"
 	select RISCV_ZIOMMU
 	select IOMMU_PGTABLE_RISCV
-
-config K1MATRIX_SMMUv2
-	bool "ARM SMMUv2"
-	select SMMU_MMU500
-	select IOMMU_PGTABLE_ARMv8
-	select K1MATRIX_SMMU
 
 config K1MATRIX_SMMUv3
 	bool "ARM SMMUv3"

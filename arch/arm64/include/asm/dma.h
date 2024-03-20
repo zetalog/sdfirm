@@ -1,7 +1,9 @@
 #ifndef __DMA_ARM64_H_INCLUDE__
 #define __DMA_ARM64_H_INCLUDE__
 
+#ifndef __ASSEMBLY__
 typedef phys_addr_t dma_addr_t;
+#endif
 
 #if 1
 #define dma_hw_sync_dev(dma, phys, size, dir)	dma_mb()
@@ -15,6 +17,8 @@ typedef phys_addr_t dma_addr_t;
 #define dma_hw_sync_cpu_all()			do { } while (0)
 #endif
 
+#ifdef CONFIG_ARCH_HAS_DMAC
 #include <asm/mach/dma.h>
+#endif
 
 #endif /* __DMA_ARM64_H_INCLUDE__ */

@@ -63,6 +63,11 @@ config SBI_ECALL_RFENCE
 
 config SBI_ECALL_HSM
 	bool "Hart State Management extension"
+
+config SBI_ECALL_PMU
+	bool "Performance monitor unit extension"
+	select SBI_PMU
+
 endif
 
 endmenu
@@ -168,9 +173,13 @@ config SBI_PAYLOAD_DUMP
 
 endif
 
+config SBI_PMU
+	bool "Enable SBI performance monitor unit"
+
 config SBI_FDT
 	bool "Enable SBI device tree binary"
 	select FDT if ARCH_HAS_FDT
+	select FDT_PMU if SBI_PMU
 	help
 	  When device tree is enabled in SBI, platform may choose to use
 	  builtin FDT via selecting FDT_BUILTIN in the scope of ARCH_xxx.

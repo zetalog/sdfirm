@@ -625,7 +625,8 @@ static inline int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
 }
 #endif
 
-#define DEFINE_SBI_ECALL(name, extid_start, extid_end, probe, handler)	\
+#ifdef CONFIG_SBI_V10
+#define DEFINE_SBI_ECALL(name, extid_start, extid_end, probe, handler)		\
 	static struct sbi_ecall_extension sbi_ecall_##name;			\
 	static int sbi_ecall_##name##_register_extensions(void)			\
 	{									\
@@ -636,6 +637,9 @@ static inline int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
 	= { #name, LIST_HEAD_INIT(sbi_ecall_##name.head),			\
 	    extid_start, extid_end,						\
 	    sbi_ecall_##name##_register_extensions, probe, handler }
+#else
+#define DEFINE_SBI_ECALL(name, extid_start, extid_end, probe, handler)
+#endif
 
 struct sbi_ecall_extension {
 	const char *name;
