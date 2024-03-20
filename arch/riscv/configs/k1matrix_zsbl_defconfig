@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Oct 26 17:44:50 2023
+# Wed Mar 20 10:00:37 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -71,6 +71,8 @@ CONFIG_CONSOLE_BANNER=y
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_K1MAX is not set
+# CONFIG_ARCH_K1X is not set
+# CONFIG_ARCH_K1MXLITE is not set
 CONFIG_ARCH_K1MATRIX=y
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
@@ -198,12 +200,16 @@ CONFIG_K1MATRIX_BOOT_HART_ID=0
 CONFIG_K1MATRIX_PARTIAL_GOOD_MASK=0x0000000000000033
 # CONFIG_K1MATRIX_D2D is not set
 # CONFIG_K1MATRIX_DDR_SIZE_CUSTOM is not set
-CONFIG_K1MATRIX_N100=y
+# CONFIG_K1MATRIX_N100 is not set
 # CONFIG_K1MATRIX_PCIE is not set
 CONFIG_K1MATRIX_UART=y
 CONFIG_K1MATRIX_UART_CON0=y
 # CONFIG_K1MATRIX_UART_CON1 is not set
 # CONFIG_K1MATRIX_UART_ACCEL is not set
+# CONFIG_K1MATRIX_BMU is not set
+# CONFIG_K1MATRIX_MBOX is not set
+# CONFIG_K1MATRIX_LPC is not set
+# CONFIG_K1MATRIX_KCS is not set
 
 #
 # Feature setup
@@ -251,8 +257,8 @@ CONFIG_LPS_NO_LPS=y
 # Address space layout (xip) support
 #
 CONFIG_XIP=y
-CONFIG_BOOT_BASE=0x0110000000
-CONFIG_LOAD_BASE=0x0110000000
+CONFIG_BOOT_BASE=0x00408000000
+CONFIG_LOAD_BASE=0x00408100000
 CONFIG_LOAD_DATA=y
 # CONFIG_NO_ZERO_BSS is not set
 # CONFIG_NO_ZERO_GPR is not set
@@ -319,7 +325,11 @@ CONFIG_ARCH_HAS_PCI=y
 CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
 # CONFIG_UEFI is not set
+CONFIG_ARCH_HAS_LPC=y
+CONFIG_ARCH_HAS_KCS=y
+# CONFIG_IPMI is not set
 # CONFIG_RAS is not set
+CONFIG_ARCH_HAS_PMU=y
 # CONFIG_PERF is not set
 
 #
@@ -399,11 +409,26 @@ CONFIG_DW_UART_DLF_SIZE=4
 #
 # IO MMU drivers
 #
-# CONFIG_SMMU is not set
+# CONFIG_SMMU_ARCH64 is not set
+# CONFIG_SMMU_ARCH32_S is not set
+# CONFIG_SMMU_ARCH32_L is not set
+# CONFIG_SMMU_SV39 is not set
+# CONFIG_SMMU_SV48 is not set
 # CONFIG_SMMU_MMU500 is not set
 # CONFIG_SMARCO_RVSMMU is not set
+# CONFIG_SMMU_MMU600 is not set
 # CONFIG_IOMMU_PGTABLE_ARMv8 is not set
 # CONFIG_IOMMU_PGTABLE_RISCV is not set
+
+#
+# eSPI Master drivers
+#
+# CONFIG_SPACEMIT_ESPI is not set
+
+#
+# STM drivers
+#
+# CONFIG_SPACEMIT_STM is not set
 
 #
 # LCD drivers
@@ -467,6 +492,14 @@ CONFIG_ARCH_HAS_NOC=y
 # CONFIG_DW_E16MP_TSMC12FFC is not set
 
 #
+# LPC drivers
+#
+
+#
+# KCS drivers
+#
+
+#
 # Test setup
 #
 # CONFIG_TEST_VERBOSE is not set
@@ -493,6 +526,7 @@ CONFIG_BIT_FLS64=y
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FFS32 is not set
 CONFIG_BIT_FFS64=y
+# CONFIG_BIT_HWEIGHT32 is not set
 # CONFIG_BIT_HWEIGHT64 is not set
 
 #

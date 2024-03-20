@@ -192,7 +192,7 @@ extern unsigned long k1matrix_die_base;
 #define __IOMMU_CRTL2_CFG_BASE		ULL(0x04F80000000)
 #define __IOMMU_CRTL3_CFG_BASE		ULL(0x04F80200000)
 
-#ifdef CONFIG_K1MATRIX_FSBL
+#if defined(CONFIG_K1MATRIX_ZSBL) || defined(CONFIG_K1MATRIX_FSBL)
 #define CLINT_BASE			__RMU_CLINT_BASE
 #define UART0_BASE			__RMU_UART0_BASE
 #else
@@ -202,12 +202,12 @@ extern unsigned long k1matrix_die_base;
 #define SYS_REG_BASE			__RMU_SYS_REG_BASE
 #define SRAM0_BASE			__RMU_RAM_BASE
 
-#define SRAM01_SIZE			0x80000
+#define SRAM01_SIZE			SZ_512K
 
 #include <asm/mach/cprint.h>
 
 #ifdef CONFIG_K1MATRIX_BOOT_LLP
-#define BROM_BASE		SRAM0_BASE
+#define BROM_BASE		__RMU_ROM_BASE
 #endif /* CONFIG_K1MATRIX_BOOT_LLP */
 #ifdef CONFIG_K1MATRIX_BOOT_SYS
 #define BROM_BASE		SRAM1_BASE
@@ -219,8 +219,8 @@ extern unsigned long k1matrix_die_base;
 #define BROM_SIZE		0
 #endif /* CONFIG_K1MATRIX_ROM */
 
-#define SRAM_BASE		(BROM_BASE + BROM_SIZE)
-#define SRAM_SIZE		(SRAM01_SIZE - BROM_SIZE)
+#define SRAM_BASE		(SRAM0_BASE)
+#define SRAM_SIZE		(SRAM01_SIZE)
 
 #ifdef CONFIG_K1MATRIX_DDR_SIZE_CUSTOM
 #define DRAM_SIZE               CONFIG_K1MATRIX_MEM_SIZE
