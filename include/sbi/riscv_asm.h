@@ -86,12 +86,7 @@ void csr_write_num(int csr_num, unsigned long val);
 /* determine CPU extension, return non-zero support */
 int misa_extension_imp(char ext);
 
-/* Get MXL field of misa, return -1 on error */
-int misa_xlen(void);
-
 /* Get RISC-V ISA string representation */
-//void misa_string(int xlen, char *out, unsigned int out_sz);
-//
 //int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
 //	    unsigned long log2len);
 //

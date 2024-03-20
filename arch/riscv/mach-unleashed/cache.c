@@ -172,14 +172,14 @@ static inline uint32_t ccache_meta_fix_count(uint64_t base_addr)
 	return out;
 }
 
-typedef uint32_t atomic32_t;
-typedef uint64_t atomic64_t;
+typedef uint32_t __atomic32_t;
+typedef uint64_t __atomic64_t;
 
 /* Enable ways; allow cache to use these ways */
 static inline uint8_t ccache_enable_ways(uint64_t base_addr, uint8_t value)
 {
 	uint32_t old;
-	volatile atomic32_t *enable = (atomic32_t *)(base_addr + CCACHE_ENABLE);
+	volatile __atomic32_t *enable = (__atomic32_t *)(base_addr + CCACHE_ENABLE);
 
 	ccache_barrier_0();
 #if 0
@@ -197,7 +197,7 @@ static inline uint64_t ccache_lock_ways(uint64_t base_addr,
 					int client, uint64_t ways)
 {
 	uint64_t old;
-	volatile atomic64_t *ways_v = (atomic64_t *)(base_addr + CCACHE_WAYS);
+	volatile __atomic64_t *ways_v = (__atomic64_t *)(base_addr + CCACHE_WAYS);
 
 	ccache_barrier_0();
 #if 0
@@ -215,7 +215,7 @@ static inline uint64_t ccache_unlock_ways(uint64_t base_addr,
 					  int client, uint64_t ways)
 {
 	uint64_t old;
-	volatile atomic64_t *ways_v = (atomic64_t *)(base_addr + CCACHE_WAYS);
+	volatile __atomic64_t *ways_v = (__atomic64_t *)(base_addr + CCACHE_WAYS);
 
 	ccache_barrier_0();
 #if 0
@@ -233,7 +233,7 @@ static inline uint64_t ccache_flip_ways(uint64_t base_addr,
 					int client, uint64_t ways)
 {
 	uint64_t old;
-	volatile atomic64_t *ways_v = (atomic64_t *)(base_addr + CCACHE_WAYS);
+	volatile __atomic64_t *ways_v = (__atomic64_t *)(base_addr + CCACHE_WAYS);
 
 	ccache_barrier_0();
 #if 0

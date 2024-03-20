@@ -23,6 +23,7 @@
 #define SBI_PMU_CTR_MAX	   (SBI_PMU_HW_CTR_MAX + SBI_PMU_FW_CTR_MAX)
 #define SBI_PMU_FIXED_CTR_MASK 0x07
 
+#ifdef CONFIG_SBI_PMU
 /** Initialize PMU */
 int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot);
 
@@ -65,5 +66,10 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
 			  uint64_t event_data);
 
 int sbi_pmu_ctr_incr_fw(enum sbi_pmu_fw_event_code_id fw_id);
+#else
+#define sbi_pmu_init(scratch, cold_boot)	0
+#define sbi_pmu_exit(scratch)			do { } while (0)
+#define sbi_pmu_ctr_incr_fw(fw_id)		do { } while (0)
+#endif
 
 #endif

@@ -127,8 +127,10 @@
 	smp_hw_atomic_andnot_return_release(i, v)
 #define atomic_andnot_return_relaxed(i, v)	\
 	smp_hw_atomic_andnot_return_relaxed(i, v)
+#if 0
 #define atomic_fetch_andnot(i, v)		\
 	smp_hw_atomic_fetch_andnot(i, v)
+#endif
 #define atomic_fetch_andnot_acquire(i, v)	\
 	smp_hw_atomic_fetch_andnot_acquire(i, v)
 #define atomic_fetch_andnot_release(i, v)	\

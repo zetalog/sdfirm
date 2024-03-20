@@ -83,10 +83,6 @@ ifeq ($(CONFIG_ARCH_DUOWEN),y)
  machine-$(CONFIG_ARCH_DUOWEN)		:= duowen
  incdir-$(CONFIG_ARCH_DUOWEN)		:= duowen
 endif
-ifeq ($(CONFIG_ARCH_GUANGMU),y)
- machine-$(CONFIG_ARCH_GUANGMU)		:= guangmu
- incdir-$(CONFIG_ARCH_GUANGMU)		:= guangmu
-endif
 ifeq ($(CONFIG_ARCH_DPU),y)
  machine-$(CONFIG_ARCH_DPU)		:= dpu
  incdir-$(CONFIG_ARCH_DPU)		:= dpu
@@ -98,10 +94,6 @@ endif
 ifeq ($(CONFIG_ARCH_VIRAPA),y)
  machine-$(CONFIG_ARCH_VIRAPA)		:= virapa
  incdir-$(CONFIG_ARCH_VIRAPA)		:= virapa
-endif
-ifeq ($(CONFIG_ARCH_DPULP),y)
- machine-$(CONFIG_ARCH_DPULP)		:= dpulp
- incdir-$(CONFIG_ARCH_DPULP)		:= dpulp
 endif
 ifeq ($(CONFIG_ARCH_UNLEASHED),y)
  machine-$(CONFIG_ARCH_UNLEASHED)	:= unleashed

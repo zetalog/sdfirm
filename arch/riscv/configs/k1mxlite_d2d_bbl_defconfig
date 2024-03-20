@@ -217,7 +217,7 @@ CONFIG_SBI_RISCV_NEXT_S=y
 # CONFIG_SBI_DEFAULT is not set
 CONFIG_SBI_PAYLOAD=y
 # CONFIG_SBI_DYNAMIC is not set
-CONFIG_SBI_PAYLOAD_PATH="/home/chenlinfei/k1mxlite_all/opensbi_linux_d2d_cpu/obj/linux-riscv/arch/riscv/boot/Image"
+CONFIG_SBI_PAYLOAD_PATH="Image"
 # CONFIG_SBI_PAYLOAD_ALIGN_RELAXED is not set
 # CONFIG_SBI_PAYLOAD_DUMP is not set
 CONFIG_SBI_FDT=y

@@ -286,6 +286,7 @@
 #define CSR_MHPMEVENT29		0x33d
 #define CSR_MHPMEVENT30		0x33e
 #define CSR_MHPMEVENT31		0x33f
+#define CSR_MHPMEVENTH(n)	(0x720+(n)) /* n=3..31 */
 
 #define CSR_TSELECT		0x7A0
 #define CSR_TDATA1		0x7A1

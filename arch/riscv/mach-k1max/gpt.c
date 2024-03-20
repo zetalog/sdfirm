@@ -77,3 +77,7 @@ void gpt_hw_oneshot_timeout(timeout_t tout_ms)
 	clint_set_mtimecmp(smp_processor_id(), TSC_FREQ * next);
 }
 #endif
+
+void gpt_hw_ctrl_init(void)
+{
+}

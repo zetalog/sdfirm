@@ -96,7 +96,7 @@ extern unsigned long k1mxlite_die_base;
 #define CCIX_SLV_CFG_BASE	PCIE0_SLV_CFG_BASE
 #define CCIX_SLV_MEM_BASE	PCIE0_SLV_MEM_BASE
 /* DDR SUB */
-#define DDR_BASE		(DIE_BASE + __DDR_BASE)
+#define DDR_BASE		(DIE0_BASE + __DDR_BASE)
 /* SRAM */
 #define SRAM0_BASE		ULL(0x0110000000)
 #define SRAM1_BASE		ULL(0x0110080000)
