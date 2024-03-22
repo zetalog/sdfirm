@@ -73,31 +73,31 @@ void stm_sync_2dies(void)
 	if (sysreg_die_id() != 0)
 		return;
 
-	stm_write32(STM_SS_CTRL, STM_SS_CTRL_BIT1_EN);
+	stm_write32(STM_SS_CTRL, STM_SS_CTRL_SW_SS_DUAL_DIE_EN);
 
-	while (!stm_read32(STM_INT_FLAG + DIE1_BASE) & STM_INT_FLAG_BIT0_EN);
+	while (!stm_read32(STM_INT_FLAG + DIE1_BASE) & STM_INT_FLAG_GPIO_SS_INT_FLAG_EN);
 
-	stm_write32(STM_INT_FLAG + DIE1_BASE, STM_INT_FLAG_BIT0_EN); //clear int flag
+	stm_write32(STM_INT_FLAG + DIE1_BASE, STM_INT_FLAG_GPIO_SS_INT_FLAG_EN); //clear int flag
 
 	die0_tsp_ss = stm_read64(STM_TSP_SS_L);
 	die1_tsp_ss = stm_read64(STM_TSP_SS_L + DIE1_BASE);
 
 	if (die1_tsp_ss > die0_tsp_ss) {
 		stm_write64(STM_TSP_TRIM_L, (die1_tsp_ss - die0_tsp_ss)
-				| ((uint64_t)STM_TSP_TRIM_H_BIT31_EN << 32));
+				| ((uint64_t)STM_TSP_TRIM_H_TRIM_EN << 32));
 	} else {
 		stm_write64(STM_TSP_TRIM_L + DIE1_BASE, (die0_tsp_ss - die1_tsp_ss)
-				| ((uint64_t)STM_TSP_TRIM_H_BIT31_EN << 32));
+				| ((uint64_t)STM_TSP_TRIM_H_TRIM_EN << 32));
 	}
 }
 
 void stm_hw_ctrl_init(void)
 {
 	if (sysreg_die_id() == 0) {
-		stm_write32(STM_SS_CFG, STM_SS_CFG_BIT1_EN | STM_SS_CFG_BIT2_EN);
+		stm_write32(STM_SS_CFG, STM_SS_CFG_GPIO_SS_SEL_EN | STM_SS_CFG_GPIO_SS_EN);
 	} else if (sysreg_die_id() == 1) {
-		stm_write32(STM_SS_CFG + DIE1_BASE, STM_SS_CFG_BIT2_EN);
-		stm_write32(STM_INT_EN + DIE1_BASE, STM_INT_EN_BIT0_EN);
+		stm_write32(STM_SS_CFG + DIE1_BASE, STM_SS_CFG_GPIO_SS_EN);
+		stm_write32(STM_INT_EN + DIE1_BASE, STM_INT_EN_GPIO_SS_INT_EN);
 	}
 }
 
