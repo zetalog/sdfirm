@@ -124,13 +124,6 @@
 #define k1max_finish(code)
 #endif
 
-#ifdef CONFIG_K1M_SRAM
-#define ROM_BASE		SRAM_BASE
-#define ROM_SIZE		SRAM_SIZE
-#define RAM_BASE		SRAM_BASE
-#define RAM_SIZE		SRAM_SIZE
-#endif /* CONFIG_K1M_SRAM */
-
 #ifdef CONFIG_K1M_DDR_SIZE_CUSTOM
 #define DRAM_SIZE               CONFIG_K1M_MEM_SIZE
 #else /* CONFIG_K1M_DDR_SIZE_CUSTOM */
@@ -165,6 +158,13 @@
 #define RAM_BASE		SRAM_BASE
 #define RAM_SIZE		SRAM_SIZE
 #endif /* CONFIG_K1M_ZSBL */
+
+#ifdef CONFIG_K1M_FSBL
+#define ROM_BASE		SRAM_BASE
+#define ROM_SIZE		SRAM_SIZE
+#define RAM_BASE		SRAM_BASE
+#define RAM_SIZE		SRAM_SIZE
+#endif
 
 #define ROMEND			(ROM_BASE + ROM_SIZE)
 #define RAMEND			(RAM_BASE + RAM_SIZE)
