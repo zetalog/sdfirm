@@ -99,6 +99,21 @@ config K1M_TB
 	select SYS_EXIT_M
 	select SYS_EXIT_S
 
+config K1M_ZSBL
+	bool "ZSBL loader"
+	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select XIP
+
+config K1M_FSBL
+	bool "FSBL loader"
+	select ARCH_HAS_BOOT_LOAD
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select XIP
+	select K1M_BOOT
+
 config K1M_BBL
 	bool "SBI loader"
 	select ARCH_HAS_BOOT_LOAD
