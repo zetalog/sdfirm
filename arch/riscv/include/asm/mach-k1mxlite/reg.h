@@ -108,7 +108,7 @@ extern unsigned long k1mxlite_die_base;
 #define N100_CFG_BASE		ULL(0x0F10000000)
 
 #define SRAM01_SIZE		ULL(0x0000080000)
-#define __DRAM_SIZE		ULL(0x0020000000)
+#define __DRAM_SIZE		ULL(0x0100000000)
 
 #ifdef CONFIG_K1MXLITEIOMMU
 #define SMMU_BASE(n)		ULL(0x0000000000)
