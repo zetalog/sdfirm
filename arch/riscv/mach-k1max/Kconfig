@@ -101,10 +101,12 @@ config K1M_TB
 
 config K1M_ZSBL
 	bool "ZSBL loader"
+	select ARCH_HAS_BOOT_LOAD
 	select LOAD_DATA
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select XIP
+	select K1M_BOOT
 
 config K1M_FSBL
 	bool "FSBL loader"
@@ -146,6 +148,29 @@ config K1M_MEM_SIZE
 	hex "Memory size"
 	default 0x2000000
 	depends K1M_CPU || K1M_DDR_SIZE_CUSTOM
+
+config K1M_BOOT
+	bool
+
+if K1M_BOOT
+
+menu "Bootloader options"
+
+choice
+	prompt "Boot mode"
+
+config K1M_BOOT_DDR
+	bool "DDR"
+	help
+	  Boot to the DDR base address, useful for FSBL. Note, depending
+	  on the configurations, program may be loaded via back doors, and
+	  FSBL may just directly jump to the DDR base address.
+
+endchoice
+
+endmenu
+
+endif
 
 menuconfig K1M_CCI
 	bool "K1MAX cache coherent interconnect support"

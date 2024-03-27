@@ -53,8 +53,33 @@ void board_early_init(void)
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 }
 
+#ifdef CONFIG_K1M_BOOT_DDR
+void board_boot_ddr(void)
+{
+	void (*boot_entry)(void);
+
+	boot_entry = (void *)DRAM_BASE;
+	printf("B(D)\n");
+	smp_boot_secondary_cpus((caddr_t)boot_entry);
+	local_flush_icache_all();
+	boot_entry();
+}
+#else
+#define board_boot_ddr()	do { } while (0)
+#endif
+
+#ifdef CONFIG_K1M_BOOT
+void board_boot(void)
+{
+	board_boot_ddr();
+}
+#else
+#define board_boot()		do { } while (0)
+#endif
+
 void board_late_init(void)
 {
+	board_boot();
 }
 
 #ifdef CONFIG_SMP
