@@ -73,6 +73,8 @@
 
 #define IRQ_KCS			EXT_IRQ(57)
 
+#define IRQ_BMU			EXT_IRQ(58)
+
 #define NR_EXT_IRQS		64
 #define NR_IRQS			(NR_INT_IRQS + NR_EXT_IRQS)
 

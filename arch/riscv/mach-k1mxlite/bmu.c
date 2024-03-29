@@ -142,6 +142,28 @@ void bmu_match_addr(int n, uint64_t addr, uint64_t mask)
 	bmu_ctrl_start(n, bmu_once);
 }
 
+static void bmu_bh_handler(uint8_t events)
+{
+	if (events == BH_POLLIRQ) {
+		bmu_handle_irq(BMU_IRQ);
+		return;
+	}
+}
+
+#ifdef SYS_REALTIME
+static void bmu_poll_init(void)
+{
+	irq_register_poller(bmu_bh);
+}
+#else
+static void bmu_irq_init(void)
+{
+	irqc_configure_irq(BMU_IRQ, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(BMU_IRQ, lpc_handle_irq);
+	irqc_enable_irq(BMU_IRQ);
+}
+#endif
+
 void bmu_init(void)
 {
 	int n;
@@ -178,6 +200,8 @@ void bmu_init(void)
 		bmu_ctrl_enter_monitor(n);
 		bmu_ctrl_start(n, true);
 	}
+	bmu_irq_init();
+	bmu_poll_init();
 }
 
 void bmu_toggle_once(int n)

@@ -28,8 +28,8 @@ void corelpc_poll_irqs(void)
 
 void corelpc_kcs_init(void)
 {
-	__raw_writel(KEINTR | GCFG, 1);
-	__raw_writel(KELPC | GCFG, 1);
+	__raw_setl(KEINTR, GCFG);
+	__raw_setl(KELPC, GCFG);
 }
 
 void corelpc_init(void)
