@@ -1,7 +1,7 @@
 #include <target/generic.h>
 #include <target/perf.h>
 #include <target/cmdline.h>
-
+#include <asm/mach/bmu.h>
 #define bmu_irq2unit(irq)	0
 
 static bool bmu_once = false;
@@ -220,16 +220,21 @@ void bmu_toggle_once(int n)
 
 static int do_bmu_config(int n, int argc, char *argv[])
 {
-	uint64_t bmu_addr_low,bmu_addr_high,bmu_mask,bmu_length,bmu_threshold;
+	uint64_t bmu_addr,bmu_addr_low,bmu_addr_high,bmu_mask,bmu_length,bmu_threshold;
 	uint32_t bmu_data[4];
+	int i;
 	int bmu_id,bmu_counter;
 	if (argc < 4)
 		return -EINVAL;
 	if (strcmp(argv[4], "id") == 0) {	
-		
 		bmu_id=(int)strtoul(argv[5],0,0);
 		bmu_mask = (uint64_t)strtoull(argv[6], 0, 0);
-		bmu_config_target_id(n,argv[3],bmu_id,bmu_mask);
+		if (strcmp(argv[3], "RD") == 0) {
+			bmu_config_target_id(n,RD,bmu_id,bmu_mask);
+		}
+		else if (strcmp(argv[3], "WR") == 0) {
+			bmu_config_target_id(n,WR,bmu_id,bmu_mask);
+		}
 	}
 	else if (strcmp(argv[4], "range") == 0){
 		bmu_counter=(int)strtoul(argv[3],0,0);
@@ -249,7 +254,13 @@ static int do_bmu_config(int n, int argc, char *argv[])
 		}
 		else{
 			bmu_threshold=(uint64_t)strtoul(argv[5],0,0);
-			bmu_config_duration_threshold(n,argv[3],bmu_threshold);;
+			if (strcmp(argv[3], "RD") == 0) {
+				bmu_config_duration_threshold(n,RD,bmu_threshold);
+			}
+			else if (strcmp(argv[3], "WR") == 0) {
+				bmu_config_duration_threshold(n,WR,bmu_threshold);
+			}
+			
 		}
 	}
 	else if (strcmp(argv[3], "awready") == 0){
@@ -276,7 +287,7 @@ static int do_bmu_config(int n, int argc, char *argv[])
 
 static int do_bmu_filter(int n, int argc, char *argv[])
 {
-	uint64_t bmu_addr_high,bmu_addr_low,bmu_length,bmu_addr,bmu_mask;
+	uint64_t bmu_counter,bmu_addr_high,bmu_addr_low,bmu_length,bmu_addr,bmu_mask;
 	if (argc < 4)
 		return -EINVAL;
 	if (strcmp(argv[4], "range") == 0) {
@@ -289,7 +300,7 @@ static int do_bmu_filter(int n, int argc, char *argv[])
 		bmu_mask=(uint64_t)strtoul(argv[6],0,0);
 		bmu_filter_address_align(n,bmu_counter,bmu_addr,bmu_mask);
 	}
-		else if (strcmp(argv[4], "length") == 0){
+	else if (strcmp(argv[4], "length") == 0){
 		bmu_counter=(int)strtoul(argv[3],0,0);
 		bmu_filter_target_length(n,bmu_counter);
 	}
@@ -354,13 +365,13 @@ DEFINE_COMMAND(bmu, do_bmu, "K1MXLite bus monitor unit commands",
 	"    -config bmu counter target_id\n"
 	"bmu config <n> <counter> range <low> <high> \n"
 	"    -config bmu counter address range\n"
-    "bmu config <n> <counter> length <length>\n"
+	"bmu config <n> <counter> length <length>\n"
     "    -config bmu counter burst length\n"
-    "bmu config <n> <counter> duration <threshold> \n"
+	"bmu config <n> <counter> duration <threshold> \n"
     "    -config bmu counter duration threshold\n"
-    "bmu config <n> duration ovtime <threshold>\n"
+	"bmu config <n> duration ovtime <threshold>\n"
     "    -config bmu counter duration threshold\n"
-    "bmu config <n> awready <threshold>\n"
+	"bmu config <n> awready <threshold>\n"
     "    -config bmu counter duration threshold\n"
 	"bmu config <n> arready <threshold>\n"
     "    -config bmu counter duration threshold\n"
