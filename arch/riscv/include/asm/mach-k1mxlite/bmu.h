@@ -49,6 +49,8 @@
 
 #define BMU_REG(n, offset)		(BMU_BASE(n) + (offset))
 
+#define BMU_IRQ				IRQ_BMU
+
 #define BMU_INTR_MASK(n)		BMU_REG(n, 0x00)
 #define BMU_INTR_STAT(n)		BMU_REG(n, 0x04)
 #define BMU_INTR_STAT_MASK(n)		BMU_REG(n, 0x08)
