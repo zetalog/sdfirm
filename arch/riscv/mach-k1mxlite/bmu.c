@@ -1,10 +1,12 @@
 #include <target/generic.h>
 #include <target/perf.h>
 #include <target/cmdline.h>
-#include <asm/mach/bmu.h>
+
 #define bmu_irq2unit(irq)	0
 
 static bool bmu_once = false;
+
+bh_t bmu_bh;
 
 void bmu_dump_rd(int n)
 {
@@ -54,7 +56,7 @@ void bmu_dump_cnt(int n)
 	       (unsigned long)bmu_read_counter(n, BMU_FILT_WR_TRAN_CNT));
 }
 
-void bmu_handle_irq(int irq)
+void bmu_handle_irq(irq_t irq)
 {
 	int n = bmu_irq2unit(irq);
 	uint32_t irqs = BMU_INTR_STAT(n);
@@ -155,13 +157,15 @@ static void bmu_poll_init(void)
 {
 	irq_register_poller(bmu_bh);
 }
+#define bmu_irq_init()			do { } while (0)
 #else
 static void bmu_irq_init(void)
 {
 	irqc_configure_irq(BMU_IRQ, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(BMU_IRQ, lpc_handle_irq);
+	irq_register_vector(BMU_IRQ, bmu_handle_irq);
 	irqc_enable_irq(BMU_IRQ);
 }
+#define bmu_poll_init()			do { } while (0)
 #endif
 
 void bmu_init(void)
@@ -200,6 +204,7 @@ void bmu_init(void)
 		bmu_ctrl_enter_monitor(n);
 		bmu_ctrl_start(n, true);
 	}
+	bmu_bh = bh_register_handler(bmu_bh_handler);
 	bmu_irq_init();
 	bmu_poll_init();
 }
