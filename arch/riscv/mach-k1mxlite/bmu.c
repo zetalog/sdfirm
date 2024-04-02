@@ -5,6 +5,11 @@
 #define bmu_irq2unit(irq)	0
 
 static bool bmu_once = false;
+uint64_t bmu_addr = 0,bmu_upper = 0,bmu_lower = 0,bmu_len = 0;
+uint64_t bmu_mask = 0xFFFFFFFFFFFFFFFF,bmu_threshold = 0;
+uint32_t bmu_data[4] = {0, 0, 0, 0};
+int bmu_id = 0,bmu_counter = 0,bmu = 0;
+
 
 bh_t bmu_bh;
 
@@ -95,11 +100,6 @@ void bmu_handle_irq(irq_t irq)
 
 void bmu_reinit(int n)
 {
-	uint32_t bmu_data[4] = {0, 0, 0, 0};
-	uint64_t bmu_addr = 0, bmu_mask = 0xFFFFFFFFFFFFFFFF;
-	uint64_t bmu_lower = 0, bmu_upper = 0;
-	uint64_t bmu_len = 0;
-
 	bmu_ctrl_stop(n);
 	bmu_status_clr(n);
 	bmu_config_data_match(n, bmu_data, 0xffffffff);
@@ -125,6 +125,7 @@ void bmu_reinit(int n)
 	bmu_config_ovtime_threshold(n, 0);
 	bmu_config_awready_threshold(n, 0);
 	bmu_config_arready_threshold(n, 0);
+	bmu_once = true;
 	bmu_ctrl_start(n, bmu_once);
 }
 
@@ -226,14 +227,11 @@ void bmu_toggle_once(int n)
 
 static int do_bmu_config(int n, int argc, char *argv[])
 {
-	uint64_t bmu_addr,bmu_addr_low,bmu_addr_high,bmu_mask,bmu_length,bmu_threshold;
-	uint32_t bmu_data[4];
 	int i;
-	int bmu_id,bmu_counter;
 	if (argc < 4)
 		return -EINVAL;
 	if (strcmp(argv[4], "id") == 0) {	
-		bmu_id=(int)strtoul(argv[5],0,0);
+		bmu_id=(int)strtoull(argv[5],0,0);
 		bmu_mask = (uint64_t)strtoull(argv[6], 0, 0);
 		if (strcmp(argv[3], "RD") == 0) {
 			bmu_config_target_id(n,RD,bmu_id,bmu_mask);
@@ -243,23 +241,23 @@ static int do_bmu_config(int n, int argc, char *argv[])
 		}
 	}
 	else if (strcmp(argv[4], "range") == 0){
-		bmu_counter=(int)strtoul(argv[3],0,0);
-		bmu_addr_low=(uint64_t)strtoul(argv[5],0,0);
-		bmu_addr_high=(uint64_t)strtoul(argv[6],0,0);
-		bmu_config_address_range(n,bmu_counter,bmu_addr_low,bmu_addr_high);
+		bmu_counter=(int)strtoull(argv[3],0,0);
+		bmu_low=(uint64_t)strtoull(argv[5],0,0);
+		bmu_upper=(uint64_t)strtoull(argv[6],0,0);
+		bmu_config_address_range(n,bmu_counter,bmu_low,bmu_upper);
 	}
 	else if (strcmp(argv[4], "length") == 0){
-		bmu_counter=(int)strtoul(argv[3],0,0);
-		bmu_length=(uint64_t)strtoul(argv[5],0,0);
-		bmu_config_target_length(n,bmu_counter,bmu_length);
+		bmu_counter=(int)strtoull(argv[3],0,0);
+		bmu_len=(uint64_t)strtoull(argv[5],0,0);
+		bmu_config_target_length(n,bmu_counter,bmu_len);
 	}
 	else if (strcmp(argv[3], "duration") == 0){
 		if (strcmp(argv[4], "ovtime") == 0){
-			bmu_threshold=(uint64_t)strtoul(argv[5],0,0);
+			bmu_threshold=(uint64_t)strtoull(argv[5],0,0);
 			bmu_config_ovtime_threshold(n,bmu_threshold);
 		}
 		else{
-			bmu_threshold=(uint64_t)strtoul(argv[5],0,0);
+			bmu_threshold=(uint64_t)strtoull(argv[5],0,0);
 			if (strcmp(argv[3], "RD") == 0) {
 				bmu_config_duration_threshold(n,RD,bmu_threshold);
 			}
@@ -270,15 +268,15 @@ static int do_bmu_config(int n, int argc, char *argv[])
 		}
 	}
 	else if (strcmp(argv[3], "awready") == 0){
-			bmu_threshold=(uint64_t)strtoul(argv[4],0,0);
+			bmu_threshold=(uint64_t)strtoull(argv[4],0,0);
 			bmu_config_awready_threshold(n,bmu_threshold);
 	}
 	else if (strcmp(argv[3], "arready") == 0){
-			bmu_threshold=(uint64_t)strtoul(argv[4],0,0);
+			bmu_threshold=(uint64_t)strtoull(argv[4],0,0);
 			bmu_config_arready_threshold(n,bmu_threshold);
 	}
 	else if (strcmp(argv[3], "data") == 0){
-			bmu_mask = (uint64_t)strtoull(argv[5], 0, 0);
+			bmu_mask = (uint64_t)strtoull(argv[8], 0, 0);
 			for (i = 0; i < 4; i++)
 				bmu_data[i] = (uint32_t)strtoul(argv[4 + i], 0, 0);
 			bmu_config_data_match(n,bmu_data,bmu_mask);
@@ -293,7 +291,7 @@ static int do_bmu_config(int n, int argc, char *argv[])
 
 static int do_bmu_filter(int n, int argc, char *argv[])
 {
-	uint64_t bmu_counter,bmu_addr_high,bmu_addr_low,bmu_length,bmu_addr,bmu_mask;
+	
 	if (argc < 4)
 		return -EINVAL;
 	if (strcmp(argv[4], "range") == 0) {
@@ -315,23 +313,20 @@ static int do_bmu_filter(int n, int argc, char *argv[])
 
 static int do_bmu_match(int n, int argc, char *argv[])
 {
-	uint32_t bmu_data[4];
-	uint64_t bmu_addr, bmu_mask;
 	int i;
-
 	if (argc < 4)
 		return -EINVAL;
-	if (strcmp(argv[3], "data") == 0) {
-		if (argc < 9)
+	if (strcmp(argv[2], "data") == 0) {
+		if (argc < 7)
 			return -EINVAL;
 		for (i = 0; i < 4; i++)
 			bmu_data[i] = (uint32_t)strtoul(argv[4 + i], 0, 0);
-		bmu_mask = (uint64_t)strtoull(argv[8], 0, 0);
+		bmu_mask = (uint64_t)strtoull(argv[7], 0, 0);
 		bmu_match_data(n, bmu_data, bmu_mask);
 		return 0;
 	}
-	if (strcmp(argv[3], "addr") == 0) {
-		if (argc < 6)
+	if (strcmp(argv[2], "addr") == 0) {
+		if (argc < 4)
 			return -EINVAL;
 		bmu_addr = (uint64_t)strtoull(argv[4], 0, 0);
 		bmu_mask = (uint64_t)strtoull(argv[5], 0, 0);
@@ -343,11 +338,8 @@ static int do_bmu_match(int n, int argc, char *argv[])
 
 static int do_bmu(int argc, char *argv[])
 {
-	int bmu;
-
 	if (argc < 3)
 		return -EINVAL;
-
 	bmu = (int)strtoull(argv[2], 0, 0);
 	if (strcmp(argv[1], "config") == 0)
 		return do_bmu_config(bmu, argc, argv);
@@ -355,40 +347,49 @@ static int do_bmu(int argc, char *argv[])
 		return do_bmu_filter(bmu, argc, argv);
 	if (strcmp(argv[1], "match") == 0)
 		return do_bmu_match(bmu, argc, argv);
-	if (strcmp(argv[1], "once") == 0) {
-		bmu_toggle_once(bmu);
-		return 0;
+	if (strcmp(argv[1], "reinit") == 0) {
+		if(strcmp(argv[2])){
+			bmu_reinit(bmu);
+			return 0;
+		}
+	}
+	if (strcmp(argc[1], "dump") == 0){
+
 	}
 	return -EINVAL;
 }
 
 DEFINE_COMMAND(bmu, do_bmu, "K1MXLite bus monitor unit commands",
-	"bmu config <n> data <data> <mask>"
-	"	-config bmu data match"
-	"bmu config <n> addr <addr> <mask>"
-	"	-config bmu addr match"
+	"bmu reinit <n> once\n"
+	"	-bmu_reinit\n"
+	"bmu dump <n> <counter>\n"
+	"	-dump 0 counter\n"
+	"bmu config <n> data <data> <data> <data> <data> <mask>\n"
+	"	-config bmu data match\n"
+	"bmu config <n> addr <addr> <mask>\n"
+	"	-config bmu addr match\n"
 	"bmu config <n> <counter> id <id> <mask>\n"
-	"    -config bmu counter target_id\n"
+	"    -config bmu counter target_id,counter RD|WR\n"
 	"bmu config <n> <counter> range <low> <high> \n"
 	"    -config bmu counter address range\n"
 	"bmu config <n> <counter> length <length>\n"
-    "    -config bmu counter burst length\n"
+	"	 -config bmu counter burst length\n"
 	"bmu config <n> <counter> duration <threshold> \n"
-    "    -config bmu counter duration threshold\n"
+	"	 -config bmu counter duration threshold,counter RD|WR\n"
 	"bmu config <n> duration ovtime <threshold>\n"
-    "    -config bmu counter duration threshold\n"
+	"	 -config bmu counter duration threshold\n"
 	"bmu config <n> awready <threshold>\n"
-    "    -config bmu counter duration threshold\n"
+	"	 -config bmu counter duration threshold\n"
 	"bmu config <n> arready <threshold>\n"
     "    -config bmu counter duration threshold\n"
-	"bmu filter <n> <counter> range "
+	"bmu filter <n> <counter> range\n"
 	"    -config bmu counter filter address_range\n"
-	"bmu filter <n> <counter> align <address> <mask>"
+	"bmu filter <n> <counter> align <addr> <mask>\n"
 	"    -config bmu counter filter address_align\n"
-	"bmu filter <n> <counter> length"
+	"bmu filter <n> <counter> length\n"
 	"    -config bmu counter filter burst_length\n"
-	"bmu match  data <data> <mask>\n"
+	"bmu match  <n> data <data> <data> <data> <data> <mask>\n"
 	"    -match bus data\n"
-	"bmu match  addr <addr> <mask>\n"
+	"bmu match  <n> <addr <addr> <mask>\n"
 	"    -match bus addr\n"
 );
