@@ -1,0 +1,13 @@
+SUBDIRS = iommu tables test
+.PHONY: run
+all:
+	for i in $(SUBDIRS); do \
+	    echo "Building $$i";\
+	    (cd $$i; $(MAKE) -f Makefile.target clean);\
+	    (cd $$i; $(MAKE) -f Makefile.target); done
+clean:
+	@for i in $(SUBDIRS); do \
+	    (cd $$i; $(MAKE) -f Makefile.target clean); done
+
+run:
+	./runtests

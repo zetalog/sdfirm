@@ -3,5 +3,6 @@ menu "RISCV system tests"
 
 source tests/riscv/isa/Kconfig
 source tests/riscv/litmus/Kconfig
+source tests/riscv/iommu/Kconfig
 
 endmenu
