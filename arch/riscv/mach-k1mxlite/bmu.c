@@ -125,7 +125,6 @@ void bmu_reinit(int n)
 	bmu_config_ovtime_threshold(n, 0);
 	bmu_config_awready_threshold(n, 0);
 	bmu_config_arready_threshold(n, 0);
-	bmu_once = true;
 	bmu_ctrl_start(n, bmu_once);
 }
 
@@ -242,9 +241,9 @@ static int do_bmu_config(int n, int argc, char *argv[])
 	}
 	else if (strcmp(argv[4], "range") == 0){
 		bmu_counter=(int)strtoull(argv[3],0,0);
-		bmu_low=(uint64_t)strtoull(argv[5],0,0);
+		bmu_lower=(uint64_t)strtoull(argv[5],0,0);
 		bmu_upper=(uint64_t)strtoull(argv[6],0,0);
-		bmu_config_address_range(n,bmu_counter,bmu_low,bmu_upper);
+		bmu_config_address_range(n,bmu_counter,bmu_lower,bmu_upper);
 	}
 	else if (strcmp(argv[4], "length") == 0){
 		bmu_counter=(int)strtoull(argv[3],0,0);
@@ -336,6 +335,8 @@ static int do_bmu_match(int n, int argc, char *argv[])
 	return -EINVAL;
 }
 
+
+
 static int do_bmu(int argc, char *argv[])
 {
 	if (argc < 3)
@@ -348,19 +349,25 @@ static int do_bmu(int argc, char *argv[])
 	if (strcmp(argv[1], "match") == 0)
 		return do_bmu_match(bmu, argc, argv);
 	if (strcmp(argv[1], "reinit") == 0) {
-		if(strcmp(argv[2])){
-			bmu_reinit(bmu);
-			return 0;
+		if(strcmp(argv[3], "true") == 0){
+			bmu_once = true;
+			printf("Switched to once.\n");
+		}	
+		else if(strcmp(argv[3], "false") == 0){
+			bmu_once = false;
+			printf("Switched to once.\n");
 		}
+		bmu_reinit(bmu);
+		return 0;
 	}
-	if (strcmp(argc[1], "dump") == 0){
-
+	if (strcmp(argv[1], "dump") == 0){
+		return bmu_dump_cnt(n);
 	}
 	return -EINVAL;
 }
 
 DEFINE_COMMAND(bmu, do_bmu, "K1MXLite bus monitor unit commands",
-	"bmu reinit <n> once\n"
+	"bmu reinit <n> <once>\n"
 	"	-bmu_reinit\n"
 	"bmu dump <n> <counter>\n"
 	"	-dump 0 counter\n"
