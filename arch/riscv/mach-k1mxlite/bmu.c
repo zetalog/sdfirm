@@ -177,6 +177,7 @@ void bmu_init(void)
 	uint64_t bmu_len = 0;
 
 	for (n = 0; n < NR_BMUS; n++) {
+		bmu_set_internal(n, 0xf000);
 		bmu_mask_all_irqs(n);
 		bmu_config_data_match(n, bmu_data, 0xffffffff);
 		bmu_config_addr_match(n, bmu_addr, bmu_mask);
@@ -198,9 +199,9 @@ void bmu_init(void)
 		bmu_filter_target_length(n, BMU_FILT_WR_TRAN_CNT);
 		bmu_config_duration_threshold(n, RD, 0);
 		bmu_config_duration_threshold(n, WR, 0);
-		bmu_config_ovtime_threshold(n, 0);
-		bmu_config_awready_threshold(n, 0);
 		bmu_config_arready_threshold(n, 0);
+		bmu_config_awready_threshold(n, 0);
+		bmu_config_ovtime_threshold(n, 0);
 		bmu_ctrl_enter_monitor(n);
 		bmu_ctrl_start(n, true);
 	}
