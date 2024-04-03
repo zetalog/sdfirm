@@ -174,9 +174,15 @@
 #define bmu_ctrl_leave_monitor(n)					\
 	__raw_clearl(bmu_monitoring_mode, BMU_CTRL_X(n))
 
+#define bmu_set_internal(n, val)		__raw_writel((val), BMU_M_INTERNAL(n))
+
 #define bmu_mask_irq(n, irq)		__raw_setl(irq, BMU_INTR_STAT_MASK(n))
 #define bmu_unmask_irq(n, irq)		__raw_clearl(irq, BMU_INTR_STAT_MASK(n))
-#define bmu_mask_all_irqs(n)		__raw_setl(0xffffffff, BMU_INTR_STAT_MASK(n))
+#define bmu_mask_all_irqs(n)						\
+	do {								\
+		__raw_setl(0xffffffff, BMU_INTR_STAT_MASK(n));		\
+		__raw_setl(0xffffffff, BMU_INTR_MASK(n));		\
+	} while (0)
 
 #define bmu_status_clr(n)		__raw_setl(bmu_status_req_clr, BMU_CTRL_X(n))
 
