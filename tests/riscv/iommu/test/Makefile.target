@@ -1,0 +1,9 @@
+CFLAGS := -O0 -g -Wall -Werror  -I../../../../include/tests/riscv/iommu -lgcov --coverage
+CC := gcc
+SRCS_APP = test_app.c tbapi.c test_utils.c
+OBJ_APP = $(SRCS_APP:.c=.o)
+iommu: $(OBJ_APP)
+	$(CC) -o $@ $^ $(CFLAGS) ../iommu/libiommu.a ../tables/libtables.a
+
+clean:
+	$(RM) *.o *.a* tags log *.gc* src/*.gcov iommu

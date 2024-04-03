@@ -1,0 +1,14 @@
+CFLAGS := -g -Wall -Werror -Iinclude -fprofile-arcs -ftest-coverage  -I../../../../include/tests/riscv/iommu
+CC := gcc
+NAME := iommu
+SRCS = iommu_reg.c iommu_translate.c iommu_faults.c iommu_interrupt.c iommu_two_stage_trans.c iommu_second_stage_trans.c iommu_msi_trans.c iommu_device_context.c iommu_command_queue.c iommu_utils.c iommu_atc.c iommu_process_context.c iommu_ats.c iommu_hpm.c
+OBJS = $(SRCS:.c=.o)
+
+lib: lib$(NAME).a
+
+lib$(NAME).a: $(OBJS)
+	ar rcD $@ $^ > /dev/null 2>&1
+	ranlib $@
+
+clean:
+	$(RM) *.o *.a* tags log *.gc* *.gcov *.gcov

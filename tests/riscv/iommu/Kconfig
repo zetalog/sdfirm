@@ -1,0 +1,11 @@
+#
+# RISCV IOMMU Tests
+#
+
+menuconfig TESTS_IOMMU_RISCV
+	bool "RISC-V IOMMU reference model tests"
+	depends IOMMU
+
+if TESTS_IOMMU_RISCV
+
+endif
