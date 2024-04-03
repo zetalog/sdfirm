@@ -64,7 +64,7 @@ void bmu_dump_cnt(int n)
 void bmu_handle_irq(irq_t irq)
 {
 	int n = bmu_irq2unit(irq);
-	uint32_t irqs = BMU_INTR_STAT(n);
+	uint32_t irqs = raw_readl(BMU_INTR_STAT(n));
 
 	if (irqs & bmu_wr_res_time_out_int) {
 		printf("WR RES timeout\n");

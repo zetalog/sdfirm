@@ -174,7 +174,7 @@
 #define bmu_ctrl_leave_monitor(n)					\
 	__raw_clearl(bmu_monitoring_mode, BMU_CTRL_X(n))
 
-#define bmu_set_internal(n, val)		__raw_writel((val), BMU_M_INTERNAL(n))
+#define bmu_set_internal(n, val)	__raw_writel((val), BMU_M_INTERNAL(n))
 
 #define bmu_mask_irq(n, irq)		__raw_setl(irq, BMU_INTR_STAT_MASK(n))
 #define bmu_unmask_irq(n, irq)		__raw_clearl(irq, BMU_INTR_STAT_MASK(n))
