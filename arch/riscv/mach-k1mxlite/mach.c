@@ -90,11 +90,6 @@ void board_boot_ddr(void)
 
 	d2d_wait_boot();
 
-#ifdef CONFIG_SPACEMIT_STM
-	stm_hw_ctrl_init();
-	stm_sync_2dies();
-#endif
-
 	boot_entry = (void *)__DDR_BASE;
 	printf("B(D)\n");
 	smp_boot_secondary_cpus((caddr_t)boot_entry);
@@ -118,6 +113,10 @@ void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
 	k1mxlite_die_init();
+
+#ifdef CONFIG_SPACEMIT_STM
+	stm_hw_ctrl_init();
+#endif
 }
 
 void board_late_init(void)
@@ -125,6 +124,10 @@ void board_late_init(void)
 	k1mxlite_n100_init();
 	pcie_ccix_linkup();
 	k1mxlite_n100_d2d_init();
+
+#ifdef CONFIG_SPACEMIT_STM
+	stm_sync_2dies();
+#endif
 
 	board_boot();
 }
