@@ -100,6 +100,7 @@ void board_boot(void)
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);
+	sysreg_rmu_uart0_reset();
 	k1matrix_die_init();
 }
 

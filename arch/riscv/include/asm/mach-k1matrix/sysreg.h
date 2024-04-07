@@ -64,6 +64,9 @@
 #define GPIO_AUX_CFG3		SYSREG_REG(0x200C)
 #define PAD_IN_STATUS		SYSREG_REG(0x2010)
 
+#define RMU_UART0_RESET		SYSREG_REG(0x2340)
+#define RMU_UART0_RESET_BIT	_BV(0)
+
 /* CPU_SW_RESET */
 #define CPU_GLOBAL_RESET	_BV(0)
 
@@ -125,6 +128,8 @@
 	__raw_setl(PCIE0_BUTTON_RESET, PCIE_SW_RESET)
 #define sysreg_pcie0_warm_reset()	\
 	__raw_setl(PCIE0_WARM_RESET, PCIE_SW_RESET)
+#define sysreg_rmu_uart0_reset() \
+	__raw_setl(RMU_UART0_RESET_BIT, RMU_UART0_RESET)
 #define sysreg_boot_sel()		\
 	PAD_BOOT_SEL(__raw_readl(PAD_IN_STATUS))
 #define sysreg_die_id()			\
