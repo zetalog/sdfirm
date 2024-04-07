@@ -9,15 +9,9 @@
 
 #include <dt-bindings/clock/sbi-clock.h>
 
-#ifdef CONFIG_K1MATRIX_FPGA_TDM
-#define SYS_CLK_FREQ		8000000
-#define CFG_CLK_FREQ		8000000
+#define SYS_CLK_FREQ		20000000
+#define CFG_CLK_FREQ		10000000
 #define DDR_CLK_FREQ		100000000
-#else
-#define SYS_CLK_FREQ		50000000
-#define CFG_CLK_FREQ		30000000
-#define DDR_CLK_FREQ		200000000
-#endif
 
 #define CPU_CLK_FREQ		SYS_CLK_FREQ
 #define APB_CLK_FREQ		CFG_CLK_FREQ
