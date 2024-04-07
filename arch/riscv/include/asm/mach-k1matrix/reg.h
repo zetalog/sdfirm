@@ -199,7 +199,7 @@ extern unsigned long k1matrix_die_base;
 #endif
 
 #define N100_CFG_BASE			__N100_CFG_BASE
-#define SYS_REG_BASE			__RMU_SYS_REG_BASE
+#define SYS_REG_BASE			__RMU_SYS_CRG_BASE
 #define SRAM0_BASE			__RMU_RAM_BASE
 
 #define SRAM01_SIZE			SZ_512K
