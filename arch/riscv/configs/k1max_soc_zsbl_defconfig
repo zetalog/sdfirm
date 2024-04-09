@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Fri Mar 22 17:28:32 2024
+# Mon Apr  8 16:56:22 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -63,10 +63,8 @@ CONFIG_CONSOLE_BANNER=y
 #
 # CONFIG_ARCH_DUOWEN is not set
 # CONFIG_ARCH_DPU is not set
-# CONFIG_ARCH_GUANGMU is not set
 # CONFIG_ARCH_VAISRA is not set
 # CONFIG_ARCH_VIRAPA is not set
-# CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
@@ -189,6 +187,7 @@ CONFIG_K1M_SOC=y
 CONFIG_K1M_S2C=y
 CONFIG_K1M_K1PRO=y
 # CONFIG_K1M_K1MAX is not set
+CONFIG_K1M_SMP_CPUS=8
 # CONFIG_K1M_SMP_SPARSE_HART_ID is not set
 # CONFIG_K1M_PARTIAL_GOOD is not set
 # CONFIG_K1M_TB is not set
@@ -197,6 +196,12 @@ CONFIG_K1M_ZSBL=y
 # CONFIG_K1M_BBL is not set
 # CONFIG_K1M_SRAM is not set
 # CONFIG_K1M_DDR is not set
+CONFIG_K1M_BOOT=y
+
+#
+# Bootloader options
+#
+CONFIG_K1M_BOOT_DDR=y
 # CONFIG_K1M_CCI is not set
 # CONFIG_K1M_TIMER is not set
 CONFIG_K1M_UART=y
@@ -220,6 +225,7 @@ CONFIG_ARCH_HAS_GPT=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
+CONFIG_ARCH_HAS_BOOT_LOAD=y
 
 #
 # Scheduling facility (bh) support
@@ -248,6 +254,7 @@ CONFIG_LPS_NO_LPS=y
 #
 # Address space layout (xip) support
 #
+# CONFIG_BFM is not set
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x00000000
 CONFIG_LOAD_BASE=0x40100000

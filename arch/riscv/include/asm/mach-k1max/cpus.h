@@ -53,7 +53,7 @@
 #define BOOT_MASK		CPU_ALL
 #endif /* CONFIG_K1M_PARTIAL_GOOD */
 
-#ifdef CONFIG_SMP
+#ifdef CONFIG_SMP_BOOT
 #define MAX_CPU_NUM		CONFIG_K1M_SMP_CPUS
 #else
 #define MAX_CPU_NUM		1
