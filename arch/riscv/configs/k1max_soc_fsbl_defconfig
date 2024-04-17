@@ -202,7 +202,7 @@ CONFIG_K1M_BOOT=y
 # Bootloader options
 #
 CONFIG_K1M_BOOT_DDR=y
-# CONFIG_K1M_CCI is not set
+CONFIG_K1M_CCI=y
 # CONFIG_K1M_TIMER is not set
 CONFIG_K1M_UART=y
 # CONFIG_K1M_UART_ACCEL is not set
@@ -466,7 +466,7 @@ CONFIG_ARCH_HAS_NOC=y
 # CONFIG_NCORE is not set
 # CONFIG_MONACO is not set
 # CONFIG_CCN512 is not set
-# CONFIG_CCI550 is not set
+CONFIG_CCI550=y
 
 #
 # Network drivers
