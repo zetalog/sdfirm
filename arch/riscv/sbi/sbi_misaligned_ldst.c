@@ -16,6 +16,18 @@ union reg_data {
 	uint64_t data_u64;
 };
 
+static ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
+					ulong addr_offset)
+{
+	if (new_tinst == INSN_PSEUDO_VS_LOAD ||
+	    new_tinst == INSN_PSEUDO_VS_STORE)
+		return new_tinst;
+	else if (orig_tinst == 0)
+		return 0UL;
+	else
+		return orig_tinst | (addr_offset << SH_RS1);
+}
+
 int sbi_misaligned_load_handler(uint32_t hartid, ulong mcause,
 				struct pt_regs *regs,
 				struct sbi_scratch *scratch)
@@ -25,6 +37,12 @@ int sbi_misaligned_load_handler(uint32_t hartid, ulong mcause,
 	ulong insn = get_insn(regs->epc, NULL);
 	ulong addr = csr_read(CSR_MTVAL);
 	int i, fp = 0, shift = 0, len = 0;
+	ulong mtval2 = 0, mtinst = 0;
+
+	if (misa_extension('H')) {
+		mtval2 = csr_read(CSR_MTVAL2);
+		mtinst = csr_read(CSR_MTINST);
+	}
 
 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_LOAD);
 
@@ -91,14 +109,22 @@ int sbi_misaligned_load_handler(uint32_t hartid, ulong mcause,
 		len = 4;
 #endif
 #endif /* CONFIG_SBI_RISCV_C */
-	} else
-		return -ENOSYS;
+	} else {
+		regs->tval = addr;
+		regs->tval2 = mtval2;
+		regs->tinst = mtinst;
+		regs->gva   = sbi_regs_gva(regs);
+		return sbi_trap_redirect(regs, scratch, regs->epc,
+					 uptrap.cause, uptrap.tval);
+	}
 
 	val.data_u64 = 0;
 	for (i = 0; i < len; i++) {
 		val.data_bytes[i] = load_u8((void *)(addr + i),
 					    scratch, &uptrap);
 		if (uptrap.cause) {
+			regs->tinst = sbi_misaligned_tinst_fixup(
+				mtinst, regs->tinst, i);
 			sbi_trap_redirect(regs, scratch, regs->epc,
 					  uptrap.cause, uptrap.tval);
 			return 0;
@@ -130,6 +156,13 @@ int sbi_misaligned_store_handler(uint32_t hartid, ulong mcause,
 	ulong insn = get_insn(regs->epc, NULL);
 	ulong addr = csr_read(CSR_MTVAL);
 	int i, len = 0;
+
+	ulong mtval2 = 0, mtinst = 0;
+
+	if (misa_extension('H')) {
+		mtval2 = csr_read(CSR_MTVAL2);
+		mtinst = csr_read(CSR_MTINST);
+	}
 
 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_MISALIGNED_STORE);
 
@@ -187,13 +220,21 @@ int sbi_misaligned_store_handler(uint32_t hartid, ulong mcause,
 		val.data_ulong = GET_F32_RS2C(insn, regs);
 #endif
 #endif /* CONFIG_SBI_RISCV_C */
-	} else
-		return -ENOSYS;
+	} else {
+		regs->tval = addr;
+		regs->tval2 = mtval2;
+		regs->tinst = mtinst;
+		regs->gva   = sbi_regs_gva(regs);
+		sbi_trap_redirect(regs, scratch, regs->epc,
+				  uptrap.cause, uptrap.tval);
+	}
 
 	for (i = 0; i < len; i++) {
 		store_u8((void *)(addr + i), val.data_bytes[i],
 			 scratch, &uptrap);
 		if (uptrap.cause) {
+			regs->tinst = sbi_misaligned_tinst_fixup(
+				mtinst, regs->tinst, i);
 			sbi_trap_redirect(regs, scratch, regs->epc,
 					  uptrap.cause, uptrap.tval);
 			return 0;
