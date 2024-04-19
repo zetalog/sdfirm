@@ -89,40 +89,106 @@ static void __noreturn sbi_trap_error(const char *msg, int rc,
 int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 		      ulong epc, ulong cause, ulong tval)
 {
-	ulong new_status, prev_mode;
+	ulong hstatus, vsstatus, prev_mode;
+	bool prev_virt = (regs->status & SR_MPV) ? true : false;
+	/* By default, we redirect to HS-mode */
+	bool next_virt = false;
 
 	/* Sanity check on previous mode */
-	prev_mode = EXTRACT_FIELD(regs->status, SR_MPP);
+	prev_mode = (regs->status & SR_MPP) >> SR_MPP_SHIFT;
 	if (prev_mode != PRV_S && prev_mode != PRV_U)
-		return -ENOTSUP;
+		return SBI_ENOTSUPP;
 
-	/* Update S-mode exception info */
-	csr_write(CSR_STVAL, tval);
-	csr_write(CSR_SEPC, epc);
-	csr_write(CSR_SCAUSE, cause);
+	/* If exceptions came from VS/VU-mode, redirect to VS-mode if
+	 * delegated in hedeleg
+	 */
+	if (misa_extension('H') && prev_virt) {
+		if ((cause < __riscv_xlen) &&
+		    (csr_read(CSR_HEDELEG) & _BV(cause))) {
+			next_virt = true;
+		}
+	}
 
-	/* Set MEPC to S-mode exception vector base */
-	regs->epc = irq_get_stvec();
+	/* Update MSTATUS MPV bits */
+	regs->status &= ~SR_MPV;
+	regs->status |= (next_virt) ? SR_MPV : 0UL;
 
-	/* Initial value of new MSTATUS */
-	new_status = regs->status;
+	/* Update hypervisor CSRs if going to HS-mode */
+	if (misa_extension('H') && !next_virt) {
+		hstatus = csr_read(CSR_HSTATUS);
+		if (prev_virt) {
+			/* hstatus.SPVP is only updated if coming from VS/VU-mode */
+			hstatus &= ~HSTATUS_SPVP;
+			hstatus |= (prev_mode == PRV_S) ? HSTATUS_SPVP : 0;
+		}
+		hstatus &= ~HSTATUS_SPV;
+		hstatus |= (prev_virt) ? HSTATUS_SPV : 0;
+		hstatus &= ~HSTATUS_GVA;
+		hstatus |= (regs->gva) ? HSTATUS_GVA : 0;
+		csr_write(CSR_HSTATUS, hstatus);
+		csr_write(CSR_HTVAL, regs->tval2);
+		csr_write(CSR_HTINST, regs->tinst);
+	}
 
-	/* Clear MPP, SPP, SPIE, and SIE */
-	new_status &= ~(SR_MPP | SR_SPP | SR_SPIE | SR_SIE);
+	/* Update exception related CSRs */
+	if (next_virt) {
+		/* Update VS-mode exception info */
+		csr_write(CSR_VSTVAL, regs->tval);
+		csr_write(CSR_VSEPC, epc);
+		csr_write(CSR_VSCAUSE, cause);
 
-	/* Set SPP */
-	if (prev_mode == PRV_S)
-		new_status |= (1UL << SR_SPP_SHIFT);
+		/* Set MEPC to VS-mode exception vector base */
+		regs->epc = csr_read(CSR_VSTVEC);
 
-	/* Set SPIE */
-	if (regs->status & SR_SIE)
-		new_status |= SR_SPIE;
+		/* Set MPP to VS-mode */
+		regs->status &= ~SR_MPP;
+		regs->status |= (PRV_S << SR_MPP_SHIFT);
 
-	/* Set MPP */
-	new_status |= (PRV_S << SR_MPP_SHIFT);
+		/* Get VS-mode SSTATUS CSR */
+		vsstatus = csr_read(CSR_VSSTATUS);
 
-	/* Set new value in MSTATUS */
-	regs->status = new_status;
+		/* Set SPP for VS-mode */
+		vsstatus &= ~SR_SPP;
+		if (prev_mode == PRV_S)
+			vsstatus |= (1UL << SR_SPP_SHIFT);
+
+		/* Set SPIE for VS-mode */
+		vsstatus &= ~SR_SPIE;
+		if (vsstatus & SR_SIE)
+			vsstatus |= (1UL << SR_SPIE_SHIFT);
+
+		/* Clear SIE for VS-mode */
+		vsstatus &= ~SR_SIE;
+
+		/* Update VS-mode SSTATUS CSR */
+		csr_write(CSR_VSSTATUS, vsstatus);
+	} else {
+		/* Update S-mode exception info */
+		csr_write(CSR_STVAL, regs->tval);
+		csr_write(CSR_SEPC, epc);
+		csr_write(CSR_SCAUSE, cause);
+
+		/* Set MEPC to S-mode exception vector base */
+		regs->epc = csr_read(CSR_STVEC);
+
+		/* Set MPP to S-mode */
+		regs->status &= ~SR_MPP;
+		regs->status |= (PRV_S << SR_MPP_SHIFT);
+
+		/* Set SPP for S-mode */
+		regs->status &= ~SR_SPP;
+		if (prev_mode == PRV_S)
+			regs->status |= (1UL << SR_SPP_SHIFT);
+
+		/* Set SPIE for S-mode */
+		regs->status &= ~SR_SIE;
+		if (regs->status & SR_SIE)
+			regs->status |= (1UL << SR_SPP_SHIFT);
+
+		/* Clear SIE for S-mode */
+		regs->status &= ~SR_SIE;
+	}
+
 	return 0;
 }
 #else
@@ -166,9 +232,14 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 	const char *msg = "trap handler failed";
 	uint32_t hartid = sbi_current_hartid();
 	ulong mcause = csr_read(CSR_MCAUSE);
-	ulong mtval = csr_read(CSR_MTVAL);
+	ulong mtval = csr_read(CSR_MTVAL), mtval2 = 0, mtinst = 0;
 	struct unpriv_trap *uptrap;
 	ulong irq;
+
+	if (misa_extension('H')) {
+		mtval2 = csr_read(CSR_MTVAL2);
+		mtinst = csr_read(CSR_MTINST);
+	}
 
 	if (mcause & (1UL << (__riscv_xlen - 1))) {
 		irq = mcause & (~(1UL << (__riscv_xlen - 1)));
@@ -239,6 +310,10 @@ void sbi_trap_handler(struct pt_regs *regs, struct sbi_scratch *scratch)
 	default:
 		sbi_trap_log("Redirected unhandled exception %d\n", mcause);
 		/* If the trap came from S or U mode, redirect it there */
+		regs->tval = mtval;
+		regs->tval2 = mtval2;
+		regs->tinst = mtinst;
+		regs->gva   = sbi_regs_gva(regs);
 		rc = sbi_trap_redirect(regs, scratch, regs->epc, mcause, mtval);
 		break;
 	};

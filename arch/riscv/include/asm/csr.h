@@ -346,6 +346,7 @@
 #define SR_UBE		_AC(0x00000040, UL)
 #ifdef CONFIG_CPU_S
 #define SR_SIE		_AC(0x00000002, UL) /* Supervisor Interrupt Enable */
+#define SR_SPIE_SHIFT	5
 #define SR_SPIE		_AC(0x00000020, UL) /* Supervisor Previous IE */
 #define SR_SPP_SHIFT	8
 #define SR_SPP		_AC(0x00000100, UL) /* Previously Supervisor */
@@ -396,6 +397,7 @@
 #define SR_SBE		_AC(0x0000001000000000, UL)
 #define SR_MBE		_AC(0x0000002000000000, UL)
 #define SR_GVA		_AC(0x0000004000000000, UL)
+#define SR_MPV		_AC(0x0000008000000000, UL)
 #define SR_GVA_SHIFT	38
 #else
 #define SR_SBE		_AC(0x00000010, UL)
@@ -403,6 +405,17 @@
 #define SR_GVA		_AC(0x00000040, UL)
 #define SR_GVA_SHIFT	6
 #endif
+
+#define HSTATUS_VTSR			_UL(0x00400000)
+#define HSTATUS_VTW			_UL(0x00200000)
+#define HSTATUS_VTVM			_UL(0x00100000)
+#define HSTATUS_VGEIN			_UL(0x0003f000)
+#define HSTATUS_VGEIN_SHIFT		12
+#define HSTATUS_HU			_UL(0x00000200)
+#define HSTATUS_SPVP			_UL(0x00000100)
+#define HSTATUS_SPV			_UL(0x00000080)
+#define HSTATUS_GVA			_UL(0x00000040)
+#define HSTATUS_VSBE			_UL(0x00000020)
 
 /* MISA */
 #define HYPERVISOR_EXT  _AC(0x00000080, UL)
@@ -628,6 +641,24 @@
 #define INSN_MASK_C_FLWSP		0xe003
 #define INSN_MATCH_C_FSWSP		0xe002
 #define INSN_MASK_C_FSWSP		0xe003
+
+#if __riscv_xlen == 64
+
+/* 64-bit read for VS-stage address translation (RV64) */
+#define INSN_PSEUDO_VS_LOAD		0x00003000
+
+/* 64-bit write for VS-stage address translation (RV64) */
+#define INSN_PSEUDO_VS_STORE	0x00003020
+
+#elif __riscv_xlen == 32
+
+/* 32-bit read for VS-stage address translation (RV32) */
+#define INSN_PSEUDO_VS_LOAD		0x00002000
+
+/* 32-bit write for VS-stage address translation (RV32) */
+#define INSN_PSEUDO_VS_STORE	0x00002020
+
+#endif
 
 #define INSN_LEN(insn)			((((insn) & 0x3) < 0x3) ? 2 : 4)
 

@@ -15,6 +15,11 @@ typedef int (*illegal_insn_func)(ulong insn, struct pt_regs *regs,
 static int truly_illegal_insn(ulong insn, struct pt_regs *regs,
 			      struct sbi_scratch *scratch)
 {
+	regs->tval = insn;
+	regs->tval2 = 0;
+	regs->tinst = 0;
+	regs->gva   = 0;
+
 	return sbi_trap_redirect(regs, scratch, regs->epc, EXC_INSN_ILLEGAL, insn);
 }
 
