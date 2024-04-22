@@ -87,7 +87,23 @@ struct pt_regs {
 	unsigned long cause;
 	/* a0 value before the syscall */
 	unsigned long orig_a0;
+	unsigned long tval;
+	unsigned long tval2;
+	unsigned long tinst;
+	unsigned long gva;
 };
+
+static inline unsigned long sbi_regs_gva(const struct pt_regs *regs)
+{
+	/*
+	 * If the hypervisor extension is not implemented, mstatus[h].GVA is a
+	 * WPRI field, which is guaranteed to read as zero. In addition, in this
+	 * case we don't read mstatush and instead pretend it is zero, which
+	 * handles privileged spec version < 1.12.
+	 */
+
+	return (regs->status & SR_GVA) ? 1 : 0;
+}
 
 #define irq_hw_flags_save(x)	((x) = csr_read_clear(CSR_STATUS, SR_IE))
 #define irq_hw_flags_restore(x)	csr_set(CSR_STATUS, (x) & SR_IE)
