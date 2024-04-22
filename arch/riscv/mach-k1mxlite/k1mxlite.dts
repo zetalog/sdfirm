@@ -360,7 +360,7 @@
 		numa-node-id = <0>;
 	};
 
-#if CONFIG_K1MXLITE_SMP_CPUS >= 32
+#ifdef CONFIG_K1MXLITE_D2D
 	memory@8200000000 {
 		device_type = "memory";
 		reg = <0x00000082 0x00000000
