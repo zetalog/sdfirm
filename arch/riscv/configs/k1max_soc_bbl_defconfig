@@ -285,8 +285,8 @@ CONFIG_ARCH_HAS_THREAD=y
 # Scheduling facility (SMP) support
 #
 CONFIG_ARCH_HAS_SMP=y
-CONFIG_SMP_BOOT=y
-CONFIG_SMP=y
+# CONFIG_SMP_BOOT is not set
+# CONFIG_SMP is not set
 # CONFIG_SMP_WAIT_BOOT is not set
 
 #
