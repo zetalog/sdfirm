@@ -31,6 +31,7 @@ menuconfig SBI
 	select CLK_MNEMONICS if ARCH_HAS_SBI_CLOCK
 	select PRINT_SNPRINTF
 	select STRING_STRNCPY
+	select CC_NO_RELAX
 
 if SBI
 
