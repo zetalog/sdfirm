@@ -201,7 +201,7 @@ DEFINE_COMMAND(lpc, do_lpc, "SpacemiT low pin count commands",
 	"    -LPC read sequence\n"
 	"lpc write io value\n"
 	"lpc write mem value\n"
-	"lpc read fw value [1|2|4]\n"
+	"lpc write fw value [1|2|4]\n"
 	"    -LPC write sequence\n"
 	"lpc trans address0 address1 cycle [0|1]\n"
 	"    -config LPC address translation\n"
