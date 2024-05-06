@@ -1,7 +1,7 @@
 #include <target/generic.h>
 #include <target/perf.h>
 #include <target/cmdline.h>
-#include <asm/mach/bmu.h>
+
 #define bmu_irq2unit(irq)	0
 
 static bool bmu_once = false;
