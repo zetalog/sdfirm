@@ -261,6 +261,18 @@ install_initramfs()
 	fi
 }
 
+install_initramfs_sysroot()
+{
+	if [ -d $1$2 ]; then
+		cd $1$2/lib/
+		ROOTFS_FILES=`ls l*.so*`
+		cd -
+		for f in ${ROOTFS_FILES}; do
+			install_initramfs_one $1 "/lib/${f}"
+		done
+	fi
+}
+
 get_sysroot()
 {
 	GCC=`which ${CROSS_COMPILE}gcc`
@@ -374,7 +386,7 @@ function build_initramfs()
 	if [ "x${BUILD_LIB}" != "xno" ]; then
 		SYSROOT=`get_sysroot`
 		echo "Installing rootfs toolchain ${SYSROOT}..."
-		install_initramfs ${SYSROOT}
+		install_initramfs_sysroot ${SYSROOT}
 		#install_initramfs ${SYSROOT} /sbin
 		#install_initramfs ${SYSROOT} /lib
 		#install_initramfs ${SYSROOT} /usr/bin
