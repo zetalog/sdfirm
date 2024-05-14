@@ -237,10 +237,6 @@ install_initramfs_one()
 				#		$1 ${ROOTFS_LIB}
 				#done
 				file ${ROOTFS_HOST} | grep shell >/dev/null
-				if [ $? != 0 ]; then
-					echo "Stripping ${ROOTFS_HOST}..."
-					${CROSS_COMPILE}strip ${ROOTFS_HOST}
-				fi
 				install_initramfs_file 755
 			else
 				install_initramfs_file 644
@@ -264,12 +260,15 @@ install_initramfs()
 install_initramfs_sysroot()
 {
 	if [ -d $1$2 ]; then
-		cd $1$2/lib/
+		mkdir -p $TOP/obj/rootfs/lib/
+		cp $1$2/lib/l*.so* $TOP/obj/rootfs/lib/ -rf
+		cd $TOP/obj/rootfs/lib/
 		ROOTFS_FILES=`ls l*.so*`
 		cd -
 		for f in ${ROOTFS_FILES}; do
-			install_initramfs_one $1 "/lib/${f}"
+			install_initramfs_one $TOP/obj/rootfs "/lib/${f}"
 		done
+		${CROSS_COMPILE}strip $TOP/obj/rootfs/lib/*
 	fi
 }
 
