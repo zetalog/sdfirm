@@ -40,12 +40,6 @@
 				};
 #endif
 #if CONFIG_K1MXLITE_SMP_CPUS >= 4
-				core2 {
-					cpu = <&cpu2>;
-				};
-				core3 {
-					cpu = <&cpu3>;
-				};
 #endif
 			};
 #if CONFIG_K1MXLITE_SMP_CPUS >= 8
@@ -55,12 +49,6 @@
 				};
 				core5 {
 					cpu = <&cpu5>;
-				};
-				core6 {
-					cpu = <&cpu6>;
-				};
-				core7 {
-					cpu = <&cpu7>;
 				};
 			};
 #endif
@@ -73,12 +61,6 @@
 				core33 {
 					cpu = <&cpu33>;
 				};
-				core34 {
-					cpu = <&cpu34>;
-				};
-				core35 {
-					cpu = <&cpu35>;
-				};
 			};
 			cluster9 {
 				core36 {
@@ -86,12 +68,6 @@
 				};
 				core37 {
 					cpu = <&cpu37>;
-				};
-				core38 {
-					cpu = <&cpu38>;
-				};
-				core39 {
-					cpu = <&cpu39>;
 				};
 			};
 #endif
@@ -132,38 +108,6 @@
 		};
 #endif
 #if CONFIG_K1MXLITE_SMP_CPUS >= 4
-		cpu2: cpu@2 {
-			device_type = "cpu";
-			reg = <2>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
-			mmu-type = "riscv,sv48";
-			cpu-ai = "true";
-			numa-node-id = <0>;
-
-			cpu2_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-		cpu3: cpu@3 {
-			device_type = "cpu";
-			reg = <3>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
-			mmu-type = "riscv,sv48";
-			cpu-ai = "true";
-			numa-node-id = <0>;
-
-			cpu3_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
 #endif
 #if CONFIG_K1MXLITE_SMP_CPUS >= 8
 		cpu4: cpu@4 {
@@ -191,36 +135,6 @@
 			numa-node-id = <0>;
 
 			cpu5_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-		cpu6: cpu@6 {
-			device_type = "cpu";
-			reg = <6>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
-			mmu-type = "riscv,sv48";
-			numa-node-id = <0>;
-
-			cpu6_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-		cpu7: cpu@7 {
-			device_type = "cpu";
-			reg = <7>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
-			mmu-type = "riscv,sv48";
-			numa-node-id = <0>;
-
-			cpu7_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
@@ -259,36 +173,6 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
-		cpu34: cpu@34 {
-			device_type = "cpu";
-			reg = <34>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
-			mmu-type = "riscv,sv48";
-			numa-node-id = <1>;
-
-			cpu34_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-		cpu35: cpu@35 {
-			device_type = "cpu";
-			reg = <35>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
-			mmu-type = "riscv,sv48";
-			numa-node-id = <1>;
-
-			cpu35_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
 		cpu36: cpu@36 {
 			device_type = "cpu";
 			reg = <36>;
@@ -314,36 +198,6 @@
 			numa-node-id = <1>;
 
 			cpu37_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-		cpu38: cpu@38 {
-			device_type = "cpu";
-			reg = <38>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
-			mmu-type = "riscv,sv48";
-			numa-node-id = <1>;
-
-			cpu38_intc: interrupt-controller {
-				#interrupt-cells = <0x1>;
-				interrupt-controller;
-				compatible = "riscv,cpu-intc";
-			};
-		};
-		cpu39: cpu@39 {
-			device_type = "cpu";
-			reg = <39>;
-			status = "okay";
-			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
-			mmu-type = "riscv,sv48";
-			numa-node-id = <1>;
-
-			cpu39_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
@@ -413,24 +267,16 @@
 				&cpu1_intc 0xb &cpu1_intc 0x9
 #endif
 #if CONFIG_K1MXLITE_SMP_CPUS >= 4
-				&cpu2_intc 0xb &cpu2_intc 0x9
-				&cpu3_intc 0xb &cpu3_intc 0x9
 #endif
 #if CONFIG_K1MXLITE_SMP_CPUS >= 8
 				&cpu4_intc 0xb &cpu4_intc 0x9
 				&cpu5_intc 0xb &cpu5_intc 0x9
-				&cpu6_intc 0xb &cpu6_intc 0x9
-				&cpu7_intc 0xb &cpu7_intc 0x9
 #endif
 #if CONFIG_K1MXLITE_SMP_CPUS >= 32
 				&cpu32_intc 0xb &cpu32_intc 0x9
 				&cpu33_intc 0xb &cpu33_intc 0x9
-				&cpu34_intc 0xb &cpu34_intc 0x9
-				&cpu35_intc 0xb &cpu35_intc 0x9
 				&cpu36_intc 0xb &cpu36_intc 0x9
 				&cpu37_intc 0xb &cpu37_intc 0x9
-				&cpu38_intc 0xb &cpu38_intc 0x9
-				&cpu39_intc 0xb &cpu39_intc 0x9
 #endif
 			>;
 			interrupt-controller;
@@ -448,24 +294,16 @@
 				&cpu1_intc 0x3 &cpu1_intc 0x7
 #endif
 #if CONFIG_K1MXLITE_SMP_CPUS >= 4
-				&cpu2_intc 0x3 &cpu2_intc 0x7
-				&cpu3_intc 0x3 &cpu3_intc 0x7
 #endif
 #if CONFIG_K1MXLITE_SMP_CPUS >= 8
 				&cpu4_intc 0x3 &cpu4_intc 0x7
 				&cpu5_intc 0x3 &cpu5_intc 0x7
-				&cpu6_intc 0x3 &cpu6_intc 0x7
-				&cpu7_intc 0x3 &cpu7_intc 0x7
 #endif
 #if CONFIG_K1MXLITE_SMP_CPUS >= 32
 				&cpu32_intc 0x3 &cpu32_intc 0x7
 				&cpu33_intc 0x3 &cpu33_intc 0x7
-				&cpu34_intc 0x3 &cpu34_intc 0x7
-				&cpu35_intc 0x3 &cpu35_intc 0x7
 				&cpu36_intc 0x3 &cpu36_intc 0x7
 				&cpu37_intc 0x3 &cpu37_intc 0x7
-				&cpu38_intc 0x3 &cpu38_intc 0x7
-				&cpu39_intc 0x3 &cpu39_intc 0x7
 #endif
 			>;
 			reg = <DT_REGHI(__CLINT_BASE) DT_REGLO(__CLINT_BASE)
