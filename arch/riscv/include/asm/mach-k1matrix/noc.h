@@ -44,12 +44,23 @@
 
 #include <target/arch.h>
 
+#define N100_HW_BASE		N100_CFG_BASE
+#define N100_HW_NODES		32
+#define N100_HW_COLS		3
+#define N100_HW_ROWS		2
+
+#include <driver/n100.h>
+
+#ifdef CONFIG_K1MATRIX_D2D
+#define n100_hw_chip_id()	sysreg_die_id()
+#define n100_hw_chip_base()	DIE1_BASE
+#endif
 #ifdef CONFIG_K1MATRIX_N100
-void spacemit_n100_init(void);
-void spacemit_n100_d2d_init(void);
+#define k1matrix_n100_init()		spacemit_n100_init()
+#define k1matrix_n100_d2d_init()	spacemit_n100_d2d_init()
 #else
-#define spacemit_n100_init()		do { } while (0)
-#define spacemit_n100_d2d_init()	do { } while (0)
+#define k1matrix_n100_init()		do { } while (0)
+#define k1matrix_n100_d2d_init()	do { } while (0)
 #endif
 
 #endif /* __NOC_K1MATRIX_H_INCLUDE__ */
