@@ -45,11 +45,11 @@
 #include <target/arch.h>
 
 #ifdef CONFIG_K1MXLITE_N100
-void k1mxlite_n100_init(void);
-void k1mxlite_n100_d2d_init(void);
+void spacemit_n100_init(void);
+void spacemit_n100_d2d_init(void);
 #else
-#define k1mxlite_n100_init()		do { } while (0)
-#define k1mxlite_n100_d2d_init()	do { } while (0)
+#define spacemit_n100_init()		do { } while (0)
+#define spacemit_n100_d2d_init()	do { } while (0)
 #endif
 
 #endif /* __NOC_K1MXLITE_H_INCLUDE__ */
