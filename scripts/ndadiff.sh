@@ -16,6 +16,7 @@ walk_source_one()
 		walk_source $1 $2 $3
 	else
 		if [ "x${UPDATE}" = "xyes" ]; then
+			echo "Updating $remotef..."
 			cp -f $localf $remotef
 		else
 			diff -u $localf $remotef
