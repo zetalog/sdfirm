@@ -148,10 +148,7 @@ config K1MATRIX_BOOT
 	bool
 #	select K1MATRIX_N100
 	select K1MATRIX_PCIE if K1MATRIX_D2D
-<<<<<<< HEAD
-=======
 	select N100_CCIX if K1MATRIX_D2D
->>>>>>> 1d188b6f (Remove dependency of CMN600 from spacemit)
 
 if K1MATRIX_BOOT
 
