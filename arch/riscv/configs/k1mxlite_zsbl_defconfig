@@ -478,6 +478,10 @@ CONFIG_ARCH_HAS_NOC=y
 # CONFIG_MONACO is not set
 # CONFIG_CCN512 is not set
 # CONFIG_CCI550 is not set
+CONFIG_ARCH_HAS_N100=y
+CONFIG_N100=y
+CONFIG_ARCH_HAS_N100_CCIX=y
+# CONFIG_N100_CCIX is not set
 
 #
 # Network drivers

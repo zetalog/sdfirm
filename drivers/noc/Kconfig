@@ -96,31 +96,7 @@ config CMN600_DEBUG
 
 endif
 
-config ARCH_HAS_N100
-	bool
-
-menuconfig N100
-	bool "SpacemiT N100 support"
-	depends ARCH_HAS_N100
-
-if N100
-
-config ARCH_HAS_N100_CCIX
-	bool
-
-config N100_CCIX
-	bool "Enable Cache Coherent Interconnect for Accelerators (CCIX) support"
-	select BIT_FLS64
-
-if N100_CCIX
-
-endif
-
-config N100_DEBUG
-	bool "Enable register debugging"
-	depends CONSOLE_DEBUG
-
-endif
+source drivers/noc/n100/Kconfig
 
 endmenu
 
