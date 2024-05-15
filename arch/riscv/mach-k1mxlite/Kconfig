@@ -159,6 +159,7 @@ config K1MXLITE_BOOT
 	bool
 	select K1MXLITE_N100
 	select K1MXLITE_PCIE if K1MXLITE_D2D
+	select N100_CCIX if K1MXLITE_D2D
 
 if K1MXLITE_BOOT
 
@@ -186,6 +187,10 @@ config K1MXLITE_CPRINT
 
 menuconfig K1MXLITE_N100
 	bool "K1MXLite N100 on-chip networking support"
+	select ARCH_HAS_N100
+	select ARCH_HAS_N100_CCIX
+	select N100
+	select N100_CCIX if K1MXLITE_D2D
 	depends ARCH_HAS_NOC
 
 if K1MXLITE_N100

@@ -121,9 +121,9 @@ void board_early_init(void)
 
 void board_late_init(void)
 {
-	k1mxlite_n100_init();
+	spacemit_n100_init();
 	pcie_ccix_linkup();
-	k1mxlite_n100_d2d_init();
+	spacemit_n100_d2d_init();
 
 #ifdef CONFIG_SPACEMIT_STM
 	stm_sync_2dies();
