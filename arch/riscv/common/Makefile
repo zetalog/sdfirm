@@ -13,6 +13,7 @@ obj-y += tlb.rel
 obj-y += smpboot.rel
 obj-y += csr_expected_trap.rel
 obj-$(CONFIG_RISCV_PMP) += pmp.rel
+obj-$(CONFIG_RISCV_IOPMP) += iopmp.rel
 obj-$(CONFIG_RISCV_F) += float.rel
 obj-$(CONFIG_MMU) += mmu.rel
 obj-$(CONFIG_HPM) += hpm.rel
