@@ -374,6 +374,9 @@ config CPU_SV57
 config CPU_VIRQ
 	bool
 
+config CPU_IOPMP
+	bool
+
 config RISCV_S
 	bool
 	depends CPU_S
@@ -512,6 +515,11 @@ config RISCV_PMP
 	select BIT_FLS32 if 32BIT
 	select BIT_FFS64 if 64BIT
 	select BIT_FLS64 if 64BIT
+	default y
+
+config RISCV_IOPMP
+	bool "IO physical address protection (IOPMP) suppport"
+	depends CPU_IOPMP
 	default y
 
 config RISCV_H
