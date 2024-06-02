@@ -141,6 +141,19 @@ menuconfig SC_PLLTS12FFCLAFRAC2
 
 if SC_PLLTS12FFCLAFRAC2
 
+config SC_PLLTS12FFCLAFRAC2_FRAC
+	bool "Enable fractional mode support"
+	help
+	  By default, the driver works in integer mode, enabling this to
+	  allow 24-bit fractional settings to be enabled.
+
+config SC_PLLTS12FFCLAFRAC2_PRESET
+	bool "Enable preset settings support"
+	depends SIMULATION
+	help
+	  This setting enables simulation support using pre-calculated PLL
+	  settings in the driver to improve simulation speed.
+
 endif
 
 endmenu
