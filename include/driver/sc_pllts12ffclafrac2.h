@@ -46,22 +46,7 @@
 #include <target/arch.h>
 #include <target/generic.h>
 
-/* Configure a PLL in Integer Mode
- *              FREF*FBDIV
- * FOUT* = ------------------------
- *         REFDIV*POSTDIV1*POSTDIV2
- * Programming restrictions:
- * 1. FBDIV should be valid when PLL is enabled.
- * 2. Maximize POSTDIV1 prior than enabling POSTDIV2.
- *
- * Configure a PLL in Fractional Mode
- *          FREF    FBDIV + (FRAC/(2^24))
- * FOUT* = ------ x ---------------------
- *         REFDIV     POSTDIV1*POSTDIV2
- * Programming restrictions:
- * 1. Maximize POSTDIV1 prior than enabling POSTDIV2.
- *
- * There are three programming conditions:
+/* There are three programming conditions:
  * 1. static divide in integer or fractional mode
  *    No re-timing, divide is programmed while (PLLEN=0, EN-0 or PD=1)
  * 2. dynamic integer divide in integer mode
@@ -101,12 +86,8 @@
 #define PLL_FRAC_MASK			REG_24BIT_MASK
 #define PLL_FRACE(value)		_SET_FV(PLL_FRAC, value)
 
-void sc_pllts12ffclafrac2_int_enable(int n,
-				     uint32_t fref_freq,
-				     uint32_t fout_freq);
-void sc_pllts12ffclafrac2_frac_enable(int n,
-				      uint32_t fref_freq,
-				      uint32_t fout_freq);
+void sc_pllts12ffclafrac2_enable(int n, bool out_4phase,
+				 uint32_t Fref, uint32_t Fout);
 void sc_pllts12ffclafrace_disable(int n);
 
 #endif /* __SC_PLLTS12FFCLAFRAC2_H_INCLUDE__ */

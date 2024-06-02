@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Oct 26 17:44:03 2023
+# Mon Jun  3 06:58:47 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -63,14 +63,14 @@ CONFIG_CONSOLE_BANNER=y
 #
 # CONFIG_ARCH_DUOWEN is not set
 # CONFIG_ARCH_DPU is not set
-# CONFIG_ARCH_GUANGMU is not set
 # CONFIG_ARCH_VAISRA is not set
 # CONFIG_ARCH_VIRAPA is not set
-# CONFIG_ARCH_DPULP is not set
 # CONFIG_ARCH_UNLEASHED is not set
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_K1MAX is not set
+# CONFIG_ARCH_K1X is not set
+# CONFIG_ARCH_K1MXLITE is not set
 CONFIG_ARCH_K1MATRIX=y
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
@@ -156,7 +156,7 @@ CONFIG_RISCV_ENTR_M=y
 CONFIG_RISCV_EXIT_M=y
 CONFIG_SYS_LOADER=y
 CONFIG_ARCH_HAS_BOOT0=y
-# CONFIG_ARCH_HAS_BOOT1 is not set
+CONFIG_ARCH_HAS_BOOT1=y
 CONFIG_ARCH_HAS_BOOT2=y
 
 #
@@ -181,7 +181,8 @@ CONFIG_ARCH_HAS_SBI_TIMER=y
 #
 # SpacemiT K1Matrix board options
 #
-CONFIG_K1MATRIX=y
+CONFIG_K1MATRIX_RMU=y
+# CONFIG_K1MATRIX_CPU is not set
 CONFIG_K1MATRIX_SMP_CPUS=64
 # CONFIG_K1MATRIX_ZSBL is not set
 CONFIG_K1MATRIX_FSBL=y
@@ -205,11 +206,15 @@ CONFIG_K1MATRIX_BOOT=y
 #
 CONFIG_K1MATRIX_BOOT_DDR=y
 # CONFIG_K1MATRIX_N100 is not set
+CONFIG_K1MATRIX_CRG=y
 # CONFIG_K1MATRIX_PCIE is not set
 CONFIG_K1MATRIX_UART=y
 CONFIG_K1MATRIX_UART_CON0=y
 # CONFIG_K1MATRIX_UART_CON1 is not set
 # CONFIG_K1MATRIX_UART_ACCEL is not set
+# CONFIG_K1MATRIX_MBOX is not set
+# CONFIG_K1MATRIX_LPC is not set
+# CONFIG_K1MATRIX_KCS is not set
 
 #
 # Feature setup
@@ -287,9 +292,10 @@ CONFIG_SHUTDOWN=y
 # CONFIG_TERM is not set
 # CONFIG_GPIO is not set
 CONFIG_ARCH_HAS_CLK=y
-# CONFIG_CLK is not set
+CONFIG_CLK=y
+CONFIG_CLK_MAX_DRIVERS=1
+CONFIG_CLK_MNEMONICS=y
 CONFIG_ARCH_HAS_CLK_GENERIC=y
-# CONFIG_CLK_GENERIC is not set
 
 #
 # Human Interface Devices (HID) support
@@ -326,6 +332,9 @@ CONFIG_ARCH_HAS_PCI=y
 CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
 # CONFIG_UEFI is not set
+CONFIG_ARCH_HAS_LPC=y
+CONFIG_ARCH_HAS_KCS=y
+# CONFIG_IPMI is not set
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
 
@@ -337,6 +346,10 @@ CONFIG_ARCH_HAS_DW_AMBA_ADVANCED=y
 #
 # Clock drivers
 #
+# CONFIG_DW_PLL5GHZ_TSMC12FFC is not set
+CONFIG_SC_PLLTS12FFCLAFRAC2=y
+CONFIG_SC_PLLTS12FFCLAFRAC2_FRAC=y
+# CONFIG_SC_PLLTS12FFCLAFRAC2_PRESET is not set
 
 #
 # GPIO controller drivers
@@ -406,11 +419,26 @@ CONFIG_DW_UART_DLF_SIZE=4
 #
 # IO MMU drivers
 #
-# CONFIG_SMMU is not set
+# CONFIG_SMMU_ARCH64 is not set
+# CONFIG_SMMU_ARCH32_S is not set
+# CONFIG_SMMU_ARCH32_L is not set
+# CONFIG_SMMU_SV39 is not set
+# CONFIG_SMMU_SV48 is not set
 # CONFIG_SMMU_MMU500 is not set
 # CONFIG_SMARCO_RVSMMU is not set
+# CONFIG_SMMU_MMU600 is not set
 # CONFIG_IOMMU_PGTABLE_ARMv8 is not set
 # CONFIG_IOMMU_PGTABLE_RISCV is not set
+
+#
+# eSPI Master drivers
+#
+# CONFIG_SPACEMIT_ESPI is not set
+
+#
+# STM drivers
+#
+# CONFIG_SPACEMIT_STM is not set
 
 #
 # LCD drivers
@@ -461,10 +489,6 @@ CONFIG_ARCH_HAS_NOC=y
 # CONFIG_MONACO is not set
 # CONFIG_CCN512 is not set
 # CONFIG_CCI550 is not set
-CONFIG_ARCH_HAS_N100=y
-CONFIG_N100=y
-CONFIG_ARCH_HAS_N100_CCIX=y
-# CONFIG_N100_CCIX is not set
 
 #
 # Network drivers
@@ -476,6 +500,14 @@ CONFIG_ARCH_HAS_N100_CCIX=y
 # Physical medium drivers
 #
 # CONFIG_DW_E16MP_TSMC12FFC is not set
+
+#
+# LPC drivers
+#
+
+#
+# KCS drivers
+#
 
 #
 # Test setup
@@ -504,6 +536,7 @@ CONFIG_BIT_FLS64=y
 # CONFIG_BIT_FFS16 is not set
 # CONFIG_BIT_FFS32 is not set
 CONFIG_BIT_FFS64=y
+# CONFIG_BIT_HWEIGHT32 is not set
 # CONFIG_BIT_HWEIGHT64 is not set
 
 #

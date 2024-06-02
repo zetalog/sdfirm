@@ -268,6 +268,7 @@ config ARCH_K1MAX
 	select CLINT
 	select PLIC if !SYS_NOIRQ
 	select ARCH_HAS_NOC if K1M_SOC || K1M_K1X
+	select K1MATRIX_CRG
 	select K1M_UART if CONSOLE || DEBUG_PRINT
 	help
 	  This enables support for spacemit k1max IoT platform.
@@ -350,6 +351,7 @@ config ARCH_K1MATRIX
 	select ARCH_HAS_CLK
 	select ARCH_HAS_LPC
 	select ARCH_HAS_KCS
+	select ARCH_HAS_CLK
 	select ARCH_HAS_CLK_GENERIC
 	select ARCH_HAS_BOOT0
 	select ARCH_HAS_BOOT1

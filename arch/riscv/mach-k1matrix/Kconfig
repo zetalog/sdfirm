@@ -186,6 +186,10 @@ if K1MATRIX_N100
 
 endif
 
+menuconfig K1MATRIX_CRG
+	bool "K1Matrix clock/reset generator support"
+	select SC_PLLTS12FFCLAFRAC2
+
 config K1MATRIX_PCIE
 	bool "K1Matrix PCIe subsystem support"
 
