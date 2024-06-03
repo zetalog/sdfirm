@@ -35,47 +35,71 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)cache.h: RISCV cache flush/alignment interfaces
- * $Id: cache.h,v 1.1 2019-08-14 09:37:00 zhenglv Exp $
+ * @(#)cache.S: RISCV cache flush implementation
+ * $Id: cache.S,v 1.279 2024-05-30 14:01:30 zhenglv Exp $
  */
 
-#ifndef __CACHE_RISCV_H_INCLUDE__
-#define __CACHE_RISCV_H_INCLUDE__
+#include <target/linkage.h>
 
-/* This file includes architecture specific cache alignment/flush primitive
- * implementations which should be SMP specific.
+	.macro dcache_by_line_op op, kaddr, size, tmp1
+	add     \tmp1, \kaddr, \size
+	j       2f
+1:
+	cbo.\op (\kaddr)
+	add     \kaddr, \kaddr, 64
+2:
+	blt     \kaddr, \tmp1, 1b
+
+	.endm
+
+
+/* __flush_dcache_area(addr, size)
+ * Ensure that any D-cache lines for the interval [addr, addr+size)
+ * are cleaned and invalidated to the PoC.
+ * - addr    - address
+ * - size    - size in question
  */
+ENTRY(__flush_dcache_area)
+	dcache_by_line_op flush, a0, a1, t0
+	ret
+ENDPROC(__flush_dcache_area)
 
-/* Locate real machine specific SMP cache alignments */
-#include <asm/mach/cache.h>
+/* __clean_dcache_area(addr, size)
+ * Ensure that any D-cache lines for the interval [addr, addr+size)
+ * are cleaned to the PoC.
+ * - addr    - address
+ * - size    - size in question
+ */
+ENTRY(__clean_dcache_area)
+	dcache_by_line_op clean, a0, a1, t0
+	ret
+ENDPROC(__clean_dcache_area)
 
-#ifndef __SMP_CACHE_SHIFT
-#define __SMP_CACHE_SHIFT	6
-#endif
-#define __SMP_CACHE_BYTES	(1 << __SMP_CACHE_SHIFT)
+/* __inval_dcache_area(addr, size)
+ * Ensure that any D-cache lines for the interval [addr, addr+size)
+ * are invalidated to the PoC.
+ * - addr    - address
+ * - size    - size in question
+ */
+ENTRY(__inval_dcache_area)
+	dcache_by_line_op inval, a0, a1, t0
+	ret
+ENDPROC(__inval_dcache_area)
 
-#ifndef __ASSEMBLY__
-#define fence_i()				\
-	asm volatile("fence.i" : : : "memory")
+ENTRY(__flush_dcache_addr)
+	li    a1, 64
+	dcache_by_line_op flush, a0, a1, t0
+	ret
+ENDPROC(__flush_dcache_addr)
 
-#ifdef CONFIG_RISCV_ZICBOM
-void __flush_dcache_area(void *addr, size_t size);
-void __clean_dcache_area(void *addr, size_t size);
-void __inval_dcache_area(void *addr, size_t size);
-void __flush_dcache_addr(void *addr);
-void __clean_dcache_addr(void *addr);
-void __inval_dcache_addr(void *addr);
-#else
-#define __flush_dcache_area(addr, size)		do { } while (0)
-#define __clean_dcache_area(addr, size)	do { } while (0)
-#define __inval_dcache_area(addr, size)	do { } while (0)
+ENTRY(__clean_dcache_addr)
+	li    a1, 64
+	dcache_by_line_op clean, a0, a1, t0
+	ret
+ENDPROC(__clean_dcache_addr)
 
-#define __flush_dcache_addr(addr)		do { } while (0)
-#define __clean_dcache_addr(addr)		do { } while (0)
-#define __inval_dcache_addr(addr)		do { } while (0)
-#endif
-#define local_flush_icache_all()		fence_i()
-void flush_icache_all(void);
-#endif
-
-#endif /* __CACHE_RISCV_H_INCLUDE__ */
+ENTRY(__inval_dcache_addr)
+	li    a1, 64
+	dcache_by_line_op inval, a0, a1, t0
+	ret
+ENDPROC(__inval_dcache_addr)
