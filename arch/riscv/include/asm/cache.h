@@ -58,14 +58,23 @@
 #define fence_i()				\
 	asm volatile("fence.i" : : : "memory")
 
+#ifdef CONFIG_RISCV_ZICBOM
+void __flush_dcache_area(void *addr, size_t size);
+void __clean_dcache_area(void *addr, size_t size);
+void __inval_dcache_area(void *addr, size_t size);
+void __flush_dcache_addr(void *addr);
+void __clean_dcache_addr(void *addr);
+void __inval_dcache_addr(void *addr);
+#else
 #define __flush_dcache_area(addr, size)		do { } while (0)
-#define __clean_dcache_area_poc(addr, size)	do { } while (0)
-#define __inval_dcache_area_poc(addr, size)	do { } while (0)
-#define local_flush_icache_all()		fence_i()
+#define __clean_dcache_area(addr, size)	do { } while (0)
+#define __inval_dcache_area(addr, size)	do { } while (0)
 
 #define __flush_dcache_addr(addr)		do { } while (0)
 #define __clean_dcache_addr(addr)		do { } while (0)
 #define __inval_dcache_addr(addr)		do { } while (0)
+#endif
+#define local_flush_icache_all()		fence_i()
 void flush_icache_all(void);
 #endif
 
