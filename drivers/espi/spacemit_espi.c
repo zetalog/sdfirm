@@ -42,44 +42,45 @@
 #include <target/barrier.h>
 #include <target/irq.h>
 #include <target/stream.h>
+#include <target/cmdline.h>
 
 #include <driver/espi.h>
 #include <driver/espi_protocol.h>
 #include <driver/spacemit_espi.h>
 
-static uint32_t espi_read32(unsigned int reg)
+static uint32_t espi_read32(unsigned long reg)
 {
 	return __raw_readl(reg);
 }
 
-static void espi_write32(unsigned int reg, uint32_t val)
+static void espi_write32(uint32_t val, unsigned long reg)
 {
 	__raw_writel(val, reg);
 }
 
-static uint16_t espi_read16(unsigned int reg)
+static uint16_t espi_read16(unsigned long reg)
 {
 	return __raw_readw(reg);
 }
 
-static void espi_write16(unsigned int reg, uint16_t val)
+static void espi_write16(uint16_t val, unsigned long reg)
 {
 	__raw_writew(val, reg);
 }
 
-static uint8_t espi_read8(unsigned int reg)
+static uint8_t espi_read8(unsigned long reg)
 {
 	return __raw_readb(reg);
 }
 
-static void espi_write8(unsigned int reg, uint8_t val)
+static void espi_write8(uint8_t val, unsigned long reg)
 {
 	__raw_writeb(val, reg);
 }
 
 static inline void espi_clear_upcmd_status(void)
 {
-	espi_write32(ESPI_UP_RXHDR_0, UP_RXHDR_0_UPCMD_STATUS);
+	espi_write32(UP_RXHDR_0_UPCMD_STATUS, ESPI_UP_RXHDR_0);
 }
 
 static inline enum espi_upcmd_type espi_get_upcmd_type(void)
@@ -243,7 +244,7 @@ static void espi_enable_decode(uint32_t decode_en)
 
 	val = espi_read32(ESPI_DECODE);
 	val |= decode_en;
-	espi_write32(ESPI_DECODE, val);
+	espi_write32(val, ESPI_DECODE);
 }
 
 static bool espi_is_decode_enabled(uint32_t decode)
@@ -286,15 +287,15 @@ static void espi_clear_decodes(void)
 	unsigned int idx;
 
 	/* First turn off all enable bits, then zero base, range, and size registers */
-	espi_write16(ESPI_DECODE, (espi_read16(ESPI_DECODE) & ESPI_DECODE_IO_0x80_EN));
+	espi_write16((espi_read16(ESPI_DECODE) & ESPI_DECODE_IO_0x80_EN), ESPI_DECODE);
 
 	for (idx = 0; idx < ESPI_GENERIC_IO_WIN_COUNT; idx++) {
-		espi_write16(espi_io_range_base_reg(idx), 0);
-		espi_write8(espi_io_range_size_reg(idx), 0);
+		espi_write16(0, espi_io_range_base_reg(idx));
+		espi_write8(0, espi_io_range_size_reg(idx));
 	}
 	for (idx = 0; idx < ESPI_GENERIC_MMIO_WIN_COUNT; idx++) {
-		espi_write32(espi_mmio_range_base_reg(idx), 0);
-		espi_write16(espi_mmio_range_size_reg(idx), 0);
+		espi_write32(0, espi_mmio_range_base_reg(idx));
+		espi_write16(0, espi_mmio_range_size_reg(idx));
 	}
 }
 
@@ -331,8 +332,8 @@ static size_t espi_get_io_window_size(int idx)
 
 static void espi_write_io_window(int idx, uint16_t base, size_t size)
 {
-	espi_write16(espi_io_range_base_reg(idx), base);
-	espi_write8(espi_io_range_size_reg(idx), size - 1);
+	espi_write16(base, espi_io_range_base_reg(idx));
+	espi_write8(size - 1, espi_io_range_size_reg(idx));
 }
 
 static int espi_open_generic_io_window(uint16_t base, size_t size)
@@ -423,8 +424,8 @@ static size_t espi_get_mmio_window_size(int idx)
 
 static void espi_write_mmio_window(int idx, uint32_t base, size_t size)
 {
-	espi_write32(espi_mmio_range_base_reg(idx), base);
-	espi_write16(espi_mmio_range_size_reg(idx), size - 1);
+	espi_write32(base, espi_mmio_range_base_reg(idx));
+	espi_write16(size - 1, espi_mmio_range_size_reg(idx));
 }
 
 int espi_open_mmio_window(uint32_t base, size_t size)
@@ -566,7 +567,7 @@ static void espi_clear_status(void)
 {
 	uint32_t status = espi_read32(ESPI_SLAVE0_INT_STS);
 	if (status)
-		espi_write32(ESPI_SLAVE0_INT_STS, status);
+		espi_write32(status, ESPI_SLAVE0_INT_STS);
 }
 
 /*
@@ -611,12 +612,12 @@ static int espi_send_command(const struct espi_cmd *cmd)
 
 	espi_clear_status();
 
-	espi_write32(ESPI_DN_TXHDR_1, cmd->hdr1.val);
-	espi_write32(ESPI_DN_TXHDR_2, cmd->hdr2.val);
-	espi_write32(ESPI_DN_TXDATA_PORT, cmd->data.val);
+	espi_write32(cmd->hdr1.val, ESPI_DN_TXHDR_1);
+	espi_write32(cmd->hdr2.val, ESPI_DN_TXHDR_2);
+	espi_write32(cmd->data.val, ESPI_DN_TXDATA_PORT);
 
 	/* Dword 0 must be last as this write triggers the transaction */
-	espi_write32(ESPI_DN_TXHDR_0, cmd->hdr0.val);
+	espi_write32(cmd->hdr0.val, ESPI_DN_TXHDR_0);
 
 	if (espi_wait_ready() != 0) {
 		espi_show_failure(cmd,
@@ -642,7 +643,7 @@ static int espi_send_command(const struct espi_cmd *cmd)
 		return -1;
 	}
 
-	espi_write32(ESPI_SLAVE0_INT_STS, status);
+	espi_write32(status, ESPI_SLAVE0_INT_STS);
 
 	return 0;
 }
@@ -896,7 +897,7 @@ static int espi_set_general_configuration(const struct espi_config *mb_cfg,
 	if (espi_set_configuration(ESPI_SLAVE_GENERAL_CFG, slave_config) != 0)
 		return -1;
 
-	espi_write32(ESPI_SLAVE0_CONFIG, ctrlr_config);
+	espi_write32(ctrlr_config, ESPI_SLAVE0_CONFIG);
 	return 0;
 }
 
@@ -924,7 +925,7 @@ static void espi_enable_ctrlr_channel(uint32_t channel_en)
 
 	reg |= channel_en;
 
-	espi_write32(ESPI_SLAVE0_CONFIG, reg);
+	espi_write32(reg, ESPI_SLAVE0_CONFIG);
 }
 
 static int espi_set_channel_configuration(uint32_t slave_config,
@@ -1006,6 +1007,20 @@ static int espi_setup_periph_channel(const struct espi_config *mb_cfg,
 					      ESPI_PERIPH_CH_EN);
 }
 
+static int espi_setup_pr_base_addr_mem0(uint32_t base)
+{
+	espi_write32(base, ESPI_PR_BASE_ADDR_MEM0);
+
+	return 0;
+}
+
+static int espi_setup_pr_base_addr_mem1(uint32_t base)
+{
+	espi_write32(base, ESPI_PR_BASE_ADDR_MEM1);
+
+	return 0;
+}
+
 static int espi_setup_oob_channel(const struct espi_config *mb_cfg, uint32_t slave_caps)
 {
 	uint32_t slave_config;
@@ -1072,7 +1087,7 @@ static int espi_set_initial_config(const struct espi_config *mb_cfg)
 		return -1;
 	}
 
-	espi_write32(ESPI_SLAVE0_CONFIG, espi_initial_mode);
+	espi_write32(espi_initial_mode, ESPI_SLAVE0_CONFIG);
 	return 0;
 }
 
@@ -1092,30 +1107,31 @@ static void espi_setup_subtractive_decode(const struct espi_config *mb_cfg)
 
 static void espi_enable_all_irqs(void)
 {
-	espi_write32(ESPI_SLAVE0_INT_EN, SLAVE0_CONFIG_FLASH_REQ_INT_EN |
-					 SLAVE0_INT_EN_RXOOB_INT_EN |
-					 SLAVE0_INT_EN_RXMSG_INT_EN |
-					 SLAVE0_INT_EN_DNCMD_INT_EN |
-					 SLAVE0_INT_EN_RXVW_GPR3_INT_EN |
-					 SLAVE0_INT_EN_RXVW_GPR2_INT_EN |
-					 SLAVE0_INT_EN_RXVW_GPR1_INT_EN |
-					 SLAVE0_INT_EN_RXVW_GPR0_INT_EN |
-					 SLAVE0_INT_EN_PR_INT_EN |
-					 SLAVE0_INT_EN_PROTOCOL_ERR_INT_EN |
-					 SLAVE0_INT_EN_RXFLASH_OFLOW_INT_EN |
-					 SLAVE0_INT_EN_RXMSG_OFLOW_INT_EN |
-					 SLAVE0_INT_EN_RXOOB_OFLOW_INT_EN |
-					 SLAVE0_INT_EN_ILLEGAL_LEN_INT_EN |
-					 SLAVE0_INT_EN_ILLEGAL_TAG_INT_EN |
-					 SLAVE0_INT_EN_UNSUCSS_CPL_INT_EN |
-					 SLAVE0_INT_EN_INVALID_CT_RSP_INT_EN |
-					 SLAVE0_INT_EN_INVALID_ID_RSP_INT_EN |
-					 SLAVE0_INT_EN_NON_FATAL_INT_EN |
-					 SLAVE0_INT_EN_FATAL_ERR_INT_EN |
-					 SLAVE0_INT_EN_NO_RSP_INT_EN |
-					 SLAVE0_INT_EN_CRC_ERR_INT_EN |
-					 SLAVE0_INT_EN_WAIT_TIMEOUT_INT_EN |
-					 SLAVE0_INT_EN_BUS_ERR_INT_EN
+	espi_write32(SLAVE0_CONFIG_FLASH_REQ_INT_EN |
+		     SLAVE0_INT_EN_RXOOB_INT_EN |
+		     SLAVE0_INT_EN_RXMSG_INT_EN |
+		     SLAVE0_INT_EN_DNCMD_INT_EN |
+		     SLAVE0_INT_EN_RXVW_GPR3_INT_EN |
+		     SLAVE0_INT_EN_RXVW_GPR2_INT_EN |
+		     SLAVE0_INT_EN_RXVW_GPR1_INT_EN |
+		     SLAVE0_INT_EN_RXVW_GPR0_INT_EN |
+		     SLAVE0_INT_EN_PR_INT_EN |
+		     SLAVE0_INT_EN_PROTOCOL_ERR_INT_EN |
+		     SLAVE0_INT_EN_RXFLASH_OFLOW_INT_EN |
+		     SLAVE0_INT_EN_RXMSG_OFLOW_INT_EN |
+		     SLAVE0_INT_EN_RXOOB_OFLOW_INT_EN |
+		     SLAVE0_INT_EN_ILLEGAL_LEN_INT_EN |
+		     SLAVE0_INT_EN_ILLEGAL_TAG_INT_EN |
+		     SLAVE0_INT_EN_UNSUCSS_CPL_INT_EN |
+		     SLAVE0_INT_EN_INVALID_CT_RSP_INT_EN |
+		     SLAVE0_INT_EN_INVALID_ID_RSP_INT_EN |
+		     SLAVE0_INT_EN_NON_FATAL_INT_EN |
+		     SLAVE0_INT_EN_FATAL_ERR_INT_EN |
+		     SLAVE0_INT_EN_NO_RSP_INT_EN |
+		     SLAVE0_INT_EN_CRC_ERR_INT_EN |
+		     SLAVE0_INT_EN_WAIT_TIMEOUT_INT_EN |
+		     SLAVE0_INT_EN_BUS_ERR_INT_EN,
+		ESPI_SLAVE0_INT_EN
 	);
 }
 
@@ -1138,9 +1154,9 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 
 	printf("Initializing eSPI.\n");
 
-	espi_write32(ESPI_GLOBAL_CONTROL_0, GLOBAL_CONTROL_0_MST_STOP_EN);
-//	espi_write32(ESPI_GLOBAL_CONTROL_1, ESPI_RGCMD_INT(23) | ESPI_ERR_INT_SMI);
-	espi_write32(ESPI_SLAVE0_INT_EN, 0);
+	espi_write32(GLOBAL_CONTROL_0_MST_STOP_EN, ESPI_GLOBAL_CONTROL_0);
+//	espi_write32(ESPI_RGCMD_INT(23) | ESPI_ERR_INT_SMI, ESPI_GLOBAL_CONTROL_1);
+	espi_write32(0, ESPI_SLAVE0_INT_EN);
 	espi_clear_status();
 	espi_clear_decodes();
 
@@ -1188,7 +1204,7 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 	 * Setup polarity before enabling the VW channel so any interrupts
 	 * received will have the correct polarity.
 	 */
-	espi_write32(ESPI_SLAVE0_VW_POLARITY, cfg->vw_irq_polarity);
+	espi_write32(cfg->vw_irq_polarity, ESPI_SLAVE0_VW_POLARITY);
 
 	/*
 	 * Boot Sequences: Steps 6 - 9
@@ -1217,6 +1233,16 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 		return -1;
 	}
 
+	if (espi_setup_pr_base_addr_mem0(SPACEMIT_ESPI_PR_MEM0)) {
+		printf("Setup Periph channel mem0 failed!\n");
+		return -1;
+	}
+
+	if (espi_setup_pr_base_addr_mem1(SPACEMIT_ESPI_PR_MEM1)) {
+		printf("Setup Periph channel mem1 failed!\n");
+		return -1;
+	}
+
 	if (espi_setup_oob_channel(cfg, slave_caps) != 0) {
 		printf("Setup OOB channel failed!\n");
 		return -1;
@@ -1240,7 +1266,7 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 //
 //	ctrl |= ESPI_ALERT_ENABLE;
 //
-//	espi_write32(ESPI_GLOBAL_CONTROL_1, ctrl);
+//	espi_write32(ctrl, ESPI_GLOBAL_CONTROL_1);
 
 	espi_irq_init();
 
@@ -1262,18 +1288,18 @@ int espi_send_vw(uint8_t *ids, uint8_t *data, int num)
 	for (i = 0; i < num; i++) {
 		val |= ids[i] << ((i % 4) << 1) | data[i] << (((i % 4) << 1) + 1);
 		if ((i % 2) == 1) {
-			espi_write32(ESPI_DN_TXDATA_PORT, val);
+			espi_write32(val, ESPI_DN_TXDATA_PORT);
 			val = 0;
 		}
 	}
 
-	if ((i % 2) == 1) {
-		espi_write32(ESPI_DN_TXDATA_PORT, val);
+	if ((i % 2) == 0) {
+		espi_write32(val, ESPI_DN_TXDATA_PORT);
 	}
 
-	espi_write32(ESPI_DN_TXHDR_0, DN_TXHDR_0_DNCMD_TYPE(CMD_TYPE_VW) |
+	espi_write32(DN_TXHDR_0_DNCMD_TYPE(CMD_TYPE_VW) |
 		DN_TXHDR_0_DNCMD_EN | DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL(0) |
-		DN_TXHDR_0_DNCMD_HDATA0(num));
+		DN_TXHDR_0_DNCMD_HDATA0(num), ESPI_DN_TXHDR_0);
 
 	if (espi_wait_ready() != 0) {
 		return -1;
@@ -1305,20 +1331,20 @@ int espi_send_oob_smbus(uint8_t *buf, int len)
 
 	uint32_t val = *(uint32_t *)buf | 0x00FFFFFFU;
 
-	espi_write32(ESPI_DN_TXHDR_1, val);
+	espi_write32(val, ESPI_DN_TXHDR_1);
 
 	memset(&data, 0, 64);
 	memcpy(&data, &buf[3], len - 3);
 
 	for (int i = 0; i < (len - 3 + 3) / 4; i++) {
-		espi_write32(ESPI_DN_TXDATA_PORT, data[i]);
+		espi_write32(data[i], ESPI_DN_TXDATA_PORT);
 	}
 
-	espi_write32(ESPI_DN_TXHDR_0, DN_TXHDR_0_DNCMD_TYPE(CMD_TYPE_OOB) |
+	espi_write32(DN_TXHDR_0_DNCMD_TYPE(CMD_TYPE_OOB) |
 		DN_TXHDR_0_DNCMD_EN | DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL(0) |
 		DN_TXHDR_0_DNCMD_HDATA0(ESPI_CYCLE_TYPE_OOB_MESSAGE) |
 		DN_TXHDR_0_DNCMD_HDATA1(ESPI_TAG_LEN_FIELD(0, len)) |
-		DN_TXHDR_0_DNCMD_HDATA2(len & 0xFFU));
+		DN_TXHDR_0_DNCMD_HDATA2(len & 0xFFU), ESPI_DN_TXHDR_0);
 
 	if (espi_wait_ready() != 0) {
 		return -1;
@@ -1339,3 +1365,135 @@ int espi_send_oob_smbus(uint8_t *buf, int len)
 
 	return 0;
 }
+
+static int do_espi_read(int argc, char *argv[])
+{
+	caddr_t addr;
+
+	if (argc < 3) 
+		return -EINVAL;
+
+	if (strcmp(argv[2], "fw") == 0) {
+		if (argc < 4) 
+			return -EINVAL;
+		addr = (caddr_t)(uint16_t)strtoull(argv[4], 0, 0);
+		if (strcmp(argv[3], "1"))
+			return espi_read8(addr);
+		else if (strcmp(argv[3], "2"))
+			return espi_read16(addr);
+		else if (strcmp(argv[3], "4"))
+			return espi_read32(addr);
+		return -EINVAL;
+	} else {
+		addr = (caddr_t)(uint16_t)strtoull(argv[3], 0, 0);
+		if (strcmp(argv[2], "io") == 0)
+			return espi_read8(addr);
+		else if (strcmp(argv[2], "mem") == 0)
+			return espi_read8(addr);
+	}
+	return -EINVAL;
+}
+
+static int do_espi_write(int argc, char *argv[])
+{
+	caddr_t addr;
+
+	if (argc < 5)
+		return -EINVAL;
+	if (strcmp(argv[2], "fw") == 0) {
+		uint32_t v;
+		int size;
+		if (argc < 6) 
+			return -EINVAL;
+		size = (uint32_t)strtoull(argv[3], 0, 0);
+		v = (uint32_t)strtoull(argv[4], 0, 0);
+		addr = (caddr_t)strtoull(argv[5], 0, 0);
+		if (size == 1)
+			espi_write8(v, addr);
+		else if (size == 2)
+			espi_write16(v, addr);
+		else if (size == 4)
+			espi_write32(v, addr);
+		else
+			return -EINVAL;
+		return 0;
+	} else {
+		uint8_t v;
+
+		v = (uint32_t)strtoull(argv[3], 0, 0);
+		addr = (caddr_t)strtoull(argv[4], 0, 0);
+		if (strcmp(argv[2], "io") == 0)
+			espi_write8(v, addr);
+		else if (strcmp(argv[2], "mem") == 0)
+			espi_write8(v, addr);
+		else
+			return -EINVAL;
+		return 0;
+	}
+	return -EINVAL;
+}
+
+static int do_espi_send(int argc, char *argv[])
+{
+	if (argc < 5)
+		return -EINVAL;
+	if (strcmp(argv[2], "vw") == 0) {
+		int idx = (uint32_t)strtoull(argv[3], 0, 0);
+		int val = (uint32_t)strtoull(argv[4], 0, 0);
+		espi_send_vw((uint8_t *)&idx, (uint8_t *)&val, 1);
+	} else if (strcmp(argv[2], "oob") == 0) {
+		long val = (uint32_t)strtoull(argv[3], 0, 0);
+		int len = (uint32_t)strtoull(argv[4], 0, 0);
+		if (len > 8)
+			return -EINVAL;
+		espi_send_oob_smbus((uint8_t *)&val, len);
+	}
+
+	return 0;
+}
+
+static int do_espi(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+	if (strcmp(argv[1], "read") == 0)
+		return do_espi_read(argc, argv);
+	else if (strcmp(argv[1], "write") == 0)
+		return do_espi_write(argc, argv);
+//	else if (strcmp(argv[1], "irq") == 0)
+//		return do_espi_irq(argc, argv);
+//	else if (strcmp(argv[1], "serirq") == 0)
+//		return do_espi_serirq(argc, argv);
+//	else if (strcmp(argv[1], "trans") == 0)
+//		return do_espi_trans(argc, argv);
+	else if (strcmp(argv[1], "send") == 0)
+		return do_espi_send(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(espi, do_espi, "SpacemiT eSPI commands",
+	"espi read io\n"
+	"espi read mem\n"
+	"espi read fw [1|2|4]\n"
+	"    -eSPI read sequence\n"
+	"espi write io value\n"
+	"espi write mem value\n"
+	"espi write fw value [1|2|4]\n"
+	"    -eSPI write sequence\n"
+	"espi trans address0 address1 cycle [0|1]\n"
+	"    -config eSPI address translation\n"
+	"espi irq mask irq\n"
+	"espi irq unmask irq\n"
+	"espi irq clear irq\n"
+	"espi irq get irq\n"
+	"    -eSPI control IRQs\n"
+	"espi serirq mask slot\n"
+	"espi serirq unmask slot\n"
+	"espi serirq clear slot\n"
+	"espi serirq get slot\n"
+	"    -eSPI control SERIRQs\n"
+	"espi serirq config slot idle start mode\n"
+	"    -eSPI configure SERIRQs\n"
+	"espi send vw\n"
+	"espi send oob\n"
+);
