@@ -1135,9 +1135,44 @@ static void espi_enable_all_irqs(void)
 	);
 }
 
+void (*rxvw_gpio_callback)(int group, uint8_t rxvw_data);
+
 void espi_handle_irq(irq_t irq)
 {
+	int int_sts;
+	uint8_t rxvw_data;
 
+	int_sts = espi_read32(ESPI_SLAVE0_INT_STS);
+
+	espi_write32(int_sts, ESPI_SLAVE0_INT_STS);
+
+	switch (int_sts) {
+	case SLAVE0_INT_STS_RXVW_GRP0_INT:
+		rxvw_data = espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFFU;
+		rxvw_gpio_callback(128, rxvw_data);
+		break;
+	case SLAVE0_INT_STS_RXVW_GRP1_INT:
+		rxvw_data = (espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF00U) >> 8;
+		rxvw_gpio_callback(129, rxvw_data);
+		break;
+	case SLAVE0_INT_STS_RXVW_GRP2_INT:
+		rxvw_data = (espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF0000U) >> 8;
+		rxvw_gpio_callback(130, rxvw_data);
+		break;
+	case SLAVE0_INT_STS_RXVW_GRP3_INT:
+		rxvw_data = (espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF000000U) >> 8;
+		rxvw_gpio_callback(131, rxvw_data);
+		break;
+
+	default:
+		printf("espi irq error\n");		
+		break;
+	}
+}
+
+void espi_register_rxvw_gpio(void *callback)
+{
+	rxvw_gpio_callback = callback;
 }
 
 static void espi_irq_init(void)
@@ -1460,12 +1495,6 @@ static int do_espi(int argc, char *argv[])
 		return do_espi_read(argc, argv);
 	else if (strcmp(argv[1], "write") == 0)
 		return do_espi_write(argc, argv);
-//	else if (strcmp(argv[1], "irq") == 0)
-//		return do_espi_irq(argc, argv);
-//	else if (strcmp(argv[1], "serirq") == 0)
-//		return do_espi_serirq(argc, argv);
-//	else if (strcmp(argv[1], "trans") == 0)
-//		return do_espi_trans(argc, argv);
 	else if (strcmp(argv[1], "send") == 0)
 		return do_espi_send(argc, argv);
 	return -EINVAL;
@@ -1480,20 +1509,6 @@ DEFINE_COMMAND(espi, do_espi, "SpacemiT eSPI commands",
 	"espi write mem value\n"
 	"espi write fw value [1|2|4]\n"
 	"    -eSPI write sequence\n"
-	"espi trans address0 address1 cycle [0|1]\n"
-	"    -config eSPI address translation\n"
-	"espi irq mask irq\n"
-	"espi irq unmask irq\n"
-	"espi irq clear irq\n"
-	"espi irq get irq\n"
-	"    -eSPI control IRQs\n"
-	"espi serirq mask slot\n"
-	"espi serirq unmask slot\n"
-	"espi serirq clear slot\n"
-	"espi serirq get slot\n"
-	"    -eSPI control SERIRQs\n"
-	"espi serirq config slot idle start mode\n"
-	"    -eSPI configure SERIRQs\n"
 	"espi send vw\n"
 	"espi send oob\n"
 );
