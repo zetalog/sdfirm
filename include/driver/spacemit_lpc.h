@@ -179,6 +179,8 @@ static inline uint8_t lpc_io_read8(uint16_t a)
 			LPC_CFG);							\
 		__raw_writel((a), LPC_ADDR);						\
 		__raw_writel((v), LPC_WDATA);						\
+		__raw_setl(_BV(0), LPC_INT_MASK);					\
+		__raw_clearl(_BV(0), LPC_INT_STATUS);					\
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
 	} while (0)
 
