@@ -44,6 +44,7 @@
 #define __K1MATRIX_CRG_H_INCLUDE__
 
 #define CRG_BASE		__RMU_SYS_CRG_BASE
+#define SC_PLLTS12FFC_BASE(n)	CRG_REG(0x00C * (n))
 
 #include <driver/sc_pllts12ffclafrac2.h>
 

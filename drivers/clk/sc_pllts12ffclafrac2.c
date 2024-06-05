@@ -69,9 +69,9 @@ static void __sc_pllts12ffclafrac2_divide(int n, uint32_t Fvco, uint32_t Fout,
 	}
 	BUG();
 bst_exit:
-	if (*p_postdiv1)
+	if (p_postdiv1)
 		*p_postdiv1 = postdiv1;
-	if (*p_postdiv2)
+	if (p_postdiv2)
 		*p_postdiv2 = postdiv2;
 }
 
@@ -260,6 +260,12 @@ void sc_pllts12ffclafrac2_enable(int n, bool out_4phase,
 	__sc_pllts12ffclafrac2_divide(n, Fvco, Fout, &postdiv1, &postdiv2);
 	__sc_pllts12ffclafrac2_feedback(n, true, out_4phase, 20, 320, 10000000,
 					Fref, Fvco, &refdiv, &fbdiv, &frac);
+	__raw_writel(PLL_REFDIV(refdiv) | PLL_FBDIV(fbdiv) |
+		     PLL_POSTDIV1(postdiv1) | PLL_POSTDIV2(postdiv2),
+		     PLL_CFG1(n));
+	__raw_writel(PLL_FRAC(frac), PLL_CFG2(n));
+	__raw_writel(PLL_DACEN | PLL_DSMEN | PLL_PLLEN | PLL_FOUTPOSTDIVEN |
+		     out_4phase ? PLL_FOUTPHASEEN : 0, PLL_CTL(n));
 }
 
 uint32_t sc_pllts12ffclafrac2_recalc(int n, uint32_t Fref, uint32_t Fout)
@@ -293,6 +299,11 @@ void sc_pllts12ffclafrac2_enable(int n, bool out_4phase,
 	__sc_pllts12ffclafrac2_divide(n, Fvco, Fout, &postdiv1, &postdiv2);
 	__sc_pllts12ffclafrac2_feedback(n, false, out_4phase, 16, 640, 5000000,
 					Fref, Fvco, &refdiv, &fbdiv, NULL);
+	__raw_writel(PLL_REFDIV(refdiv) | PLL_FBDIV(fbdiv) |
+		     PLL_POSTDIV1(postdiv1) | PLL_POSTDIV2(postdiv2),
+		     PLL_CFG1(n));
+	__raw_writel(PLL_PLLEN | PLL_FOUTPOSTDIVEN |
+		     out_4phase ? PLL_FOUTPHASEEN : 0, PLL_CTL(n));
 }
 
 uint32_t sc_pllts12ffclafrac2_recalc(int n, uint32_t Fref, uint32_t Fout)
