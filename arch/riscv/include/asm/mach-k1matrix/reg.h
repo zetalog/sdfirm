@@ -223,6 +223,8 @@ extern unsigned long k1matrix_die_base;
 #define CLINT_BASE			__RMU_CLINT_BASE
 #define UART0_BASE			__RMU_UART0_BASE
 #define SPACEMIT_LPC_BASE		__RMU_LPC_CFG_BASE
+#define CORELPC_BASE                    __RMU_LPC_IO_BASE
+#define KCS_BASE                        __RMU_LPC_IO_BASE
 #else
 #endif
 #define N100_CFG_BASE			__N100_CFG_BASE

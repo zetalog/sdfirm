@@ -5,7 +5,9 @@
 #include <target/bh.h>
 #include <target/irq.h>
 
+#ifndef KCS_BASE
 #define KCS_BASE				0x0ca2
+#endif
 
 /* KCS Interface Registers
  * IPMI Spec 2.0 Figure 9-5
