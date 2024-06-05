@@ -266,6 +266,7 @@ void sc_pllts12ffclafrac2_enable(int n, bool out_4phase,
 	__raw_writel(PLL_FRAC(frac), PLL_CFG2(n));
 	__raw_writel(PLL_DACEN | PLL_DSMEN | PLL_PLLEN | PLL_FOUTPOSTDIVEN |
 		     out_4phase ? PLL_FOUTPHASEEN : 0, PLL_CTL(n));
+	while (!(__raw_readl(PLL_CTL(n)) & PLL_LOCK));
 }
 
 uint32_t sc_pllts12ffclafrac2_recalc(int n, uint32_t Fref, uint32_t Fout)
@@ -304,6 +305,7 @@ void sc_pllts12ffclafrac2_enable(int n, bool out_4phase,
 		     PLL_CFG1(n));
 	__raw_writel(PLL_PLLEN | PLL_FOUTPOSTDIVEN |
 		     out_4phase ? PLL_FOUTPHASEEN : 0, PLL_CTL(n));
+	while (!(__raw_readl(PLL_CTL(n)) & PLL_LOCK));
 }
 
 uint32_t sc_pllts12ffclafrac2_recalc(int n, uint32_t Fref, uint32_t Fout)
