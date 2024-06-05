@@ -97,6 +97,11 @@ void board_boot(void)
 #define board_boot()		do { } while (0)
 #endif
 
+void board_init_clock(void)
+{
+	k1matrix_clk_init();
+}
+
 void board_early_init(void)
 {
 	DEVICE_ARCH(DEVICE_ARCH_RISCV);

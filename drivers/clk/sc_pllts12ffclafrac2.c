@@ -1,4 +1,3 @@
-
 /*
  * ZETALOG's Personal COPYRIGHT
  *
@@ -43,19 +42,53 @@
 #include <target/clk.h>
 #include <target/panic.h>
 
-void __sc_pllts12ffclafrac2_enable(int n, bool fractional, bool out_4phase,
-				   uint16_t fbdiv_min, uint16_t fbdiv_max,
-				   uint32_t Fpdf_min,
-				   uint32_t Fref, uint32_t Fvco,
-				   uint8_t *p_frefdiv, uint16_t *p_fbdiv,
-				   uint32_t *p_frac)
+/* Calculate postdiv1/postdiv2 using predefined Fvco/Fout */
+static void __sc_pllts12ffclafrac2_divide(int n, uint32_t Fvco, uint32_t Fout,
+					  uint8_t *p_postdiv1,
+					  uint8_t *p_postdiv2)
+{
+	uint8_t div = Fvco / Fout;
+	uint8_t postdiv1, postdiv2;
+
+	if (Fvco == Fout) {
+		postdiv1 = 1;
+		postdiv2 = 1;
+		goto bst_exit;
+	}
+#ifdef CONFIG_SC_PLLTS12FFCLAFRAC2_PRESET
+	postdiv1 = pll_hw_postdiv1[n];
+	postdiv2 = pll_hw_postdiv2[n];
+	if ((postdiv1 * postdiv2) == div)
+		goto bst_exit;
+#endif
+	for (postdiv1 = 1; postdiv1 < 8; postdiv1++) {
+		for (postdiv2 = 1; postdiv2 < postdiv1; postdiv2++) {
+			if ((postdiv1 * postdiv2) == div)
+				goto bst_exit;
+		}
+	}
+	BUG();
+bst_exit:
+	if (*p_postdiv1)
+		*p_postdiv1 = postdiv1;
+	if (*p_postdiv2)
+		*p_postdiv2 = postdiv2;
+}
+
+/* Calculate refdiv/fbdiv/frac using predefined Fvco */
+static void __sc_pllts12ffclafrac2_feedback(int n, bool fractional, bool out_4phase,
+					    uint16_t fbdiv_min, uint16_t fbdiv_max,
+					    uint32_t Fpdf_min,
+					    uint32_t Fref, uint32_t Fvco,
+					    uint8_t *p_refdiv, uint16_t *p_fbdiv,
+					    uint32_t *p_frac)
 {
 	uint32_t Fpfd;
-	uint8_t frefdiv;
+	uint8_t refdiv;
 	uint32_t fbdiv;
 	uint32_t frac;
 
-	uint8_t bst_frefdiv = 1;
+	uint8_t bst_refdiv = 1;
 	uint32_t bst_fbdiv = 1;
 	uint32_t bst_frac = Fvco;
 	bool bst_saved;
@@ -63,29 +96,29 @@ void __sc_pllts12ffclafrac2_enable(int n, bool fractional, bool out_4phase,
 #ifdef CONFIG_SC_PLLTS12FFCLAFRAC2_PRESET
 	if (pll_hw_fvco[n] == Fvco) {
 		bst_fbdiv = pll_hw_fbdiv[n];
-		bst_frefdiv = pll_hw_frefdiv[n];
+		bst_refdiv = pll_hw_refdiv[n];
 		bst_frac = pll_hw_frac[n];
 		goto bst_exit;
 	}
 #endif
 	bst_saved = false;
-	frefdiv = 0;
+	refdiv = 0;
 	do {
 		do {
-			frefdiv++;
-			if (frefdiv == 64) {
+			refdiv++;
+			if (refdiv == 64) {
 				BUG_ON(!bst_saved);
 				goto bst_exit;
 			}
-			Fpfd = Fref / frefdiv;
+			Fpfd = Fref / refdiv;
 			if (Fpfd < Fpdf_min) {
 				BUG_ON(!bst_saved);
 				goto bst_exit;
 			}
-		} while (Fpfd > (Fvco / 16));
+		} while (Fpfd > (Fvco / fbdiv_min));
 		fbdiv = Fvco / Fpfd;
 		if (fbdiv < fbdiv_min) {
-			frefdiv++;
+			refdiv++;
 			continue;
 		}
 		if (fbdiv > fbdiv_max)
@@ -93,7 +126,7 @@ void __sc_pllts12ffclafrac2_enable(int n, bool fractional, bool out_4phase,
 		frac = Fvco - (Fpfd * fbdiv);
 		if (frac < bst_frac) {
 			bst_saved = true;
-			bst_frefdiv = frefdiv;
+			bst_refdiv = refdiv;
 			bst_fbdiv = fbdiv;
 			bst_frac = frac;
 		}
@@ -102,18 +135,100 @@ void __sc_pllts12ffclafrac2_enable(int n, bool fractional, bool out_4phase,
 	} while (true);
 bst_exit:
 	BUG_ON(fractional && (bst_frac >= (UL(1) << 24)));
-	frefdiv = bst_frefdiv;
+	refdiv = bst_refdiv;
 	fbdiv = bst_fbdiv;
 	frac = bst_frac;
-	con_log("pll(%d): Fref = %d, Fvco=%d, FREFDIV[5:0]=%d, FBDIV[11:0]=%d, FRAC[23:0]=%d\n",
-	        n, Fref, Fvco, frefdiv, fbdiv, fractional ? frac : 0);
-	if (p_frefdiv)
-		*p_frefdiv = frefdiv;
+	con_log("pll(%d): Fref = %d, Fvco=%d, REFDIV[5:0]=%d, FBDIV[11:0]=%d, FRAC[23:0]=%d\n",
+	        n, Fref, Fvco, refdiv, fbdiv, fractional ? frac : 0);
+	if (p_refdiv)
+		*p_refdiv = refdiv;
 	if (p_fbdiv)
 		*p_fbdiv = (uint16_t)fbdiv;
 	if (p_frac)
 		*p_frac = frac;
 }
+
+void sc_pllts12ffclafrac2_disable(int n)
+{
+}
+
+static bool mulof(uint32_t a, uint32_t b)
+{
+	return (UINT32_MAX / a) < b;
+}
+
+#ifdef CONFIG_SC_PLLTS12FFCLAFRAC2_POSTDIV
+/* Recalculate Fvco with respect to postdiv */
+uint32_t __sc_pllts12ffclafrac2_recalc(int n,
+				       uint16_t fbdiv_min, uint16_t fbdiv_max,
+				       uint32_t Fpdf_min,
+				       uint32_t Fref, uint32_t Fout)
+{
+	uint32_t Fpfd;
+	uint8_t refdiv;
+	uint32_t fbdiv;
+	uint32_t frac;
+	uint8_t postdiv1;
+	uint8_t postdiv2;
+	uint8_t postdiv;
+	uint32_t Fvco;
+
+	bool bst_saved = false;
+	uint32_t bst_frac = 3200000000;
+	uint8_t bst_postdiv = 1;
+
+	refdiv = 0;
+	for (postdiv1 = 1; postdiv1 < 8; postdiv1++) {
+		if (mulof(postdiv1, Fout))
+			break;
+		for (postdiv2 = 1; postdiv2 < postdiv1; postdiv2++) {
+			postdiv = postdiv1 * postdiv2;
+			if (mulof(postdiv, Fout))
+				break;
+			Fvco = Fout * postdiv;
+			do {
+				do {
+					refdiv++;
+					if (refdiv == 64)
+						goto nxt_post;
+					Fpfd = Fref / refdiv;
+					if (Fpfd < Fpdf_min)
+						goto nxt_post;
+				} while (Fpfd > (Fvco / fbdiv_min));
+				fbdiv = Fvco / Fpfd;
+				if (fbdiv < fbdiv_min) {
+					refdiv++;
+					continue;
+				}
+				if (fbdiv > fbdiv_max)
+					continue;
+				frac = Fvco - (Fpfd * fbdiv);
+				if (frac < bst_frac) {
+					bst_saved = true;
+					bst_frac = frac;
+					bst_postdiv = postdiv;
+				}
+				if (frac == 0)
+					goto bst_exit;
+			} while (true);
+nxt_post:
+		}
+	}
+	con_err("pll(%d): Failed to recalculate Fref = %d Fout = %d\n", n, Fref, Fout);
+	BUG();
+bst_exit:
+	BUG_ON(!bst_saved);
+	return Fout * bst_postdiv;
+}
+#else
+uint32_t __sc_pllts12ffclafrac2_recalc(int n,
+				       uint16_t fbdiv_min, uint16_t fbdiv_max,
+				       uint32_t Fpdf_min,
+				       uint32_t Fref, uint32_t Fout)
+{
+	return Fout;
+}
+#endif
 
 #ifdef CONFIG_SC_PLLTS12FFCLAFRAC2_FRAC
 /* Configure a PLL in Fractional Mode
@@ -132,14 +247,22 @@ bst_exit:
  * 1. Maximize POSTDIV1 prior than enabling POSTDIV2.
  */
 void sc_pllts12ffclafrac2_enable(int n, bool out_4phase,
-				 uint32_t Fref, uint32_t Fvco)
+				 uint32_t Fref, uint32_t Fvco, uint32_t Fout)
 {
-	uint8_t frefdiv;
+	uint8_t refdiv;
 	uint16_t fbdiv;
 	uint32_t frac;
+	uint8_t postdiv1;
+	uint8_t postdiv2;
 
-	__sc_pllts12ffclafrac2_enable(n, true, out_4phase, 20, 320, 10000000,
-				      Fref, Fvco, &frefdiv, &fbdiv, &frac);
+	__sc_pllts12ffclafrac2_divide(n, Fvco, Fout, &postdiv1, &postdiv2);
+	__sc_pllts12ffclafrac2_feedback(n, true, out_4phase, 20, 320, 10000000,
+					Fref, Fvco, &refdiv, &fbdiv, &frac);
+}
+
+uint32_t sc_pllts12ffclafrac2_recalc(int n, uint32_t Fref, uint32_t Fout)
+{
+	return __sc_pllts12ffclafrac2_recalc(n, 20, 320, 10000000, Fref, Fout);
 }
 #else
 /* Configure a PLL in Integer Mode
@@ -158,16 +281,20 @@ void sc_pllts12ffclafrac2_enable(int n, bool out_4phase,
  * 2. Maximize POSTDIV1 prior than enabling POSTDIV2.
  */
 void sc_pllts12ffclafrac2_enable(int n, bool out_4phase,
-				 uint32_t Fref, uint32_t Fvco)
+				 uint32_t Fref, uint32_t Fvco, uint32_t Fout)
 {
-	uint8_t frefdiv;
+	uint8_t refdiv;
 	uint16_t fbdiv;
+	uint8_t postdiv1;
+	uint8_t postdiv2;
 
-	__sc_pllts12ffclafrac2_enable(n, false, out_4phase, 16, 640, 5000000,
-				      Fref, Fvco, &frefdiv, &fbdiv, NULL);
+	__sc_pllts12ffclafrac2_divide(n, Fvco, Fout, &postdiv1, &postdiv2);
+	__sc_pllts12ffclafrac2_feedback(n, false, out_4phase, 16, 640, 5000000,
+					Fref, Fvco, &refdiv, &fbdiv, NULL);
+}
+
+uint32_t sc_pllts12ffclafrac2_recalc(int n, uint32_t Fref, uint32_t Fout)
+{
+	return __sc_pllts12ffclafrac2_recalc(n, 16, 640, 5000000, Fref, Fout);
 }
 #endif
-
-void sc_pllts12ffclafrac2_disable(int n)
-{
-}
