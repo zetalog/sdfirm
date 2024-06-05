@@ -84,7 +84,7 @@
 /* PLL_CFG2 */
 #define PLL_FRAC_OFFSET			0
 #define PLL_FRAC_MASK			REG_24BIT_MASK
-#define PLL_FRACE(value)		_SET_FV(PLL_FRAC, value)
+#define PLL_FRAC(value)			_SET_FV(PLL_FRAC, value)
 
 void sc_pllts12ffclafrac2_enable(int n, bool out_4phase,
 				 uint32_t Fref, uint32_t Fvco, uint32_t Fout);
