@@ -94,10 +94,12 @@ static void __enable_dyn(clk_clk_t pll)
 		crg_trace(true, get_dyn_name());
 		if (!(dyn_clks[pll].flags & CRG_FOUT1)) {
 			clk_enable(dyn_clks[pll].pll0);
-			clk_select_source(dyn_clks[pll].clksel, 1);
+			clk_select_source(dyn_clks[pll].clksel,
+					  dyn_clks[pll].pll0);
 		} else {
 			clk_enable(dyn_clks[pll].pll1);
-			clk_select_source(dyn_clks[pll].clksel, 2);
+			clk_select_source(dyn_clks[pll].clksel,
+					  dyn_clks[pll].pll1);
 		}
 		dyn_clks[pll].flags |= CRG_ENABLED;
 	}
@@ -115,7 +117,7 @@ static void disable_dyn(clk_clk_t pll)
 {
 	if (pll >= NR_DYN_CLKS)
 		return;
-	clk_select_source(dyn_clks[pll].clksel, 0);
+	clk_select_source(dyn_clks[pll].clksel, osc_clk);
 	dyn_clks[pll].flags &= ~CRG_ENABLED;
 }
 
@@ -123,10 +125,14 @@ static clk_freq_t get_dyn_freq(clk_clk_t pll)
 {
 	if (pll >= NR_DYN_CLKS)
 		return INVALID_FREQ;
-	if (!(dyn_clks[pll].flags & CRG_FOUT1))
-		return clk_get_frequency(dyn_clks[pll].pll0);
-	else
-		return clk_get_frequency(dyn_clks[pll].pll1);
+	if (!(dyn_clks[pll].flags & CRG_ENABLED))
+		return clk_get_frequency(osc_clk);
+	else {
+		if (!(dyn_clks[pll].flags & CRG_FOUT1))
+			return clk_get_frequency(dyn_clks[pll].pll0);
+		else
+			return clk_get_frequency(dyn_clks[pll].pll1);
+	}
 }
 
 static int set_dyn_freq(clk_clk_t pll, clk_freq_t freq)

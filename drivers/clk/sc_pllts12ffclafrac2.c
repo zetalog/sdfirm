@@ -186,6 +186,8 @@ uint32_t __sc_pllts12ffclafrac2_recalc(int n,
 			if (mulof(postdiv, Fout))
 				break;
 			Fvco = Fout * postdiv;
+			if (Fvco > 3200000000)
+				break;
 			do {
 				do {
 					refdiv++;
