@@ -147,6 +147,12 @@ config SC_PLLTS12FFCLAFRAC2_FRAC
 	  By default, the driver works in integer mode, enabling this to
 	  allow 24-bit fractional settings to be enabled.
 
+config SC_PLLTS12FFCLAFRAC2_POSTDIV
+	bool "Enable POSTDIV1/POSTDIV2 calculation support"
+	help
+	  By default, POSTDIV1 and POSTDIV2 are set to 1, enabling this to
+	  alllow choose the best fit POSTDIV values.
+
 config SC_PLLTS12FFCLAFRAC2_PRESET
 	bool "Enable preset settings support"
 	depends SIMULATION

@@ -43,8 +43,9 @@
 #define __CLK_K1MATRIX_H_INCLUDE__
 
 #include <target/arch.h>
+#include <asm/mach/crg.h>
 
-#ifdef CONFIG_K1MATRIX_CLK
+#ifdef CONFIG_K1MATRIX_CRG
 #ifndef ARCH_HAVE_CLK
 #define ARCH_HAVE_CLK		1
 #else
@@ -58,7 +59,25 @@
 #define FREQPLAN_RUN		0
 #define INVALID_FREQPLAN	(-1)
 
+#define osc_clk			clkid(CLK_INPUT, OSC_CLK)
+
+#define com_pll_foutpostdiv	clkid(CLK_PLL, COM_PLL)
+#define mesh_pll_foutpostdiv	clkid(CLK_PLL, MESH_PLL)
+#define peri_pll_foutpostdiv	clkid(CLK_PLL, PERI_PLL)
+#define ddr0_pll_foutpostdiv	clkid(CLK_PLL, DDR0_PLL)
+#define ddr1_pll_foutpostdiv	clkid(CLK_PLL, DDR1_PLL)
+#define cpu0_pll_foutpostdiv	clkid(CLK_PLL, CPU0_PLL)
+#define cpu1_pll_foutpostdiv	clkid(CLK_PLL, CPU1_PLL)
+
+#define ddr_clksel		clkid(CLK_SEL, DDR_CLKSEL)
+#define cpu_clksel		clkid(CLK_SEL, CPU_CLKSEL)
+
+#define ddr_clk			clkid(CLK_DYN, DDR_CLK)
+#define cpu_clk			clkid(CLK_DYN, CPU_CLK)
+
 #define clk_freq_t		uint64_t
 #define invalid_clk		clkid(0xFF, 0xFF)
+
+void clk_hw_ctrl_init(void);
 
 #endif /* __CLK_K1MATRIX_H_INCLUDE__ */

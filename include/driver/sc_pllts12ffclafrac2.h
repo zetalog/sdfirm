@@ -87,7 +87,8 @@
 #define PLL_FRACE(value)		_SET_FV(PLL_FRAC, value)
 
 void sc_pllts12ffclafrac2_enable(int n, bool out_4phase,
-				 uint32_t Fref, uint32_t Fout);
-void sc_pllts12ffclafrace_disable(int n);
+				 uint32_t Fref, uint32_t Fvco, uint32_t Fout);
+void sc_pllts12ffclafrac2_disable(int n);
+uint32_t sc_pllts12ffclafrac2_recalc(int n, uint32_t Fref, uint32_t Fout);
 
 #endif /* __SC_PLLTS12FFCLAFRAC2_H_INCLUDE__ */

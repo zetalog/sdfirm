@@ -99,11 +99,18 @@
 #endif /* __ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
 
 #ifndef __ASSEMBLY__
+void board_init_clock(void);
+
 #ifdef CONFIG_MMU
 void k1matrix_mmu_init(void);
 #else /* CONFIG_MMU */
 #define k1matrix_mmu_init()	do { } while (0)
 #endif /* CONFIG_MMU */
+#ifdef CONFIG_CLK
+void k1matrix_clk_init(void);
+#else /* CONFIG_CLK */
+#define k1matrix_clk_init()	do { } while (0)
+#endif /* CONFIG_CLK */
 #endif /* __ASSEMBLY__ */
 
 #endif /* __ARCH_K1MATRIX_H_INCLUDE__ */
