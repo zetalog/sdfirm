@@ -33,6 +33,7 @@
 #define SERIRQ_DEBUG				SPACEMIT_LPC_REG(0x44)
 #define LPC_MEM_CFG				SPACEMIT_LPC_REG(0x50)
 #define LPC_ERR_ADDR				SPACEMIT_LPC_REG(0x54)
+#define LPC_AXI_DEBUG				SPACEMIT_LPC_REG(0x58)
 
 /* 8.1 LPC_CFG */
 #define LPC_CFG_SERIRQ_EN			_BV(16)
@@ -65,7 +66,7 @@
 /* 8.5 LPC_INT_STATUS */
 /* 8.6 LPC_INT_RAW_STATUS */
 /* 8.7 LPC_INT_CLR */
-#define LPC_INT_SYNC_ERR			24
+#define LPC_INT_SYNC_ERR			_BV(24)
 #define LPC_INT_NO_SYNC				_BV(20)
 #define LPC_INT_LWAIT_TIMEOUT			_BV(16)
 #define LPC_INT_SWAIT_TIMEOUT			_BV(12)
@@ -157,6 +158,11 @@
 #define LPC_ERR_ADDR_REG_MASK			REG_32BIT_MASK
 #define LPC_ERR_ADDR_REG(value)			_SET_FV(LPC_ERR_ADDR_REG, value)
 
+/* 8.21 LPC_AXI_DEBUG */
+#define LPC_AXI_DEBUG_CURR_START_OFFSET		0
+#define LPC_AXI_DEBUG_CURR_START_MASK		REG_8BIT_MASK
+#define LPC_AXI_DEBUG_CURR_START(value)		_SET_FV(LPC_AXI_DEBUG_CURR_START, value)
+
 #define lpc_get_serirq_status()			(!!(__raw_readl(LPC_STATUS) & LPC_STATUS_SERIRQ_BUSY))
 #define lpc_get_lpc_status()			(!!(__raw_readl(LPC_STATUS) & LPC_STATUS_LPC_BUSY))
 
@@ -179,8 +185,8 @@ static inline uint8_t lpc_io_read8(uint16_t a)
 			LPC_CFG);							\
 		__raw_writel((a), LPC_ADDR);						\
 		__raw_writel((v), LPC_WDATA);						\
-		__raw_setl(_BV(0), LPC_INT_MASK);					\
-		__raw_clearl(_BV(0), LPC_INT_STATUS);					\
+		__raw_setl(LPC_INT_OP_DONE, LPC_INT_MASK);				\
+		__raw_setl(LPC_INT_OP_DONE, LPC_INT_CLR);				\
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
 	} while (0)
 
