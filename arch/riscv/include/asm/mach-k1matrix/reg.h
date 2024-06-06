@@ -250,7 +250,7 @@ extern unsigned long k1matrix_die_base;
 #ifdef CONFIG_K1MATRIX_DDR_SIZE_CUSTOM
 #define DRAM_SIZE		CONFIG_K1MATRIX_MEM_SIZE
 #else /* CONFIG_K1MATRIX_DDR_SIZE_CUSTOM */
-#define DRAM_SIZE		DDR_REGION0_SIZE
+#define DRAM_SIZE		__DRAM_SIZE
 #endif /* CONFIG_K1MATRIX_DDR_SIZE_CUSTOM */
 #ifdef CONFIG_K1MATRIX_ZSBL
 #define ROM_BASE		BROM_BASE
@@ -265,9 +265,9 @@ extern unsigned long k1matrix_die_base;
 #define RAM_SIZE		SRAM_SIZE
 #endif /* CONFIG_K1MATRIX_FSBL */
 #ifdef CONFIG_K1MATRIX_BBL
-#define ROM_BASE		__DDR_RESION0_BASE
+#define ROM_BASE		DDR_BASE
 #define ROM_SIZE		DRAM_SIZE
-#define RAM_BASE		__DDR_RESION0_BASE
+#define RAM_BASE		DDR_BASE
 #define RAM_SIZE		DRAM_SIZE
 #endif /* CONFIG_K1MATRIX_BBL */
 #ifdef CONFIG_K1MATRIX_TB
