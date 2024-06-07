@@ -172,7 +172,14 @@ struct div_clk {
 	uint16_t max_div;
 	uint8_t div;
 };
-
+const char *div_clk_names[NR_DIV_CLKS] = {
+    [CPU_NIC_CLKDIV] = "cpu_nic_clkdiv",
+    [CPU_HAP_CLKDIV] = "cpu_hap_clkdiv",
+    [PCIE_TOP_CFG_CLKDIV] = "pcie_top_cfg_clkdiv",
+    [PCIE_TOP_AUX_CLKDIV] = "pcie_top_aux_clkdiv",
+    [PCIE_BOT_CFG_CLKDIV] = "pcie_bot_cfg_clkdiv",
+    [PCIE_BOT_AUX_CLKDIV] = "pcie_bot_aux_clkdiv"
+};
 struct div_clk div_clks[] = {
 	[CPU_NIC_CLKDIV] = {
 		.reg = CPU_NIC_CLK_CTL,
@@ -184,20 +191,20 @@ struct div_clk div_clks[] = {
 		.max_div = 4,
 		.div = 2,
 	},
+	[PCIE_TOP_CFG_CLKDIV] = {
+		.reg = PCIE_TOP_CFGCLK_CTL,
+		.max_div = 8,
+		.div = 2,
+	},
 	[PCIE_TOP_AUX_CLKDIV] = {
 		.reg = PCIE_TOP_AUXCLK_CTL,
 		.max_div = 256,
 		.div = 64,
 	},
-	[PCIE_TOP_CFG_CLKDIV] = {
-		.reg = PCIE_TOP_CFGCLK_CTL,
-		.max_div = 256,
-		.div = 64,
-	},
 	[PCIE_BOT_CFG_CLKDIV] = {
 		.reg = PCIE_BOT_CFGCLK_CTL,
-		.max_div = 256,
-		.div = 64,
+		.max_div = 8,
+		.div = 2,
 	},
 	[PCIE_BOT_AUX_CLKDIV] = {
 		.reg = PCIE_BOT_AUXCLK_CTL,
@@ -207,14 +214,47 @@ struct div_clk div_clks[] = {
 
 };
 
+static clk_freq_t get_div_freq(clk_clk_t clk) {
+    if (clk >= NR_DIV_CLKS) {
+        return INVALID_FREQ;
+    }
+
+    clk_freq_t parent_freq = clk_get_frequency(div_clks[clk].reg);
+    if (parent_freq == INVALID_FREQ) {
+        return INVALID_FREQ;
+    }
+
+    return parent_freq / div_clks[clk].div;
+}
+
+static int set_div_freq(clk_clk_t clk, clk_freq_t freq) {
+    if (clk >= NR_DIV_CLKS) {
+        return -EINVAL;
+    }
+
+    clk_freq_t parent_freq = clk_get_frequency(div_clks[clk].reg);
+    if (parent_freq == INVALID_FREQ) {
+        return -EINVAL;
+    }
+
+    uint8_t new_div = parent_freq / freq;
+    if (new_div > div_clks[clk].max_div) {
+        return -EINVAL;
+    }
+
+    div_clks[clk].div = new_div;
+    __raw_writel_mask(CRG_CLKDIV0(new_div), CRG_CLKDIV0_MASK, div_clks[clk].reg);
+    return 0;
+}
+
 const struct clk_driver clk_div = {
-	.max_clocks = NR_SEL_CLKS,
-	.enable = NULL,
-	.disable = NULL,
-	.get_freq = get_sel_freq,
-	.set_freq = NULL,
-	.select = select_sel_source,
-	.get_name = get_sel_name,
+    .max_clocks = NR_DIV_CLKS,
+    .enable = NULL,
+    .disable = NULL,
+    .get_freq = get_div_freq,
+    .set_freq = set_div_freq,
+    .select = NULL,
+    .get_name = get_div_name,
 };
 
 struct sel_clk {
@@ -223,7 +263,11 @@ struct sel_clk {
 	uint8_t nr_clksels;
 	uint8_t sel;
 };
-
+clk_t mesh_sub_clksels[] = {
+	osc_clk,
+	mesh_pll_foutpostdiv,
+	com_pll_foutpostdiv,
+};
 clk_t ddr_sub_clksels[] = {
 	osc_clk,
 	ddr0_pll_foutpostdiv,
@@ -238,8 +282,7 @@ clk_t cpu_clksels[] = {
 
 clk_t cpu_nic_clksels[] = {
 	osc_clk,
-	cpu0_pll_foutpostdiv,
-	cpu1_pll_foutpostdiv,
+	com_pll_fout1ph0,
 };
 
 clk_t pcie_peri_xclksels[] = {
@@ -252,7 +295,18 @@ clk_t pcie_com_xclksels[] = {
 	com_pll_foutpostdiv,
 };
 
-struct sel_clk sel_clks[NR_SEL_CLKS] = {
+clk_t pcie_sub_clksels[] = {
+	osc_clk,
+	peri_pll_fout1ph0,
+};
+
+struct sel_clk sel_clks[] = {
+	[MESH_SUB_CLKSEL] = {
+		.reg = MESH_SUB_CLK_CTL,
+		.clksels = mesh_sub_clksels,
+		.nr_clksels = 3,
+		.sel = 0,
+	},
 	[DDR_SUB_CLKSEL] = {
 		.reg = DDR_SUB_CLK_CTL,
 		.clksels = ddr_sub_clksels,
@@ -263,6 +317,12 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 		.reg = CPU_CLK_CTL,
 		.clksels = cpu_clksels,
 		.nr_clksels = 3,
+		.sel = 0,
+	},
+	[CPU_NIC_CLKSEL] = {
+		.reg = CPU_NIC_CLK_CTL,
+		.clksels = cpu_nic_clksels,
+		.nr_clksels = 2,
 		.sel = 0,
 	},
 	[PCIE_TOP_CFG_CLKSEL] = {
@@ -279,7 +339,7 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 	},
 	[PCIE_TOP_XCLKSEL] = {
 		.clksels = pcie_peri_xclksels,
-		.reg = ,
+		//.reg = ,
 		.nr_clksels = 2,
 		.sel = 0,
 	},
@@ -297,12 +357,12 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 	},
 	[PCIE_BOT_XCLKSEL] = {
 		.clksels = pcie_peri_xclksels,
-		.reg = ,
+		//.reg = ,
 		.nr_clksels = 2,
 		.sel = 0,
 	},
 	[PCIE_SUB_CLKSEL] = {
-		.clksels = pcie_peri_xclksels,
+		.clksels = pcie_sub_clksels,
 		.reg = PCIE_BOT_AUXCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
@@ -311,11 +371,18 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 
 #ifdef CONFIG_CLK_MNEMONICS
 const char *sel_clk_names[NR_SEL_CLKS] = {
-	[MESH_SUB_CLKSEL] = "mesh_sub_clksel",
-	[DDR_SUB_CLKSEL] = "ddr_sub_clksel",
-	[CPU_CLKSEL] = "cpu_clksel",
+    [MESH_SUB_CLKSEL] = "mesh_sub_clksel",
+    [DDR_SUB_CLKSEL] = "ddr_sub_clksel",
+    [CPU_CLKSEL] = "cpu_clksel",
+    [CPU_NIC_CLKSEL] = "cpu_nic_clksel",
+    [PCIE_TOP_CFG_CLKSEL] = "pcie_top_cfg_clksel",
+    [PCIE_TOP_AUX_CLKSEL] = "pcie_top_aux_clksel",
+	[PCIE_TOP_XCLKSEL] = "pcie_top_xclksel",
+    [PCIE_BOT_CFG_CLKSEL] = "pcie_bot_cfg_clksel",
+    [PCIE_BOT_AUX_CLKSEL] = "pcie_bot_aux_clksel",
+	[PCIE_BOT_XCLKSEL] = "pcie_bot_xclksel",
+    [PCIE_SUB_CLKSEL] = "pcie_sub_clksel"
 };
-
 static const char *get_sel_name(clk_clk_t sel)
 {
 	if (sel >= NR_SEL_CLKS)
@@ -425,6 +492,8 @@ const char *pll_clk_names[NR_PLL_CLKS] = {
 	[DDR1_PLL] = "ddr1_pll_foutpostdiv",
 	[CPU0_PLL] = "cpu0_pll_foutpostdiv",
 	[CPU1_PLL] = "cpu1_pll_foutpostdiv",
+	[COM_FOUT1PH0] = "com_pll_fout1ph0",
+	[PERI_FOUT1PH0] = "peri_pll_fout1ph0"
 };
 
 const char *get_pll_name(clk_clk_t clk)
