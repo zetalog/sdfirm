@@ -68,15 +68,35 @@
 #define ddr1_pll_foutpostdiv	clkid(CLK_PLL, DDR1_PLL)
 #define cpu0_pll_foutpostdiv	clkid(CLK_PLL, CPU0_PLL)
 #define cpu1_pll_foutpostdiv	clkid(CLK_PLL, CPU1_PLL)
+#define com_pll_fout1ph0        clkid(CLK_PLL, COM_FOUT1PH0)
+#define peri_pll_fout1ph0       clkid(CLK_PLL, PERI_FOUT1PH0)
 
-#define ddr_sub_clksel		clkid(CLK_SEL, DDR_SUB_CLKSEL)
-#define cpu_clksel		clkid(CLK_SEL, CPU_CLKSEL)
+#define mesh_sub_clksel     clkid(CLK_SEL, MESH_SUB_CLKSEL)
+#define ddr_sub_clksel      clkid(CLK_SEL, DDR_SUB_CLKSEL)
+#define cpu_clksel          clkid(CLK_SEL, CPU_CLKSEL)
+#define cpu_nic_clksel     clkid(CLK_SEL, CPU_NIC_CLKSEL)
+#define pcie_top_cfg_clksel clkid(CLK_SEL, PCIE_TOP_CFG_CLKSEL)
+#define pcie_top_aux_clksel clkid(CLK_SEL, PCIE_TOP_AUX_CLKSEL)
+#define pcie_top_xclksel    clkid(CLK_SEL, PCIE_TOP_XCLKSEL)
+#define pcie_bot_cfg_clksel clkid(CLK_SEL, PCIE_BOT_CFG_CLKSEL)
+#define pcie_bot_aux_clksel clkid(CLK_SEL, PCIE_BOT_AUX_CLKSEL)
+#define pcie_bot_xclksel    clkid(CLK_SEL, PCIE_BOT_XCLKSEL)
+#define pcie_sub_clksel     clkid(CLK_SEL, PCIE_SUB_CLKSEL)
+
+#define cpu_nic_clkdiv       clkid(CLK_DIV, CPU_NIC_CLKDIV)
+#define cpu_hap_clkdiv       clkid(CLK_DIV, CPU_HAP_CLKDIV)
+#define pcie_top_cfg_clkdiv  clkid(CLK_DIV, PCIE_TOP_CFG_CLKDIV)
+#define pcie_top_aux_clkdiv  clkid(CLK_DIV, PCIE_TOP_AUX_CLKDIV)
+#define pcie_bot_cfg_clkdiv  clkid(CLK_DIV, PCIE_BOT_CFG_CLKDIV)
+#define pcie_bot_aux_clkdiv  clkid(CLK_DIV, PCIE_BOT_AUX_CLKDIV)
 
 #define ddr_clk			clkid(CLK_DYN, DDR_CLK)
 #define cpu_clk			clkid(CLK_DYN, CPU_CLK)
 
 #define clk_freq_t		uint64_t
 #define invalid_clk		clkid(0xFF, 0xFF)
+
+
 
 void clk_hw_ctrl_init(void);
 
