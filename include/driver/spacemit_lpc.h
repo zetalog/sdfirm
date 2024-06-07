@@ -152,7 +152,6 @@
 #define SEL_FROM_MEM_HADDR			1
 #define LPC_MEM_CYCLE				_BV(0)
 
-
 /* 8.20 LPC_ERR_ADDR */
 #define LPC_ERR_ADDR_REG_OFFSET			0
 #define LPC_ERR_ADDR_REG_MASK			REG_32BIT_MASK
@@ -173,8 +172,10 @@ static inline uint8_t lpc_io_read8(uint16_t a)
 			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),
 			LPC_CFG);
 	__raw_writel(a, LPC_ADDR);
-	v = __raw_readl(LPC_RDATA);
+	__raw_setl(LPC_INT_OP_DONE, LPC_INT_MASK);
 	__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);
+	while (lpc_get_lpc_status());
+	v = __raw_readl(LPC_RDATA);
 	return v;
 }				
 
