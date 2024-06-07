@@ -47,9 +47,17 @@
 
 /* CLKSEL */
 #define MESH_SUB_CLKSEL		0
-#define DDR_CLKSEL		1
+#define DDR_SUB_CLKSEL		1
 #define CPU_CLKSEL		2
 #define NR_SEL_CLKS		3
+
+/* CLKDIV */
+#define CPU_NIC_CLKDIV		0
+#define CPU_HAP_CLKDIV		1
+#define PCIE_TOP_AUX_CLKDIV	2
+#define PCIE_TOP_CFG_CLKDIV	3
+#define PCIE_BOT_AUX_CLKDIV	4
+#define PCIE_BOT_CFG_CLKDIV	5
 
 #define SYS_CLK_FREQ		20000000
 #define CFG_CLK_FREQ		10000000

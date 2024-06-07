@@ -69,7 +69,7 @@
 #define cpu0_pll_foutpostdiv	clkid(CLK_PLL, CPU0_PLL)
 #define cpu1_pll_foutpostdiv	clkid(CLK_PLL, CPU1_PLL)
 
-#define ddr_clksel		clkid(CLK_SEL, DDR_CLKSEL)
+#define ddr_sub_clksel		clkid(CLK_SEL, DDR_SUB_CLKSEL)
 #define cpu_clksel		clkid(CLK_SEL, CPU_CLKSEL)
 
 #define ddr_clk			clkid(CLK_DYN, DDR_CLK)

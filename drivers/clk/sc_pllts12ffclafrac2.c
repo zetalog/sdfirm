@@ -152,12 +152,12 @@ void sc_pllts12ffclafrac2_disable(int n)
 {
 }
 
+#ifdef CONFIG_SC_PLLTS12FFCLAFRAC2_POSTDIV
 static bool mulof(uint32_t a, uint32_t b)
 {
 	return (UINT32_MAX / a) < b;
 }
 
-#ifdef CONFIG_SC_PLLTS12FFCLAFRAC2_POSTDIV
 /* Recalculate Fvco with respect to postdiv */
 uint32_t __sc_pllts12ffclafrac2_recalc(int n,
 				       uint16_t fbdiv_min, uint16_t fbdiv_max,

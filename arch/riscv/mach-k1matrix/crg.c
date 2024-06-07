@@ -67,7 +67,7 @@ struct dyn_clk dyn_clks[] = {
 	[DDR_CLK] = {
 		ddr0_pll_foutpostdiv,
 		ddr1_pll_foutpostdiv,
-		ddr_clksel,
+		ddr_sub_clksel,
 		0,
 	},
 };
@@ -167,14 +167,38 @@ const struct clk_driver clk_dyn = {
 	.get_name = get_dyn_name,
 };
 
-struct sel_clk {
-	clk_t *clksels;
+struct div_clk {
 	caddr_t reg;
+	uint16_t max_div;
+	uint8_t div;
+};
+
+struct div_clk div_clks[] = {
+	[CPU_NIC_CLKDIV] = {
+		.reg = CPU_NIC_CLK_CTL,
+		.max_div = 4,
+		.div = 2,
+	},
+	[CPU_HAP_CLKDIV] = {
+		.reg = CPU_HAP_CLK_CTL,
+		.max_div = 4,
+		.div = 2,
+	},
+	[PCIE_TOP_AUX_CLKDIV] = {
+		.reg = PCIE_TOP_AUXCLK_CTL,
+		.max_div = 256,
+		.div = 64,
+	},
+};
+
+struct sel_clk {
+	caddr_t reg;
+	clk_t *clksels;
 	uint8_t nr_clksels;
 	uint8_t sel;
 };
 
-clk_t ddr_clksels[] = {
+clk_t ddr_sub_clksels[] = {
 	osc_clk,
 	ddr0_pll_foutpostdiv,
 	ddr1_pll_foutpostdiv,
@@ -198,15 +222,15 @@ clk_t pcie_top_xclksels[] = {
 };
 
 struct sel_clk sel_clks[NR_SEL_CLKS] = {
-	[DDR_CLKSEL] = {
-		.clksels = ddr_clksels,
+	[DDR_SUB_CLKSEL] = {
 		.reg = DDR_SUB_CLK_CTL,
+		.clksels = ddr_sub_clksels,
 		.nr_clksels = 3,
 		.sel = 0,
 	},
 	[CPU_CLKSEL] = {
-		.clksels = cpu_clksels,
 		.reg = CPU_CLK_CTL,
+		.clksels = cpu_clksels,
 		.nr_clksels = 3,
 		.sel = 0,
 	},
@@ -215,7 +239,7 @@ struct sel_clk sel_clks[NR_SEL_CLKS] = {
 #ifdef CONFIG_CLK_MNEMONICS
 const char *sel_clk_names[NR_SEL_CLKS] = {
 	[MESH_SUB_CLKSEL] = "mesh_sub_clksel",
-	[DDR_CLKSEL] = "ddr_clksel",
+	[DDR_SUB_CLKSEL] = "ddr_sub_clksel",
 	[CPU_CLKSEL] = "cpu_clksel",
 };
 
