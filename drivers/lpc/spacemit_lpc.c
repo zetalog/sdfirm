@@ -14,11 +14,32 @@ bh_t lpc_bh;
 
 static void lpc_handle_irq(irq_t irq)
 {
-	if (lpc_get_serirq_status())
-		printf("SERIRQ Received!");
-	else {
-		if (lpc_get_lpc_status())
-			printf("LPC Received!");
+	uint32_t sts;
+	sts = lpc_get_int_status();
+	if (sts & LPC_INT_SYNC_ERR) {
+		printf("LPC_INT_SYNC_ERR\n");
+		lpc_clear_int(LPC_INT_SYNC_ERR);
+	}
+	else if (sts & LPC_INT_NO_SYNC) {
+		printf("LPC_INT_NO_SYNC\n");
+		lpc_clear_int(LPC_INT_NO_SYNC);
+	}
+	else if (sts & LPC_INT_LWAIT_TIMEOUT) {
+		printf("LPC_INT_LWAIT_TIMEOUT\n");
+		lpc_clear_int(LPC_INT_LWAIT_TIMEOUT);
+	}
+	else if (sts & LPC_INT_SWAIT_TIMEOUT) {
+		printf("LPC_INT_SWAIT_TIMEOUT\n");
+		lpc_clear_int(LPC_INT_SWAIT_TIMEOUT);
+	}
+	else if (sts & LPC_INT_SERIRQ_INT) {
+		printf("LPC_INT_SERIRQ_INT\n");
+	}
+	else if (sts & LPC_INT_SERIRQ_DONE) {
+		printf("LPC_INT_SERIRQ_DONE\n");
+	}
+	else if (sts & LPC_INT_OP_DONE) {
+		printf("LPC_INT_OP_DONE\n");
 	}
 	irqc_ack_irq(LPC_IRQ);
 }
@@ -134,7 +155,7 @@ static int do_lpc_irq(int argc, char *argv[])
 	else if (strcmp(argv[2], "unmask") == 0)
 		lpc_unmask_irq(irq);
 	else if (strcmp(argv[2], "clear") == 0)
-		lpc_clear_irq(irq);
+		lpc_clear_int(_BV(irq));
 	else if (strcmp(argv[2], "get") == 0)
 		return lpc_get_irq(irq);
 	else
