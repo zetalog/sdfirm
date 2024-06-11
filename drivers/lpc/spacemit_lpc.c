@@ -70,12 +70,21 @@ static void lpc_bh_handler(uint8_t events)
 	}
 }
 
+static void lpc_sync(void)
+{
+	do {
+		bh_sync();
+		if (lpc_event)
+			bh_resume(lpc_bh);
+	} while (lpc_event);
+}
+
 void lpc_io_write8(uint8_t v, uint16_t a)
 {
 	BUG(lpc_event & LPC_OP_WAIT);
 	lpc_raise_event(LPC_OP_WAIT);
 	__lpc_io_write8(v, a);
-	bh_sync();
+	lpc_sync();
 }
 
 uint8_t lpc_io_read8(uint16_t addr)
@@ -83,7 +92,7 @@ uint8_t lpc_io_read8(uint16_t addr)
 	BUG(lpc_event & LPC_OP_WAIT);
 	lpc_raise_event(LPC_OP_WAIT);
 	__lpc_io_read8(a);
-	bh_sync();
+	lpc_sync();
 	return __raw_readl(LPC_RDATA);
 }
 
