@@ -257,7 +257,7 @@ extern unsigned long k1matrix_die_base;
 #define RAM_SIZE		DRAM_SIZE
 #define CLINT_BASE		__RMU_CLINT_BASE
 #define PLIC_REG_BASE           __RMU_PLIC_BASE
-#define UART0_BASE			__RMU_UART0_BASE
+#define UART0_BASE		__RMU_UART0_BASE
 #endif /* CONFIG_K1MATRIX_BBL */
 #ifdef CONFIG_K1MATRIX_TB
 #ifdef CONFIG_K1MATRIX_TB_ROM
