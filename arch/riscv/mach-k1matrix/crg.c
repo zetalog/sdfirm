@@ -174,32 +174,32 @@ struct div_clk {
 };
 struct div_clk div_clks[] = {
 	[CPU_NIC_CLKDIV] = {
-		.reg = CPU_NIC_CLK_CTL,
+		.reg = CRG_CPU_NIC_CLK_CTL,
 		.max_div = 4,
 		.div = 2,
 	},
 	[CPU_HAP_CLKDIV] = {
-		.reg = CPU_HAP_CLK_CTL,
+		.reg = CRG_CPU_HAP_CLK_CTL,
 		.max_div = 4,
 		.div = 2,
 	},
 	[PCIE_TOP_CFG_CLKDIV] = {
-		.reg = PCIE_TOP_CFGCLK_CTL,
+		.reg = CRG_PCIE_TOP_CFGCLK_CTL,
 		.max_div = 8,
 		.div = 7,
 	},
 	[PCIE_TOP_AUX_CLKDIV] = {
-		.reg = PCIE_TOP_AUXCLK_CTL,
+		.reg = CRG_PCIE_TOP_AUXCLK_CTL,
 		.max_div = 128,
 		.div = 100,
 	},
 	[PCIE_BOT_CFG_CLKDIV] = {
-		.reg = PCIE_BOT_CFGCLK_CTL,
+		.reg = CRG_PCIE_BOT_CFGCLK_CTL,
 		.max_div = 8,
 		.div = 7,
 	},
 	[PCIE_BOT_AUX_CLKDIV] = {
-		.reg = PCIE_BOT_AUXCLK_CTL,
+		.reg = CRG_PCIE_BOT_AUXCLK_CTL,
 		.max_div = 128,
 		.div = 100,
 	},
@@ -312,68 +312,68 @@ clk_t pcie_sub_clksels[] = {
 
 struct sel_clk sel_clks[] = {
 	[MESH_SUB_CLKSEL] = {
-		.reg = MESH_SUB_CLK_CTL,
+		.reg = CRG_MESH_SUB_CLK_CTL,
 		.clksels = mesh_sub_clksels,
 		.nr_clksels = 3,
 		.sel = 0,
 	},
 	[DDR_SUB_CLKSEL] = {
-		.reg = DDR_SUB_CLK_CTL,
+		.reg = CRG_DDR_SUB_CLK_CTL,
 		.clksels = ddr_sub_clksels,
 		.nr_clksels = 3,
 		.sel = 0,
 	},
 	[CPU_CLKSEL] = {
-		.reg = CPU_CLK_CTL,
+		.reg = CRG_CPU_CLK_CTL,
 		.clksels = cpu_clksels,
 		.nr_clksels = 3,
 		.sel = 0,
 	},
 	[CPU_NIC_CLKSEL] = {
-		.reg = CPU_NIC_CLK_CTL,
+		.reg = CRG_CPU_NIC_CLK_CTL,
 		.clksels = cpu_nic_clksels,
 		.nr_clksels = 2,
 		.sel = 0,
 	},
 	[PCIE_TOP_CFG_CLKSEL] = {
 		.clksels = pcie_com_xclksels,
-		.reg = PCIE_TOP_CFGCLK_CTL,
+		.reg = CRG_PCIE_TOP_CFGCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 	},
 	[PCIE_TOP_AUX_CLKSEL] = {
 		.clksels = pcie_peri_xclksels,
-		.reg = PCIE_TOP_AUXCLK_CTL,
+		.reg = CRG_PCIE_TOP_AUXCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 	},
 	[PCIE_TOP_XCLKSEL] = {
 		.clksels = pcie_peri_xclksels,
-		.reg = PCIE_TOP_CLK_CTL,
+		.reg = CRG_PCIE_TOP_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 	},
 	[PCIE_BOT_CFG_CLKSEL] = {
 		.clksels = pcie_com_xclksels,
-		.reg = PCIE_BOT_CFGCLK_CTL,
+		.reg = CRG_PCIE_BOT_CFGCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 	},
 	[PCIE_BOT_AUX_CLKSEL] = {
 		.clksels = pcie_peri_xclksels,
-		.reg = PCIE_BOT_AUXCLK_CTL,
+		.reg = CRG_PCIE_BOT_AUXCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 	},
 	[PCIE_BOT_XCLKSEL] = {
 		.clksels = pcie_peri_xclksels,
-		.reg = PCIE_BOT_CLK_CTL,
+		.reg = CRG_PCIE_BOT_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 	},
 	[PCIE_SUB_CLKSEL] = {
 		.clksels = pcie_sub_clksels,
-		.reg = PCIE_BOT_AUXCLK_CTL,
+		.reg = CRG_PCIE_BOT_AUXCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 	},

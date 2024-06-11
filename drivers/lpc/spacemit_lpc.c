@@ -1,6 +1,7 @@
 #include <target/lpc.h>
 #include <target/cmdline.h>
 #include <target/irq.h>
+#include <target/panic.h>
 
 #ifdef SYS_REALTIME
 #define lpc_poll_init()		spacemit_lpc_poll_init()
@@ -46,15 +47,15 @@ static void lpc_handle_irq(irq_t irq)
 			printf("LPC_INT_LWAIT_TIMEOUT\n");
 		if (status & LPC_INT_SWAIT_TIMEOUT)
 			printf("LPC_INT_SWAIT_TIMEOUT\n");
-		if (status & LPC_INT_OP_DONE) {
+		if (status & LPC_INT_OP_DONE)
 			printf("LPC_INT_OP_DONE\n");
 		__raw_setl(status, LPC_INT_CLR);
 		lpc_clear_event(LPC_OP_WAIT);
 	}
 	if (serirq) {
-		if (serirq & LPC_INT_SERIRQ_INT) {
+		if (serirq & LPC_INT_SERIRQ_INT)
 			printf("LPC_INT_SERIRQ_INT\n");
-		if (serirq & LPC_INT_SERIRQ_DONE) {
+		if (serirq & LPC_INT_SERIRQ_DONE)
 			printf("LPC_INT_SERIRQ_DONE\n");
 		__raw_setl(serirq, LPC_INT_CLR);
 		lpc_raise_event(LPC_SERIRQ_EVENT);
@@ -81,17 +82,85 @@ static void lpc_sync(void)
 
 void lpc_io_write8(uint8_t v, uint16_t a)
 {
-	BUG(lpc_event & LPC_OP_WAIT);
+	BUG_ON(lpc_event & LPC_OP_WAIT);
 	lpc_raise_event(LPC_OP_WAIT);
 	__lpc_io_write8(v, a);
 	lpc_sync();
 }
 
-uint8_t lpc_io_read8(uint16_t addr)
+uint8_t lpc_io_read8(uint16_t a)
 {
-	BUG(lpc_event & LPC_OP_WAIT);
+	BUG_ON(lpc_event & LPC_OP_WAIT);
 	lpc_raise_event(LPC_OP_WAIT);
 	__lpc_io_read8(a);
+	lpc_sync();
+	return __raw_readl(LPC_RDATA);
+}
+
+void lpc_mem_write8(uint8_t v, uint16_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	__lpc_mem_write8(v, a);
+	lpc_sync();
+}
+
+uint8_t lpc_mem_read8(uint16_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	__lpc_mem_read8(a);
+	lpc_sync();
+	return __raw_readl(LPC_RDATA);
+}
+
+void lpc_firm_write8(uint8_t v, uint32_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	__lpc_firm_write8(v, a);
+	lpc_sync();
+}
+
+uint8_t lpc_firm_read8(uint32_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	__lpc_firm_read8(a);
+	lpc_sync();
+	return __raw_readl(LPC_RDATA);
+}
+
+void lpc_firm_write16(uint16_t v, uint32_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	__lpc_firm_write16(v, a);
+	lpc_sync();
+}
+
+uint16_t lpc_firm_read16(uint32_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	__lpc_firm_read16(a);
+	lpc_sync();
+	return __raw_readl(LPC_RDATA);
+}
+
+void lpc_firm_write32(uint32_t v, uint32_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	__lpc_firm_write32(v, a);
+	lpc_sync();
+}
+
+uint32_t lpc_firm_read32(uint32_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	__lpc_firm_read32(a);
 	lpc_sync();
 	return __raw_readl(LPC_RDATA);
 }
