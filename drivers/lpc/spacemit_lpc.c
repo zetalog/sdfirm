@@ -11,37 +11,53 @@
 #endif /* SYS_REALTIME */
 
 bh_t lpc_bh;
-uint32_t lpc_status;
+uint8_t lpc_state;
+uint8_t lpc_event;
+
+#define LPC_OP_WAIT		_BV(0)
+#define LPC_SERIRQ_EVENT	_BV(1)
+
+static void lpc_raise_event(uint8_t event)
+{
+	lpc_event |= event;
+	bh_resume(lpc_bh);
+}
+
+static void lpc_clear_event(uint8_t event)
+{
+	lpc_event &= ~event;
+}
 
 static void lpc_handle_irq(irq_t irq)
 {
 	uint32_t sts;
+	uint32_t status;
+	uint32_t serirq;
+
 	sts = lpc_get_int_status();
-	lpc_status |= (sts & LPC_INT_OP_STATUS);
-	if (sts & LPC_INT_SYNC_ERR) {
-		printf("LPC_INT_SYNC_ERR\n");
-		lpc_clear_int(LPC_INT_SYNC_ERR);
+	status = sts & LPC_INT_OP_STATUS;
+	serirq = sts & (LPC_INT_SERIRQ_INT | LPC_INT_SERIRQ_DONE);
+	if (status) {
+		if (status & LPC_INT_SYNC_ERR)
+			printf("LPC_INT_SYNC_ERR\n");
+		if (status & LPC_INT_NO_SYNC)
+			printf("LPC_INT_NO_SYNC\n");
+		if (status & LPC_INT_LWAIT_TIMEOUT)
+			printf("LPC_INT_LWAIT_TIMEOUT\n");
+		if (status & LPC_INT_SWAIT_TIMEOUT)
+			printf("LPC_INT_SWAIT_TIMEOUT\n");
+		if (status & LPC_INT_OP_DONE) {
+			printf("LPC_INT_OP_DONE\n");
+		__raw_setl(status, LPC_INT_CLR);
+		lpc_clear_event(LPC_OP_WAIT);
 	}
-	else if (sts & LPC_INT_NO_SYNC) {
-		printf("LPC_INT_NO_SYNC\n");
-		lpc_clear_int(LPC_INT_NO_SYNC);
-	}
-	else if (sts & LPC_INT_LWAIT_TIMEOUT) {
-		printf("LPC_INT_LWAIT_TIMEOUT\n");
-		lpc_clear_int(LPC_INT_LWAIT_TIMEOUT);
-	}
-	else if (sts & LPC_INT_SWAIT_TIMEOUT) {
-		printf("LPC_INT_SWAIT_TIMEOUT\n");
-		lpc_clear_int(LPC_INT_SWAIT_TIMEOUT);
-	}
-	else if (sts & LPC_INT_SERIRQ_INT) {
-		printf("LPC_INT_SERIRQ_INT\n");
-	}
-	else if (sts & LPC_INT_SERIRQ_DONE) {
-		printf("LPC_INT_SERIRQ_DONE\n");
-	}
-	else if (sts & LPC_INT_OP_DONE) {
-		printf("LPC_INT_OP_DONE\n");
+	if (serirq) {
+		if (serirq & LPC_INT_SERIRQ_INT) {
+			printf("LPC_INT_SERIRQ_INT\n");
+		if (serirq & LPC_INT_SERIRQ_DONE) {
+			printf("LPC_INT_SERIRQ_DONE\n");
+		__raw_setl(serirq, LPC_INT_CLR);
+		lpc_raise_event(LPC_SERIRQ_EVENT);
 	}
 	irqc_ack_irq(LPC_IRQ);
 }
@@ -52,6 +68,23 @@ static void lpc_bh_handler(uint8_t events)
 		lpc_handle_irq(LPC_IRQ);
 		return;
 	}
+}
+
+void lpc_io_write8(uint8_t v, uint16_t a)
+{
+	BUG(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	__lpc_io_write8(v, a);
+	bh_sync();
+}
+
+uint8_t lpc_io_read8(uint16_t addr)
+{
+	BUG(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	__lpc_io_read8(a);
+	bh_sync();
+	return __raw_readl(LPC_RDATA);
 }
 
 #ifdef SYS_REALTIME
