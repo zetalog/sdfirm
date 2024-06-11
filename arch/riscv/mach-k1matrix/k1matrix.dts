@@ -468,7 +468,7 @@
 				&cpu39_intc 0x3 &cpu39_intc 0x7
 #endif
 			>;
-			reg = <DT_REGHI(__CLINT_BASE) DT_REGLO(__CLINT_BASE)
+			reg = <DT_REGHI(__RMU_CLINT_BASE) DT_REGLO(__RMU_CLINT_BASE)
 			       0x0 0x00010000
 			>;
 			compatible = "riscv,clint0";
