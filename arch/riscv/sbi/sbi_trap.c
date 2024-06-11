@@ -74,6 +74,79 @@ static void __noreturn sbi_trap_error(const char *msg, int rc,
 	sbi_finish_hang();
 }
 
+#ifdef CONFIG_CPU_H
+static bool sbi_next_virt(ulong cause)
+{
+	return ((cause < __riscv_xlen) &&
+		(csr_read(CSR_HEDELEG) & _BV(cause))) {
+}
+
+static void sbi_hyper_save(struct pt_regs *regs,
+			   ulong prev_mode, bool prev_virt)
+{
+	ulong hstatus;
+
+	hstatus = csr_read(CSR_HSTATUS);
+	if (prev_virt) {
+		/* hstatus.SPVP is only updated if coming from VS/VU-mode */
+		hstatus &= ~HSTATUS_SPVP;
+		hstatus |= (prev_mode == PRV_S) ? HSTATUS_SPVP : 0;
+	}
+	hstatus &= ~HSTATUS_SPV;
+	hstatus |= (prev_virt) ? HSTATUS_SPV : 0;
+	hstatus &= ~HSTATUS_GVA;
+	hstatus |= (regs->gva) ? HSTATUS_GVA : 0;
+	csr_write(CSR_HSTATUS, hstatus);
+	csr_write(CSR_HTVAL, regs->tval2);
+	csr_write(CSR_HTINST, regs->tinst);
+}
+
+static void sbi_virt_save(struct pt_regs *regs,
+			  ulong prev_mode, bool prev_virt,
+			  ulong epc, ulong cause)
+{
+	ulong vsstatus;
+
+	/* Update VS-mode exception info */
+	csr_write(CSR_VSTVAL, regs->tval);
+	csr_write(CSR_VSEPC, epc);
+	csr_write(CSR_VSCAUSE, cause);
+
+	/* Set MEPC to VS-mode exception vector base */
+	regs->epc = csr_read(CSR_VSTVEC);
+
+	/* Set MPP to VS-mode */
+	regs->status &= ~SR_MPP;
+	regs->status |= (PRV_S << SR_MPP_SHIFT);
+
+	/* Get VS-mode SSTATUS CSR */
+	vsstatus = csr_read(CSR_VSSTATUS);
+
+	/* Set SPP for VS-mode */
+	vsstatus &= ~SR_SPP;
+	if (prev_mode == PRV_S)
+		vsstatus |= (1UL << SR_SPP_SHIFT);
+
+	/* Set SPIE for VS-mode */
+	vsstatus &= ~SR_SPIE;
+	if (vsstatus & SR_SIE)
+		vsstatus |= (1UL << SR_SPIE_SHIFT);
+
+	/* Clear SIE for VS-mode */
+	vsstatus &= ~SR_SIE;
+
+	/* Update VS-mode SSTATUS CSR */
+	csr_write(CSR_VSSTATUS, vsstatus);
+}
+#else
+#define sbi_next_virt(cause)					\
+	false
+#define sbi_hyper_save(regs, prev_mode, prev_virt)		\
+	do { } while (0)
+#define sbi_virt_save(regs, prev_mode, prev_virt, eps, cause)	\
+	do { } while (0)
+#endif
+
 /**
  * Redirect trap to lower privledge mode (S-mode or U-mode)
  *
@@ -89,7 +162,7 @@ static void __noreturn sbi_trap_error(const char *msg, int rc,
 int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 		      ulong epc, ulong cause, ulong tval)
 {
-	ulong hstatus, vsstatus, prev_mode;
+	ulong prev_mode;
 	bool prev_virt = (regs->status & SR_MPV) ? true : false;
 	/* By default, we redirect to HS-mode */
 	bool next_virt = false;
@@ -102,67 +175,21 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 	/* If exceptions came from VS/VU-mode, redirect to VS-mode if
 	 * delegated in hedeleg
 	 */
-	if (misa_extension('H') && prev_virt) {
-		if ((cause < __riscv_xlen) &&
-		    (csr_read(CSR_HEDELEG) & _BV(cause))) {
-			next_virt = true;
-		}
-	}
+	if (misa_extension('H') && prev_virt)
+		next_virt = sbi_next_virt(cause);
 
 	/* Update MSTATUS MPV bits */
 	regs->status &= ~SR_MPV;
 	regs->status |= (next_virt) ? SR_MPV : 0UL;
 
 	/* Update hypervisor CSRs if going to HS-mode */
-	if (misa_extension('H') && !next_virt) {
-		hstatus = csr_read(CSR_HSTATUS);
-		if (prev_virt) {
-			/* hstatus.SPVP is only updated if coming from VS/VU-mode */
-			hstatus &= ~HSTATUS_SPVP;
-			hstatus |= (prev_mode == PRV_S) ? HSTATUS_SPVP : 0;
-		}
-		hstatus &= ~HSTATUS_SPV;
-		hstatus |= (prev_virt) ? HSTATUS_SPV : 0;
-		hstatus &= ~HSTATUS_GVA;
-		hstatus |= (regs->gva) ? HSTATUS_GVA : 0;
-		csr_write(CSR_HSTATUS, hstatus);
-		csr_write(CSR_HTVAL, regs->tval2);
-		csr_write(CSR_HTINST, regs->tinst);
-	}
+	if (misa_extension('H') && !next_virt)
+		sbi_hyper_save(regs, prev_mode, prev_virt);
 
 	/* Update exception related CSRs */
-	if (next_virt) {
-		/* Update VS-mode exception info */
-		csr_write(CSR_VSTVAL, regs->tval);
-		csr_write(CSR_VSEPC, epc);
-		csr_write(CSR_VSCAUSE, cause);
-
-		/* Set MEPC to VS-mode exception vector base */
-		regs->epc = csr_read(CSR_VSTVEC);
-
-		/* Set MPP to VS-mode */
-		regs->status &= ~SR_MPP;
-		regs->status |= (PRV_S << SR_MPP_SHIFT);
-
-		/* Get VS-mode SSTATUS CSR */
-		vsstatus = csr_read(CSR_VSSTATUS);
-
-		/* Set SPP for VS-mode */
-		vsstatus &= ~SR_SPP;
-		if (prev_mode == PRV_S)
-			vsstatus |= (1UL << SR_SPP_SHIFT);
-
-		/* Set SPIE for VS-mode */
-		vsstatus &= ~SR_SPIE;
-		if (vsstatus & SR_SIE)
-			vsstatus |= (1UL << SR_SPIE_SHIFT);
-
-		/* Clear SIE for VS-mode */
-		vsstatus &= ~SR_SIE;
-
-		/* Update VS-mode SSTATUS CSR */
-		csr_write(CSR_VSSTATUS, vsstatus);
-	} else {
+	if (next_virt)
+		sbi_virt_save(regs, prev_mode, prev_virt, epc, cause);
+	else {
 		/* Update S-mode exception info */
 		csr_write(CSR_STVAL, regs->tval);
 		csr_write(CSR_SEPC, epc);
