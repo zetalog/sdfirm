@@ -11,11 +11,13 @@
 #endif /* SYS_REALTIME */
 
 bh_t lpc_bh;
+uint32_t lpc_status;
 
 static void lpc_handle_irq(irq_t irq)
 {
 	uint32_t sts;
 	sts = lpc_get_int_status();
+	lpc_status |= (sts & LPC_INT_OP_STATUS);
 	if (sts & LPC_INT_SYNC_ERR) {
 		printf("LPC_INT_SYNC_ERR\n");
 		lpc_clear_int(LPC_INT_SYNC_ERR);
