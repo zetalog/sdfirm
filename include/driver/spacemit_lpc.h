@@ -73,6 +73,11 @@
 #define LPC_INT_SERIRQ_INT			_BV(8)
 #define LPC_INT_SERIRQ_DONE			_BV(4)
 #define LPC_INT_OP_DONE				_BV(0)
+#define LPC_INT_OP_ERR				(LPC_INT_SYNC_ERR | \
+						 LPC_INT_NO_SYNC | \
+						 LPC_INT_LWAIT_TIMEOUT | \
+						 LPC_INT_SWAIT_TIMEOUT)
+#define LPC_INT_OP_STATUS			(LPC_INT_OP_DONE | LPC_INT_OP_ERR)
 
 /* 8.8 LPC_WAIT_COUNT */
 #define LPC_WAIT_ABORT_COUNT_OFFSET		24
@@ -165,56 +170,40 @@
 #define lpc_get_serirq_status()			(!!(__raw_readl(LPC_STATUS) & LPC_STATUS_SERIRQ_BUSY))
 #define lpc_get_lpc_status()			(!!(__raw_readl(LPC_STATUS) & LPC_STATUS_LPC_BUSY))
 
-#ifdef SYS_REALTIME
 #define lpc_get_int_status()			(__raw_readl(LPC_INT_RAW_STATUS))
 #define lpc_read_finish()								\
 	do {										\
+		uint32_t status;							\
 		__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);				\
-		while (!(__raw_readl(LPC_INT_RAW_STATUS) & LPC_INT_OP_DONE));		\
-		__raw_setl(LPC_INT_OP_DONE, LPC_INT_CLR);				\
+		do {									\
+			status = __raw_readl(LPC_INT_RAW_STATUS) & LPC_INT_OP_STATUS;	\
+		} while (!status);							\
+		__raw_setl(status, LPC_INT_CLR);					\
 	} while (0)
 #define lpc_write_finish()								\
 	do {										\
+		uint32_t status;							\
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
-		while (lpc_get_lpc_status());						\
-		__raw_setl(LPC_INT_OP_DONE, LPC_INT_CLR);				\
+		do {									\
+			status = __raw_readl(LPC_INT_RAW_STATUS) & LPC_INT_OP_STATUS;	\
+		} while (!status);							\
+		__raw_setl(status, LPC_INT_CLR);					\
 	} while (0)
-#else
-#define lpc_get_int_status()			(__raw_readl(LPC_INT_RAW_STATUS))
-#define lpc_read_finish()								\
-	do {										\
-		__raw_setl(LPC_INT_OP_DONE, LPC_INT_MASK);				\
-		__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);				\
-		__raw_setl(LPC_INT_OP_DONE, LPC_INT_CLR);				\
-	} while (0)
-#define lpc_write_finish()								\
-	do {										\
-		__raw_setl(LPC_INT_OP_DONE, LPC_INT_MASK);				\
-		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
-		__raw_setl(LPC_INT_OP_DONE, LPC_INT_CLR);				\
-	} while (0)
-#endif
 
-static inline uint8_t lpc_io_read8(uint16_t a)
-{
-	uint8_t v;
-	__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_IO),
-			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),
-			LPC_CFG);
-	__raw_writel(a, LPC_ADDR);
-	lpc_read_finish();
-	v = __raw_readl(LPC_RDATA);
-	return v;
-}				
-
-#define lpc_io_write8(v, a)								\
+#define __lpc_io_read8(a)								\
+	do {										\
+		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_IO),			\
+				LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),		\
+				LPC_CFG);						\
+		__raw_writel(a, LPC_ADDR);						\
+	} while (0);
+#define __lpc_io_write8(v, a)								\
 	do {										\
 		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_IO),			\
 			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),			\
 			LPC_CFG);							\
 		__raw_writel((a), LPC_ADDR);						\
 		__raw_writel((v), LPC_WDATA);						\
-		lpc_write_finish();							\
 	} while (0)
 
 static inline uint8_t lpc_mem_read8(uint32_t a)
@@ -379,6 +368,8 @@ static inline uint8_t lpc_get_serirq(int slot)
 			LPC_MEM_TRANS1(LPC_MEM_TRANS1_MASK), 				\
 			LPC_MEM_CFG);							\
 	} while (0)
+
+void lpc_io_write8(uint8_t v, uint16_t a);
 
 void spacemit_lpc_init(void);
 
