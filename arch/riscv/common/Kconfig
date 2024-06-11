@@ -173,6 +173,7 @@ config CPU_VIRT64
 	select CPU_PMP
 	select CPU_COUNTERS
 	select CPU_WMO
+	select CPU_H
 
 config CPU_32G
 	bool
@@ -567,6 +568,7 @@ endif
 config RISCV_ZIFENCEI
 	bool "Instrution fetch fence support"
 	depends CPU_ZIFENCEI
+	default y if CPU_ZIFENCEI
 
 config RISCV_VIRQ
 	bool "Vectorized interrupt support"
