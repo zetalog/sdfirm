@@ -40,7 +40,9 @@
  */
 #ifndef __SYSREG_K1MATRIX_H_INCLUDE__
 #define __SYSREG_K1MATRIX_H_INCLUDE__
+
 #include <asm/mach/reg.h>
+
 #define SYSREG_REG(offset)	(SYS_REG_BASE + (offset))
 #define CPU_SUB_SW_RESET	SYSREG_REG(0x2100)
 #define PCIE_TOP_SW_RESET	SYSREG_REG(0x2104)

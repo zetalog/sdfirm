@@ -73,6 +73,11 @@
 #define LPC_INT_SERIRQ_INT			_BV(8)
 #define LPC_INT_SERIRQ_DONE			_BV(4)
 #define LPC_INT_OP_DONE				_BV(0)
+#define LPC_INT_OP_ERR				(LPC_INT_SYNC_ERR | \
+						 LPC_INT_NO_SYNC | \
+						 LPC_INT_LWAIT_TIMEOUT | \
+						 LPC_INT_SWAIT_TIMEOUT)
+#define LPC_INT_OP_STATUS			(LPC_INT_OP_DONE | LPC_INT_OP_ERR)
 
 /* 8.8 LPC_WAIT_COUNT */
 #define LPC_WAIT_ABORT_COUNT_OFFSET		24
@@ -169,18 +174,24 @@
 #define lpc_get_int_status()			(__raw_readl(LPC_INT_RAW_STATUS))
 #define lpc_read_finish()								\
 	do {										\
+		uint32_t status;							\
 		__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);				\
-		while (!(__raw_readl(LPC_INT_RAW_STATUS) & LPC_INT_OP_DONE));		\
-		__raw_setl(LPC_INT_OP_DONE, LPC_INT_CLR);				\
+		do {									\
+			status = __raw_readl(LPC_INT_RAW_STATUS) & LPC_INT_OP_STATUS;	\
+		} while (!status);							\
+		__raw_setl(status, LPC_INT_CLR);					\
 	} while (0)
 #define lpc_write_finish()								\
 	do {										\
+		uint32_t status;							\
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
-		while (lpc_get_lpc_status());						\
-		__raw_setl(LPC_INT_OP_DONE, LPC_INT_CLR);				\
+		do {									\
+			status = __raw_readl(LPC_INT_RAW_STATUS) & LPC_INT_OP_STATUS;	\
+		} while (!status);							\
+		__raw_setl(status, LPC_INT_CLR);					\
 	} while (0)
 #else
-#define lpc_get_int_status()			(__raw_readl(LPC_INT_RAW_STATUS))
+#define lpc_get_int_status()			(__raw_readl(LPC_INT_STATUS))
 #define lpc_read_finish()								\
 	do {										\
 		__raw_setl(LPC_INT_OP_DONE, LPC_INT_MASK);				\
