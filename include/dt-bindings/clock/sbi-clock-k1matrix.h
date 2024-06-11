@@ -38,7 +38,9 @@
 #define DDR1_PLL		4
 #define CPU0_PLL		5
 #define CPU1_PLL		6
-#define NR_PLL_CLKS		7
+#define COM_FOUT1PH0    7
+#define PERI_FOUT1PH0   8
+#define NR_PLL_CLKS		9
 
 /* DYNAMIC_PLL */
 #define DDR_CLK			0
@@ -49,7 +51,15 @@
 #define MESH_SUB_CLKSEL		0
 #define DDR_SUB_CLKSEL		1
 #define CPU_CLKSEL		2
-#define NR_SEL_CLKS		3
+#define CPU_NIC_CLKSEL		3
+#define PCIE_TOP_CFG_CLKSEL		4
+#define PCIE_TOP_AUX_CLKSEL		5
+#define PCIE_TOP_XCLKSEL		6
+#define PCIE_BOT_CFG_CLKSEL		7    
+#define PCIE_BOT_AUX_CLKSEL     8
+#define PCIE_BOT_XCLKSEL        9
+#define PCIE_SUB_CLKSEL     10
+#define NR_SEL_CLKS		11
 
 /* CLKDIV */
 #define CPU_NIC_CLKDIV		0
@@ -58,6 +68,7 @@
 #define PCIE_TOP_CFG_CLKDIV	3
 #define PCIE_BOT_AUX_CLKDIV	4
 #define PCIE_BOT_CFG_CLKDIV	5
+#define NR_DIV_CLKS		6
 
 #define SYS_CLK_FREQ		20000000
 #define CFG_CLK_FREQ		10000000

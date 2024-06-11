@@ -188,6 +188,8 @@ uint32_t __sc_pllts12ffclafrac2_recalc(int n,
 			Fvco = Fout * postdiv;
 			if (Fvco > 3200000000)
 				break;
+			if (Fvco < 800)
+			    break;
 			do {
 				do {
 					refdiv++;
