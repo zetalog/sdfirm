@@ -152,6 +152,13 @@
 #define RAM_SIZE		DRAM_SIZE
 #endif /* CONFIG_K1M_DDR */
 
+#ifdef CONFIG_K1M_SRAM
+#define ROM_BASE		SRAM_BASE
+#define ROM_SIZE		SRAM_SIZE
+#define RAM_BASE		SRAM_BASE
+#define RAM_SIZE		SRAM_SIZE
+#endif /* CONFIG_K1M_DDR */
+
 #ifdef CONFIG_K1M_ZSBL
 #define ROM_BASE		BROM_BASE
 #define ROM_SIZE		BROM_SIZE
