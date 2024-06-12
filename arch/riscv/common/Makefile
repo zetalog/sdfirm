@@ -20,6 +20,7 @@ obj-$(CONFIG_MMU) += mmu.rel
 obj-$(CONFIG_HPM) += hpm.rel
 obj-$(CONFIG_TASK) += task.rel
 obj-$(CONFIG_CLINT) += clint.rel
+obj-$(CONFIG_ACLINT) += aclint.rel
 obj-$(CONFIG_PLIC) += plic.rel
 obj-$(CONFIG_HTIF) += htif.rel
 obj-$(CONFIG_RI5CY_PC) += ri5cy_pc.rel

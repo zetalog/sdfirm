@@ -838,6 +838,7 @@ config ARCH_HAS_CLINT_CTX
 config ARCH_HAS_ACLINT
 	bool
 	select ARCH_HAS_CLINT
+	select ARCH_HAS_CLINT_CTX
 	select CPU_SSTC
 
 menuconfig ACLINT
@@ -940,6 +941,28 @@ config PLIC_MASK_PRIORITY
 	  allows to use PRIORITYR based IRQ masking, at the cost that the
 	  hardware drivers can only use the lowest priority - 1.
 	  If unsure, say 'N'.
+
+endif
+
+config ARCH_HAS_AIA_IMSIC
+	bool
+
+config AIA_IMSIC
+	bool "Enable incoming MSI controller (IMSIC) support"
+	depends ARCH_HAS_AIA_IMSIC
+
+if AIA_IMSIC
+
+endif
+
+config ARCH_HAS_AIA_APLIC
+	bool
+
+config AIA_APLIC
+	bool "Enable advanced platform level interrupt controller (APLIC) support"
+	depends ARCH_HAS_AIA_APLIC
+
+if AIA_APLIC
 
 endif
 
