@@ -40,23 +40,23 @@ static void lpc_handle_irq(irq_t irq)
 	serirq = sts & (LPC_INT_SERIRQ_INT | LPC_INT_SERIRQ_DONE);
 	if (status) {
 		if (status & LPC_INT_SYNC_ERR)
-			printf("LPC_INT_SYNC_ERR\n");
+			printf("LPC_INT_SYNC_ERR");
 		if (status & LPC_INT_NO_SYNC)
-			printf("LPC_INT_NO_SYNC\n");
+			printf("LPC_INT_NO_SYNC");
 		if (status & LPC_INT_LWAIT_TIMEOUT)
-			printf("LPC_INT_LWAIT_TIMEOUT\n");
+			printf("LPC_INT_LWAIT_TIMEOUT");
 		if (status & LPC_INT_SWAIT_TIMEOUT)
-			printf("LPC_INT_SWAIT_TIMEOUT\n");
+			printf("LPC_INT_SWAIT_TIMEOUT");
 		if (status & LPC_INT_OP_DONE)
-			printf("LPC_INT_OP_DONE\n");
+			printf("LPC_INT_OP_DONE");
 		__raw_setl(status, LPC_INT_CLR);
 		lpc_clear_event(LPC_OP_WAIT);
 	}
 	if (serirq) {
 		if (serirq & LPC_INT_SERIRQ_INT)
-			printf("LPC_INT_SERIRQ_INT\n");
+			printf("LPC_INT_SERIRQ_INT");
 		if (serirq & LPC_INT_SERIRQ_DONE)
-			printf("LPC_INT_SERIRQ_DONE\n");
+			printf("LPC_INT_SERIRQ_DONE");
 		__raw_setl(serirq, LPC_INT_CLR);
 		lpc_raise_event(LPC_SERIRQ_EVENT);
 	}
