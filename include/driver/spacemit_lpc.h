@@ -178,7 +178,9 @@
 				LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),		\
 				LPC_CFG);						\
 		__raw_writel(a, LPC_ADDR);						\
+		__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);				\
 	} while (0);
+
 #define __lpc_io_write8(v, a)								\
 	do {										\
 		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_IO),			\
@@ -186,6 +188,7 @@
 			LPC_CFG);							\
 		__raw_writel((a), LPC_ADDR);						\
 		__raw_writel((v), LPC_WDATA);						\
+		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
 	} while (0)
 
 #define __lpc_mem_read8(a)								\
@@ -194,6 +197,7 @@
 				LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),		\
 				LPC_CFG);						\
 		__raw_writel(a, LPC_ADDR);						\
+		__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);				\
 	} while (0)
 
 #define __lpc_mem_write8(v, a)								\
@@ -203,6 +207,7 @@
 			LPC_CFG);							\
 		__raw_writel((a), LPC_ADDR);						\
 		__raw_writel((v), LPC_WDATA);						\
+		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
 	} while (0)
 
 #define __lpc_firm_read8(a)								\
@@ -214,6 +219,7 @@
 				LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_MASK),		\
 				LPC_CFG);						\
 		__raw_writel(a, LPC_ADDR);						\
+		__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);				\
 	} while (0)
 
 #define __lpc_firm_write8(v, a)								\
@@ -226,6 +232,7 @@
 			LPC_CFG);							\
 		__raw_writel((a), LPC_ADDR);						\
 		__raw_writel(v, LPC_WDATA);						\
+		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
 	} while (0)
 
 #define __lpc_firm_read16(a)								\
@@ -237,9 +244,10 @@
 				LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_MASK),		\
 				LPC_CFG);						\
 		__raw_writel(a, LPC_ADDR);						\
+		__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);				\
 	} while (0)
 
-#define __lpc_firm_write16(v, a)								\
+#define __lpc_firm_write16(v, a)							\
 	do {										\
 		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_FIRM),		\
 			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),			\
@@ -249,6 +257,7 @@
 			LPC_CFG);							\
 		__raw_writel((a), LPC_ADDR);						\
 		__raw_writel(v, LPC_WDATA);						\
+		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
 	} while (0)
 
 #define __lpc_firm_read32(a)								\
@@ -260,9 +269,10 @@
 				LPC_CFG_FW_BYTE_LEN(LPC_CFG_FW_BYTE_LEN_MASK),		\
 				LPC_CFG);						\
 		__raw_writel(a, LPC_ADDR);						\
+		__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);				\
 	} while (0)
 
-#define __lpc_firm_write32(v, a)								\
+#define __lpc_firm_write32(v, a)							\
 	do {										\
 		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_FIRM),		\
 			LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_TYPE_MASK),			\
@@ -272,6 +282,7 @@
 			LPC_CFG);							\
 		__raw_writel((a), LPC_ADDR);						\
 		__raw_writel(v, LPC_WDATA);						\
+		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);				\
 	} while (0)
 
 #define lpc_clear_int(irq)				__raw_setl(irq, LPC_INT_CLR)
