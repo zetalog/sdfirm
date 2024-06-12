@@ -205,7 +205,10 @@ extern unsigned long k1matrix_die_base;
 #define SPACEMIT_LPC_BASE		__RMU_LPC_CFG_BASE
 #define CORELPC_BASE			__RMU_LPC_IO_BASE
 #define KCS_BASE			__RMU_LPC_IO_BASE
-#else
+#elif defined(CONFIG_K1MATRIX_BBL)
+#define CLINT_BASE			__RMU_CLINT_BASE
+#define PLIC_REG_BASE			__RMU_PLIC_BASE
+#define UART0_BASE			__RMU_UART0_BASE
 #endif
 
 #define N100_CFG_BASE			__N100_CFG_BASE
@@ -233,7 +236,7 @@ extern unsigned long k1matrix_die_base;
 #define SRAM_SIZE		(SRAM01_SIZE)
 
 #ifdef CONFIG_K1MATRIX_DDR_SIZE_CUSTOM
-#define DRAM_SIZE               CONFIG_K1MATRIX_MEM_SIZE
+#define DRAM_SIZE               CONFIG_K1MATRIX_DDR_SIZE
 #else /* CONFIG_K1MATRIX_DDR_SIZE_CUSTOM */
 #define DRAM_SIZE		__DRAM_SIZE
 #endif /* CONFIG_K1MATRIX_DDR_SIZE_CUSTOM */
@@ -255,9 +258,6 @@ extern unsigned long k1matrix_die_base;
 #define ROM_SIZE		DRAM_SIZE
 #define RAM_BASE		__DDR_BASE
 #define RAM_SIZE		DRAM_SIZE
-#define CLINT_BASE		__RMU_CLINT_BASE
-#define PLIC_REG_BASE           __RMU_PLIC_BASE
-#define UART0_BASE		__RMU_UART0_BASE
 #endif /* CONFIG_K1MATRIX_BBL */
 #ifdef CONFIG_K1MATRIX_TB
 #ifdef CONFIG_K1MATRIX_TB_ROM
