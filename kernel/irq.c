@@ -99,15 +99,17 @@ boolean irq_is_polling;
 cpu_mask_t smp_online_cpus = C(0);
 #endif
 
-boolean irq_poll_bh(void)
+boolean irq_poll_bh(bool sync)
 {
 	bh_t bh;
 
 	if (!irq_is_polling)
 		return false;
 	for (bh = 0; bh < NR_BHS; bh++) {
-		if (test_bit(bh, irq_poll_regs))
-			bh_run(bh, BH_POLLIRQ);
+		if (test_bit(bh, irq_poll_regs)) {
+			if (!sync || (bh != console_bh))
+				bh_run(bh, BH_POLLIRQ);
+		}
 	}
 	return true;
 }

@@ -124,8 +124,10 @@ static void __bh_sync(boolean recursive)
 {
 	bh_t bh = 0;
 
-	while (bh != INVALID_BH)
-		bh = bh_run_once(bh, recursive);
+	while (bh != INVALID_BH) {
+		if (bh != console_bh)
+			bh = bh_run_once(bh, recursive);
+	}
 }
 
 #ifdef CONFIG_IDEL
@@ -143,7 +145,7 @@ void bh_sync(void)
 {
 	irq_local_enable();
 	__bh_sync(true);
-	if (!irq_poll_bh())
+	if (!irq_poll_bh(true))
 		bh_irq_wait();
 	irq_local_disable();
 }
@@ -154,7 +156,7 @@ void bh_loop(void)
 	main_debug(MAIN_DEBUG_INIT, 1);
 	do {
 		__bh_sync(false);
-		if (!irq_poll_bh())
+		if (!irq_poll_bh(false))
 			bh_irq_wait();
 	} while (1);
 }

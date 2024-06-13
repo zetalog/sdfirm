@@ -85,11 +85,13 @@
 typedef void (*console_handler)(void);
 
 #ifdef CONFIG_CONSOLE
+extern int console_bh;
 int console_register_handler(console_handler);
 #ifdef CONFIG_CONSOLE_INPUT
 void console_input_handler(void);
 int console_input_init(void);
 #else
+#define console_bh			INVALID_BH
 #define console_input_handler()		do { } while (0)
 static inline int console_input_init(void)
 {

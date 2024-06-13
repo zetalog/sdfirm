@@ -97,7 +97,7 @@ boolean do_IRQ(irq_t nr);
 
 /* irq pollers */
 void irq_register_poller(bh_t bh);
-boolean irq_poll_bh(void);
+boolean irq_poll_bh(bool sync);
 
 #ifndef irq_hw_flags_enable
 void irq_hw_flags_enable(void);
