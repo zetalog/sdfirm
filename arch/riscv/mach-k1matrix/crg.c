@@ -48,26 +48,272 @@
 #define CRG_JITTER	_BV(2)
 #define CRG_FOUT0	_BV(3)
 #define CRG_FOUT1	_BV(4)
+#define CRG_CLKEN	_BV(5)
+#define CRG_SRC_CLKSEL	_BV(6)
+#define CRG_CLKEN_2BIT	_BV(7)
 #define CRG_ENABLED	_BV(8)
+#define CRG_RESET	_BV(9)
+#define CRG_RESET_2BIT	_BV(10)
+#define CRG_RESET_3BIT	_BV(11)
+
+typedef uint16_t crg_flags_t;
+
+struct mesh_clk {
+	caddr_t reg;
+	clk_t *clksels;
+	uint8_t nr_clksels;
+	uint8_t sel;
+	crg_flags_t flags;
+};
+
+clk_t mesh_clksels[] = {
+	osc_clk,
+	mesh_pll_foutpostdiv,
+	com_pll_foutpostdiv,
+};
+
+struct mesh_clk mesh_clks[] = {
+	[MESH_CLK] = {
+		.clksels = mesh_clksels,
+		.reg = CRG_MESH_SUB_CLK_CTL,
+		.nr_clksels = 3,
+		.sel = 0,	
+	}
+};
+
+#ifdef CONFIG_CLK_MNEMONICS
+const char *mesh_clk_names[NR_MESH_CLKS] = {
+	[MESH_CLK] = "mesh_clk",
+};
+
+const char *get_mesh_name(clk_clk_t clk)
+{
+	if (clk >= NR_MESH_CLKS)
+		return NULL;
+	return mesh_clk_names[clk];
+}
+#else
+#define get_mesh_name		NULL
+#endif
+static clk_freq_t get_mesh_freq(clk_clk_t sel)
+{
+	if (sel >= NR_MESH_CLKS)
+		return INVALID_FREQ;
+	return clk_get_frequency(mesh_clks[sel].clksels[mesh_clks[sel].sel]);
+}
+static void select_mesh_source(clk_clk_t sel, clk_t src)
+{
+	uint8_t clksel;
+
+	if (sel >= NR_MESH_CLKS)
+		return ;
+	for (clksel = 0; clksel < mesh_clks[sel].nr_clksels; clksel++) {
+		if (src == mesh_clks[sel].clksels[clksel])
+			break;
+	}
+	if (clksel == mesh_clks[sel].nr_clksels)
+		return;
+	if (mesh_clks[sel].sel != clksel) {
+		clk_enable(src);
+		__raw_writel_mask(CRG_CLKSEL(clksel),
+				  CRG_CLKSEL(CRG_CLKSEL_MASK),
+				  mesh_clks[sel].reg);
+	}
+}
+
+const struct clk_driver clk_mesh = {
+	.max_clocks = NR_MESH_CLKS,
+	.enable = NULL,
+	.disable = NULL,
+	.get_freq = get_mesh_freq,
+	.set_freq = NULL,
+	.select = select_mesh_source,
+	.get_name = get_mesh_name,
+};
+
+struct rstn_clk {
+	caddr_t rst_reg;
+	crg_flags_t flags;
+};
+
+struct rstn_clk rstn_clks[] = {
+	[CPU_SUB_RSTN] = {
+		.rst_reg = CRG_CPU_SUB_SW_RESET,
+		.flags = CRG_RESET,	
+	},
+	[PCIE_TOP_RSTN] = {
+		.rst_reg = CRG_PCIE_TOP_SW_RESET,
+		.flags = CRG_RESET,	
+	},
+	[PCIE_BOT_RSTN] = {
+		.rst_reg = CRG_PCIE_BOT_SW_RESET,
+		.flags = CRG_RESET,	
+	},
+	[PERI_SUB_RSTN] = {
+		.rst_reg = CRG_PERI_SUB_SW_RESET,
+		.flags = CRG_RESET,	
+	},
+	[MESH_SUB_RSTN] = {
+		.rst_reg = CRG_MESH_SUB_SW_RESET,
+		.flags = CRG_RESET,	
+	},
+	[DDR_SUB_RSTN] = {
+		.rst_reg = CRG_DDR_SUB_SW_RESET,
+		.flags = CRG_RESET,	
+	},
+	[RAS_SRST_N] = {
+		.rst_reg = CRG_CPU_RAS_SW_RESET,
+		.flags = CRG_RESET,	
+	},
+	[CPU_SUB_SRST_N] = {
+		.rst_reg = CRG_CPU_SW_RESET,
+		.flags = CRG_RESET,	
+	},
+	[RMU_SRAM_SW_RSTN] = {
+		.rst_reg = CRG_RMU_SRAM_SW_RSTN,
+		.flags = CRG_RESET,	
+	},
+	[PCIE0_PERST_N] = {
+		.rst_reg = CRG_PCIE0_SW_RESET,
+		.flags = CRG_RESET_2BIT,	
+	},
+	[PCIE1_PERST_N] = {
+		.rst_reg = CRG_PCIE1_SW_RESET,
+		.flags = CRG_RESET_2BIT,	
+	},
+	[PCIE2_PERST_N] = {
+		.rst_reg = CRG_PCIE2_SW_RESET,
+		.flags = CRG_RESET_3BIT,	
+	},
+	[PCIE3_PERST_N] = {
+		.rst_reg = CRG_PCIE3_SW_RESET,
+		.flags = CRG_RESET_3BIT,	
+	},
+	[PCIE4_PERST_N] = {
+		.rst_reg = CRG_PCIE4_SW_RESET,
+		.flags = CRG_RESET_3BIT,	
+	},
+	[PCIE5_PERST_N] = {
+		.rst_reg = CRG_PCIE5_SW_RESET,
+		.flags = CRG_RESET_2BIT,	
+	},
+	[PCIE6_PERST_N] = {
+		.rst_reg = CRG_PCIE6_SW_RESET,
+		.flags = CRG_RESET_2BIT,	
+	},
+	[PCIE7_PERST_N] = {
+		.rst_reg = CRG_PCIE7_SW_RESET,
+		.flags = CRG_RESET_2BIT,	
+	},
+	[PCIE8_PERST_N] = {
+		.rst_reg = CRG_PCIE8_SW_RESET,
+		.flags = CRG_RESET_2BIT,	
+	},
+	[PCIE8_PERST_N] = {
+		.rst_reg = CRG_PCIE9_SW_RESET,
+		.flags = CRG_RESET_2BIT,	
+	},
+};
+
+#ifdef CONFIG_CLK_MNEMONICS
+const char *rstn_clk_names[NR_RSTN_CLKS] = {
+	[CPU_SUB_RSTN] = "cpu_sub_rstn",
+	[PCIE_TOP_RSTN] = "pcie_top_rstn",
+	[PCIE_BOT_RSTN] = "pcie_bot_rstn",
+	[PERI_SUB_RSTN] = "peri_sub_rstn",
+	[MESH_SUB_RSTN] = "mesh_sub_rstn",
+	[DDR_SUB_RSTN] = "ddr_sub_rstn",
+	//CLUSTER0 ~ CLUSTER7
+	[RAS_SRST_N] = "ras_srst_n",
+	[CPU_SUB_SRST_N] = "cpu_sub_srst_n",
+	[RMU_SRAM_SW_RSTN] = "rmu_sram_sw_rstn",
+	//PCIE0_PERST_N ~ PCIE9_PERST_N 
+	[PCIE0_PERST_N] = "pcie0_perst_n",
+	[PCIE1_PERST_N] = "pcie1_perst_n",
+	[PCIE2_PERST_N] = "pcie2_perst_n",
+	[PCIE3_PERST_N] = "pcie3_perst_n",
+	[PCIE4_PERST_N] = "pcie4_perst_n",
+	[PCIE5_PERST_N] = "pcie5_perst_n",
+	[PCIE6_PERST_N] = "pcie6_perst_n",
+	[PCIE7_PERST_N] = "pcie7_perst_n",
+	[PCIE8_PERST_N] = "pcie8_perst_n",
+	[PCIE9_PERST_N] = "pcie9_perst_n",
+
+};
+
+const char *get_rstn_name(clk_clk_t clk)
+{
+	if (clk >= NR_RSTN_CLKS)
+		return NULL;
+	return rstn_clk_names[clk];
+}
+#else
+#define get_rstn_name		NULL
+#endif
+
+static int enable_rstn(clk_clk_t clk)
+{
+	if (clk >= NR_RSTN_CLKS)
+		return -EINVAL;
+	if (rstn_clks[clk].flags & CRG_RESET)
+		__raw_setl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
+	else if (rstn_clks[clk].flags & CRG_RESET_2BIT) {
+		__raw_setl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
+		__raw_setl(CRG_RSTN(1), rstn_clks[clk].rst_reg);
+	}
+	else if (rstn_clks[clk].flags & CRG_RESET_3BIT)	{
+		__raw_setl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
+		__raw_setl(CRG_RSTN(1), rstn_clks[clk].rst_reg);
+		__raw_setl(CRG_RSTN(2), rstn_clks[clk].rst_reg);
+	}
+	return 0;	
+}
+
+static void disable_rstn(clk_clk_t clk)
+{
+	if (clk >= NR_RSTN_CLKS)
+		return;
+	if (rstn_clks[clk].flags & CRG_RESET)
+		__raw_clearl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
+	else if (rstn_clks[clk].flags & CRG_RESET_2BIT) {
+		__raw_clearl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
+		__raw_clearl(CRG_RSTN(1), rstn_clks[clk].rst_reg);
+	}
+	else if (rstn_clks[clk].flags & CRG_RESET_3BIT)	{
+		__raw_clearl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
+		__raw_clearl(CRG_RSTN(1), rstn_clks[clk].rst_reg);
+		__raw_clearl(CRG_RSTN(2), rstn_clks[clk].rst_reg);
+	}		
+}
+
+const struct clk_driver clk_rstn = {
+	.max_clocks = NR_MESH_CLKS,
+	.enable = enable_rstn,
+	.disable = disable_rstn,
+	.get_freq = NULL,
+	.set_freq = NULL,
+	.select = NULL,
+	.get_name = get_rstn_name,
+};
 
 struct dyn_clk {
 	clk_t pll0;
 	clk_t pll1;
 	clk_t clksel;
-	uint8_t flags;
+	crg_flags_t flags;
 };
 
 struct dyn_clk dyn_clks[] = {
 	[CPU_CLK] = {
 		cpu0_pll_foutpostdiv,
 		cpu1_pll_foutpostdiv,
-		cpu_clksel,
+		osc_clk,
 		0,
 	},
 	[DDR_CLK] = {
 		ddr0_pll_foutpostdiv,
 		ddr1_pll_foutpostdiv,
-		ddr_sub_clksel,
+		osc_clk,
 		0,
 	},
 };
@@ -169,102 +415,393 @@ const struct clk_driver clk_dyn = {
 
 struct div_clk {
 	caddr_t reg;
+	caddr_t rst_reg;
 	uint16_t max_div;
 	uint8_t div;
+	crg_flags_t flags;
+	clk_t src;
+
 };
+
 struct div_clk div_clks[] = {
 	[CPU_NIC_CLKDIV] = {
 		.reg = CRG_CPU_NIC_CLK_CTL,
 		.max_div = 4,
 		.div = 2,
+		.flags = 0,
+		.src = cpu_nic_clksel,
 	},
 	[CPU_HAP_CLKDIV] = {
 		.reg = CRG_CPU_HAP_CLK_CTL,
 		.max_div = 4,
 		.div = 2,
+		.flags = 0,
+		.src = cpu_nic_clkdiv,
 	},
 	[PCIE_TOP_CFG_CLKDIV] = {
 		.reg = CRG_PCIE_TOP_CFGCLK_CTL,
 		.max_div = 8,
 		.div = 7,
+		.flags = CRG_CLKEN,
+		.src = pcie_top_cfg_clksel,
 	},
 	[PCIE_TOP_AUX_CLKDIV] = {
 		.reg = CRG_PCIE_TOP_AUXCLK_CTL,
 		.max_div = 128,
 		.div = 100,
+		.flags = CRG_CLKEN,
+		.src = pcie_top_aux_clksel,
 	},
 	[PCIE_BOT_CFG_CLKDIV] = {
 		.reg = CRG_PCIE_BOT_CFGCLK_CTL,
 		.max_div = 8,
 		.div = 7,
+		.flags = CRG_CLKEN,
+		.src = pcie_bot_cfg_clksel,
 	},
 	[PCIE_BOT_AUX_CLKDIV] = {
 		.reg = CRG_PCIE_BOT_AUXCLK_CTL,
 		.max_div = 128,
 		.div = 100,
+		.flags = CRG_CLKEN,
+		.src = pcie_bot_aux_clksel,
 	},
-
+	[RMU_QSPI_CLKEN] = {
+		.reg = CRG_RMU_QSPI_CLK_EN,
+		.rst_reg = CRG_RMU_QSPI_SW_RSTN,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[RMU_LPC_CLKEN] = {
+		.reg = CRG_RMU_LPC_CLK_EN,
+		.rst_reg = CRG_RMU_LPC_SW_RSTN,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_CLKEN_2BIT | CRG_RESET | CRG_RESET_3BIT,
+		.src = osc_clk,
+	},
+	[RMU_ESPI_CLKEN] = {
+		.reg = CRG_RMU_eSPI_CLK_EN,
+		.rst_reg = CRG_RMU_eSPI_SW_RSTN,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[RMU_UART0_CLKEN] = {
+		.reg = CRG_RMU_UART0_CLK_EN,
+		.rst_reg = CRG_RMU_UART0_SW_RSTN,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[RMU_UART1_CLKEN] = {
+		.reg = CRG_RMU_UART1_CLK_EN,
+		.rst_reg = CRG_RMU_UART1_SW_RSTN,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[RMU_MAILBOX_S_CLKEN] = {
+		.reg = CRG_RMU_Mailbox_S_CLK_EN,
+		.rst_reg = CRG_RMU_Mailbox_S_SW_RSTN,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[RMU_MAILBOX_NS_CLKEN] = {
+		.reg = CRG_RMU_Mailbox_NS_CLK_EN,
+		.rst_reg = CRG_RMU_Mailbox_NS_SW_RSTN,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_SMBUS0_CLKEN] = {
+		.reg = CRG_PERI_SMBUS0_CLK_CTL,
+		.rst_reg = CRG_PERI_SMBUS0_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_SMBUS1_CLKEN] = {
+		.reg = CRG_PERI_SMBUS1_CLK_CTL,
+		.rst_reg = CRG_PERI_SMBUS1_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_I2C0_CLKEN] = {
+		.reg = CRG_PERI_I2C0_CLK_CTL,
+		.rst_reg = CRG_PERI_I2C0_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_I2C1_CLKEN] = {
+		.reg = CRG_PERI_I2C1_CLK_CTL,
+		.rst_reg = CRG_PERI_I2C1_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN |CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_I2C2_CLKEN] = {
+		.reg = CRG_PERI_I2C2_CLK_CTL,
+		.rst_reg = CRG_PERI_I2C2_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_I2C3_CLKEN] = {
+		.reg = CRG_PERI_I2C3_CLK_CTL,
+		.rst_reg = CRG_PERI_I2C3_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN |CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_I2C4_CLKEN] = {
+		.reg = CRG_PERI_I2C4_CLK_CTL,
+		.rst_reg = CRG_PERI_I2C4_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_I2C5_CLKEN] = {
+		.reg = CRG_PERI_I2C5_CLK_CTL,
+		.rst_reg = CRG_PERI_I2C5_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_UART0_CLKEN] = {
+		.reg = CRG_PERI_UART0_CLK_CTL,
+		.rst_reg = CRG_PERI_UART0_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_UART1_CLKEN] = {
+		.reg = CRG_PERI_UART1_CLK_CTL,
+		.rst_reg = CRG_PERI_UART1_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_UART2_CLKEN] = {
+		.reg = CRG_PERI_UART2_CLK_CTL,
+		.rst_reg = CRG_PERI_UART2_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_UART3_CLKEN] = {
+		.reg = CRG_PERI_UART3_CLK_CTL,
+		.rst_reg = CRG_PERI_UART3_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_GPIO0_DB_CLKDIV] = {
+		.reg = CRG_PERI_GPIO0_CLK_CTL,
+		.rst_reg = CRG_PERI_GPIO0_SW_RESET,
+		.max_div = 8,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_GPIO1_DB_CLKDIV] = {
+		.reg = CRG_PERI_GPIO1_CLK_CTL,
+		.rst_reg = CRG_PERI_GPIO1_SW_RESET,
+		.max_div = 8,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_GPIO2_DB_CLKDIV] = {
+		.reg = CRG_PERI_GPIO2_CLK_CTL,
+		.rst_reg = CRG_PERI_GPIO2_SW_RESET,
+		.max_div = 8,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_GPIO3_DB_CLKDIV] = {
+		.reg = CRG_PERI_GPIO3_CLK_CTL,
+		.rst_reg = CRG_PERI_GPIO3_SW_RESET,
+		.max_div = 8,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_GPIO4_DB_CLKDIV] = {
+		.reg = CRG_PERI_GPIO4_CLK_CTL,
+		.rst_reg = CRG_PERI_GPIO4_SW_RESET,
+		.max_div = 8,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_DMAC_CLKEN] = {
+		.reg = CRG_PERI_DMAC_CLK_CTL,
+		.rst_reg = CRG_PERI_DMAC_SW_RESET,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = osc_clk,
+	},
+	[PERI_GMAC_AXI_CLKDIV] = {
+		.reg = CRG_PERI_GMAC_CLK_CTL,
+		.rst_reg = CRG_PERI_GMAC_SW_RESET,
+		.max_div = 8,
+		.div = 2,
+		.flags = CRG_CLKEN | CRG_RESET,
+		.src = peri_gmac_txclk_sel,//?
+	},
 };
 
 #ifdef CONFIG_CLK_MNEMONICS
 const char *div_clk_names[NR_DIV_CLKS] = {
-    [CPU_NIC_CLKDIV] = "cpu_nic_clkdiv",
-    [CPU_HAP_CLKDIV] = "cpu_hap_clkdiv",
-    [PCIE_TOP_CFG_CLKDIV] = "pcie_top_cfg_clkdiv",
-    [PCIE_TOP_AUX_CLKDIV] = "pcie_top_aux_clkdiv",
-    [PCIE_BOT_CFG_CLKDIV] = "pcie_bot_cfg_clkdiv",
-    [PCIE_BOT_AUX_CLKDIV] = "pcie_bot_aux_clkdiv"
+	[CPU_NIC_CLKDIV] = "cpu_nic_clkdiv",
+	[CPU_HAP_CLKDIV] = "cpu_hap_clkdiv",
+	[PCIE_TOP_CFG_CLKDIV] = "pcie_top_cfg_clkdiv",
+	[PCIE_TOP_AUX_CLKDIV] = "pcie_top_aux_clkdiv",
+	[PCIE_BOT_CFG_CLKDIV] = "pcie_bot_cfg_clkdiv",
+	[PCIE_BOT_AUX_CLKDIV] = "pcie_bot_aux_clkdiv",
+	[RMU_QSPI_CLKEN] = "rmu_qspi_clken",
+	[RMU_LPC_CLKEN] = "rmu_lpc_clken",//2bits lcken, 3bits rstn 
+	[RMU_ESPI_CLKEN] = "rmu_espi_clken",
+	[RMU_UART0_CLKEN] = "rmu_uart0_clken",
+	[RMU_UART1_CLKEN] = "rmu_uart1_clken",
+	[RMU_MAILBOX_S_CLKEN] = "rmu_mailbox_s_clken",
+	[RMU_MAILBOX_NS_CLKEN] = "rmu_mailbox_ns_clken",
+	[PERI_SMBUS0_CLKEN] = "peri_smbus0_clken",
+	[PERI_SMBUS1_CLKEN] = "peri_smbus1_clken",
+	[PERI_I2C0_CLKEN] = "peri_i2c0_clken",
+	[PERI_I2C1_CLKEN] = "peri_i2c1_clken",
+	[PERI_I2C2_CLKEN] = "peri_i2c2_clken",
+	[PERI_I2C3_CLKEN] = "peri_i2c3_clken",
+	[PERI_I2C4_CLKEN] = "peri_i2c4_clken",
+	[PERI_I2C5_CLKEN] = "peri_i2c5_clken",
+	[PERI_UART0_CLKEN] = "peri_uart0_clken",
+	[PERI_UART1_CLKEN] = "peri_uart1_clken",
+	[PERI_UART2_CLKEN] = "peri_uart2_clken",
+	[PERI_UART3_CLKEN] = "peri_uart3_clken",
+	[PERI_GPIO0_DB_CLKDIV] = "peri_gpio0_db_clkdiv",//debounce clk
+	[PERI_GPIO1_DB_CLKDIV] = "peri_gpio1_db_clkdiv",
+	[PERI_GPIO2_DB_CLKDIV] = "peri_gpio2_db_clkdiv",
+	[PERI_GPIO3_DB_CLKDIV] = "peri_gpio3_db_clkdiv",
+	[PERI_GPIO4_DB_CLKDIV] = "peri_gpio4_db_clkdiv",
+	[PERI_DMAC_CLKEN] = "peri_dmac_clken",
+	[PERI_GMAC_AXI_CLKDIV] = "peri_gmac_axi_clkdiv",//select source null
 };
-const char *get_div_name(clk_clk_t clk) {
-    if (clk >= NR_DIV_CLKS) {
-        return NULL;
-    }
-    return div_clk_names[clk];
-}
 
+const char *get_div_name(clk_clk_t clk) 
+{
+	if (clk >= NR_DIV_CLKS)
+		return NULL;
+	return div_clk_names[clk];
+}
 #else
 #define get_div_name		NULL
 #endif
-static clk_freq_t get_div_freq(clk_clk_t clk) {
-    if (clk >= NR_DIV_CLKS) {
-        return INVALID_FREQ;
-    }
 
-    clk_freq_t parent_freq = clk_get_frequency(div_clks[clk].reg);
-    if (parent_freq == INVALID_FREQ) {
-        return INVALID_FREQ;
-    }
-
-    return parent_freq / div_clks[clk].div;
+static int enable_div(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	if (div_clks[clk].flags & CRG_SRC_CLKSEL)
+		clk_select_source(div_clks[clk].src, 1);
+	else 
+		clk_enable(div_clks[clk].src);
+	if (div_clks[clk].flags & CRG_CLKEN) {
+		__raw_setl(CRG_CLKENABLE(0), div_clks[clk].reg);
+		if (div_clks[clk].flags & CRG_RESET) {
+			__raw_setl(CRG_RSTN(0), div_clks[clk].rst_reg);
+			if (div_clks[clk].flags & CRG_RESET_3BIT) {
+				__raw_setl(CRG_RSTN(1), div_clks[clk].rst_reg);
+				__raw_setl(CRG_RSTN(2), div_clks[clk].rst_reg);
+			}
+		}
+		if (div_clks[clk].flags & CRG_CLKEN_2BIT)
+			__raw_setl(CRG_CLKENABLE(1), div_clks[clk].reg);
+	}
+	return 0;
+		
 }
-static int set_div_freq(clk_clk_t clk, clk_freq_t freq) {
-    if (clk >= NR_DIV_CLKS) {
-        return -EINVAL;
-    }
 
-    clk_freq_t parent_freq = clk_get_frequency(div_clks[clk].reg);
-    if (parent_freq == INVALID_FREQ) {
-        return -EINVAL;
-    }
+static void disable_div(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return;
+	if (div_clks[clk].flags & CRG_SRC_CLKSEL)
+		clk_select_source(div_clks[clk].src, 0);
+	else 
+		clk_disable(div_clks[clk].src);
+	if (div_clks[clk].flags & CRG_CLKEN) {
+		__raw_clearl(CRG_CLKENABLE(0), div_clks[clk].reg);
+		if (div_clks[clk].flags & CRG_RESET) {
+			__raw_clearl(CRG_RSTN(0), div_clks[clk].rst_reg);
+			if (div_clks[clk].flags & CRG_RESET_3BIT) {
+				__raw_clearl(CRG_RSTN(1), div_clks[clk].rst_reg);
+				__raw_clearl(CRG_RSTN(2), div_clks[clk].rst_reg);
+			}
+		}
+		if (div_clks[clk].flags & CRG_CLKEN_2BIT)
+			__raw_clearl(CRG_CLKENABLE(1), div_clks[clk].reg);	
+	}
+}
 
-    uint8_t new_div = parent_freq / freq;
-    if (new_div > div_clks[clk].max_div) {
-        return -EINVAL;
-    }
+static clk_freq_t get_div_freq(clk_clk_t clk) 
+{
+	clk_freq_t freq;
+	if (clk >= NR_DIV_CLKS)
+		return INVALID_FREQ;
+	freq = clk_get_frequency(div_clks[clk].src);
+	if (freq == INVALID_FREQ)
+		return INVALID_FREQ;
+	return freq / div_clks[clk].div;
+}
 
-    div_clks[clk].div = new_div;
-    __raw_writel_mask(CRG_CLKDIV0(new_div), CRG_CLKDIV0_MASK, div_clks[clk].reg);
-    return 0;
+static int set_div_freq(clk_clk_t clk, clk_freq_t freq)
+{
+	clk_freq_t src_freq;
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	src_freq = clk_get_frequency(div_clks[clk].src);
+	if (src_freq == INVALID_FREQ)
+		return -EINVAL;
+	div_clks[clk].div = src_freq / freq;
+	if (div_clks[clk].div > div_clks[clk].max_div)
+        	return -EINVAL;
+	__raw_writel_mask(CRG_CLKDIV0(div_clks[clk].div), CRG_CLKDIV0(CRG_CLKDIV0_MASK), div_clks[clk].reg);
+	return 0;
 }
 
 const struct clk_driver clk_div = {
-    .max_clocks = NR_DIV_CLKS,
-    .enable = NULL,
-    .disable = NULL,
-    .get_freq = get_div_freq,
-    .set_freq = set_div_freq,
-    .select = NULL,
-    .get_name = get_div_name,
+    	.max_clocks = NR_DIV_CLKS,
+    	.enable = enable_div,
+    	.disable = disable_div,
+    	.get_freq = get_div_freq,
+    	.set_freq = set_div_freq,
+    	.select = NULL,
+    	.get_name = get_div_name,
 };
 
 struct sel_clk {
@@ -272,22 +809,7 @@ struct sel_clk {
 	clk_t *clksels;
 	uint8_t nr_clksels;
 	uint8_t sel;
-};
-clk_t mesh_sub_clksels[] = {
-	osc_clk,
-	mesh_pll_foutpostdiv,
-	com_pll_foutpostdiv,
-};
-clk_t ddr_sub_clksels[] = {
-	osc_clk,
-	ddr0_pll_foutpostdiv,
-	ddr1_pll_foutpostdiv,
-};
-
-clk_t cpu_clksels[] = {
-	osc_clk,
-	cpu0_pll_foutpostdiv,
-	cpu1_pll_foutpostdiv,
+	crg_flags_t flags;
 };
 
 clk_t cpu_nic_clksels[] = {
@@ -305,94 +827,90 @@ clk_t pcie_com_xclksels[] = {
 	com_pll_foutpostdiv,
 };
 
-clk_t pcie_sub_clksels[] = {
+clk_t peri_sub_clksels[] = {
 	osc_clk,
 	peri_pll_fout1ph0,
 };
 
 struct sel_clk sel_clks[] = {
-	[MESH_SUB_CLKSEL] = {
-		.reg = CRG_MESH_SUB_CLK_CTL,
-		.clksels = mesh_sub_clksels,
-		.nr_clksels = 3,
-		.sel = 0,
-	},
-	[DDR_SUB_CLKSEL] = {
-		.reg = CRG_DDR_SUB_CLK_CTL,
-		.clksels = ddr_sub_clksels,
-		.nr_clksels = 3,
-		.sel = 0,
-	},
-	[CPU_CLKSEL] = {
-		.reg = CRG_CPU_CLK_CTL,
-		.clksels = cpu_clksels,
-		.nr_clksels = 3,
-		.sel = 0,
-	},
 	[CPU_NIC_CLKSEL] = {
 		.reg = CRG_CPU_NIC_CLK_CTL,
 		.clksels = cpu_nic_clksels,
 		.nr_clksels = 2,
 		.sel = 0,
-	},
-	[PCIE_TOP_CFG_CLKSEL] = {
-		.clksels = pcie_com_xclksels,
-		.reg = CRG_PCIE_TOP_CFGCLK_CTL,
-		.nr_clksels = 2,
-		.sel = 0,
-	},
-	[PCIE_TOP_AUX_CLKSEL] = {
-		.clksels = pcie_peri_xclksels,
-		.reg = CRG_PCIE_TOP_AUXCLK_CTL,
-		.nr_clksels = 2,
-		.sel = 0,
+		.flags = 0,
 	},
 	[PCIE_TOP_XCLKSEL] = {
 		.clksels = pcie_peri_xclksels,
 		.reg = CRG_PCIE_TOP_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
+		.flags = CRG_CLKEN,
+	},
+	[PCIE_TOP_AUX_CLKSEL] = {
+		.clksels = pcie_peri_xclksels,
+		.reg = CRG_PCIE_TOP_AUXCLK_CTL,
+		.nr_clksels = 2,
+		.sel = 0,
+		.flags = 0,
+	},
+	[PCIE_TOP_CFG_CLKSEL] = {
+		.clksels = pcie_com_xclksels,
+		.reg = CRG_PCIE_TOP_CFGCLK_CTL,
+		.nr_clksels = 2,
+		.sel = 0,
+		.flags = 0,
 	},
 	[PCIE_BOT_CFG_CLKSEL] = {
 		.clksels = pcie_com_xclksels,
 		.reg = CRG_PCIE_BOT_CFGCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
+		.flags = 0,
 	},
 	[PCIE_BOT_AUX_CLKSEL] = {
 		.clksels = pcie_peri_xclksels,
 		.reg = CRG_PCIE_BOT_AUXCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
+		.flags = 0,
 	},
 	[PCIE_BOT_XCLKSEL] = {
 		.clksels = pcie_peri_xclksels,
 		.reg = CRG_PCIE_BOT_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
+		.flags = CRG_CLKEN,
 	},
-	[PCIE_SUB_CLKSEL] = {
-		.clksels = pcie_sub_clksels,
-		.reg = CRG_PCIE_BOT_AUXCLK_CTL,
+	[PERI_SUB_CLKSEL] = {
+		.clksels = peri_sub_clksels,
+		.reg = CRG_PERI_SUB_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
+		.flags = CRG_CLKEN,
+	},
+	[PERI_GMAC_TXCLK_SEL] = {
+		//.clksels = ,
+		.reg = CRG_PERI_GMAC_CLK_CTL,
+		.nr_clksels = 2,
+		.sel = 0,
+		.flags = CRG_CLKEN,
 	},
 };
 
 #ifdef CONFIG_CLK_MNEMONICS
 const char *sel_clk_names[NR_SEL_CLKS] = {
-    [MESH_SUB_CLKSEL] = "mesh_sub_clksel",
-    [DDR_SUB_CLKSEL] = "ddr_sub_clksel",
-    [CPU_CLKSEL] = "cpu_clksel",
-    [CPU_NIC_CLKSEL] = "cpu_nic_clksel",
-    [PCIE_TOP_CFG_CLKSEL] = "pcie_top_cfg_clksel",
-    [PCIE_TOP_AUX_CLKSEL] = "pcie_top_aux_clksel",
+	[CPU_NIC_CLKSEL] = "cpu_nic_clksel",
+	[PCIE_TOP_CFG_CLKSEL] = "pcie_top_cfg_clksel",
+	[PCIE_TOP_AUX_CLKSEL] = "pcie_top_aux_clksel",
 	[PCIE_TOP_XCLKSEL] = "pcie_top_xclksel",
-    [PCIE_BOT_CFG_CLKSEL] = "pcie_bot_cfg_clksel",
-    [PCIE_BOT_AUX_CLKSEL] = "pcie_bot_aux_clksel",
+	[PCIE_BOT_CFG_CLKSEL] = "pcie_bot_cfg_clksel",
+	[PCIE_BOT_AUX_CLKSEL] = "pcie_bot_aux_clksel",
 	[PCIE_BOT_XCLKSEL] = "pcie_bot_xclksel",
-    [PCIE_SUB_CLKSEL] = "pcie_sub_clksel"
+	[PERI_SUB_CLKSEL] = "peri_sub_clksel",
+	[PERI_GMAC_TXCLK_SEL] = "peri_gmac_txclk_sel",//?
 };
+
 static const char *get_sel_name(clk_clk_t sel)
 {
 	if (sel >= NR_SEL_CLKS)
@@ -427,6 +945,8 @@ static void select_sel_source(clk_clk_t sel, clk_t src)
 		__raw_writel_mask(CRG_CLKSEL(clksel),
 				  CRG_CLKSEL(CRG_CLKSEL_MASK),
 				  sel_clks[sel].reg);
+		if (sel_clks[sel].flags & CRG_CLKEN)
+			__raw_setl(CRG_CLKENABLE(0), sel_clks[sel].reg);
 	}
 }
 
@@ -440,12 +960,11 @@ const struct clk_driver clk_sel = {
 	.get_name = get_sel_name,
 };
 
-
 struct pll_clk {
 	uint32_t Fref;
 	uint32_t Fvco;
 	uint32_t Fout;
-	uint8_t flags;
+	crg_flags_t flags;
 };
 
 struct pll_clk pll_clks[NR_PLL_CLKS] = {
@@ -639,6 +1158,7 @@ void k1matrix_clk_init(void)
 		clk_register_driver(CLK_INPUT, &clk_input);
 		clk_register_driver(CLK_PLL, &clk_pll);
 		clk_register_driver(CLK_DYN, &clk_dyn);
+		//clk_register_driver(CLK_DIV, &clk_div);
 		k1matrix_clk_initialized = true;
 	}
 }

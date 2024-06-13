@@ -308,7 +308,7 @@
 #define CRG_PERI_TBU_ADB_SW_RESET	CRG_REG(0x29F4)
 
 /* XXX_CLK_CTL */
-#define CRG_CLKEN(n)			_BV(n)
+#define CRG_CLKENABLE(n)		_BV(n)
 #define CRG_CLKDIV0_OFFSET		4
 #define CRG_CLKDIV0_MASK		REG_12BIT_MASK
 #define CRG_CLKDIV0(value)		_SET_FV(CRG_CLKDIV0, value)
@@ -318,6 +318,9 @@
 #define CRG_CLKSEL_OFFSET		24
 #define CRG_CLKSEL_MASK			REG_8BIT_MASK
 #define CRG_CLKSEL(value)		_SET_FV(CRG_CLKSEL, value)
+
+/* XXX_SW_RESET */
+#define CRG_RSTN(n)			_BV(n)
 
 #ifdef CONFIG_CRCNTL_TRACE
 void crg_trace(bool enabling, const char *name);
