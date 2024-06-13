@@ -23,7 +23,7 @@
 #define CLK_SEL			2
 #define CLK_DYN			3
 #define CLK_DIV			4
-#define CLK_OUTPUT		5
+#define CLK_EN			5
 #define CLK_RESET		6
 
 /* INPUT */
@@ -38,9 +38,13 @@
 #define DDR1_PLL		4
 #define CPU0_PLL		5
 #define CPU1_PLL		6
-#define COM_FOUT1PH0    7
-#define PERI_FOUT1PH0   8
+#define COM_FOUT1PH0		7
+#define PERI_FOUT1PH0		8
 #define NR_PLL_CLKS		9
+
+/* MESH PLL */
+#define MESH_CLK		0
+#define NR_MESH_CLKS		1
 
 /* DYNAMIC_PLL */
 #define DDR_CLK			0
@@ -48,27 +52,73 @@
 #define NR_DYN_CLKS		2
 
 /* CLKSEL */
-#define MESH_SUB_CLKSEL		0
-#define DDR_SUB_CLKSEL		1
-#define CPU_CLKSEL		2
-#define CPU_NIC_CLKSEL		3
-#define PCIE_TOP_CFG_CLKSEL		4
-#define PCIE_TOP_AUX_CLKSEL		5
-#define PCIE_TOP_XCLKSEL		6
-#define PCIE_BOT_CFG_CLKSEL		7    
-#define PCIE_BOT_AUX_CLKSEL     8
-#define PCIE_BOT_XCLKSEL        9
-#define PCIE_SUB_CLKSEL     10
-#define NR_SEL_CLKS		11
+#define CPU_NIC_CLKSEL		0
+#define PCIE_TOP_CFG_CLKSEL	1
+#define PCIE_TOP_AUX_CLKSEL	2
+#define PCIE_TOP_XCLKSEL	3
+#define PCIE_BOT_CFG_CLKSEL	4
+#define PCIE_BOT_AUX_CLKSEL	5
+#define PCIE_BOT_XCLKSEL	6
+#define PERI_SUB_CLKSEL		7
+#define PERI_GMAC_TXCLK_SEL	8
+#define NR_SEL_CLKS		9
 
 /* CLKDIV */
 #define CPU_NIC_CLKDIV		0
 #define CPU_HAP_CLKDIV		1
-#define PCIE_TOP_AUX_CLKDIV	2
-#define PCIE_TOP_CFG_CLKDIV	3
-#define PCIE_BOT_AUX_CLKDIV	4
-#define PCIE_BOT_CFG_CLKDIV	5
-#define NR_DIV_CLKS		6
+#define PCIE_TOP_CFG_CLKDIV	2
+#define PCIE_TOP_AUX_CLKDIV	3
+#define PCIE_BOT_CFG_CLKDIV	4
+#define PCIE_BOT_AUX_CLKDIV	5
+#define RMU_QSPI_CLKEN		6
+#define RMU_LPC_CLKEN		7
+#define RMU_ESPI_CLKEN		8
+#define RMU_UART0_CLKEN		9
+#define RMU_UART1_CLKEN		10
+#define RMU_MAILBOX_S_CLKEN	11
+#define RMU_MAILBOX_NS_CLKEN	12
+#define PERI_SMBUS0_CLKEN	13
+#define PERI_SMBUS1_CLKEN	14
+#define PERI_I2C0_CLKEN		15
+#define PERI_I2C1_CLKEN		16
+#define PERI_I2C2_CLKEN		17
+#define PERI_I2C3_CLKEN		18
+#define PERI_I2C4_CLKEN		19
+#define PERI_I2C5_CLKEN		20
+#define PERI_UART0_CLKEN	21
+#define PERI_UART1_CLKEN	22
+#define PERI_UART2_CLKEN	23
+#define PERI_UART3_CLKEN	24
+#define PERI_GPIO0_DB_CLKDIV	25
+#define PERI_GPIO1_DB_CLKDIV	26
+#define PERI_GPIO2_DB_CLKDIV	27
+#define PERI_GPIO3_DB_CLKDIV	28
+#define PERI_GPIO4_DB_CLKDIV	29
+#define PERI_DMAC_CLKEN		30
+#define PERI_GMAC_AXI_CLKDIV	31
+#define NR_DIV_CLKS		32
+
+/*CLKRSTN*/
+#define CPU_SUB_RSTN		0
+#define PCIE_TOP_RSTN		1
+#define PCIE_BOT_RSTN		2
+#define PERI_SUB_RSTN		3
+#define MESH_SUB_RSTN		4
+#define DDR_SUB_RSTN		5
+#define RAS_SRST_N		6
+#define CPU_SUB_SRST_N		7
+#define RMU_SRAM_SW_RSTN	8
+#define PCIE0_PERST_N		9
+#define PCIE1_PERST_N		10
+#define PCIE2_PERST_N		11
+#define PCIE3_PERST_N		12
+#define PCIE4_PERST_N		13
+#define PCIE5_PERST_N		14
+#define PCIE6_PERST_N		15
+#define PCIE7_PERST_N		16
+#define PCIE8_PERST_N		17
+#define PCIE9_PERST_N		18
+#define NR_RSTN_CLKS		19
 
 #define SYS_CLK_FREQ		20000000
 #define CFG_CLK_FREQ		10000000
