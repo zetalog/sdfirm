@@ -105,7 +105,7 @@ int console_register_handler(console_handler handler)
 	return 0;
 }
 
-static int console_bh;
+int console_bh;
 static uint8_t console_events;
 
 #ifdef CONFIG_CONSOLE_INPUT
