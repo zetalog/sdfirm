@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 20 15:32:05 2024
+# Wed Jun 12 13:48:45 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -144,7 +144,7 @@ CONFIG_RISCV_SPINLOCK_TICKET=y
 #
 # Compiler options
 #
-# CONFIG_CC_NO_RELAX is not set
+CONFIG_CC_NO_RELAX=y
 # CONFIG_CMODEL_MEDLOW is not set
 CONFIG_CMODEL_MEDANY=y
 CONFIG_TUNE_GENERIC=y
@@ -152,7 +152,6 @@ CONFIG_MAXPHYSMEM_2GB=y
 # CONFIG_MAXPHYSMEM_128GB is not set
 CONFIG_SYS_ENTR_M=y
 CONFIG_SYS_EXIT_M=y
-CONFIG_SYS_EXIT_S=y
 # CONFIG_RISCV_AEE is not set
 CONFIG_RISCV_SEE=y
 # CONFIG_RISCV_HEE is not set
@@ -226,14 +225,17 @@ CONFIG_K1M_CPU=y
 # CONFIG_K1M_PZ1 is not set
 # CONFIG_K1M_S2C is not set
 # CONFIG_K1M_PARTIAL_GOOD is not set
-CONFIG_K1M_TB=y
-# CONFIG_K1M_BBL is not set
+# CONFIG_K1M_TB is not set
+# CONFIG_K1M_ZSBL is not set
+# CONFIG_K1M_FSBL is not set
+CONFIG_K1M_BBL=y
 CONFIG_K1M_SRAM=y
 # CONFIG_K1M_DDR is not set
 CONFIG_K1M_MEM_SIZE=0x80000000
 # CONFIG_K1M_TIMER is not set
 CONFIG_K1M_UART=y
 CONFIG_K1M_UART_DW=y
+CONFIG_K1MATRIX_CRG=y
 
 #
 # Feature setup
@@ -252,6 +254,7 @@ CONFIG_ARCH_HAS_GPT=y
 CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
+CONFIG_ARCH_HAS_BOOT_LOAD=y
 
 #
 # Scheduling facility (bh) support
@@ -288,10 +291,10 @@ CONFIG_TIMER_TEST_SHOT_PERIOD=2
 #
 # Address space layout (xip) support
 #
+# CONFIG_BFM is not set
 CONFIG_XIP=y
 CONFIG_BOOT_BASE=0x20000000
 CONFIG_LOAD_BASE=0x20000000
-CONFIG_LOAD_DATA=y
 CONFIG_NO_ZERO_BSS=y
 # CONFIG_NO_ZERO_GPR is not set
 
@@ -367,6 +370,7 @@ CONFIG_FDT=y
 #
 # Clock drivers
 #
+# CONFIG_SC_PLLTS12FFCLAFRAC2 is not set
 
 #
 # GPIO controller drivers

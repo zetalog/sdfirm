@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2023
+ * Copyright (c) 2024
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,33 +35,31 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)tsc.h: K1Matrix specific mandatory TSC driver
- * $Id: tsc.h,v 1.1 2023-09-06 20:41:00 zhenglv Exp $
+ * @(#)aclint.h: RISC-V advanced core local interruptor (ACLINT) interface
+ * $Id: aclint.h,v 1.1 2024-06-12 17:46:00 zhenglv Exp $
  */
 
-#ifndef __TSC_K1MATRIX_H_INCLUDE__
-#define __TSC_K1MATRIX_H_INCLUDE__
+#ifndef __ACLINT_RISCV_H_INCLUDE__
+#define __ACLINT_RISCV_H_INCLUDE__
 
-#include <target/arch.h>
-#include <target/clk.h>
-
-#define TSC_FREQ		(PIC_CLK_FREQ/1000)
-#define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
-
-#ifdef CONFIG_K1MATRIX_APU
-#include <asm/aclint.h>
-#endif
-#ifdef CONFIG_K1MATRIX_RMU
-#include <asm/clint.h>
-#endif
-
-#ifndef __ASSEMBLY__
-#define tsc_hw_ctrl_init()	do { } while (0)
-#if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
-#define tsc_hw_read_counter()	rdtime()
+#define CLINT_MTIMER_BASE		0x4000
+#ifdef CONFIG_ACLINT_MULTI
+#define CLINT_BASE(n)			(ACLINT_BASE(n) + CLINT_MTIMER_BASE)
+#define ACLINT_REG_BASE(n)		ACLINT_BASE(n)
 #else
-#define tsc_hw_read_counter()	clint_read_mtime()
+#define CLINT_BASE			(ACLINT_BASE + CLINT_MTIMER_OFFSET)
+#define ACLINT_REG_BASE(n)		ACLINT_BASE
 #endif
-#endif /* __ASSEMBLY__ */
 
-#endif /* __TSC_K1MATRIX_H_INCLUDE__ */
+#define ACLINT_REG(n, offset)		(ACLINT_REG_BASE(n) + (offset))
+#define ACLINT_MTIMER_ALIGN		0x8
+#define ACLINT_MTIMER_MAX_HARTS		4095
+#define ACLINT_MTIME_OFFSET		0x7FF8
+#define ACLINT_MTIME_SIZE		0x8
+#define ACLINT_MTIMECMP_OFFSET		0x0000
+#define ACLINT_MTIMECMP_SIZE		0x7FF8
+#define ACLINT_MTIMER_REGION_ALIGN	0x1000
+
+#include <asm/clint.h>
+
+#endif /* __ACLINT_RISCV_H_INCLUDE__ */

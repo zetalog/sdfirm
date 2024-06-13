@@ -41,6 +41,7 @@ riscv-march-y	:= $(riscv-march-y)_zicsr
 riscv-march-y	:= $(riscv-march-y)_zifencei
 endif
 endif
+riscv-march-$(CONFIG_RISCV_ZICBOM)	:= $(riscv-march-y)_zicbom
 CFLAGS += -march=$(riscv-march-y)
 AFLAGS += -march=$(riscv-march-y)
 

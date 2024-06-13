@@ -8,8 +8,8 @@ choice
 config K1MATRIX_RMU
 	bool "RMU subsystem"
 
-config K1MATRIX_CPU
-	bool "CPU subsystem"
+config K1MATRIX_APU
+	bool "APU subsystem"
 
 endchoice
 

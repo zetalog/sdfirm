@@ -58,6 +58,9 @@ extern caddr_t k1matrix_plic_ctx_base[2];
 #define PLIC_CTX_BASE		(PLIC_REG_BASE + PLIC_CONTEXT_BASE)
 #endif
 
+#define cpu2pic(cpu)			(cpu)
+#define clint_hw_ctx(cpu)		cpu2pic(cpu)
+
 #ifdef CONFIG_ARCH_HAS_CLINT_MULTI
 #define clint_hw_chip(cpu)		((cpu) >> 5)
 #define clint_hw_hart_offset(hart)	((hart) >= 32 ? ((hart) - 32) : hart)

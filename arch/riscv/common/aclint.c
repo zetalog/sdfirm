@@ -1,7 +1,7 @@
 /*
  * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2023
+ * Copyright (c) 2024
  *    ZETALOG - "Lv ZHENG".  All rights reserved.
  *    Author: Lv "Zetalog" Zheng
  *    Internet: zhenglv@hotmail.com
@@ -35,33 +35,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)tsc.h: K1Matrix specific mandatory TSC driver
- * $Id: tsc.h,v 1.1 2023-09-06 20:41:00 zhenglv Exp $
+ * @(#)aclint.c: Advanced core local interruptor (ACLINT) implementation
+ * $Id: aclint.c,v 1.1 2024-06-12 18:04:00 zhenglv Exp $
  */
 
-#ifndef __TSC_K1MATRIX_H_INCLUDE__
-#define __TSC_K1MATRIX_H_INCLUDE__
+#include <target/tsc.h>
+#include <target/bitops.h>
+#include <target/irq.h>
+#include <target/smp.h>
+#include <target/atomic.h>
 
-#include <target/arch.h>
-#include <target/clk.h>
-
-#define TSC_FREQ		(PIC_CLK_FREQ/1000)
-#define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
-
-#ifdef CONFIG_K1MATRIX_APU
-#include <asm/aclint.h>
-#endif
-#ifdef CONFIG_K1MATRIX_RMU
-#include <asm/clint.h>
-#endif
-
-#ifndef __ASSEMBLY__
-#define tsc_hw_ctrl_init()	do { } while (0)
-#if defined(CONFIG_RISCV_COUNTERS) || defined(CONFIG_SBI)
-#define tsc_hw_read_counter()	rdtime()
-#else
-#define tsc_hw_read_counter()	clint_read_mtime()
-#endif
-#endif /* __ASSEMBLY__ */
-
-#endif /* __TSC_K1MATRIX_H_INCLUDE__ */

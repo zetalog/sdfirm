@@ -77,8 +77,7 @@ static void __noreturn sbi_trap_error(const char *msg, int rc,
 #ifdef CONFIG_CPU_H
 static bool sbi_next_virt(ulong cause)
 {
-	return ((cause < __riscv_xlen) &&
-		(csr_read(CSR_HEDELEG) & _BV(cause))) {
+	return (cause < __riscv_xlen) && (csr_read(CSR_HEDELEG) & _BV(cause));
 }
 
 static void sbi_hyper_save(struct pt_regs *regs,
