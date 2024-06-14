@@ -11,8 +11,9 @@ obj-$(CONFIG_K1MATRIX_DMAR) += iommu.rel
 obj-$(CONFIG_K1MATRIX_DMAR) += dmar.rel
 obj-$(CONFIG_K1MATRIX_BMU) += bmu.rel
 obj-$(CONFIG_K1MATRIX_MBOX) += mbox.rel
-obj-$(CONFIG_K1MATRIX_CRU) += cru_rst.rel
-obj-$(CONFIG_K1MATRIX_CRU) += cru_pll.rel
-obj-$(CONFIG_K1MATRIX_CRU) += cru_clk_real.rel
-obj-$(CONFIG_K1MATRIX_CRU) += cru_clk_fake.rel
+obj-$(CONFIG_K1MATRIX_CRU) += cru.rel
+obj-$(CONFIG_K1MATRIX_RST) += cru_rst.rel
+obj-$(CONFIG_K1MATRIX_PLL) += cru_pll.rel
+obj-$(CONFIG_K1MATRIX_CLK) += cru_clk_real.rel
+obj-$(CONFIG_K1MATRIX_S2C) += cru_clk_fake.rel
 

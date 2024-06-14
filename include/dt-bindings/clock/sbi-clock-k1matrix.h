@@ -13,6 +13,7 @@
 #define S2CCLK_3_FREQ		20
 #define S2CCLK_4_FREQ		20
 #define S2CCLK_5_FREQ		20
+#endif
 
 #define OSC_CLK_FREQ		25000000
 #define COM_PLL_FREQ		1200000000
@@ -22,7 +23,6 @@
 #define DDR1_PLL_FREQ		1000000000
 #define CPU0_PLL_FREQ		2500000000
 #define CPU1_PLL_FREQ		2000000000
-#endif
 
 #include <dt-bindings/clock/sbi-clock.h>
 
