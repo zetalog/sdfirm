@@ -36,34 +36,34 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)crg.c: k1matrix clock/reset generator implementations
- * $Id: crg.c,v 1.1 2024-06-05 17:37:00 zhenglv Exp $
+ * @(#)cru.c: k1matrix clock/reset generator implementations
+ * $Id: cru.c,v 1.1 2024-06-05 17:37:00 zhenglv Exp $
  */
 
 #include <target/clk.h>
 #include <target/cmdline.h>
 
-#define CRG_4PHASE	_BV(0)
-#define CRG_FRAC	_BV(1)
-#define CRG_JITTER	_BV(2)
-#define CRG_FOUT0	_BV(3)
-#define CRG_FOUT1	_BV(4)
-#define CRG_CLKEN	_BV(5)
-#define CRG_SRC_CLKSEL	_BV(6)
-#define CRG_CLKEN_2BIT	_BV(7)
-#define CRG_ENABLED	_BV(8)
-#define CRG_RESET	_BV(9)
-#define CRG_RESET_2BIT	_BV(10)
-#define CRG_RESET_3BIT	_BV(11)
+#define CRU_4PHASE	_BV(0)
+#define CRU_FRAC	_BV(1)
+#define CRU_JITTER	_BV(2)
+#define CRU_FOUT0	_BV(3)
+#define CRU_FOUT1	_BV(4)
+#define CRU_CLKEN	_BV(5)
+#define CRU_SRC_CLKSEL	_BV(6)
+#define CRU_CLKEN_2BIT	_BV(7)
+#define CRU_ENABLED	_BV(8)
+#define CRU_RESET	_BV(9)
+#define CRU_RESET_2BIT	_BV(10)
+#define CRU_RESET_3BIT	_BV(11)
 
-typedef uint16_t crg_flags_t;
+typedef uint16_t cru_flags_t;
 
 struct mesh_clk {
 	caddr_t reg;
 	clk_t *clksels;
 	uint8_t nr_clksels;
 	uint8_t sel;
-	crg_flags_t flags;
+	cru_flags_t flags;
 };
 
 clk_t mesh_clksels[] = {
@@ -75,7 +75,7 @@ clk_t mesh_clksels[] = {
 struct mesh_clk mesh_clks[] = {
 	[MESH_CLK] = {
 		.clksels = mesh_clksels,
-		.reg = CRG_MESH_SUB_CLK_CTL,
+		.reg = CRU_MESH_SUB_CLK_CTL,
 		.nr_clksels = 3,
 		.sel = 0,	
 	}
@@ -115,8 +115,8 @@ static void select_mesh_source(clk_clk_t sel, clk_t src)
 		return;
 	if (mesh_clks[sel].sel != clksel) {
 		clk_enable(src);
-		__raw_writel_mask(CRG_CLKSEL(clksel),
-				  CRG_CLKSEL(CRG_CLKSEL_MASK),
+		__raw_writel_mask(CRU_CLKSEL(clksel),
+				  CRU_CLKSEL(CRU_CLKSEL_MASK),
 				  mesh_clks[sel].reg);
 	}
 }
@@ -133,85 +133,85 @@ const struct clk_driver clk_mesh = {
 
 struct rstn_clk {
 	caddr_t rst_reg;
-	crg_flags_t flags;
+	cru_flags_t flags;
 };
 
 struct rstn_clk rstn_clks[] = {
 	[CPU_SUB_RSTN] = {
-		.rst_reg = CRG_CPU_SUB_SW_RESET,
-		.flags = CRG_RESET,	
+		.rst_reg = CRU_CPU_SUB_SW_RESET,
+		.flags = CRU_RESET,	
 	},
 	[PCIE_TOP_RSTN] = {
-		.rst_reg = CRG_PCIE_TOP_SW_RESET,
-		.flags = CRG_RESET,	
+		.rst_reg = CRU_PCIE_TOP_SW_RESET,
+		.flags = CRU_RESET,	
 	},
 	[PCIE_BOT_RSTN] = {
-		.rst_reg = CRG_PCIE_BOT_SW_RESET,
-		.flags = CRG_RESET,	
+		.rst_reg = CRU_PCIE_BOT_SW_RESET,
+		.flags = CRU_RESET,	
 	},
 	[PERI_SUB_RSTN] = {
-		.rst_reg = CRG_PERI_SUB_SW_RESET,
-		.flags = CRG_RESET,	
+		.rst_reg = CRU_PERI_SUB_SW_RESET,
+		.flags = CRU_RESET,	
 	},
 	[MESH_SUB_RSTN] = {
-		.rst_reg = CRG_MESH_SUB_SW_RESET,
-		.flags = CRG_RESET,	
+		.rst_reg = CRU_MESH_SUB_SW_RESET,
+		.flags = CRU_RESET,	
 	},
 	[DDR_SUB_RSTN] = {
-		.rst_reg = CRG_DDR_SUB_SW_RESET,
-		.flags = CRG_RESET,	
+		.rst_reg = CRU_DDR_SUB_SW_RESET,
+		.flags = CRU_RESET,	
 	},
 	[RAS_SRST_N] = {
-		.rst_reg = CRG_CPU_RAS_SW_RESET,
-		.flags = CRG_RESET,	
+		.rst_reg = CRU_CPU_RAS_SW_RESET,
+		.flags = CRU_RESET,	
 	},
 	[CPU_SUB_SRST_N] = {
-		.rst_reg = CRG_CPU_SW_RESET,
-		.flags = CRG_RESET,	
+		.rst_reg = CRU_CPU_SW_RESET,
+		.flags = CRU_RESET,	
 	},
 	[RMU_SRAM_SW_RSTN] = {
-		.rst_reg = CRG_RMU_SRAM_SW_RSTN,
-		.flags = CRG_RESET,	
+		.rst_reg = CRU_RMU_SRAM_SW_RSTN,
+		.flags = CRU_RESET,	
 	},
 	[PCIE0_PERST_N] = {
-		.rst_reg = CRG_PCIE0_SW_RESET,
-		.flags = CRG_RESET_2BIT,	
+		.rst_reg = CRU_PCIE0_SW_RESET,
+		.flags = CRU_RESET_2BIT,	
 	},
 	[PCIE1_PERST_N] = {
-		.rst_reg = CRG_PCIE1_SW_RESET,
-		.flags = CRG_RESET_2BIT,	
+		.rst_reg = CRU_PCIE1_SW_RESET,
+		.flags = CRU_RESET_2BIT,	
 	},
 	[PCIE2_PERST_N] = {
-		.rst_reg = CRG_PCIE2_SW_RESET,
-		.flags = CRG_RESET_3BIT,	
+		.rst_reg = CRU_PCIE2_SW_RESET,
+		.flags = CRU_RESET_3BIT,	
 	},
 	[PCIE3_PERST_N] = {
-		.rst_reg = CRG_PCIE3_SW_RESET,
-		.flags = CRG_RESET_3BIT,	
+		.rst_reg = CRU_PCIE3_SW_RESET,
+		.flags = CRU_RESET_3BIT,	
 	},
 	[PCIE4_PERST_N] = {
-		.rst_reg = CRG_PCIE4_SW_RESET,
-		.flags = CRG_RESET_3BIT,	
+		.rst_reg = CRU_PCIE4_SW_RESET,
+		.flags = CRU_RESET_3BIT,	
 	},
 	[PCIE5_PERST_N] = {
-		.rst_reg = CRG_PCIE5_SW_RESET,
-		.flags = CRG_RESET_2BIT,	
+		.rst_reg = CRU_PCIE5_SW_RESET,
+		.flags = CRU_RESET_2BIT,	
 	},
 	[PCIE6_PERST_N] = {
-		.rst_reg = CRG_PCIE6_SW_RESET,
-		.flags = CRG_RESET_2BIT,	
+		.rst_reg = CRU_PCIE6_SW_RESET,
+		.flags = CRU_RESET_2BIT,	
 	},
 	[PCIE7_PERST_N] = {
-		.rst_reg = CRG_PCIE7_SW_RESET,
-		.flags = CRG_RESET_2BIT,	
+		.rst_reg = CRU_PCIE7_SW_RESET,
+		.flags = CRU_RESET_2BIT,	
 	},
 	[PCIE8_PERST_N] = {
-		.rst_reg = CRG_PCIE8_SW_RESET,
-		.flags = CRG_RESET_2BIT,	
+		.rst_reg = CRU_PCIE8_SW_RESET,
+		.flags = CRU_RESET_2BIT,	
 	},
 	[PCIE8_PERST_N] = {
-		.rst_reg = CRG_PCIE9_SW_RESET,
-		.flags = CRG_RESET_2BIT,	
+		.rst_reg = CRU_PCIE9_SW_RESET,
+		.flags = CRU_RESET_2BIT,	
 	},
 };
 
@@ -255,16 +255,16 @@ static int enable_rstn(clk_clk_t clk)
 {
 	if (clk >= NR_RSTN_CLKS)
 		return -EINVAL;
-	if (rstn_clks[clk].flags & CRG_RESET)
-		__raw_setl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
-	else if (rstn_clks[clk].flags & CRG_RESET_2BIT) {
-		__raw_setl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
-		__raw_setl(CRG_RSTN(1), rstn_clks[clk].rst_reg);
+	if (rstn_clks[clk].flags & CRU_RESET)
+		__raw_setl(CRU_RSTN(0), rstn_clks[clk].rst_reg);
+	else if (rstn_clks[clk].flags & CRU_RESET_2BIT) {
+		__raw_setl(CRU_RSTN(0), rstn_clks[clk].rst_reg);
+		__raw_setl(CRU_RSTN(1), rstn_clks[clk].rst_reg);
 	}
-	else if (rstn_clks[clk].flags & CRG_RESET_3BIT)	{
-		__raw_setl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
-		__raw_setl(CRG_RSTN(1), rstn_clks[clk].rst_reg);
-		__raw_setl(CRG_RSTN(2), rstn_clks[clk].rst_reg);
+	else if (rstn_clks[clk].flags & CRU_RESET_3BIT)	{
+		__raw_setl(CRU_RSTN(0), rstn_clks[clk].rst_reg);
+		__raw_setl(CRU_RSTN(1), rstn_clks[clk].rst_reg);
+		__raw_setl(CRU_RSTN(2), rstn_clks[clk].rst_reg);
 	}
 	return 0;	
 }
@@ -273,16 +273,16 @@ static void disable_rstn(clk_clk_t clk)
 {
 	if (clk >= NR_RSTN_CLKS)
 		return;
-	if (rstn_clks[clk].flags & CRG_RESET)
-		__raw_clearl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
-	else if (rstn_clks[clk].flags & CRG_RESET_2BIT) {
-		__raw_clearl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
-		__raw_clearl(CRG_RSTN(1), rstn_clks[clk].rst_reg);
+	if (rstn_clks[clk].flags & CRU_RESET)
+		__raw_clearl(CRU_RSTN(0), rstn_clks[clk].rst_reg);
+	else if (rstn_clks[clk].flags & CRU_RESET_2BIT) {
+		__raw_clearl(CRU_RSTN(0), rstn_clks[clk].rst_reg);
+		__raw_clearl(CRU_RSTN(1), rstn_clks[clk].rst_reg);
 	}
-	else if (rstn_clks[clk].flags & CRG_RESET_3BIT)	{
-		__raw_clearl(CRG_RSTN(0), rstn_clks[clk].rst_reg);
-		__raw_clearl(CRG_RSTN(1), rstn_clks[clk].rst_reg);
-		__raw_clearl(CRG_RSTN(2), rstn_clks[clk].rst_reg);
+	else if (rstn_clks[clk].flags & CRU_RESET_3BIT)	{
+		__raw_clearl(CRU_RSTN(0), rstn_clks[clk].rst_reg);
+		__raw_clearl(CRU_RSTN(1), rstn_clks[clk].rst_reg);
+		__raw_clearl(CRU_RSTN(2), rstn_clks[clk].rst_reg);
 	}		
 }
 
@@ -300,7 +300,7 @@ struct dyn_clk {
 	clk_t pll0;
 	clk_t pll1;
 	clk_t clksel;
-	crg_flags_t flags;
+	cru_flags_t flags;
 };
 
 struct dyn_clk dyn_clks[] = {
@@ -336,9 +336,9 @@ const char *get_dyn_name(clk_clk_t clk)
 
 static void __enable_dyn(clk_clk_t pll)
 {
-	if (!(dyn_clks[pll].flags & CRG_ENABLED)) {
-		crg_trace(true, get_dyn_name());
-		if (!(dyn_clks[pll].flags & CRG_FOUT1)) {
+	if (!(dyn_clks[pll].flags & CRU_ENABLED)) {
+		cru_trace(true, get_dyn_name());
+		if (!(dyn_clks[pll].flags & CRU_FOUT1)) {
 			clk_enable(dyn_clks[pll].pll0);
 			clk_select_source(dyn_clks[pll].clksel,
 					  dyn_clks[pll].pll0);
@@ -347,7 +347,7 @@ static void __enable_dyn(clk_clk_t pll)
 			clk_select_source(dyn_clks[pll].clksel,
 					  dyn_clks[pll].pll1);
 		}
-		dyn_clks[pll].flags |= CRG_ENABLED;
+		dyn_clks[pll].flags |= CRU_ENABLED;
 	}
 }
 
@@ -364,17 +364,17 @@ static void disable_dyn(clk_clk_t pll)
 	if (pll >= NR_DYN_CLKS)
 		return;
 	clk_select_source(dyn_clks[pll].clksel, osc_clk);
-	dyn_clks[pll].flags &= ~CRG_ENABLED;
+	dyn_clks[pll].flags &= ~CRU_ENABLED;
 }
 
 static clk_freq_t get_dyn_freq(clk_clk_t pll)
 {
 	if (pll >= NR_DYN_CLKS)
 		return INVALID_FREQ;
-	if (!(dyn_clks[pll].flags & CRG_ENABLED))
+	if (!(dyn_clks[pll].flags & CRU_ENABLED))
 		return clk_get_frequency(osc_clk);
 	else {
-		if (!(dyn_clks[pll].flags & CRG_FOUT1))
+		if (!(dyn_clks[pll].flags & CRU_FOUT1))
 			return clk_get_frequency(dyn_clks[pll].pll0);
 		else
 			return clk_get_frequency(dyn_clks[pll].pll1);
@@ -386,18 +386,18 @@ static int set_dyn_freq(clk_clk_t pll, clk_freq_t freq)
 	if (pll >= NR_DYN_CLKS)
 		return -EINVAL;
 
-	if (!(dyn_clks[pll].flags & CRG_ENABLED)) {
+	if (!(dyn_clks[pll].flags & CRU_ENABLED)) {
 		clk_set_frequency(dyn_clks[pll].pll0, freq);
-		dyn_clks[pll].flags |= CRG_ENABLED;
-	} else if (dyn_clks[pll].flags & CRG_FOUT1) {
+		dyn_clks[pll].flags |= CRU_ENABLED;
+	} else if (dyn_clks[pll].flags & CRU_FOUT1) {
 		clk_set_frequency(dyn_clks[pll].pll0, freq);
 		clk_select_source(dyn_clks[pll].clksel, 1);
-		dyn_clks[pll].flags &= ~CRG_FOUT1;
+		dyn_clks[pll].flags &= ~CRU_FOUT1;
 		clk_disable(dyn_clks[pll].pll1);
 	} else {
 		clk_set_frequency(dyn_clks[pll].pll1, freq);
 		clk_select_source(dyn_clks[pll].clksel, 2);
-		dyn_clks[pll].flags |= CRG_FOUT1;
+		dyn_clks[pll].flags |= CRU_FOUT1;
 		clk_disable(dyn_clks[pll].pll0);
 	}
 	return 0;
@@ -418,260 +418,260 @@ struct div_clk {
 	caddr_t rst_reg;
 	uint16_t max_div;
 	uint8_t div;
-	crg_flags_t flags;
+	cru_flags_t flags;
 	clk_t src;
 
 };
 
 struct div_clk div_clks[] = {
 	[CPU_NIC_CLKDIV] = {
-		.reg = CRG_CPU_NIC_CLK_CTL,
+		.reg = CRU_CPU_NIC_CLK_CTL,
 		.max_div = 4,
 		.div = 2,
 		.flags = 0,
 		.src = cpu_nic_clksel,
 	},
 	[CPU_HAP_CLKDIV] = {
-		.reg = CRG_CPU_HAP_CLK_CTL,
+		.reg = CRU_CPU_HAP_CLK_CTL,
 		.max_div = 4,
 		.div = 2,
 		.flags = 0,
 		.src = cpu_nic_clkdiv,
 	},
 	[PCIE_TOP_CFG_CLKDIV] = {
-		.reg = CRG_PCIE_TOP_CFGCLK_CTL,
+		.reg = CRU_PCIE_TOP_CFGCLK_CTL,
 		.max_div = 8,
 		.div = 7,
-		.flags = CRG_CLKEN,
+		.flags = CRU_CLKEN,
 		.src = pcie_top_cfg_clksel,
 	},
 	[PCIE_TOP_AUX_CLKDIV] = {
-		.reg = CRG_PCIE_TOP_AUXCLK_CTL,
+		.reg = CRU_PCIE_TOP_AUXCLK_CTL,
 		.max_div = 128,
 		.div = 100,
-		.flags = CRG_CLKEN,
+		.flags = CRU_CLKEN,
 		.src = pcie_top_aux_clksel,
 	},
 	[PCIE_BOT_CFG_CLKDIV] = {
-		.reg = CRG_PCIE_BOT_CFGCLK_CTL,
+		.reg = CRU_PCIE_BOT_CFGCLK_CTL,
 		.max_div = 8,
 		.div = 7,
-		.flags = CRG_CLKEN,
+		.flags = CRU_CLKEN,
 		.src = pcie_bot_cfg_clksel,
 	},
 	[PCIE_BOT_AUX_CLKDIV] = {
-		.reg = CRG_PCIE_BOT_AUXCLK_CTL,
+		.reg = CRU_PCIE_BOT_AUXCLK_CTL,
 		.max_div = 128,
 		.div = 100,
-		.flags = CRG_CLKEN,
+		.flags = CRU_CLKEN,
 		.src = pcie_bot_aux_clksel,
 	},
 	[RMU_QSPI_CLKEN] = {
-		.reg = CRG_RMU_QSPI_CLK_EN,
-		.rst_reg = CRG_RMU_QSPI_SW_RSTN,
+		.reg = CRU_RMU_QSPI_CLK_EN,
+		.rst_reg = CRU_RMU_QSPI_SW_RSTN,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[RMU_LPC_CLKEN] = {
-		.reg = CRG_RMU_LPC_CLK_EN,
-		.rst_reg = CRG_RMU_LPC_SW_RSTN,
+		.reg = CRU_RMU_LPC_CLK_EN,
+		.rst_reg = CRU_RMU_LPC_SW_RSTN,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_CLKEN_2BIT | CRG_RESET | CRG_RESET_3BIT,
+		.flags = CRU_CLKEN | CRU_CLKEN_2BIT | CRU_RESET | CRU_RESET_3BIT,
 		.src = osc_clk,
 	},
 	[RMU_ESPI_CLKEN] = {
-		.reg = CRG_RMU_eSPI_CLK_EN,
-		.rst_reg = CRG_RMU_eSPI_SW_RSTN,
+		.reg = CRU_RMU_eSPI_CLK_EN,
+		.rst_reg = CRU_RMU_eSPI_SW_RSTN,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[RMU_UART0_CLKEN] = {
-		.reg = CRG_RMU_UART0_CLK_EN,
-		.rst_reg = CRG_RMU_UART0_SW_RSTN,
+		.reg = CRU_RMU_UART0_CLK_EN,
+		.rst_reg = CRU_RMU_UART0_SW_RSTN,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[RMU_UART1_CLKEN] = {
-		.reg = CRG_RMU_UART1_CLK_EN,
-		.rst_reg = CRG_RMU_UART1_SW_RSTN,
+		.reg = CRU_RMU_UART1_CLK_EN,
+		.rst_reg = CRU_RMU_UART1_SW_RSTN,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[RMU_MAILBOX_S_CLKEN] = {
-		.reg = CRG_RMU_Mailbox_S_CLK_EN,
-		.rst_reg = CRG_RMU_Mailbox_S_SW_RSTN,
+		.reg = CRU_RMU_Mailbox_S_CLK_EN,
+		.rst_reg = CRU_RMU_Mailbox_S_SW_RSTN,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[RMU_MAILBOX_NS_CLKEN] = {
-		.reg = CRG_RMU_Mailbox_NS_CLK_EN,
-		.rst_reg = CRG_RMU_Mailbox_NS_SW_RSTN,
+		.reg = CRU_RMU_Mailbox_NS_CLK_EN,
+		.rst_reg = CRU_RMU_Mailbox_NS_SW_RSTN,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_SMBUS0_CLKEN] = {
-		.reg = CRG_PERI_SMBUS0_CLK_CTL,
-		.rst_reg = CRG_PERI_SMBUS0_SW_RESET,
+		.reg = CRU_PERI_SMBUS0_CLK_CTL,
+		.rst_reg = CRU_PERI_SMBUS0_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_SMBUS1_CLKEN] = {
-		.reg = CRG_PERI_SMBUS1_CLK_CTL,
-		.rst_reg = CRG_PERI_SMBUS1_SW_RESET,
+		.reg = CRU_PERI_SMBUS1_CLK_CTL,
+		.rst_reg = CRU_PERI_SMBUS1_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_I2C0_CLKEN] = {
-		.reg = CRG_PERI_I2C0_CLK_CTL,
-		.rst_reg = CRG_PERI_I2C0_SW_RESET,
+		.reg = CRU_PERI_I2C0_CLK_CTL,
+		.rst_reg = CRU_PERI_I2C0_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_I2C1_CLKEN] = {
-		.reg = CRG_PERI_I2C1_CLK_CTL,
-		.rst_reg = CRG_PERI_I2C1_SW_RESET,
+		.reg = CRU_PERI_I2C1_CLK_CTL,
+		.rst_reg = CRU_PERI_I2C1_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN |CRG_RESET,
+		.flags = CRU_CLKEN |CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_I2C2_CLKEN] = {
-		.reg = CRG_PERI_I2C2_CLK_CTL,
-		.rst_reg = CRG_PERI_I2C2_SW_RESET,
+		.reg = CRU_PERI_I2C2_CLK_CTL,
+		.rst_reg = CRU_PERI_I2C2_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_I2C3_CLKEN] = {
-		.reg = CRG_PERI_I2C3_CLK_CTL,
-		.rst_reg = CRG_PERI_I2C3_SW_RESET,
+		.reg = CRU_PERI_I2C3_CLK_CTL,
+		.rst_reg = CRU_PERI_I2C3_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN |CRG_RESET,
+		.flags = CRU_CLKEN |CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_I2C4_CLKEN] = {
-		.reg = CRG_PERI_I2C4_CLK_CTL,
-		.rst_reg = CRG_PERI_I2C4_SW_RESET,
+		.reg = CRU_PERI_I2C4_CLK_CTL,
+		.rst_reg = CRU_PERI_I2C4_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_I2C5_CLKEN] = {
-		.reg = CRG_PERI_I2C5_CLK_CTL,
-		.rst_reg = CRG_PERI_I2C5_SW_RESET,
+		.reg = CRU_PERI_I2C5_CLK_CTL,
+		.rst_reg = CRU_PERI_I2C5_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_UART0_CLKEN] = {
-		.reg = CRG_PERI_UART0_CLK_CTL,
-		.rst_reg = CRG_PERI_UART0_SW_RESET,
+		.reg = CRU_PERI_UART0_CLK_CTL,
+		.rst_reg = CRU_PERI_UART0_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_UART1_CLKEN] = {
-		.reg = CRG_PERI_UART1_CLK_CTL,
-		.rst_reg = CRG_PERI_UART1_SW_RESET,
+		.reg = CRU_PERI_UART1_CLK_CTL,
+		.rst_reg = CRU_PERI_UART1_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_UART2_CLKEN] = {
-		.reg = CRG_PERI_UART2_CLK_CTL,
-		.rst_reg = CRG_PERI_UART2_SW_RESET,
+		.reg = CRU_PERI_UART2_CLK_CTL,
+		.rst_reg = CRU_PERI_UART2_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_UART3_CLKEN] = {
-		.reg = CRG_PERI_UART3_CLK_CTL,
-		.rst_reg = CRG_PERI_UART3_SW_RESET,
+		.reg = CRU_PERI_UART3_CLK_CTL,
+		.rst_reg = CRU_PERI_UART3_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_GPIO0_DB_CLKDIV] = {
-		.reg = CRG_PERI_GPIO0_CLK_CTL,
-		.rst_reg = CRG_PERI_GPIO0_SW_RESET,
+		.reg = CRU_PERI_GPIO0_CLK_CTL,
+		.rst_reg = CRU_PERI_GPIO0_SW_RESET,
 		.max_div = 8,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_GPIO1_DB_CLKDIV] = {
-		.reg = CRG_PERI_GPIO1_CLK_CTL,
-		.rst_reg = CRG_PERI_GPIO1_SW_RESET,
+		.reg = CRU_PERI_GPIO1_CLK_CTL,
+		.rst_reg = CRU_PERI_GPIO1_SW_RESET,
 		.max_div = 8,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_GPIO2_DB_CLKDIV] = {
-		.reg = CRG_PERI_GPIO2_CLK_CTL,
-		.rst_reg = CRG_PERI_GPIO2_SW_RESET,
+		.reg = CRU_PERI_GPIO2_CLK_CTL,
+		.rst_reg = CRU_PERI_GPIO2_SW_RESET,
 		.max_div = 8,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_GPIO3_DB_CLKDIV] = {
-		.reg = CRG_PERI_GPIO3_CLK_CTL,
-		.rst_reg = CRG_PERI_GPIO3_SW_RESET,
+		.reg = CRU_PERI_GPIO3_CLK_CTL,
+		.rst_reg = CRU_PERI_GPIO3_SW_RESET,
 		.max_div = 8,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_GPIO4_DB_CLKDIV] = {
-		.reg = CRG_PERI_GPIO4_CLK_CTL,
-		.rst_reg = CRG_PERI_GPIO4_SW_RESET,
+		.reg = CRU_PERI_GPIO4_CLK_CTL,
+		.rst_reg = CRU_PERI_GPIO4_SW_RESET,
 		.max_div = 8,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_DMAC_CLKEN] = {
-		.reg = CRG_PERI_DMAC_CLK_CTL,
-		.rst_reg = CRG_PERI_DMAC_SW_RESET,
+		.reg = CRU_PERI_DMAC_CLK_CTL,
+		.rst_reg = CRU_PERI_DMAC_SW_RESET,
 		.max_div = 1,
 		.div = 1,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
 	[PERI_GMAC_AXI_CLKDIV] = {
-		.reg = CRG_PERI_GMAC_CLK_CTL,
-		.rst_reg = CRG_PERI_GMAC_SW_RESET,
+		.reg = CRU_PERI_GMAC_CLK_CTL,
+		.rst_reg = CRU_PERI_GMAC_SW_RESET,
 		.max_div = 8,
 		.div = 2,
-		.flags = CRG_CLKEN | CRG_RESET,
+		.flags = CRU_CLKEN | CRU_RESET,
 		.src = peri_gmac_txclk_sel,//?
 	},
 };
@@ -726,21 +726,21 @@ static int enable_div(clk_clk_t clk)
 {
 	if (clk >= NR_DIV_CLKS)
 		return -EINVAL;
-	if (div_clks[clk].flags & CRG_SRC_CLKSEL)
+	if (div_clks[clk].flags & CRU_SRC_CLKSEL)
 		clk_select_source(div_clks[clk].src, 1);
 	else 
 		clk_enable(div_clks[clk].src);
-	if (div_clks[clk].flags & CRG_CLKEN) {
-		__raw_setl(CRG_CLKENABLE(0), div_clks[clk].reg);
-		if (div_clks[clk].flags & CRG_RESET) {
-			__raw_setl(CRG_RSTN(0), div_clks[clk].rst_reg);
-			if (div_clks[clk].flags & CRG_RESET_3BIT) {
-				__raw_setl(CRG_RSTN(1), div_clks[clk].rst_reg);
-				__raw_setl(CRG_RSTN(2), div_clks[clk].rst_reg);
+	if (div_clks[clk].flags & CRU_CLKEN) {
+		__raw_setl(CRU_CLKENABLE(0), div_clks[clk].reg);
+		if (div_clks[clk].flags & CRU_RESET) {
+			__raw_setl(CRU_RSTN(0), div_clks[clk].rst_reg);
+			if (div_clks[clk].flags & CRU_RESET_3BIT) {
+				__raw_setl(CRU_RSTN(1), div_clks[clk].rst_reg);
+				__raw_setl(CRU_RSTN(2), div_clks[clk].rst_reg);
 			}
 		}
-		if (div_clks[clk].flags & CRG_CLKEN_2BIT)
-			__raw_setl(CRG_CLKENABLE(1), div_clks[clk].reg);
+		if (div_clks[clk].flags & CRU_CLKEN_2BIT)
+			__raw_setl(CRU_CLKENABLE(1), div_clks[clk].reg);
 	}
 	return 0;
 		
@@ -750,21 +750,21 @@ static void disable_div(clk_clk_t clk)
 {
 	if (clk >= NR_DIV_CLKS)
 		return;
-	if (div_clks[clk].flags & CRG_SRC_CLKSEL)
+	if (div_clks[clk].flags & CRU_SRC_CLKSEL)
 		clk_select_source(div_clks[clk].src, 0);
 	else 
 		clk_disable(div_clks[clk].src);
-	if (div_clks[clk].flags & CRG_CLKEN) {
-		__raw_clearl(CRG_CLKENABLE(0), div_clks[clk].reg);
-		if (div_clks[clk].flags & CRG_RESET) {
-			__raw_clearl(CRG_RSTN(0), div_clks[clk].rst_reg);
-			if (div_clks[clk].flags & CRG_RESET_3BIT) {
-				__raw_clearl(CRG_RSTN(1), div_clks[clk].rst_reg);
-				__raw_clearl(CRG_RSTN(2), div_clks[clk].rst_reg);
+	if (div_clks[clk].flags & CRU_CLKEN) {
+		__raw_clearl(CRU_CLKENABLE(0), div_clks[clk].reg);
+		if (div_clks[clk].flags & CRU_RESET) {
+			__raw_clearl(CRU_RSTN(0), div_clks[clk].rst_reg);
+			if (div_clks[clk].flags & CRU_RESET_3BIT) {
+				__raw_clearl(CRU_RSTN(1), div_clks[clk].rst_reg);
+				__raw_clearl(CRU_RSTN(2), div_clks[clk].rst_reg);
 			}
 		}
-		if (div_clks[clk].flags & CRG_CLKEN_2BIT)
-			__raw_clearl(CRG_CLKENABLE(1), div_clks[clk].reg);	
+		if (div_clks[clk].flags & CRU_CLKEN_2BIT)
+			__raw_clearl(CRU_CLKENABLE(1), div_clks[clk].reg);	
 	}
 }
 
@@ -790,7 +790,7 @@ static int set_div_freq(clk_clk_t clk, clk_freq_t freq)
 	div_clks[clk].div = src_freq / freq;
 	if (div_clks[clk].div > div_clks[clk].max_div)
         	return -EINVAL;
-	__raw_writel_mask(CRG_CLKDIV0(div_clks[clk].div), CRG_CLKDIV0(CRG_CLKDIV0_MASK), div_clks[clk].reg);
+	__raw_writel_mask(CRU_CLKDIV0(div_clks[clk].div), CRU_CLKDIV0(CRU_CLKDIV0_MASK), div_clks[clk].reg);
 	return 0;
 }
 
@@ -809,7 +809,7 @@ struct sel_clk {
 	clk_t *clksels;
 	uint8_t nr_clksels;
 	uint8_t sel;
-	crg_flags_t flags;
+	cru_flags_t flags;
 };
 
 clk_t cpu_nic_clksels[] = {
@@ -834,7 +834,7 @@ clk_t peri_sub_clksels[] = {
 
 struct sel_clk sel_clks[] = {
 	[CPU_NIC_CLKSEL] = {
-		.reg = CRG_CPU_NIC_CLK_CTL,
+		.reg = CRU_CPU_NIC_CLK_CTL,
 		.clksels = cpu_nic_clksels,
 		.nr_clksels = 2,
 		.sel = 0,
@@ -842,59 +842,59 @@ struct sel_clk sel_clks[] = {
 	},
 	[PCIE_TOP_XCLKSEL] = {
 		.clksels = pcie_peri_xclksels,
-		.reg = CRG_PCIE_TOP_CLK_CTL,
+		.reg = CRU_PCIE_TOP_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
-		.flags = CRG_CLKEN,
+		.flags = CRU_CLKEN,
 	},
 	[PCIE_TOP_AUX_CLKSEL] = {
 		.clksels = pcie_peri_xclksels,
-		.reg = CRG_PCIE_TOP_AUXCLK_CTL,
+		.reg = CRU_PCIE_TOP_AUXCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 		.flags = 0,
 	},
 	[PCIE_TOP_CFG_CLKSEL] = {
 		.clksels = pcie_com_xclksels,
-		.reg = CRG_PCIE_TOP_CFGCLK_CTL,
+		.reg = CRU_PCIE_TOP_CFGCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 		.flags = 0,
 	},
 	[PCIE_BOT_CFG_CLKSEL] = {
 		.clksels = pcie_com_xclksels,
-		.reg = CRG_PCIE_BOT_CFGCLK_CTL,
+		.reg = CRU_PCIE_BOT_CFGCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 		.flags = 0,
 	},
 	[PCIE_BOT_AUX_CLKSEL] = {
 		.clksels = pcie_peri_xclksels,
-		.reg = CRG_PCIE_BOT_AUXCLK_CTL,
+		.reg = CRU_PCIE_BOT_AUXCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
 		.flags = 0,
 	},
 	[PCIE_BOT_XCLKSEL] = {
 		.clksels = pcie_peri_xclksels,
-		.reg = CRG_PCIE_BOT_CLK_CTL,
+		.reg = CRU_PCIE_BOT_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
-		.flags = CRG_CLKEN,
+		.flags = CRU_CLKEN,
 	},
 	[PERI_SUB_CLKSEL] = {
 		.clksels = peri_sub_clksels,
-		.reg = CRG_PERI_SUB_CLK_CTL,
+		.reg = CRU_PERI_SUB_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
-		.flags = CRG_CLKEN,
+		.flags = CRU_CLKEN,
 	},
 	[PERI_GMAC_TXCLK_SEL] = {
 		//.clksels = ,
-		.reg = CRG_PERI_GMAC_CLK_CTL,
+		.reg = CRU_PERI_GMAC_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 0,
-		.flags = CRG_CLKEN,
+		.flags = CRU_CLKEN,
 	},
 };
 
@@ -942,11 +942,11 @@ static void select_sel_source(clk_clk_t sel, clk_t src)
 		return;
 	if (sel_clks[sel].sel != clksel) {
 		clk_enable(src);
-		__raw_writel_mask(CRG_CLKSEL(clksel),
-				  CRG_CLKSEL(CRG_CLKSEL_MASK),
+		__raw_writel_mask(CRU_CLKSEL(clksel),
+				  CRU_CLKSEL(CRU_CLKSEL_MASK),
 				  sel_clks[sel].reg);
-		if (sel_clks[sel].flags & CRG_CLKEN)
-			__raw_setl(CRG_CLKENABLE(0), sel_clks[sel].reg);
+		if (sel_clks[sel].flags & CRU_CLKEN)
+			__raw_setl(CRU_CLKENABLE(0), sel_clks[sel].reg);
 	}
 }
 
@@ -964,7 +964,7 @@ struct pll_clk {
 	uint32_t Fref;
 	uint32_t Fvco;
 	uint32_t Fout;
-	crg_flags_t flags;
+	cru_flags_t flags;
 };
 
 struct pll_clk pll_clks[NR_PLL_CLKS] = {
@@ -972,7 +972,7 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.Fref = OSC_CLK_FREQ,
 		.Fvco = COM_PLL_FREQ,
 		.Fout = COM_PLL_FREQ,
-		.flags = CRG_4PHASE,
+		.flags = CRU_4PHASE,
 	},
 	[MESH_PLL] = {
 		.Fref = OSC_CLK_FREQ,
@@ -984,31 +984,31 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 		.Fref = OSC_CLK_FREQ,
 		.Fvco = PERI_PLL_FREQ,
 		.Fout = PERI_PLL_FREQ,
-		.flags = CRG_4PHASE,
+		.flags = CRU_4PHASE,
 	},
 	[DDR0_PLL] = {
 		.Fref = OSC_CLK_FREQ,
 		.Fvco = DDR0_PLL_FREQ,
 		.Fout = DDR0_PLL_FREQ,
-		.flags = CRG_FOUT0,
+		.flags = CRU_FOUT0,
 	},
 	[DDR1_PLL] = {
 		.Fref = OSC_CLK_FREQ,
 		.Fvco = DDR1_PLL_FREQ,
 		.Fout = DDR1_PLL_FREQ,
-		.flags = CRG_FOUT1,
+		.flags = CRU_FOUT1,
 	},
 	[CPU0_PLL] = {
 		.Fref = OSC_CLK_FREQ,
 		.Fvco = CPU0_PLL_FREQ,
 		.Fout = CPU0_PLL_FREQ,
-		.flags = CRG_FOUT0,
+		.flags = CRU_FOUT0,
 	},
 	[CPU1_PLL] = {
 		.Fref = OSC_CLK_FREQ,
 		.Fvco = CPU1_PLL_FREQ,
 		.Fout = CPU1_PLL_FREQ,
-		.flags = CRG_FOUT1,
+		.flags = CRU_FOUT1,
 	},
 };
 
@@ -1037,22 +1037,22 @@ const char *get_pll_name(clk_clk_t clk)
 
 static void __enable_pll(clk_clk_t pll)
 {
-	if (!(pll_clks[pll].flags & CRG_ENABLED)) {
-		crg_trace(true, get_pll_name());
+	if (!(pll_clks[pll].flags & CRU_ENABLED)) {
+		cru_trace(true, get_pll_name());
 		sc_pllts12ffclafrac2_enable(pll,
-			!!(pll_clks[pll].flags & CRG_4PHASE),
+			!!(pll_clks[pll].flags & CRU_4PHASE),
 			pll_clks[pll].Fref,
 			pll_clks[pll].Fvco,
 			pll_clks[pll].Fout);
-		pll_clks[pll].flags |= CRG_ENABLED;
+		pll_clks[pll].flags |= CRU_ENABLED;
 	}
 }
 
 static void __disable_pll(clk_clk_t pll)
 {
-	if (pll_clks[pll].flags & CRG_ENABLED) {
-		crg_trace(false, get_pll_name(clk));
-		pll_clks[pll].flags &= ~CRG_ENABLED;
+	if (pll_clks[pll].flags & CRU_ENABLED) {
+		cru_trace(false, get_pll_name(clk));
+		pll_clks[pll].flags &= ~CRU_ENABLED;
 		sc_pllts12ffclafrac2_disable(pll);
 	}
 }
@@ -1141,12 +1141,12 @@ const struct clk_driver clk_input = {
 };
 
 /*===========================================================================
- * CRG TRACE APIs
+ * CRU TRACE APIs
  *===========================================================================*/
-#ifdef CONFIG_K1MATRIX_CRG_TRACE
-void crg_trace(bool enabling, const char *name)
+#ifdef CONFIG_K1MATRIX_CRU_TRACE
+void cru_trace(bool enabling, const char *name)
 {
-	con_dbg("crg: %c %s\n", enabling ? 'E' : 'D', name);
+	con_dbg("cru: %c %s\n", enabling ? 'E' : 'D', name);
 }
 #endif
 
@@ -1178,7 +1178,7 @@ static void clk_dyn_dump(void)
 		name = clk_get_mnemonic(clkid(CLK_DYN, i));
 		if (name)
 			printf("pll  %3d %20s %20s\n", i, name,
-			       (dyn_clks[i].flags & CRG_FOUT1) ?
+			       (dyn_clks[i].flags & CRU_FOUT1) ?
 			       clk_get_mnemonic(dyn_clks[i].pll1) :
 			       clk_get_mnemonic(dyn_clks[i].pll0));
 	}
@@ -1244,7 +1244,7 @@ static void clk_div_dump(void)
 }
 #endif
 
-static int do_crg_dump(int argc, char *argv[])
+static int do_cru_dump(int argc, char *argv[])
 {
 	printf("type id  %20s %20s\n", "name", "source");
 	clk_pll_dump();
@@ -1252,23 +1252,23 @@ static int do_crg_dump(int argc, char *argv[])
 	return 0;
 }
 #else
-static inline int do_crg_dump(int argc, char *argv[])
+static inline int do_cru_dump(int argc, char *argv[])
 {
 	return 0;
 }
 #endif
 
-static int do_crg(int argc, char *argv[])
+static int do_cru(int argc, char *argv[])
 {
 	if (argc < 2)
 		return -EINVAL;
 
 	if (strcmp(argv[1], "dump") == 0)
-		return do_crg_dump(argc, argv);
+		return do_cru_dump(argc, argv);
 	return -ENODEV;
 }
 
-DEFINE_COMMAND(crg, do_crg, "Clock/reset generator (CRG)",
-	"crg dump\n"
+DEFINE_COMMAND(cru, do_cru, "Clock/reset generator (CRU)",
+	"cru dump\n"
 	"    -display clock tree source multiplexing\n"
 );
