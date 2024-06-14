@@ -43,9 +43,9 @@
 #define __CLK_K1MATRIX_H_INCLUDE__
 
 #include <target/arch.h>
-#include <asm/mach/crg.h>
+#include <asm/mach/cru.h>
 
-#ifdef CONFIG_K1MATRIX_CRG
+#ifdef CONFIG_K1MATRIX_CRU
 #ifndef ARCH_HAVE_CLK
 #define ARCH_HAVE_CLK		1
 #else

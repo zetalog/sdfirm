@@ -186,7 +186,7 @@ if K1MATRIX_N100
 
 endif
 
-menuconfig K1MATRIX_CRG
+menuconfig K1MATRIX_CRU
 	bool "K1Matrix clock/reset generator support"
 	select SC_PLLTS12FFCLAFRAC2
 
