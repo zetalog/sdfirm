@@ -7,6 +7,13 @@
 #ifndef __DT_BINDINGS_CLOCK_SBI_K1MATRIX_H
 #define __DT_BINDINGS_CLOCK_SBI_K1MATRIX_H
 
+#ifdef CONFIG_K1MATRIX_S2C
+#define S2CCLK_1_FREQ		20		
+#define S2CCLK_2_FREQ		20
+#define S2CCLK_3_FREQ		20
+#define S2CCLK_4_FREQ		20
+#define S2CCLK_5_FREQ		20
+
 #define OSC_CLK_FREQ		25000000
 #define COM_PLL_FREQ		1200000000
 #define MESH_PLL_FREQ		1500000000
@@ -15,6 +22,7 @@
 #define DDR1_PLL_FREQ		1000000000
 #define CPU0_PLL_FREQ		2500000000
 #define CPU1_PLL_FREQ		2000000000
+#endif
 
 #include <dt-bindings/clock/sbi-clock.h>
 
@@ -24,7 +32,8 @@
 #define CLK_DYN			3
 #define CLK_DIV			4
 #define CLK_EN			5
-#define CLK_RESET		6
+#define CLK_RSTN		6
+#define CLK_MESH		7
 
 /* INPUT */
 #define OSC_CLK			0

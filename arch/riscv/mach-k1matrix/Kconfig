@@ -3,6 +3,21 @@ if ARCH_K1MATRIX
 menu "SpacemiT K1Matrix board options"
 
 choice
+	prompt "Simulation platform"
+	default K1MATRIX_ASIC
+
+config	K1MATRIX_ASIC
+	bool "ASIC"
+
+config	K1MATRIX_S2C
+	bool "S2C"
+
+config	K1MATRIX_PZ1
+	bool "Paladium Z1"
+
+endchoice
+
+choice
 	prompt "Boot CPU"
 
 config K1MATRIX_RMU
@@ -189,6 +204,9 @@ endif
 menuconfig K1MATRIX_CRU
 	bool "K1Matrix clock/reset generator support"
 	select SC_PLLTS12FFCLAFRAC2
+	select K1MATRIX_CRU_RST
+	select K1MATRIX_CRU_PLL if K1MATRIX_ASIC
+	select K1MATRIX_CRU_CLK if K1MATRIX_ASIC || K1MATRIX_PZ1
 
 config K1MATRIX_PCIE
 	bool "K1Matrix PCIe subsystem support"
