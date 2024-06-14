@@ -75,10 +75,6 @@ int do_kcs_read(int argc, char *argv[])
 		printf("length oversized!");
 		return -1;
 	}
-	if (len > argc - 2) {
-		printf("length not match!");
-		return -1;
-	}
 	ret = kcs_read(kcs_buf, len);
 	if (ret < 0) {
 		printf("KCS read error!");
