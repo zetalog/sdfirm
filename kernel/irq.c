@@ -99,7 +99,7 @@ boolean irq_is_polling;
 cpu_mask_t smp_online_cpus = C(0);
 #endif
 
-boolean irq_poll_bh(bool sync)
+boolean irq_poll_bh(boolean sync)
 {
 	bh_t bh;
 
