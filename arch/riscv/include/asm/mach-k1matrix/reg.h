@@ -199,9 +199,6 @@ extern unsigned long k1matrix_die_base;
 #define SPACEMIT_ESPI_PR_MEM0		(0x22000000U)
 #define SPACEMIT_ESPI_PR_MEM1		(0x23000000U)
 
-#define SPACEMIT_LPC_BASE		__RMU_LPC_CFG_BASE
-#define CORELPC_BASE			__RMU_LPC_IO_BASE
-#define KCS_BASE			__RMU_LPC_IO_BASE
 #define UART0_BASE			__RMU_UART0_BASE
 
 #ifdef CONFIG_K1MATRIX_RMU

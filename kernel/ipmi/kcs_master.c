@@ -1,5 +1,6 @@
 #include <target/kcs.h>
 #include <target/cmdline.h>
+#include <target/barrier.h>
 
 uint8_t kcs_phase;
 
@@ -9,14 +10,12 @@ uint8_t kcs_phase;
 
 #define kcs_wait_ibf_0()			while (lpc_io_read8(KCS_STATUS) & KCS_IBF)
 #define kcs_wait_obf_1()			while (!(lpc_io_read8(KCS_STATUS) & KCS_OBF))
-#define kcs_clear_ibf()				do {} while (0)
 #define kcs_clear_obf()				do {} while (0)
 #define kcs_is_state(state)			((lpc_io_read8(KCS_STATUS) & KCS_STATE_MASK) == (state))
 
 int kcs_write(uint8_t *data, uint8_t len)
 {
 	uint8_t i = 0;
-
 	kcs_wait_ibf_0();
 	kcs_clear_obf();
 	lpc_io_write8(KCS_WRITE_START, KCS_COMMAND);
@@ -48,7 +47,7 @@ int kcs_read(uint8_t *data, uint8_t len)
 	while (i < (len - 1)) {
 		kcs_wait_ibf_0();
 		if (!kcs_is_state(KCS_READ_STATE)) {
-			if (!kcs_is_state(KCS_IDLE_STATE)) {
+			if (kcs_is_state(KCS_IDLE_STATE)) {
 				kcs_wait_obf_1();
 				data[i + 1] = lpc_io_read8(KCS_DATA_OUT);
 				return i;
@@ -75,12 +74,12 @@ int do_kcs_read(int argc, char *argv[])
 		printf("length oversized!");
 		return -1;
 	}
-	ret = kcs_read(kcs_buf, len);
+	ret = kcs_read(kcs_buf, len + 1);
 	if (ret < 0) {
 		printf("KCS read error!");
 		return ret;
 	}
-	hexdump(0, kcs_buf, 8, KCS_MAX_LEN - 1);
+	hexdump(0, kcs_buf, 8, ret);
 	return 0;
 }
 
@@ -100,7 +99,7 @@ int do_kcs_write(int argc, char *argv[])
 	for (i = 0; i < len; i++) {
 		kcs_buf[i]  = (uint8_t)strtoull(argv[i + 3], 0, 0);
 	}
-	ret = kcs_write(kcs_buf, len);
+	ret = kcs_write(kcs_buf, len + 1);
 	if (ret < 0) {
 		printf("KCS write error!");
 		return ret;

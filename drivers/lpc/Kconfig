@@ -3,4 +3,12 @@ menu "LPC drivers"
 menuconfig SPACEMIT_LPC
 	bool "Enable SpacemiT low pin counter bridge (LPC) support"
 	depends LPC
+
+if SPACEMIT_LPC
+
+config SPACEMIT_LPC_BRIDGE
+	bool "Enable AXI bridging support"
+	
+endif
+
 endmenu
