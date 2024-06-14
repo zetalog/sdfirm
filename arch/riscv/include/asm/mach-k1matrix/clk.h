@@ -178,13 +178,8 @@
 #define ddr_clk			clkid(CLK_DYN, DDR_CLK)
 #define cpu_clk			clkid(CLK_DYN, CPU_CLK)
 
-
-
-
 #define clk_freq_t		uint64_t
 #define invalid_clk		clkid(0xFF, 0xFF)
-
-
 
 void clk_hw_ctrl_init(void);
 
