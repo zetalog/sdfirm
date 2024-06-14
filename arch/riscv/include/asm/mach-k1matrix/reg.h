@@ -83,7 +83,7 @@ extern unsigned long k1matrix_die_base;
 #define __RMU_PVT_CRTL_BASE		ULL(0x00418050000)
 #define __RMU_STM_BASE			ULL(0x00418060000)
 #define __RMU_SYS_REG_BASE		ULL(0x00418070000)
-#define __RMU_SYS_CRG_BASE		ULL(0x00418080000)
+#define __RMU_SYS_CRU_BASE		ULL(0x00418080000)
 #define __RMU_LPC_CFG_BASE		ULL(0x0041A000000)
 #define __RMU_ESPI_CFG_BASE		ULL(0x0041A010000)
 #define __RMU_SPINLOCK_BASE		ULL(0x0041A200000)
@@ -211,7 +211,7 @@ extern unsigned long k1matrix_die_base;
 #endif
 
 #define N100_CFG_BASE			__N100_CFG_BASE
-#define SYS_REG_BASE			__RMU_SYS_CRG_BASE
+#define SYS_REG_BASE			__RMU_SYS_CRU_BASE
 #define SRAM0_BASE			__RMU_RAM_BASE
 
 #define SRAM01_SIZE			SZ_512K
