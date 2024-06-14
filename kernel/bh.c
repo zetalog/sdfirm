@@ -125,8 +125,10 @@ static void __bh_sync(boolean recursive)
 	bh_t bh = 0;
 
 	while (bh != INVALID_BH) {
-		if (bh != console_bh)
+		if (!recursive || (bh != console_bh))
 			bh = bh_run_once(bh, recursive);
+		else if (bh == console_bh)
+			bh++;
 	}
 }
 
