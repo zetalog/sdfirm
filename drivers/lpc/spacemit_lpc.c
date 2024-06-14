@@ -40,23 +40,23 @@ static void lpc_handle_irq(irq_t irq)
 	serirq = sts & (LPC_INT_SERIRQ_INT | LPC_INT_SERIRQ_DONE);
 	if (status) {
 		if (status & LPC_INT_SYNC_ERR)
-			printf("LPC_INT_SYNC_ERR");
+			con_err("lpc: LPC_INT_SYNC_ERR\n");
 		if (status & LPC_INT_NO_SYNC)
-			printf("LPC_INT_NO_SYNC");
+			con_err("lpc: LPC_INT_NO_SYNC\n");
 		if (status & LPC_INT_LWAIT_TIMEOUT)
-			printf("LPC_INT_LWAIT_TIMEOUT");
+			con_err("lpc: LPC_INT_LWAIT_TIMEOUT\n");
 		if (status & LPC_INT_SWAIT_TIMEOUT)
-			printf("LPC_INT_SWAIT_TIMEOUT");
+			con_err("lpc: LPC_INT_SWAIT_TIMEOUT\n");
 		if (status & LPC_INT_OP_DONE)
-			printf("LPC_INT_OP_DONE");
+			con_dbg("lpc: LPC_INT_OP_DONE\n");
 		__raw_setl(status, LPC_INT_CLR);
 		lpc_clear_event(LPC_OP_WAIT);
 	}
 	if (serirq) {
 		if (serirq & LPC_INT_SERIRQ_INT)
-			printf("LPC_INT_SERIRQ_INT");
+			con_dbg("lpc: LPC_INT_SERIRQ_INT\n");
 		if (serirq & LPC_INT_SERIRQ_DONE)
-			printf("LPC_INT_SERIRQ_DONE");
+			con_dbg("lpc: LPC_INT_SERIRQ_DONE\n");
 		__raw_setl(serirq, LPC_INT_CLR);
 		lpc_raise_event(LPC_SERIRQ_EVENT);
 	}
@@ -80,6 +80,7 @@ static void lpc_sync(void)
 	} while (lpc_event);
 }
 
+#ifndef CONFIG_SPACEMIT_LPC_BRIDGE
 void lpc_io_write8(uint8_t v, uint16_t a)
 {
 	BUG_ON(lpc_event & LPC_OP_WAIT);
@@ -113,6 +114,7 @@ uint8_t lpc_mem_read8(uint16_t a)
 	lpc_sync();
 	return __raw_readl(LPC_RDATA);
 }
+#endif /* CONFIG_SPACEMIT_LPC_BRIDGE */
 
 void lpc_firm_write8(uint8_t v, uint32_t a)
 {
@@ -187,6 +189,10 @@ void spacemit_lpc_init(void)
 	lpc_bh = bh_register_handler(lpc_bh_handler);
 	lpc_irq_init();
 	lpc_poll_init();
+#if 0
+	clk_enable(lpc_clk);
+	clk_enable(lpc_lclk);
+#endif
 }
 
 static int do_lpc_read(int argc, char *argv[])

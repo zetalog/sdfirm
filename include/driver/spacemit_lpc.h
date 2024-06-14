@@ -2,12 +2,13 @@
 #define __SPACEMIT_LPC_H_INCLUDE__
 
 #include <target/arch.h>
+#include <asm/mach/lpc.h>
 
-#ifndef SPACEMIT_LPC_BASE
-#define SPACEMIT_LPC_BASE			0x02010000
+#ifndef SPACEMIT_LPC_CFG_BASE
+#define SPACEMIT_LPC_CFG_BASE			0x02010000
 #endif
 #ifndef SPACEMIT_LPC_REG
-#define SPACEMIT_LPC_REG(offset)		(SPACEMIT_LPC_BASE + (offset))
+#define SPACEMIT_LPC_REG(offset)		(SPACEMIT_LPC_CFG_BASE + (offset))
 #endif
 
 #define LPC_IRQ					IRQ_LPC
@@ -172,6 +173,14 @@
 
 #define lpc_get_int_status()			(__raw_readl(LPC_INT_RAW_STATUS))
 
+#ifdef CONFIG_SPACEMIT_LPC_BRIDGE
+
+#define lpc_io_read8(a)				__raw_readb(SPACEMIT_LPC_IO_BASE + (a))
+#define lpc_io_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_IO_BASE + (a))
+#define lpc_mem_read8(a)			__raw_readb(SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_mem_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_MEM_BASE + (a))
+
+#else
 #define __lpc_io_read8(a)							\
 	do {									\
 		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_IO),		\
@@ -190,6 +199,9 @@
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);			\
 	} while (0)
 
+void lpc_io_write8(uint8_t v, uint16_t a);
+uint8_t lpc_io_read8(uint16_t a);
+
 #define __lpc_mem_read8(a)							\
 	do {									\
 		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_MEM),	\
@@ -207,6 +219,10 @@
 		__raw_writel((v), LPC_WDATA);					\
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);			\
 	} while (0)
+
+void lpc_mem_write8(uint8_t v, uint16_t a);
+uint8_t lpc_mem_read8(uint16_t a);
+#endif
 
 #define __lpc_firm_read8(a)							\
 	do {									\
@@ -333,8 +349,6 @@ static inline uint8_t lpc_get_serirq(int slot)
 			LPC_MEM_TRANS1(LPC_MEM_TRANS1_MASK), 				\
 			LPC_MEM_CFG);							\
 	} while (0)
-
-void lpc_io_write8(uint8_t v, uint16_t a);
 
 void spacemit_lpc_init(void);
 
