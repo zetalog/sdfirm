@@ -817,10 +817,10 @@ static int do_mem_read(int argc, char * argv[])
 	case 2:
 		value = __raw_readw(addr);
 		break;
-	case 3:
+	case 4:
 		value = __raw_readl(addr);
 		break;
-	case 4:
+	case 8:
 		value = __raw_readq(addr);
 		break;
 	default:
@@ -850,10 +850,10 @@ static int do_mem_write(int argc, char * argv[])
 	case 2:
 		__raw_writew(value, addr);
 		break;
-	case 3:
+	case 4:
 		__raw_writel(value, addr);
 		break;
-	case 4:
+	case 8:
 		__raw_writeq(value, addr);
 		break;
 	default:

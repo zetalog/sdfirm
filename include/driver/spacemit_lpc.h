@@ -157,6 +157,8 @@
 #define SEL_FROM_MEM_TRANS			0
 #define SEL_FROM_MEM_HADDR			1
 #define LPC_MEM_CYCLE				_BV(0)
+#define LPC_MEM_FIRM_CYCLE			0
+#define LPC_MEM_MEM_CYCLE			1
 
 /* 8.20 LPC_ERR_ADDR */
 #define LPC_ERR_ADDR_REG_OFFSET			0
@@ -174,12 +176,11 @@
 #define lpc_get_int_status()			(__raw_readl(LPC_INT_RAW_STATUS))
 
 #ifdef CONFIG_SPACEMIT_LPC_BRIDGE
-
 #define lpc_io_read8(a)				__raw_readb(SPACEMIT_LPC_IO_BASE + (a))
 #define lpc_io_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_IO_BASE + (a))
 #define lpc_mem_read8(a)			__raw_readb(SPACEMIT_LPC_MEM_BASE + (a))
 #define lpc_mem_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_MEM_BASE + (a))
-
+#define lpc_mem_init()				__raw_setl(LPC_MEM_CYCLE, LPC_MEM_CFG)
 #else
 #define __lpc_io_read8(a)							\
 	do {									\
@@ -220,9 +221,11 @@ uint8_t lpc_io_read8(uint16_t a);
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);			\
 	} while (0)
 
-void lpc_mem_write8(uint8_t v, uint16_t a);
-uint8_t lpc_mem_read8(uint16_t a);
-#endif
+void lpc_mem_write8(uint8_t v, uint32_t a);
+uint8_t lpc_mem_read8(uint32_t a);
+
+#define lpc_mem_init()				do {} while (0)
+#endif /* CONFIG_SPACEMIT_LPC_BRIDGE */
 
 #define __lpc_firm_read8(a)							\
 	do {									\
