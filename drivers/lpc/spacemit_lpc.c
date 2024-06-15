@@ -98,7 +98,7 @@ uint8_t lpc_io_read8(uint16_t a)
 	return __raw_readl(LPC_RDATA);
 }
 
-void lpc_mem_write8(uint8_t v, uint16_t a)
+void lpc_mem_write8(uint8_t v, uint32_t a)
 {
 	BUG_ON(lpc_event & LPC_OP_WAIT);
 	lpc_raise_event(LPC_OP_WAIT);
@@ -106,7 +106,7 @@ void lpc_mem_write8(uint8_t v, uint16_t a)
 	lpc_sync();
 }
 
-uint8_t lpc_mem_read8(uint16_t a)
+uint8_t lpc_mem_read8(uint32_t a)
 {
 	BUG_ON(lpc_event & LPC_OP_WAIT);
 	lpc_raise_event(LPC_OP_WAIT);
@@ -164,7 +164,8 @@ uint32_t lpc_firm_read32(uint32_t a)
 	lpc_raise_event(LPC_OP_WAIT);
 	__lpc_firm_read32(a);
 	lpc_sync();
-	return __raw_readl(LPC_RDATA);
+	int v=__raw_readl(LPC_RDATA);
+	return v;
 }
 
 #ifdef SYS_REALTIME
@@ -189,6 +190,10 @@ void spacemit_lpc_init(void)
 	lpc_bh = bh_register_handler(lpc_bh_handler);
 	lpc_irq_init();
 	lpc_poll_init();
+	lpc_mem_init();
+	/*__raw_writel_mask(LPC_WAIT_ABORT_COUNT(0),
+		LPC_WAIT_ABORT_COUNT(LPC_WAIT_ABORT_COUNT_MASK), 
+		LPC_WAIT_COUNT);*/
 #if 0
 	clk_enable(lpc_clk);
 	clk_enable(lpc_lclk);
@@ -205,20 +210,21 @@ static int do_lpc_read(int argc, char *argv[])
 	if (strcmp(argv[2], "fw") == 0) {
 		if (argc < 4) 
 			return -EINVAL;
-		addr = (caddr_t)(uint16_t)strtoull(argv[4], 0, 0);
-		if (strcmp(argv[3], "1"))
+		addr = (caddr_t)strtoull(argv[4], 0, 0);
+		if (strcmp(argv[3], "1") == 0)
 			return lpc_firm_read8(addr);
-		else if (strcmp(argv[3], "2"))
+		else if (strcmp(argv[3], "2") == 0)
 			return lpc_firm_read16(addr);
-		else if (strcmp(argv[3], "4"))
+		else if (strcmp(argv[3], "4") == 0)
 			return lpc_firm_read32(addr);
 		return -EINVAL;
 	} else {
-		addr = (caddr_t)(uint16_t)strtoull(argv[3], 0, 0);
+		addr = (caddr_t)strtoull(argv[3], 0, 0);
 		if (strcmp(argv[2], "io") == 0)
 			return lpc_io_read8(addr);
-		else if (strcmp(argv[2], "mem") == 0)
+		else if (strcmp(argv[2], "mem") == 0){
 			return lpc_mem_read8(addr);
+		}
 	}
 	return -EINVAL;
 }
@@ -335,26 +341,26 @@ static int do_lpc(int argc, char *argv[])
 }
 
 DEFINE_COMMAND(lpc, do_lpc, "SpacemiT low pin count commands",
-	"lpc read io\n"
-	"lpc read mem\n"
-	"lpc read fw [1|2|4]\n"
+	"lpc read io <addr>\n"
+	"lpc read mem <addr>\n"
+	"lpc read fw [1|2|4] <addr>\n"
 	"    -LPC read sequence\n"
-	"lpc write io value\n"
-	"lpc write mem value\n"
-	"lpc write fw value [1|2|4]\n"
+	"lpc write io <value> <addr>\n"
+	"lpc write mem <value> <addr>\n"
+	"lpc write fw [1|2|4] <value> <addr>\n"
 	"    -LPC write sequence\n"
-	"lpc trans address0 address1 cycle [0|1]\n"
+	"lpc trans <address0> <address1> <cycle> [0|1]\n"
 	"    -config LPC address translation\n"
-	"lpc irq mask irq\n"
-	"lpc irq unmask irq\n"
-	"lpc irq clear irq\n"
-	"lpc irq get irq\n"
+	"lpc irq mask <irq>\n"
+	"lpc irq unmask <irq>\n"
+	"lpc irq clear <irq>\n"
+	"lpc irq get <irq>\n"
 	"    -LPC control IRQs\n"
-	"lpc serirq mask slot\n"
-	"lpc serirq unmask slot\n"
-	"lpc serirq clear slot\n"
-	"lpc serirq get slot\n"
+	"lpc serirq mask <slot>\n"
+	"lpc serirq unmask <slot>\n"
+	"lpc serirq clear <slot>\n"
+	"lpc serirq get <slot>\n"
 	"    -LPC control SERIRQs\n"
-	"lpc serirq config slot idle start mode\n"
+	"lpc serirq config <slot> [idle|start|mode]\n"
 	"    -LPC configure SERIRQs\n"
 );
