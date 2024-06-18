@@ -109,3 +109,6 @@ config MEMTESTER_NARROW_WRITES
 	bool "Enable narrow writes support"
 
 endif
+
+config TEST_ESPI
+	bool "Enable espi test"
