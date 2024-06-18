@@ -101,6 +101,7 @@ static clk_freq_t get_mesh_freq(clk_clk_t sel)
 		return INVALID_FREQ;
 	return clk_get_frequency(mesh_clks[sel].clksels[mesh_clks[sel].sel]);
 }
+
 static void select_mesh_source(clk_clk_t sel, clk_t src)
 {
 	uint8_t clksel;

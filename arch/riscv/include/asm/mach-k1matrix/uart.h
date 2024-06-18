@@ -48,13 +48,13 @@
 
 #ifdef CONFIG_K1MATRIX_UART_CON0
 #define __K1MATRIX_UART_BASE	UART0_BASE
-#define UART_CLK_ID		uart0_clk
+#define UART_CLK_ID		rmu_uart0_clk
 #define UART_CON_ID		0
 #define UART_CON_IRQ		IRQ_UART0
 #endif /* CONFIG_K1MATRIX_UART_CON0 */
 #ifdef CONFIG_K1MATRIX_UART_CON1
 #define __K1MATRIX_UART_BASE	UART1_BASE
-#define UART_CLK_ID		uart1_clk
+#define UART_CLK_ID		rmu_uart1_clk
 #define UART_CON_ID		1
 #define UART_CON_IRQ		IRQ_UART1
 #endif /* CONFIG_K1MATRIX_UART_CON1 */
