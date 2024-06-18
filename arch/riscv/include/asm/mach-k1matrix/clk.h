@@ -150,8 +150,8 @@
 #define rmu_lpc_clk		rmu_lpc_clken
 #define rmu_lpc_lclk		rmu_lpc_clken
 #define rmu_espi_clk		rmu_espi_clken
-#define rmu_uart0_clke		rmu_uart0_clken
-#define rmu_uart1_clke		rmu_uart1_clken
+#define rmu_uart0_clk		rmu_uart0_clken
+#define rmu_uart1_clk		rmu_uart1_clken
 #define rmu_mailbox_s_clk	rmu_mailbox_s_clken
 #define rmu_mailbox_ns_clk	rmu_mailbox_ns_clken
 #define peri_smbus0_clk		peri_smbus0_clken
@@ -173,7 +173,6 @@
 #define peri_gpio4_db_clk	peri_gpio4_db_clkdiv
 #define peri_dmac_clk		peri_dmac_clken
 #define peri_gmac_axi_clk	peri_gmac_axi_clkdiv
-
 
 #define ddr_clk			clkid(CLK_DYN, DDR_CLK)
 #define cpu_clk			clkid(CLK_DYN, CPU_CLK)
