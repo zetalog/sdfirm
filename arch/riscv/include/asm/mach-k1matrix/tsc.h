@@ -44,6 +44,7 @@
 
 #include <target/arch.h>
 #include <target/clk.h>
+#include <target/irq.h>
 
 #define TSC_FREQ		(PIC_CLK_FREQ/1000)
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
