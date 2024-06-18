@@ -1450,14 +1450,14 @@ void espi_register_rxoob_callbcak(void *callback, void *buffer)
 	rxoob_buffer = buffer;
 }
 
-static void espi_hb_handler(uint8_t event)
+static void espi_bh_handler(uint8_t event)
 {
 	espi_handle_irq(0);
 }
 
-int espi_hb_create(void)
+int espi_bh_create(void)
 {
-	espi_bh = bh_register_handler(espi_hb_handler);
+	espi_bh = bh_register_handler(espi_bh_handler);
 	irq_register_poller(espi_bh);
 
 	return 0;
