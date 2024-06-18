@@ -11,3 +11,5 @@ obj-$(CONFIG_TEST_MEMTESTER) += memtester.rel
 
 obj-$(CONFIG_RAVEN) += arm64/
 obj-$(CONFIG_RISCV) += riscv/
+
+obj-$(CONFIG_TEST_ESPI) += espi/

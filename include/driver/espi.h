@@ -153,6 +153,8 @@ int espi_send_oob_smbus(uint8_t *buf, int len);
 
 int espi_send_oob_mctp(uint8_t *buf, int len);
 
-void espi_register_rxvw_gpio(void *callback);
+void espi_register_rxvw_callback(void *callback);
+
+void espi_register_rxoob_callback(void *callback, void *buffer);
 
 #endif /* __ESPI_H__ */

@@ -43,10 +43,17 @@
 #include <target/irq.h>
 #include <target/stream.h>
 #include <target/cmdline.h>
+#include <target/bh.h>
 
 #include <driver/espi.h>
 #include <driver/espi_protocol.h>
 #include <driver/spacemit_espi.h>
+
+static bh_t espi_bh;
+static void (*rxvw_callback)(int group, uint8_t rxvw_data);
+static void (*rxoob_callback)(void *buffer, int len);
+static void *rxoob_buffer;
+int espi_bh_create(void);
 
 static uint32_t espi_read32(unsigned long reg)
 {
@@ -1135,46 +1142,6 @@ static void espi_enable_all_irqs(void)
 	);
 }
 
-void (*rxvw_gpio_callback)(int group, uint8_t rxvw_data);
-
-void espi_handle_irq(irq_t irq)
-{
-	int int_sts;
-	uint8_t rxvw_data;
-
-	int_sts = espi_read32(ESPI_SLAVE0_INT_STS);
-
-	espi_write32(int_sts, ESPI_SLAVE0_INT_STS);
-
-	switch (int_sts) {
-	case SLAVE0_INT_STS_RXVW_GRP0_INT:
-		rxvw_data = espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFFU;
-		rxvw_gpio_callback(128, rxvw_data);
-		break;
-	case SLAVE0_INT_STS_RXVW_GRP1_INT:
-		rxvw_data = (espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF00U) >> 8;
-		rxvw_gpio_callback(129, rxvw_data);
-		break;
-	case SLAVE0_INT_STS_RXVW_GRP2_INT:
-		rxvw_data = (espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF0000U) >> 8;
-		rxvw_gpio_callback(130, rxvw_data);
-		break;
-	case SLAVE0_INT_STS_RXVW_GRP3_INT:
-		rxvw_data = (espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF000000U) >> 8;
-		rxvw_gpio_callback(131, rxvw_data);
-		break;
-
-	default:
-		printf("espi irq error\n");		
-		break;
-	}
-}
-
-void espi_register_rxvw_gpio(void *callback)
-{
-	rxvw_gpio_callback = callback;
-}
-
 static void espi_irq_init(void)
 {
 	irqc_configure_irq(100, 0, IRQ_LEVEL_TRIGGERED);
@@ -1186,8 +1153,23 @@ static void espi_irq_init(void)
 int espi_hw_ctrl_init(struct espi_config *cfg)
 {
 	uint32_t slave_caps;
+	struct espi_config def_cfg;
 
 	printf("Initializing eSPI.\n");
+
+	if (cfg == NULL) {
+		def_cfg.std_io_decode_bitmap = ESPI_DECODE_IO_0x80_EN | ESPI_DECODE_IO_0X2E_0X2F_EN | ESPI_DECODE_IO_0X60_0X64_EN,
+		def_cfg.io_mode = ESPI_IO_MODE_QUAD,
+		def_cfg.op_freq_mhz = ESPI_OP_FREQ_20_MHZ,
+		def_cfg.crc_check_en = 1,
+		def_cfg.alert_pin = ESPI_ALERT_PIN_PUSH_PULL,
+		def_cfg.periph_ch_en = 1,
+		def_cfg.vw_ch_en = 1,
+		def_cfg.oob_ch_en = 1,
+		def_cfg.flash_ch_en = 0,
+
+		cfg = &def_cfg;
+	}
 
 	espi_write32(GLOBAL_CONTROL_0_MST_STOP_EN, ESPI_GLOBAL_CONTROL_0);
 //	espi_write32(ESPI_RGCMD_INT(23) | ESPI_ERR_INT_SMI, ESPI_GLOBAL_CONTROL_1);
@@ -1305,6 +1287,8 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 
 	espi_irq_init();
 
+	espi_bh_create();
+
 	printf("Finished initializing eSPI.\n");
 
 	return 0;
@@ -1401,114 +1385,80 @@ int espi_send_oob_smbus(uint8_t *buf, int len)
 	return 0;
 }
 
-static int do_espi_read(int argc, char *argv[])
+static int espi_receive_oob_smbus(uint8_t *buf)
 {
-	caddr_t addr;
+	int len = 0;
+	uint32_t data[16];
+	uint32_t rxhdr0 = espi_read32(ESPI_UP_RXHDR_0);
 
-	if (argc < 3) 
-		return -EINVAL;
+	len = FIELD_GET(UP_RXHDR_0_UPCMD_HDATA2_MASK, rxhdr0);
 
-	if (strcmp(argv[2], "fw") == 0) {
-		if (argc < 4) 
-			return -EINVAL;
-		addr = (caddr_t)(uint16_t)strtoull(argv[4], 0, 0);
-		if (strcmp(argv[3], "1"))
-			return espi_read8(addr);
-		else if (strcmp(argv[3], "2"))
-			return espi_read16(addr);
-		else if (strcmp(argv[3], "4"))
-			return espi_read32(addr);
-		return -EINVAL;
-	} else {
-		addr = (caddr_t)(uint16_t)strtoull(argv[3], 0, 0);
-		if (strcmp(argv[2], "io") == 0)
-			return espi_read8(addr);
-		else if (strcmp(argv[2], "mem") == 0)
-			return espi_read8(addr);
+	*(uint32_t *)buf = espi_read32(ESPI_UP_RXHDR_1) & 0x00FFFFFFU;
+
+	for (int i = 0; i < (len - 3) / 4; i++) {
+		data[i] = espi_read32(ESPI_UP_RXDATA_PORT);
 	}
-	return -EINVAL;
+
+	memcpy(&buf[3], &data, len - 3);
+
+	return len;
 }
 
-static int do_espi_write(int argc, char *argv[])
+void espi_handle_irq(irq_t irq)
 {
-	caddr_t addr;
+	int int_sts;
+	uint8_t rxvw_data;
 
-	if (argc < 5)
-		return -EINVAL;
-	if (strcmp(argv[2], "fw") == 0) {
-		uint32_t v;
-		int size;
-		if (argc < 6) 
-			return -EINVAL;
-		size = (uint32_t)strtoull(argv[3], 0, 0);
-		v = (uint32_t)strtoull(argv[4], 0, 0);
-		addr = (caddr_t)strtoull(argv[5], 0, 0);
-		if (size == 1)
-			espi_write8(v, addr);
-		else if (size == 2)
-			espi_write16(v, addr);
-		else if (size == 4)
-			espi_write32(v, addr);
-		else
-			return -EINVAL;
-		return 0;
-	} else {
-		uint8_t v;
+	int_sts = espi_read32(ESPI_SLAVE0_INT_STS);
 
-		v = (uint32_t)strtoull(argv[3], 0, 0);
-		addr = (caddr_t)strtoull(argv[4], 0, 0);
-		if (strcmp(argv[2], "io") == 0)
-			espi_write8(v, addr);
-		else if (strcmp(argv[2], "mem") == 0)
-			espi_write8(v, addr);
-		else
-			return -EINVAL;
-		return 0;
+	espi_write32(int_sts, ESPI_SLAVE0_INT_STS);
+
+	switch (int_sts) {
+	case SLAVE0_INT_STS_RXVW_GRP0_INT:
+		rxvw_data = espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFFU;
+		rxvw_callback(128, rxvw_data);
+		break;
+	case SLAVE0_INT_STS_RXVW_GRP1_INT:
+		rxvw_data = (espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF00U) >> 8;
+		rxvw_callback(129, rxvw_data);
+		break;
+	case SLAVE0_INT_STS_RXVW_GRP2_INT:
+		rxvw_data = (espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF0000U) >> 8;
+		rxvw_callback(130, rxvw_data);
+		break;
+	case SLAVE0_INT_STS_RXVW_GRP3_INT:
+		rxvw_data = (espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF000000U) >> 8;
+		rxvw_callback(131, rxvw_data);
+		break;
+	case SLAVE0_INT_STS_RXOOB_INT:
+		int len = espi_receive_oob_smbus((uint8_t *)rxoob_buffer);
+		rxoob_callback(rxoob_buffer, len);
+	default:
+		printf("espi irq error\n");
+		break;
 	}
-	return -EINVAL;
 }
 
-static int do_espi_send(int argc, char *argv[])
+void espi_register_rxvw_callback(void *callback)
 {
-	if (argc < 5)
-		return -EINVAL;
-	if (strcmp(argv[2], "vw") == 0) {
-		int idx = (uint32_t)strtoull(argv[3], 0, 0);
-		int val = (uint32_t)strtoull(argv[4], 0, 0);
-		espi_send_vw((uint8_t *)&idx, (uint8_t *)&val, 1);
-	} else if (strcmp(argv[2], "oob") == 0) {
-		long val = (uint32_t)strtoull(argv[3], 0, 0);
-		int len = (uint32_t)strtoull(argv[4], 0, 0);
-		if (len > 8)
-			return -EINVAL;
-		espi_send_oob_smbus((uint8_t *)&val, len);
-	}
+	rxvw_callback = callback;
+}
+
+void espi_register_rxoob_callbcak(void *callback, void *buffer)
+{
+	rxoob_callback = callback;
+	rxoob_buffer = buffer;
+}
+
+static void espi_hb_handler(uint8_t event)
+{
+	espi_handle_irq(0);
+}
+
+int espi_hb_create(void)
+{
+	espi_bh = bh_register_handler(espi_hb_handler);
+	irq_register_poller(espi_bh);
 
 	return 0;
 }
-
-static int do_espi(int argc, char *argv[])
-{
-	if (argc < 2)
-		return -EINVAL;
-	if (strcmp(argv[1], "read") == 0)
-		return do_espi_read(argc, argv);
-	else if (strcmp(argv[1], "write") == 0)
-		return do_espi_write(argc, argv);
-	else if (strcmp(argv[1], "send") == 0)
-		return do_espi_send(argc, argv);
-	return -EINVAL;
-}
-
-DEFINE_COMMAND(espi, do_espi, "SpacemiT eSPI commands",
-	"espi read io\n"
-	"espi read mem\n"
-	"espi read fw [1|2|4]\n"
-	"    -eSPI read sequence\n"
-	"espi write io value\n"
-	"espi write mem value\n"
-	"espi write fw value [1|2|4]\n"
-	"    -eSPI write sequence\n"
-	"espi send vw\n"
-	"espi send oob\n"
-);
