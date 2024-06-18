@@ -3,21 +3,6 @@ if ARCH_K1MATRIX
 menu "SpacemiT K1Matrix board options"
 
 choice
-	prompt "Simulation platform"
-	default K1MATRIX_ASIC
-
-config	K1MATRIX_ASIC
-	bool "ASIC"
-
-config	K1MATRIX_S2C
-	bool "S2C"
-
-config	K1MATRIX_PZ1
-	bool "Paladium Z1"
-
-endchoice
-
-choice
 	prompt "Boot CPU"
 
 config K1MATRIX_RMU
@@ -99,15 +84,13 @@ config K1MATRIX_ASIC
 	bool "ASIC"
 	select K1MATRIX_CPRINT if FINISH
 
-config K1MATRIX_FPGA
-	bool "FPGA"
+config K1MATRIX_PZ1
+	bool "Paladium Z1"
+
+config K1MATRIX_S2C
+	bool "S2C"
 
 endchoice
-
-config K1MATRIX_FPGA_TDM
-	bool "FPGA time-division multiplexing (TDM) partition support"
-	depends K1MATRIX_FPGA
-	default y
 
 if K1MATRIX_TB
 
@@ -187,7 +170,7 @@ endif
 
 config K1MATRIX_CPRINT
 	bool "K1Matrix C_Print simulation support"
-	depends !K1MATRIX_FPGA
+	depends K1MATRIX_ASIC
 
 menuconfig K1MATRIX_N100
 	bool "K1Matrix N100 on-chip networking support"
@@ -201,12 +184,27 @@ if K1MATRIX_N100
 
 endif
 
+config K1MATRIX_CRU_PLL
+	bool
+	select SC_PLLTS12FFCLAFRAC2
+	select SC_PLLTS12FFCLAFRAC2_FRAC
+	select SC_PLLTS12FFCLAFRAC2_POSTDIV
+
+config K1MATRIX_CRU_CLK_REAL
+	bool
+
+config K1MATRIX_CRU_CLK_FAKE
+	bool
+
+config K1MATRIX_CRU_RST
+	bool
+
 menuconfig K1MATRIX_CRU
 	bool "K1Matrix clock/reset generator support"
-	select SC_PLLTS12FFCLAFRAC2
 	select K1MATRIX_CRU_RST
 	select K1MATRIX_CRU_PLL if K1MATRIX_ASIC
-	select K1MATRIX_CRU_CLK if K1MATRIX_ASIC || K1MATRIX_PZ1
+	select K1MATRIX_CRU_CLK_REAL if K1MATRIX_ASIC || K1MATRIX_PZ1
+	select K1MATRIX_CRU_CLK_FAKE if K1MATRIX_S2C
 
 config K1MATRIX_PCIE
 	bool "K1Matrix PCIe subsystem support"

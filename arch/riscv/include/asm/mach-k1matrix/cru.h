@@ -323,6 +323,22 @@
 /* XXX_SW_RESET */
 #define CRU_RSTN(n)			_BV(n)
 
+/* CRU driver flags */
+#define CRU_4PHASE	_BV(0)
+#define CRU_FRAC	_BV(1)
+#define CRU_JITTER	_BV(2)
+#define CRU_FOUT0	_BV(3)
+#define CRU_FOUT1	_BV(4)
+#define CRU_CLKEN	_BV(5)
+#define CRU_SRC_CLKSEL	_BV(6)
+#define CRU_CLKEN_2BIT	_BV(7)
+#define CRU_ENABLED	_BV(8)
+#define CRU_RESET	_BV(9)
+#define CRU_RESET_2BIT	_BV(10)
+#define CRU_RESET_3BIT	_BV(11)
+
+typedef uint16_t cru_flags_t;
+
 #ifdef CONFIG_CRCNTL_TRACE
 void cru_trace(bool enabling, const char *name);
 #else
