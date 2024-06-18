@@ -178,7 +178,8 @@ static int platform_pmu_init(void)
 /*
  * Get platform specific mhpmevent value.
  */
-static uint64_t platform_pmu_xlate_to_mhpmevent(uint32_t event_idx, uint64_t data)
+static uint64_t platform_pmu_xlate_to_mhpmevent(uint32_t event_idx,
+						uint64_t data)
 {
 	uint64_t evt_val = 0;
 

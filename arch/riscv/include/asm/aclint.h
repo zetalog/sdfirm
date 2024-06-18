@@ -42,22 +42,37 @@
 #ifndef __ACLINT_RISCV_H_INCLUDE__
 #define __ACLINT_RISCV_H_INCLUDE__
 
-#define CLINT_MTIMER_BASE		0x4000
+#define ACLINT_MTIMER_REG_ALIGN		0x8
+#define ACLINT_MTIMER_MAX_HARTS		4095
+#define ACLINT_MTIME_SIZE		ACLINT_MTIMER_REG_ALIGN
+#define ACLINT_MTIMECMP_SIZE		\
+	(ACLINT_MTIMER_MAX_HARTS * ACLINT_MTIMER_REG_ALIGN)
+
+#ifndef ACLINT_MTIME_BASE
+#define ACLINT_MTIME_BASE		ACLINT_MTIMECMP_SIZE
+#endif
+#ifndef ACLINT_MTIMECMP_BASE
+#define ACLINT_MTIMECMP_BASE		0x0000
+#endif
+#define CLINT_MTIME_BASE		ACLINT_MTIME_BASE
+#define CLINT_MTIMECMP_BASE		ACLINT_MTIMECMP_BASE
+
+#ifndef aclint_hw_ctx
+#define aclint_hw_ctx(hart)		(hart)
+#endif
+#define clint_hw_ctx(hart)		aclint_hw_ctx(hart)
+#define clint_hw_hart_offset(hart)	aclint_hw_hart_offset(hart)
+
 #ifdef CONFIG_ACLINT_MULTI
-#define CLINT_BASE(n)			(ACLINT_BASE(n) + CLINT_MTIMER_BASE)
+#define CLINT_BASE(n)			ACLINT_BASE(n)
 #define ACLINT_REG_BASE(n)		ACLINT_BASE(n)
+#define clint_hw_chip(hart)		aclint_hw_chip(hart)
 #else
-#define CLINT_BASE			(ACLINT_BASE + CLINT_MTIMER_OFFSET)
+#define CLINT_BASE			ACLINT_BASE
 #define ACLINT_REG_BASE(n)		ACLINT_BASE
 #endif
 
 #define ACLINT_REG(n, offset)		(ACLINT_REG_BASE(n) + (offset))
-#define ACLINT_MTIMER_ALIGN		0x8
-#define ACLINT_MTIMER_MAX_HARTS		4095
-#define ACLINT_MTIME_OFFSET		0x7FF8
-#define ACLINT_MTIME_SIZE		0x8
-#define ACLINT_MTIMECMP_OFFSET		0x0000
-#define ACLINT_MTIMECMP_SIZE		0x7FF8
 #define ACLINT_MTIMER_REGION_ALIGN	0x1000
 
 #include <asm/clint.h>
