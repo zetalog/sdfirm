@@ -181,5 +181,13 @@
 #define invalid_clk		clkid(0xFF, 0xFF)
 
 void clk_hw_ctrl_init(void);
+void clk_pll_dump(void);
+void clk_pll_init(void);
+void clk_div_dump(void);
+void clk_div_init(void);
+void clk_sel_dump(void);
+void clk_sel_init(void);
+void clk_rst_dump(void);
+void clk_rst_init(void);
 
 #endif /* __CLK_K1MATRIX_H_INCLUDE__ */
