@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jun 12 13:48:45 2024
+# Wed Jun 19 16:07:09 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -171,6 +171,7 @@ CONFIG_ARCH_HAS_BOOT2=y
 CONFIG_ARCH_HAS_IMSIC=y
 # CONFIG_IMSIC is not set
 CONFIG_ARCH_HAS_CLINT=y
+CONFIG_ARCH_HAS_CLINT_CTX=y
 CONFIG_ARCH_HAS_ACLINT=y
 # CONFIG_ACLINT is not set
 CONFIG_CLINT=y
@@ -532,6 +533,7 @@ CONFIG_SPD_BUS_KHZ=60
 # CONFIG_TEST_BENCH is not set
 # CONFIG_TEST_LITMUS is not set
 # CONFIG_TEST_MEMTESTER is not set
+# CONFIG_TEST_ESPI is not set
 
 #
 # RISCV system tests
