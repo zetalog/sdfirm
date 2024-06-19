@@ -441,7 +441,7 @@
 			#address-cells = <0x0>;
 		};
 
-		clint: clint@14000000 {
+		clint: clint@00414000000 {
 			interrupts-extended = <
 				&cpu0_intc 0x3 &cpu0_intc 0x7
 #ifdef CONFIG_SMP
@@ -471,11 +471,16 @@
 			reg = <DT_REGHI(__RMU_CLINT_BASE) DT_REGLO(__RMU_CLINT_BASE)
 			       0x0 0x00010000
 			>;
+#ifdef CONFIG_ACLINT_DT
+			compatible = "riscv,aclint-mtimer0";
+#else
 			compatible = "riscv,clint0";
 #ifdef CONFIG_ARCH_IS_MMIO_32BIT
 			clint,has-no-64bit-mmio;
 #endif
+#endif
 		};
+#endif
 
 		reset: reset-controller@f00110000 {
 			#address-cells = <0x1>;

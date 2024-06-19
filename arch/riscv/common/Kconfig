@@ -848,6 +848,13 @@ menuconfig ACLINT
 	select ARCH_HAS_SBI_TIMER
 	select RISCV_SSTC
 
+if ACLINT
+
+config ACLINT_DT
+	bool "ACLINT specific device tree entries support"
+
+endif
+
 menuconfig CLINT
 	bool "Core Local Interruptor (CLINT) support"
 	depends ARCH_HAS_CLINT
