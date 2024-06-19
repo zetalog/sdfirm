@@ -201,12 +201,11 @@ extern unsigned long k1matrix_die_base;
 
 #define UART0_BASE			__RMU_UART0_BASE
 
+#define ACLINT_BASE			__RMU_CLINT_BASE
 #ifdef CONFIG_K1MATRIX_RMU
-#define CLINT_BASE			__RMU_CLINT_BASE
 #define PLIC_REG_BASE			__RMU_PLIC_BASE
 #endif
 #ifdef CONFIG_K1MATRIX_APU
-#define ACLINT_BASE			__RMU_CLINT_BASE
 #define PLIC_REG_BASE			__RMU_PLIC_BASE
 #endif
 
