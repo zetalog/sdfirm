@@ -50,6 +50,9 @@
 #ifndef CLINT_MTIME_BASE
 #define CLINT_MTIME_BASE	0xBFF8
 #endif
+#ifndef CLINT_MSIP_BASE
+#define CLINT_MSIP_BASE		0x0000
+#endif
 
 #ifdef CONFIG_CLINT_MULTI
 #define CLINT_REG_BASE(n)	CLINT_BASE(n)
@@ -61,7 +64,8 @@
 #define CLINT_REG(n, offset)	(CLINT_REG_BASE(n) + (offset))
 #ifdef CONFIG_ARCH_HAS_CLINT_CTX
 #define CLINT_MSIP(hart)		\
-	CLINT_REG(clint_hw_chip(hart), (clint_hw_ctx(hart)) << 2)
+	CLINT_REG(clint_hw_chip(hart),	\
+		  CLINT_MSIP_BASE + ((clint_hw_ctx(hart)) << 2))
 #define CLINT_MTIMECMP(hart)		\
 	CLINT_REG(clint_hw_chip(hart),	\
 		  CLINT_MTIMECMP_BASE + ((clint_hw_ctx(hart)) << 3))

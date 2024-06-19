@@ -60,6 +60,16 @@ extern caddr_t k1matrix_plic_ctx_base[2];
 
 #define cpu2pic(cpu)			(cpu)
 
+#if 1
+#define ACLINT_MTIMER_BASE		0x2100000
+#define ACLINT_MSWI_BASE		0x2000000
+#define ACLINT_SSWI_BASE		0x0400000
+#else
+#define ACLINT_MTIMER_BASE		0x4000
+#define ACLINT_MSWI_BASE		0x0000
+#define ACLINT_SSWI_BASE		0xC000
+#endif
+
 #ifdef CONFIG_ARCH_HAS_ACLINT_MULTI
 #define aclint_hw_chip(cpu)		((cpu) >> 5)
 #define aclint_hw_hart_offset(hart)	((hart) >= 32 ? ((hart) - 32) : hart)
