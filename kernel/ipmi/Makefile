@@ -1,3 +1,3 @@
 obj-y:=
-obj-$(CONFIG_KCS) += kcs_bmc.rel
-obj-$(CONFIG_KCS) += kcs_master.rel
+obj-$(CONFIG_KCS_BMC) += kcs_bmc.rel
+obj-$(CONFIG_KCS_HIF) += kcs_master.rel
