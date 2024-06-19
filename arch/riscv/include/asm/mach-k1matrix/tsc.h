@@ -49,12 +49,7 @@
 #define TSC_FREQ		(PIC_CLK_FREQ/1000)
 #define TSC_MAX			ULL(0xFFFFFFFFFFFFFFFF)
 
-#ifdef CONFIG_K1MATRIX_APU
 #include <asm/aclint.h>
-#endif
-#ifdef CONFIG_K1MATRIX_RMU
-#include <asm/clint.h>
-#endif
 
 #ifndef __ASSEMBLY__
 #define tsc_hw_ctrl_init()	do { } while (0)
