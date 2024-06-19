@@ -274,11 +274,11 @@ static int do_time(int argc, char *argv[])
 		return -EINVAL;
 
 	if (strcmp(argv[1], "tsc") == 0) {
-		printf("%lld\n", tsc_read_counter());
+		printf("%lld\n", (unsigned long long)tsc_read_counter());
 		return 0;
 	}
 	if (strcmp(argv[1], "clock") == 0) {
-		printf("%lld\n", clock());
+		printf("%lld\n", (unsigned long long)clock());
 		return 0;
 	}
 	return -EINVAL;

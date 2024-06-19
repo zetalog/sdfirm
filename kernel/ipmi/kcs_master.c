@@ -1,6 +1,8 @@
 #include <target/kcs.h>
 #include <target/cmdline.h>
 #include <target/barrier.h>
+#include <target/lpc.h>
+#include <target/console.h>
 
 uint8_t kcs_phase;
 
