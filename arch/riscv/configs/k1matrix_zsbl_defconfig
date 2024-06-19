@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jun 19 11:02:32 2024
+# Wed Jun 19 14:09:40 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -169,6 +169,7 @@ CONFIG_ARCH_HAS_CLINT=y
 CONFIG_ARCH_HAS_CLINT_CTX=y
 CONFIG_ARCH_HAS_ACLINT=y
 CONFIG_ACLINT=y
+# CONFIG_ACLINT_DT is not set
 CONFIG_ARCH_HAS_PLIC=y
 # CONFIG_PLIC is not set
 # CONFIG_HPM is not set
@@ -267,7 +268,9 @@ CONFIG_LOAD_DATA=y
 #
 # CONFIG_STACK_CUST is not set
 # CONFIG_HEAP is not set
-# CONFIG_MEM is not set
+CONFIG_MEM=y
+CONFIG_MEM_MAX_REGIONS=3
+# CONFIG_MEM_RESIZE is not set
 # CONFIG_PAGE is not set
 # CONFIG_DMA is not set
 CONFIG_ARCH_HAS_FP=y

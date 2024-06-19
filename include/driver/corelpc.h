@@ -58,8 +58,6 @@
 
 extern uint16_t corelpc_kadr;
 
-//#define KCS_REG(offset)				(corelpc_kadr + (offset))
-
 void corelpc_config_kadr(uint16_t kadr);
 #define corelpc_read_kibr()			corelpc_read_reg(KIBR)
 #define corelpc_write_kobr(dat)			corelpc_write_reg(dat, KOBR)
