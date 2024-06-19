@@ -91,7 +91,6 @@ int console_register_handler(console_handler);
 void console_input_handler(void);
 int console_input_init(void);
 #else
-#define console_bh			INVALID_BH
 #define console_input_handler()		do { } while (0)
 static inline int console_input_init(void)
 {
@@ -124,6 +123,7 @@ void console_init(void);
 void console_late_init(void);
 __printf_chk(1) void con_err(const char *fmt, ...);
 #else
+#define console_bh				INVALID_BH
 #define console_init()				do { } while (0)
 #define console_late_init()			do { } while (0)
 #define con_err(...)				do { } while (0)

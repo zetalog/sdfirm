@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 20 15:33:15 2024
+# Wed Jun 19 16:17:14 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -146,7 +146,7 @@ CONFIG_RISCV_SPINLOCK_TICKET=y
 #
 # Compiler options
 #
-# CONFIG_CC_NO_RELAX is not set
+CONFIG_CC_NO_RELAX=y
 # CONFIG_CMODEL_MEDLOW is not set
 CONFIG_CMODEL_MEDANY=y
 CONFIG_TUNE_GENERIC=y
@@ -174,11 +174,10 @@ CONFIG_ARCH_HAS_BOOT2=y
 CONFIG_ARCH_HAS_IMSIC=y
 # CONFIG_IMSIC is not set
 CONFIG_ARCH_HAS_CLINT=y
+CONFIG_ARCH_HAS_CLINT_CTX=y
 CONFIG_ARCH_HAS_ACLINT=y
-# CONFIG_ACLINT is not set
-CONFIG_CLINT=y
-# CONFIG_CLINT_XCHG_LLSC is not set
-# CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
+CONFIG_ACLINT=y
+# CONFIG_ACLINT_DT is not set
 CONFIG_ARCH_HAS_PLIC=y
 CONFIG_PLIC=y
 # CONFIG_PLIC_COMPLETION_ENTRY is not set
@@ -391,6 +390,7 @@ CONFIG_ARCH_HAS_DW_AMBA_ADVANCED=y
 #
 # Clock drivers
 #
+# CONFIG_SC_PLLTS12FFCLAFRAC2 is not set
 
 #
 # GPIO controller drivers
@@ -557,6 +557,7 @@ CONFIG_ARCH_HAS_NOC=y
 # CONFIG_TEST_BENCH is not set
 # CONFIG_TEST_LITMUS is not set
 # CONFIG_TEST_MEMTESTER is not set
+# CONFIG_TEST_ESPI is not set
 
 #
 # RISCV system tests

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 20 15:32:42 2024
+# Wed Jun 19 16:07:32 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -144,7 +144,7 @@ CONFIG_RISCV_SPINLOCK_TICKET=y
 #
 # Compiler options
 #
-# CONFIG_CC_NO_RELAX is not set
+CONFIG_CC_NO_RELAX=y
 # CONFIG_CMODEL_MEDLOW is not set
 CONFIG_CMODEL_MEDANY=y
 CONFIG_TUNE_GENERIC=y
@@ -172,6 +172,7 @@ CONFIG_ARCH_HAS_BOOT2=y
 CONFIG_ARCH_HAS_IMSIC=y
 # CONFIG_IMSIC is not set
 CONFIG_ARCH_HAS_CLINT=y
+CONFIG_ARCH_HAS_CLINT_CTX=y
 CONFIG_ARCH_HAS_ACLINT=y
 # CONFIG_ACLINT is not set
 CONFIG_CLINT=y
@@ -236,10 +237,11 @@ CONFIG_K1M_SOC=y
 CONFIG_K1M_S2C=y
 CONFIG_K1M_K1PRO=y
 # CONFIG_K1M_K1MAX is not set
-CONFIG_K1M_SMP_CPUS=4
 # CONFIG_K1M_SMP_SPARSE_HART_ID is not set
 # CONFIG_K1M_PARTIAL_GOOD is not set
 # CONFIG_K1M_TB is not set
+# CONFIG_K1M_ZSBL is not set
+# CONFIG_K1M_FSBL is not set
 CONFIG_K1M_BBL=y
 # CONFIG_K1M_SRAM is not set
 CONFIG_K1M_DDR=y
@@ -249,6 +251,7 @@ CONFIG_K1M_CCI=y
 CONFIG_K1M_UART=y
 # CONFIG_K1M_UART_ACCEL is not set
 CONFIG_K1M_UART_DW=y
+CONFIG_K1MATRIX_CRU=y
 
 #
 # Feature setup
@@ -287,7 +290,6 @@ CONFIG_ARCH_HAS_THREAD=y
 CONFIG_ARCH_HAS_SMP=y
 # CONFIG_SMP_BOOT is not set
 # CONFIG_SMP is not set
-# CONFIG_SMP_WAIT_BOOT is not set
 
 #
 # Timing facility (jiffy) support
@@ -383,6 +385,7 @@ CONFIG_FDT=y
 #
 # Clock drivers
 #
+# CONFIG_SC_PLLTS12FFCLAFRAC2 is not set
 
 #
 # GPIO controller drivers
@@ -545,6 +548,7 @@ CONFIG_CCI550=y
 # CONFIG_TEST_BENCH is not set
 # CONFIG_TEST_LITMUS is not set
 # CONFIG_TEST_MEMTESTER is not set
+# CONFIG_TEST_ESPI is not set
 
 #
 # RISCV system tests

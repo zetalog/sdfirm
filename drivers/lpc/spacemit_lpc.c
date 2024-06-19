@@ -200,6 +200,7 @@ void spacemit_lpc_init(void)
 static int do_lpc_read(int argc, char *argv[])
 {
 	caddr_t addr;
+	uint32_t val;
 
 	if (argc < 3) 
 		return -EINVAL;
@@ -208,20 +209,29 @@ static int do_lpc_read(int argc, char *argv[])
 		if (argc < 4) 
 			return -EINVAL;
 		addr = (caddr_t)strtoull(argv[4], 0, 0);
-		if (strcmp(argv[3], "1") == 0)
-			return lpc_firm_read8(addr);
-		else if (strcmp(argv[3], "2") == 0)
-			return lpc_firm_read16(addr);
-		else if (strcmp(argv[3], "4") == 0)
-			return lpc_firm_read32(addr);
-		return -EINVAL;
+		if (strcmp(argv[3], "1") == 0) {
+			val = lpc_firm_read8(addr);
+			printf("Firmware: 0x%08lx=%02x\n", addr, (uint8_t)val);
+		} else if (strcmp(argv[3], "2") == 0) {
+			val = lpc_firm_read16(addr);
+			printf("Firmware: 0x%08lx=%04x\n", addr, (uint16_t)val);
+		} else if (strcmp(argv[3], "4") == 0) {
+			val = lpc_firm_read32(addr);
+			printf("Firmware: 0x%08lx=%08x\n", addr, val);
+		} else
+			return -EINVAL;
+		return 0;
 	} else {
 		addr = (caddr_t)strtoull(argv[3], 0, 0);
-		if (strcmp(argv[2], "io") == 0)
-			return lpc_io_read8(addr);
-		else if (strcmp(argv[2], "mem") == 0){
-			return lpc_mem_read8(addr);
-		}
+		if (strcmp(argv[2], "io") == 0) {
+			val = lpc_io_read8(addr);
+			printf("IO: 0x%08lx=%02x\n", addr, (uint8_t)val);
+		} else if (strcmp(argv[2], "mem") == 0) {
+			val = lpc_mem_read8(addr);
+			printf("Memory: 0x%08lx=%02x\n", addr, (uint8_t)val);
+		} else
+			return -EINVAL;
+		return 0;
 	}
 	return -EINVAL;
 }
