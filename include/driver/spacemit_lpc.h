@@ -303,6 +303,10 @@ uint8_t lpc_mem_read8(uint32_t a);
 #define lpc_unmask_irq(irq)				__raw_clearl(_BV(irq), LPC_INT_MASK)
 #define lpc_mask_all_irqs()				__raw_writel(0xffffffff, LPC_INT_MASK)
 #define lpc_get_raw_irq(irq)				(!!(__raw_readl(LPC_INT_RAW_STATUS) & _BV(irq)))
+#define lpc_count_init()							\
+	__raw_writel_mask(LPC_WAIT_ABORT_COUNT(0),				\
+		LPC_WAIT_ABORT_COUNT(LPC_WAIT_ABORT_COUNT_MASK), 		\
+		LPC_WAIT_COUNT)
 
 #define lpc_serirq_config(num, idwd, stwd, mode)					\
 	do {										\
@@ -315,7 +319,7 @@ uint8_t lpc_mem_read8(uint32_t a);
 		__raw_writel_mask(SERIRQ_CFG_SERIRQ_START_WIDE((stwd - 2) >> 1),	\
 			SERIRQ_CFG_SERIRQ_START_WIDE(SERIRQ_CFG_SERIRQ_START_WIDE_MASK),\
 			SERIRQ_CFG);							\
-		__raw_writel(SERIRQ_CFG_SERIRQ_MODE | SERIRQ_CFG, (mode));		\
+		__raw_writel((mode), SERIRQ_CFG_SERIRQ_MODE | SERIRQ_CFG);		\
 	} while (0)
 #define lpc_mask_serirq(slot)								\
 	do {										\
@@ -343,8 +347,8 @@ static inline uint8_t lpc_get_serirq(int slot)
 
 #define lpc_mem_cfg(sel, address0, address1, cycle)					\
 	do {										\
-		__raw_writel(LPC_MEM_TRANS_SEL | LPC_MEM_CFG, (sel));			\
-		__raw_writel(LPC_MEM_CYCLE | LPC_MEM_CFG, (cycle));			\
+		__raw_writel((sel), LPC_MEM_TRANS_SEL | LPC_MEM_CFG);			\
+		__raw_writel((cycle), LPC_MEM_CYCLE | LPC_MEM_CFG);			\
 		__raw_writel_mask(LPC_MEM_TRANS0(address0), 				\
 			LPC_MEM_TRANS0(LPC_MEM_TRANS0_MASK), 				\
 			LPC_MEM_CFG);							\

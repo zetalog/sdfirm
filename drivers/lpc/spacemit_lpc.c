@@ -164,8 +164,7 @@ uint32_t lpc_firm_read32(uint32_t a)
 	lpc_raise_event(LPC_OP_WAIT);
 	__lpc_firm_read32(a);
 	lpc_sync();
-	int v=__raw_readl(LPC_RDATA);
-	return v;
+	return __raw_readl(LPC_RDATA);
 }
 
 #ifdef SYS_REALTIME
@@ -191,9 +190,7 @@ void spacemit_lpc_init(void)
 	lpc_irq_init();
 	lpc_poll_init();
 	lpc_mem_init();
-	/*__raw_writel_mask(LPC_WAIT_ABORT_COUNT(0),
-		LPC_WAIT_ABORT_COUNT(LPC_WAIT_ABORT_COUNT_MASK), 
-		LPC_WAIT_COUNT);*/
+	lpc_count_init();
 #if 0
 	clk_enable(lpc_clk);
 	clk_enable(lpc_lclk);
