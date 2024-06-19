@@ -60,7 +60,7 @@ struct mesh_clk mesh_clks[] = {
 		.clksels = mesh_clksels,
 		.reg = CRU_MESH_SUB_CLK_CTL,
 		.nr_clksels = 3,
-		.sel = 1,	
+		.sel = 1,
 	}
 };
 
@@ -92,7 +92,7 @@ const struct clk_driver clk_mesh = {
 	.disable = NULL,
 	.get_freq = get_mesh_freq,
 	.set_freq = NULL,
-	.select = NULL, 
+	.select = NULL,
 	.get_name = get_mesh_name,
 };
 
@@ -368,7 +368,7 @@ const char *div_clk_names[NR_DIV_CLKS] = {
 	[PCIE_BOT_CFG_CLKDIV] = "pcie_bot_cfg_clkdiv",
 	[PCIE_BOT_AUX_CLKDIV] = "pcie_bot_aux_clkdiv",
 	[RMU_QSPI_CLKEN] = "rmu_qspi_clken",
-	[RMU_LPC_CLKEN] = "rmu_lpc_clken",//2bits lcken, 3bits rstn 
+	[RMU_LPC_CLKEN] = "rmu_lpc_clken",//2bits lcken, 3bits rstn
 	[RMU_ESPI_CLKEN] = "rmu_espi_clken",
 	[RMU_UART0_CLKEN] = "rmu_uart0_clken",
 	[RMU_UART1_CLKEN] = "rmu_uart1_clken",
@@ -395,7 +395,7 @@ const char *div_clk_names[NR_DIV_CLKS] = {
 	[PERI_GMAC_AXI_CLKDIV] = "peri_gmac_axi_clkdiv",//select source null
 };
 
-const char *get_div_name(clk_clk_t clk) 
+const char *get_div_name(clk_clk_t clk)
 {
 	if (clk >= NR_DIV_CLKS)
 		return NULL;
@@ -405,7 +405,7 @@ const char *get_div_name(clk_clk_t clk)
 #define get_div_name		NULL
 #endif
 
-static clk_freq_t get_div_freq(clk_clk_t clk) 
+static clk_freq_t get_div_freq(clk_clk_t clk)
 {
 	clk_freq_t freq;
 	if (clk >= NR_DIV_CLKS)
@@ -577,12 +577,13 @@ void clk_div_dump(void)
 void clk_sel_dump(void)
 {
 	int i;
-	
+
 	for (i = 0; i < NR_SEL_CLKS; i++) {
-		if (div_sel_names[i]) {
+		if (sel_clk_names[i]) {
 			printf("sel  %3d %20s %20s\n",
 			       i, sel_clk_names[i],
 			       clk_get_mnemonic(sel_clks[i].sel));
+		}
 	}
 }
 #endif
