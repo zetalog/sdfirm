@@ -148,14 +148,14 @@ uint64_t k1mxlite_timer_value(void)
 
 void k1mxlite_timer_event_stop(void)
 {
-	cpu_t cpu = sbi_processor_id();
+	__unused cpu_t cpu = sbi_processor_id();
 
 	clint_unset_mtimecmp(cpu);
 }
 
 void k1mxlite_timer_event_start(uint64_t next_event)
 {
-	cpu_t cpu = sbi_processor_id();
+	__unused cpu_t cpu = sbi_processor_id();
 
 	clint_set_mtimecmp(cpu, next_event);
 }

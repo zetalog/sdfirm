@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 20 15:36:51 2024
+# Wed Jun 19 16:29:46 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -336,6 +336,7 @@ CONFIG_ARCH_HAS_FDT=y
 # Clock drivers
 #
 # CONFIG_DW_PLL5GHZ_TSMC12FFC is not set
+# CONFIG_SC_PLLTS12FFCLAFRAC2 is not set
 
 #
 # GPIO controller drivers
@@ -473,6 +474,7 @@ CONFIG_SPD_BUS_KHZ=60
 # CONFIG_TEST_BENCH is not set
 # CONFIG_TEST_LITMUS is not set
 # CONFIG_TEST_MEMTESTER is not set
+# CONFIG_TEST_ESPI is not set
 
 #
 # RISCV system tests

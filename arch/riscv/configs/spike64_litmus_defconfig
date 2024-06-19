@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 20 15:35:22 2024
+# Wed Jun 19 16:28:38 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -125,7 +125,7 @@ CONFIG_RISCV_SPINLOCK_RAW=y
 #
 # Compiler options
 #
-# CONFIG_CC_NO_RELAX is not set
+CONFIG_CC_NO_RELAX=y
 # CONFIG_CMODEL_MEDLOW is not set
 CONFIG_CMODEL_MEDANY=y
 CONFIG_TUNE_GENERIC=y
@@ -367,6 +367,7 @@ CONFIG_ARCH_HAS_FDT=y
 #
 # Clock drivers
 #
+# CONFIG_SC_PLLTS12FFCLAFRAC2 is not set
 
 #
 # GPIO controller drivers
@@ -523,6 +524,7 @@ CONFIG_TEST_LITMUS_FINISH=y
 # CONFIG_TEST_LITMUS_CPU_CUSTOMIZED is not set
 # CONFIG_TEST_LITMUS_DEBUG is not set
 # CONFIG_TEST_MEMTESTER is not set
+# CONFIG_TEST_ESPI is not set
 
 #
 # RISCV system tests

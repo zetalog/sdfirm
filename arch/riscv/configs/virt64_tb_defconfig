@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Mar 20 15:35:41 2024
+# Wed Jun 19 16:28:53 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -93,6 +93,7 @@ CONFIG_CPU_A=y
 CONFIG_CPU_F=y
 CONFIG_CPU_D=y
 CONFIG_CPU_C=y
+CONFIG_CPU_H=y
 CONFIG_CPU_COUNTERS=y
 CONFIG_CPU_ZIFENCEI=y
 CONFIG_CPU_ZICSR=y
@@ -106,6 +107,7 @@ CONFIG_RISCV_D=y
 CONFIG_RISCV_C=y
 CONFIG_RISCV_COUNTERS=y
 CONFIG_RISCV_PMP=y
+# CONFIG_RISCV_H is not set
 CONFIG_RISCV_SV=y
 # CONFIG_RISCV_SV32 is not set
 CONFIG_RISCV_SV39=y
@@ -127,7 +129,7 @@ CONFIG_RISCV_SPINLOCK_RAW=y
 #
 # Compiler options
 #
-# CONFIG_CC_NO_RELAX is not set
+CONFIG_CC_NO_RELAX=y
 # CONFIG_CMODEL_MEDLOW is not set
 CONFIG_CMODEL_MEDANY=y
 CONFIG_TUNE_GENERIC=y
@@ -362,6 +364,7 @@ CONFIG_FDT=y
 #
 # Clock drivers
 #
+# CONFIG_SC_PLLTS12FFCLAFRAC2 is not set
 
 #
 # GPIO controller drivers
@@ -538,6 +541,7 @@ CONFIG_DHRYSTONE_BENCH_PERCPU=y
 # CONFIG_TEST_SANITY is not set
 # CONFIG_TEST_LITMUS is not set
 # CONFIG_TEST_MEMTESTER is not set
+# CONFIG_TEST_ESPI is not set
 
 #
 # RISCV system tests
