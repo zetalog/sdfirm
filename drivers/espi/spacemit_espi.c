@@ -1462,3 +1462,9 @@ int espi_bh_create(void)
 
 	return 0;
 }
+
+static void spacemit_espi_init()
+{
+	clk_set_frequency(espi_sclk, ESPI_OP_FREQ_66_MHZ);
+	clk_enable(espi_sclk);
+}
