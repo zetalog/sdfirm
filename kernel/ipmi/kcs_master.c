@@ -12,8 +12,18 @@ uint8_t kcs_phase;
 
 #define kcs_wait_ibf_0()			while (lpc_io_read8(KCS_STATUS) & KCS_IBF)
 #define kcs_wait_obf_1()			while (!(lpc_io_read8(KCS_STATUS) & KCS_OBF))
-#define kcs_clear_obf()				do {} while (0)
-#define kcs_is_state(state)			((lpc_io_read8(KCS_STATUS) & KCS_STATE_MASK) == (state))
+#define kcs_clear_obf()						\
+	do {							\
+		__unused uint8_t drop;				\
+		while (lpc_io_read8(KCS_STATUS) & KCS_OBF)	\
+			drop = lpc_io_read8(KCS_DATA_IN);	\
+	} while (0)
+
+bool kcs_is_state(uint8_t state)
+{
+	uint8_t status = lpc_io_read8(KCS_STATUS);
+	return (status & KCS_STATE_MASK) == state;
+}
 
 int kcs_write(uint8_t *data, uint8_t len)
 {
@@ -59,7 +69,7 @@ int kcs_read(uint8_t *data, uint8_t len)
 		}
 		kcs_wait_obf_1();
 		data[i] = lpc_io_read8(KCS_DATA_OUT);
-		lpc_io_write8(data[i], KCS_DATA_IN);
+		lpc_io_write8(KCS_READ, KCS_DATA_IN);
 		i++;
 	}
 	return -len;
@@ -109,6 +119,46 @@ int do_kcs_write(int argc, char *argv[])
 	return 0;
 }
 
+int do_kcs_xfer(int argc, char *argv[])
+{
+	int ret, i;
+	int wlen, rlen;
+
+	if (argc < 3)
+		return -EINVAL;
+	wlen = (uint8_t)strtoull(argv[2], 0, 0);
+	if (wlen >= KCS_MAX_LEN) {
+		printf("write length oversized!");
+		return -1;
+	}
+	if (wlen > argc - 3) {
+		printf("write length not match!");
+		return -1;
+	}
+	rlen = (uint8_t)strtoull(argv[3], 0, 0);
+	if (rlen >= KCS_MAX_LEN) {
+		printf("read length oversized!");
+		return -1;
+	}
+	for (i = 0; i < wlen; i++) {
+		kcs_buf[i]  = (uint8_t)strtoull(argv[i + 4], 0, 0);
+	}
+	ret = kcs_write(kcs_buf, wlen + 1);
+	if (ret < 0) {
+		printf("KCS write error!");
+		return ret;
+	}
+	if (rlen) {
+		ret = kcs_read(kcs_buf, rlen + 1);
+		if (ret < 0) {
+			printf("KCS read error!");
+			return ret;
+		}
+		hexdump(0, kcs_buf, 8, ret);
+	}
+	return 0;
+}
+
 int do_kcs(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -117,6 +167,8 @@ int do_kcs(int argc, char *argv[])
 		return do_kcs_read(argc, argv);
 	if (strcmp(argv[1], "write") == 0)
 		return do_kcs_write(argc, argv);
+	if (strcmp(argv[1], "xfer") == 0)
+		return do_kcs_xfer(argc, argv);
 	return -EINVAL;
 }
 
@@ -125,4 +177,6 @@ DEFINE_COMMAND(kcs, do_kcs, "Keyboard Controller Style (KCS) Master Commands",
 	"	-kcs read data\n"
 	"kcs write <len> <byte1> [byte2] ... [byteN]\n"
 	"	-kcs write data\n"
+	"kcs xfer <wlen> <rlen> <byte1> [byte2] ... [byteN]\n"
+	"	-kcs transfer data\n"
 );
