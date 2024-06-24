@@ -10,8 +10,14 @@
 #define SPACEMIT_LPC_MEM_BASE           __RMU_LPC_FLASH_BASE
 #define CORELPC_BASE			__RMU_LPC_IO_BASE
 
-#ifdef CONFIG_K1MATRIX_LPC
-#include <driver/spacemit_lpc.h>
+#ifndef ARCH_HAVE_LPC
+#define ARCH_HAVE_LPC			1
+#else
+#error "Multiple LPC controller defined"
 #endif
+
+#include <driver/spacemit_lpc.h>
+
+#define lpc_hw_ctrl_init()		spacemit_lpc_init()
 
 #endif /* __LPC_K1MATRIX_H_INCLUDE__ */

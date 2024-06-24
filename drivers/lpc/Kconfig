@@ -11,4 +11,7 @@ config SPACEMIT_LPC_BRIDGE
 	
 endif
 
+menuconfig AST2600_SIO
+	bool "Enable ASpeed 2600 super IO support"
+
 endmenu

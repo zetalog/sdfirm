@@ -1,0 +1,17 @@
+#ifndef __AST2600_SIO_H_INCLUDE__
+#define __AST2600_SIO_H_INCLUDE__
+
+#define AST_SIO_ENTER		0xA5
+#define AST_SIO_EXIT		0xAA
+
+#define AST_SIO_SUART1		0x02
+#define AST_SIO_SUART2		0x03
+#define AST_SIO_WAKEUP		0x04
+#define AST_SIO_GPIO		0x07
+#define AST_SIO_SUART3		0x0B
+#define AST_SIO_SUART4		0x0C
+#define AST_SIO_iLPC2AHB	0x0D
+#define AST_SIO_MBOX		0x0E
+#define AST_SIO_LSAFS		0x0F
+
+#endif /* __AST2600_SIO_H_INCLUDE__ */
