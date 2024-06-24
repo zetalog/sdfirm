@@ -8,6 +8,9 @@ if SPACEMIT_LPC
 
 config SPACEMIT_LPC_BRIDGE
 	bool "Enable AXI bridging support"
+
+config SPACEMIT_LPC_SERIRQ
+	bool "Enable serial IRQ (SIRQ) support"
 	
 endif
 

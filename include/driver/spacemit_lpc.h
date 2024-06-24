@@ -120,7 +120,7 @@
 #define SERIRQ_CFG_SERIRQ_START_WIDE(value)	_SET_FV(SERIRQ_CFG_SERIRQ_NUM, value)
 #define SERIRQ_CFG_SERIRQ_MODE			_BV(0)
 #define SERIRQ_MODE_CONTINUOUS			0
-#define SERIRQ_MODE_QUIET			1
+#define SERIRQ_MODE_QUIET			SERIRQ_CFG_SERIRQ_MODE
 
 /* 8.15 SERIRQ_SLOT_MASK */
 /* 8.16 SERIRQ_SLOT_IRQ */
@@ -174,6 +174,9 @@
 #define lpc_get_lpc_status()			(!!(__raw_readl(LPC_STATUS) & LPC_STATUS_LPC_BUSY))
 
 #define lpc_get_int_status()			(__raw_readl(LPC_INT_RAW_STATUS))
+
+#define lpc_serirq_enable()			__raw_setl(LPC_CFG_SERIRQ_EN, LPC_CFG)
+#define lpc_serirq_disable()			__raw_clearl(LPC_CFG_SERIRQ_EN, LPC_CFG)
 
 #ifdef CONFIG_SPACEMIT_LPC_BRIDGE
 #define lpc_io_read8(a)				__raw_readb(SPACEMIT_LPC_IO_BASE + (a))
@@ -308,42 +311,19 @@ uint8_t lpc_mem_read8(uint32_t a);
 		LPC_WAIT_ABORT_COUNT(LPC_WAIT_ABORT_COUNT_MASK), 		\
 		LPC_WAIT_COUNT)
 
-#define lpc_serirq_config(num, idwd, stwd, mode)					\
-	do {										\
-		__raw_writel_mask(SERIRQ_CFG_SERIRQ_NUM(SERIRQ_NUM(num)),		\
-			SERIRQ_CFG_SERIRQ_NUM(SERIRQ_CFG_SERIRQ_NUM_MASK),		\
-			SERIRQ_CFG);							\
-		__raw_writel_mask(SERIRQ_CFG_SERIRQ_IDLE_WIDE(idwd),			\
-			SERIRQ_CFG_SERIRQ_IDLE_WIDE(SERIRQ_CFG_SERIRQ_IDLE_WIDE_MASK),	\
-			SERIRQ_CFG);							\
-		__raw_writel_mask(SERIRQ_CFG_SERIRQ_START_WIDE((stwd - 2) >> 1),	\
-			SERIRQ_CFG_SERIRQ_START_WIDE(SERIRQ_CFG_SERIRQ_START_WIDE_MASK),\
-			SERIRQ_CFG);							\
-		__raw_writel((mode), SERIRQ_CFG_SERIRQ_MODE | SERIRQ_CFG);		\
+#define lpc_serirq_config(quiet)					\
+	do {								\
+		if (mode)						\
+			__raw_setl(SERIRQ_MODE_QUIET, SERIRQ_CFG);	\
+		else							\
+			__raw_clearl(SERIRQ_MODE_QUIET, SERIRQ_CFG);	\
 	} while (0)
-#define lpc_mask_serirq(slot)								\
-	do {										\
-		__raw_writel(1, SERIRQ_OP);						\
-		__raw_setl(_BV(slot), SERIRQ_SLOT_MASK);				\
-	} while (0)
-#define lpc_mask_all_serirqs()				__raw_setl(0xffffffff, SERIRQ_SLOT_MASK)
-#define lpc_unmask_serirq(slot)								\
-	do {										\
-		__raw_writel(1, SERIRQ_OP);						\
-		__raw_clearl(_BV(slot), SERIRQ_SLOT_MASK);				\
-	} while (0)
-
-static inline uint8_t lpc_get_serirq(int slot)
-{
-	__raw_writel(1, SERIRQ_OP);
-	return (!!(__raw_readl(SERIRQ_SLOT_IRQ) & _BV(slot)));
-}
-
-#define lpc_clear_serirq(slot)								\
-	do {										\
-		__raw_writel(1, SERIRQ_OP);						\
-		__raw_setl(_BV(slot), SERIRQ_SLOT_CLR);					\
-	} while (0)
+#define lpc_serirq_start()			__raw_writel(1, SERIRQ_OP)
+#define lpc_mask_serirq(slot)			__raw_setl(_BV(slot), SERIRQ_SLOT_MASK)
+#define lpc_mask_all_serirqs()			__raw_setl(0xffffffff, SERIRQ_SLOT_MASK)
+#define lpc_unmask_serirq(slot)			__raw_clearl(_BV(slot), SERIRQ_SLOT_MASK)
+#define lpc_get_serirq(slot)			(!!(__raw_readl(SERIRQ_SLOT_IRQ) & _BV(slot)))
+#define lpc_clear_serirq(slot)			__raw_setl(_BV(slot), SERIRQ_SLOT_CLR)
 
 #define lpc_mem_cfg(sel, address0, address1, cycle)					\
 	do {										\
