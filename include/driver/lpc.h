@@ -6,6 +6,7 @@
 #endif
 
 #ifndef ARCH_HAVE_LPC
+#define lpc_hw_ctrl_init()		do { } while (0)
 #endif
 
 #endif /* __LPC_DRIVER_H_INCLUDE__ */

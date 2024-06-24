@@ -1,6 +1,19 @@
 config ARCH_HAS_LPC
 	bool
 
+config ARCH_HAS_SIO
+	bool
+
+menuconfig LPC
+	bool "Low Pin Count (LPC) support"
+
+if LPC
+
+config SIO
+	bool "Super IO (SIO) chip support"
+
+endif
+
 config ARCH_HAS_KCS
 	bool
 
@@ -11,6 +24,7 @@ if IPMI
 
 config KCS
 	bool "Keyboard Control Service (KCS) support"
+	select LPC
 
 if KCS
 
@@ -22,8 +36,5 @@ config KCS_BMC
 	bool "Enable KCS BMC slave demo support"
 
 endif
-
-config LPC
-	bool "Low Pin Count (LPC) support"
 
 endif

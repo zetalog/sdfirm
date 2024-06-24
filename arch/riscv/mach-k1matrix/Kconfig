@@ -92,6 +92,16 @@ config K1MATRIX_S2C
 
 endchoice
 
+choice
+	prompt "BMC board"
+
+config K1MATRIX_AST2600
+	bool "AST2600"
+	select ARCH_HAS_SIO
+	select AST2600_SIO
+
+endchoice
+
 if K1MATRIX_TB
 
 choice
