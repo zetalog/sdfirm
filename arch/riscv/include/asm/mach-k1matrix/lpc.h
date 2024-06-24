@@ -15,8 +15,13 @@
 #else
 #error "Multiple LPC controller defined"
 #endif
+#define LPC_HW_SERIRQ_NUM		17
+#define LPC_HW_SERIRQ_IDLE		0
+#define LPC_HW_SERIRQ_START		4
 
+#ifdef CONFIG_K1MATRIX_LPC
 #include <driver/spacemit_lpc.h>
+#endif
 
 #define lpc_hw_ctrl_init()		spacemit_lpc_init()
 

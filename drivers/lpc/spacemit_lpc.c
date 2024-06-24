@@ -29,6 +29,29 @@ static void lpc_clear_event(uint8_t event)
 	lpc_event &= ~event;
 }
 
+static void lpc_start_serirq(void)
+{
+	lpc_serirq_start();
+	lpc_raise_event(LPC_SERIRQ_EVENT);
+}
+
+static void lpc_stop_serirq(void)
+{
+	lpc_clear_event(LPC_SERIRQ_EVENT);
+}
+
+static void lpc_handle_serirq(void)
+{
+	uint8_t serirq;
+
+	for (serirq = 0; serirq < LPC_HW_SERIRQ_NUM; serirq++) {
+		if (lpc_get_serirq(serirq)) {
+			con_log("lpc: LPC_INT_SERIRQ_INT: %d\n", serirq);
+			lpc_clear_serirq(serirq);
+		}
+	}
+}
+
 static void lpc_handle_irq(irq_t irq)
 {
 	uint32_t sts;
@@ -54,11 +77,12 @@ static void lpc_handle_irq(irq_t irq)
 	}
 	if (serirq) {
 		if (serirq & LPC_INT_SERIRQ_INT)
-			con_dbg("lpc: LPC_INT_SERIRQ_INT\n");
-		if (serirq & LPC_INT_SERIRQ_DONE)
+			lpc_handle_serirq();
+		if (serirq & LPC_INT_SERIRQ_DONE) {
 			con_dbg("lpc: LPC_INT_SERIRQ_DONE\n");
+			lpc_stop_serirq();
+		}
 		__raw_setl(serirq, LPC_INT_CLR);
-		lpc_raise_event(LPC_SERIRQ_EVENT);
 	}
 	irqc_ack_irq(LPC_IRQ);
 }
@@ -184,6 +208,25 @@ static void spacemit_lpc_irq_init(void)
 }
 #endif
 
+#ifdef CONFIG_SPACEMIT_LPC_SERIRQ
+static void spacemit_lpc_serirq_init(void)
+{
+	lpc_serirq_enable();
+	__raw_writel_mask(SERIRQ_CFG_SERIRQ_NUM(SERIRQ_NUM(LPC_HW_SERIRQ_NUM)),
+			  SERIRQ_CFG_SERIRQ_NUM(SERIRQ_CFG_SERIRQ_NUM_MASK),
+			  SERIRQ_CFG);
+	__raw_writel_mask(SERIRQ_CFG_SERIRQ_IDLE_WIDE(LPC_HW_SERIRQ_IDLE),
+			  SERIRQ_CFG_SERIRQ_IDLE_WIDE(SERIRQ_CFG_SERIRQ_IDLE_WIDE_MASK),
+			  SERIRQ_CFG);
+	__raw_writel_mask(SERIRQ_CFG_SERIRQ_START_WIDE((LPC_HW_SERIRQ_START- 2) >> 1),
+			  SERIRQ_CFG_SERIRQ_START_WIDE(SERIRQ_CFG_SERIRQ_START_WIDE_MASK),
+			  SERIRQ_CFG);
+	con_log("lpc: start serirq.\n");
+}
+#else
+#define spacemit_lpc_serirq_init()		do { } while (0)
+#endif
+
 void spacemit_lpc_init(void)
 {
 	lpc_bh = bh_register_handler(lpc_bh_handler);
@@ -191,6 +234,7 @@ void spacemit_lpc_init(void)
 	lpc_poll_init();
 	lpc_mem_init();
 	lpc_count_init();
+	spacemit_lpc_serirq_init();
 #if 0
 	clk_enable(lpc_clk);
 	clk_enable(lpc_lclk);
@@ -295,9 +339,26 @@ static int do_lpc_irq(int argc, char *argv[])
 	return 0;
 }
 
+#ifdef CONFIG_SPACEMIT_LPC_SERIRQ
 static int do_lpc_serirq(int argc, char *argv[])
 {
 	uint8_t slot;
+	uint8_t mode;
+
+	if (strcmp(argv[2], "start") == 0) {
+		lpc_start_serirq();
+		return 0;
+	}
+
+	if (argc < 3)
+		return -EINVAL;
+	if (strcmp(argv[2], "config") == 0) {
+		mode = (uint8_t)strtoull(argv[3], 0, 0);
+		printf("Enter %s mode.\n", mode ? "quiet" : "continuous");
+		lpc_serirq_config(mode);
+		return 0;
+	}
+
 	if (argc < 4)
 		return -EINVAL;
 	slot = (uint8_t)strtoull(argv[3], 0, 0);
@@ -309,15 +370,16 @@ static int do_lpc_serirq(int argc, char *argv[])
 		lpc_clear_serirq(slot);
 	else if (strcmp(argv[2], "get") == 0)
 		return lpc_get_serirq(slot);
-	else if (strcmp(argv[2], "config") == 0)
-		lpc_serirq_config(slot, 
-			(uint8_t)strtoull(argv[4], 0, 0), 
-			(uint8_t)strtoull(argv[5], 0, 0), 
-			(uint8_t)strtoull(argv[6], 0, 0));
 	else
 		return -EINVAL;
 	return 0;
 }
+#else
+static int do_lpc_serirq(int argc, char *argv[])
+{
+	return -EINVAL;
+}
+#endif
 
 static int do_lpc_trans(int argc, char *argv[])
 {
@@ -368,6 +430,8 @@ DEFINE_COMMAND(lpc, do_lpc, "SpacemiT low pin count commands",
 	"lpc serirq clear <slot>\n"
 	"lpc serirq get <slot>\n"
 	"    -LPC control SERIRQs\n"
-	"lpc serirq config <slot> [idle|start|mode]\n"
-	"    -LPC configure SERIRQs\n"
+	"lpc serirq config <mode>\n"
+	"    -LPC configure SERIRQ mode\n"
+	"lpc serirq start\n"
+	"    -LPC start SERIRQ operation\n"
 );
