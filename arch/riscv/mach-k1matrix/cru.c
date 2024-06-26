@@ -84,7 +84,7 @@ const char *get_dyn_name(clk_clk_t clk)
 static void __enable_dyn(clk_clk_t pll)
 {
 	if (!(dyn_clks[pll].flags & CRU_ENABLED)) {
-		cru_trace(true, get_dyn_name());
+		cru_trace(true, get_dyn_name(pll));
 		if (!(dyn_clks[pll].flags & CRU_FOUT1)) {
 			clk_enable(dyn_clks[pll].pll0);
 			clk_select_source(dyn_clks[pll].clksel,
