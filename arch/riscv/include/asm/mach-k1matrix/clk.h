@@ -71,6 +71,7 @@
 #define com_pll_fout1ph0	clkid(CLK_PLL, COM_FOUT1PH0)
 #define peri_pll_fout1ph0	clkid(CLK_PLL, PERI_FOUT1PH0)
 
+#define rmu_clksel		clkid(CLK_SEL, RMU_CLKSEL)
 #define cpu_nic_clksel		clkid(CLK_SEL, CPU_NIC_CLKSEL)
 #define pcie_top_xclksel	clkid(CLK_SEL, PCIE_TOP_XCLKSEL)
 #define pcie_top_aux_clksel	clkid(CLK_SEL, PCIE_TOP_AUX_CLKSEL)
@@ -87,6 +88,9 @@
 #define pcie_top_aux_clkdiv	clkid(CLK_DIV, PCIE_TOP_AUX_CLKDIV)
 #define pcie_bot_cfg_clkdiv	clkid(CLK_DIV, PCIE_BOT_CFG_CLKDIV)
 #define pcie_bot_aux_clkdiv	clkid(CLK_DIV, PCIE_BOT_AUX_CLKDIV)
+#define rmu_axi_clk_div		clkid(CLK_DIV, RMU_AXI_CLK_DIV)
+#define rmu_ahb_clk_div		clkid(CLK_DIV, RMU_AHB_CLK_DIV)
+#define rmu_apb_clk_div		clkid(CLK_DIV, RMU_APB_CLK_DIV)
 #define peri_gpio0_db_clkdiv	clkid(CLK_DIV, PERI_GPIO0_DB_CLKDIV)
 #define peri_gpio1_db_clkdiv	clkid(CLK_DIV, PERI_GPIO1_DB_CLKDIV)
 #define peri_gpio2_db_clkdiv	clkid(CLK_DIV, PERI_GPIO2_DB_CLKDIV)
@@ -94,26 +98,26 @@
 #define peri_gpio4_db_clkdiv	clkid(CLK_DIV, PERI_GPIO4_DB_CLKDIV)
 #define peri_gmac_axi_clkdiv	clkid(CLK_DIV, PERI_GMAC_AXI_CLKDIV)
 
-#define rmu_qspi_clken		clkid(CLK_EN, RMU_QSPI_CLKEN)
-#define rmu_lpc_clken		clkid(CLK_EN, RMU_LPC_CLKEN)
-#define rmu_espi_clken		clkid(CLK_EN, RMU_ESPI_CLKEN)
-#define rmu_uart0_clken		clkid(CLK_EN, RMU_UART0_CLKEN)
-#define rmu_uart1_clken		clkid(CLK_EN, RMU_UART1_CLKEN)
-#define rmu_mailbox_s_clken	clkid(CLK_EN, RMU_MAILBOX_S_CLKEN)
-#define rmu_mailbox_ns_clken	clkid(CLK_EN, RMU_MAILBOX_NS_CLKEN)
-#define peri_smbus0_clken	clkid(CLK_EN, PERI_SMBUS0_CLKEN)
-#define peri_smbus1_clken	clkid(CLK_EN, PERI_SMBUS1_CLKEN)
-#define peri_i2c0_clken		clkid(CLK_EN, PERI_I2C0_CLKEN)
-#define peri_i2c1_clken		clkid(CLK_EN, PERI_I2C1_CLKEN)
-#define peri_i2c2_clken		clkid(CLK_EN, PERI_I2C2_CLKEN)
-#define peri_i2c3_clken		clkid(CLK_EN, PERI_I2C3_CLKEN)
-#define peri_i2c4_clken		clkid(CLK_EN, PERI_I2C4_CLKEN)
-#define peri_i2c5_clken		clkid(CLK_EN, PERI_I2C5_CLKEN)
-#define peri_uart0_clken	clkid(CLK_EN, PERI_UART0_CLKEN)
-#define peri_uart1_clken	clkid(CLK_EN, PERI_UART1_CLKEN)
-#define peri_uart2_clken	clkid(CLK_EN, PERI_UART2_CLKEN)
-#define peri_uart3_clken	clkid(CLK_EN, PERI_UART3_CLKEN)
-#define peri_dmac_clken		clkid(CLK_EN, PERI_DMAC_CLKEN)
+#define rmu_qspi_clken		clkid(CLK_DIV, RMU_QSPI_CLKEN)
+#define rmu_lpc_clken		clkid(CLK_DIV, RMU_LPC_CLKEN)
+#define rmu_espi_clken		clkid(CLK_DIV, RMU_ESPI_CLKEN)
+#define rmu_uart0_clken		clkid(CLK_DIV, RMU_UART0_CLKEN)
+#define rmu_uart1_clken		clkid(CLK_DIV, RMU_UART1_CLKEN)
+#define rmu_mailbox_s_clken	clkid(CLK_DIV, RMU_MAILBOX_S_CLKEN)
+#define rmu_mailbox_ns_clken	clkid(CLK_DIV, RMU_MAILBOX_NS_CLKEN)
+#define peri_smbus0_clken	clkid(CLK_DIV, PERI_SMBUS0_CLKEN)
+#define peri_smbus1_clken	clkid(CLK_DIV, PERI_SMBUS1_CLKEN)
+#define peri_i2c0_clken		clkid(CLK_DIV, PERI_I2C0_CLKEN)
+#define peri_i2c1_clken		clkid(CLK_DIV, PERI_I2C1_CLKEN)
+#define peri_i2c2_clken		clkid(CLK_DIV, PERI_I2C2_CLKEN)
+#define peri_i2c3_clken		clkid(CLK_DIV, PERI_I2C3_CLKEN)
+#define peri_i2c4_clken		clkid(CLK_DIV, PERI_I2C4_CLKEN)
+#define peri_i2c5_clken		clkid(CLK_DIV, PERI_I2C5_CLKEN)
+#define peri_uart0_clken	clkid(CLK_DIV, PERI_UART0_CLKEN)
+#define peri_uart1_clken	clkid(CLK_DIV, PERI_UART1_CLKEN)
+#define peri_uart2_clken	clkid(CLK_DIV, PERI_UART2_CLKEN)
+#define peri_uart3_clken	clkid(CLK_DIV, PERI_UART3_CLKEN)
+#define peri_dmac_clken		clkid(CLK_DIV, PERI_DMAC_CLKEN)
 
 #define cpu_sub_rstn		clkid(CLK_RST, CPU_SUB_RSTN)
 #define pcie_top_rstn		clkid(CLK_RST, PCIE_TOP_RSTN)
@@ -145,7 +149,7 @@
 #define pcie_bot_xclk		pcie_bot_xclksel
 #define peri_sub_clk		peri_sub_clksel
 #define peri_gmac_txclk		peri_gmac_txclk_sel
-#define rmu_clk			com_pll_fout1ph0	
+#define rmu_clk			rmu_clksel
 #define rmu_qspi_clk		rmu_qspi_clken
 #define rmu_lpc_clk		rmu_lpc_clken
 #define rmu_lpc_lclk		rmu_lpc_clken

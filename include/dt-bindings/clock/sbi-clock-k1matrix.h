@@ -23,6 +23,35 @@
 #define DDR1_PLL_FREQ		1000000000
 #define CPU0_PLL_FREQ		2500000000
 #define CPU1_PLL_FREQ		2000000000
+#endif
+
+#ifdef CONFIG_K1MATRIX_S2C
+#define S2CCLK_1_FREQ		2000000
+#define S2CCLK_2_FREQ		2000000
+#define S2CCLK_3_FREQ		2000000
+#define S2CCLK_4_FREQ		2000000
+#define S2CCLK_5_FREQ		2000000
+#endif
+
+#ifdef CONFIG_K1MATRIX_PZ1
+#define OSC_CLK_FREQ            50000000
+#define COM_PLL_FREQ            125000000
+#define MESH_PLL_FREQ           166666667
+#define PERI_PLL_FREQ           781250000
+#define DDR0_PLL_FREQ           125000000
+#define DDR1_PLL_FREQ           781250000
+#define CPU0_PLL_FREQ           2500000000
+#define CPU1_PLL_FREQ           1250000000
+#define COM_FOUT1PH0_FREQ	625000000
+#define PERI_FOUT1PH0_FREQ	500000000
+#endif
+
+#include <dt-bindings/clock/sbi-clock.h>
+
+#define CLK_INPUT		0
+#define CLK_PLL			1
+#define CLK_SEL			2
+#endif
 
 #include <dt-bindings/clock/sbi-clock.h>
 
@@ -31,9 +60,8 @@
 #define CLK_SEL			2
 #define CLK_DYN			3
 #define CLK_DIV			4
-#define CLK_EN			5
-#define CLK_RSTN		6
-#define CLK_MESH		7
+#define CLK_RSTN		5
+#define CLK_MESH		6
 
 /* INPUT */
 #define OSC_CLK			0
@@ -70,7 +98,8 @@
 #define PCIE_BOT_XCLKSEL	6
 #define PERI_SUB_CLKSEL		7
 #define PERI_GMAC_TXCLK_SEL	8
-#define NR_SEL_CLKS		9
+#define RMU_CLKSEL		9
+#define NR_SEL_CLKS		10
 
 /* CLKDIV */
 #define CPU_NIC_CLKDIV		0
@@ -105,7 +134,10 @@
 #define PERI_GPIO4_DB_CLKDIV	29
 #define PERI_DMAC_CLKEN		30
 #define PERI_GMAC_AXI_CLKDIV	31
-#define NR_DIV_CLKS		32
+#define RMU_AXI_CLK_DIV		32
+#define RMU_AHB_CLK_DIV		33
+#define RMU_APB_CLK_DIV		34
+#define NR_DIV_CLKS		35
 
 /*CLKRSTN*/
 #define CPU_SUB_RSTN		0
@@ -134,7 +166,7 @@
 #define DDR_CLK_FREQ		100000000
 
 #define CPU_CLK_FREQ		SYS_CLK_FREQ
-#define APB_CLK_FREQ		CFG_CLK_FREQ
+#define APB_CLK_FREQ		(COM_FOUT1PH0_FREQ/2/4)
 #define PIC_CLK_FREQ		CFG_CLK_FREQ
 
 /* MESH2SYS CPU -> SYS_SUB_AXI

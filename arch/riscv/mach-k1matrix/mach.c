@@ -114,7 +114,6 @@ void board_late_init(void)
 	k1matrix_n100_init();
 	pcie_ccix_linkup();
 	k1matrix_n100_d2d_init();
-
 	board_boot();
 }
 

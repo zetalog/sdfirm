@@ -41,6 +41,7 @@
 
 #include <target/clk.h>
 #include <target/cmdline.h>
+#include <target/console.h>
 
 struct dyn_clk {
 	clk_t pll0;
@@ -185,6 +186,12 @@ struct pll_clk pll_clks[NR_PLL_CLKS] = {
 	},
 	[CPU1_PLL] = {
 		.Fout = CPU1_PLL_FREQ,
+	},
+	[COM_FOUT1PH0] = {
+		.Fout = COM_FOUT1PH0_FREQ,
+	},
+	[PERI_FOUT1PH0] = {
+		.Fout = PERI_FOUT1PH0_FREQ,
 	},
 };
 
