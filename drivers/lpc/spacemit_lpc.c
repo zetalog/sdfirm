@@ -383,12 +383,21 @@ static int do_lpc_serirq(int argc, char *argv[])
 
 static int do_lpc_trans(int argc, char *argv[])
 {
-	if (argc < 6)
+	uint32_t address;
+	uint8_t address0, address1;
+
+	if (argc < 4)
 		return -EINVAL;
-	lpc_mem_cfg((uint8_t)strtoull(argv[5], 0, 0), 
-		(uint8_t)strtoull(argv[2], 0, 0), 
-		(uint8_t)strtoull(argv[3], 0, 0),
-		(uint8_t)strtoull(argv[4], 0, 0));
+	address = (uint32_t)strtoull(argv[3], 0, 0);
+	address0 = HIBYTE(HIWORD(address));
+
+	if (argc > 4)
+		address = (uint32_t)strtoull(argv[4], 0, 0);
+	else
+		address = address0 + LPC_MEM_SIZE;
+	address1 = HIBYTE(HIWORD(address));
+	lpc_mem_cfg(0, (uint8_t)strtoull(argv[2], 0, 0),
+		    address0, address1);
 	return 0;
 }
 
