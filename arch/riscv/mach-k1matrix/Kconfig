@@ -209,12 +209,20 @@ config K1MATRIX_CRU_CLK_FAKE
 config K1MATRIX_CRU_RST
 	bool
 
+config K1MATRIX_CRU_TRACE
+	bool
+
+config CRCNTL_TRACE
+	bool
+
 menuconfig K1MATRIX_CRU
 	bool "K1Matrix clock/reset generator support"
+	select CRCNTL_TRACE
+	select K1MATRIX_CRU_TRACE
 	select K1MATRIX_CRU_RST
 	select K1MATRIX_CRU_PLL if K1MATRIX_ASIC
-	select K1MATRIX_CRU_CLK_REAL if K1MATRIX_ASIC || K1MATRIX_PZ1
-	select K1MATRIX_CRU_CLK_FAKE if K1MATRIX_S2C
+	select K1MATRIX_CRU_CLK_REAL if K1MATRIX_ASIC
+	select K1MATRIX_CRU_CLK_FAKE if K1MATRIX_S2C || K1MATRIX_PZ1
 
 config K1MATRIX_PCIE
 	bool "K1Matrix PCIe subsystem support"

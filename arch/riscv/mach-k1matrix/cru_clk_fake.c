@@ -149,6 +149,20 @@ struct div_clk div_clks[] = {
 		.flags = CRU_CLKEN,
 		.src = pcie_bot_aux_clksel,
 	},
+	[RMU_AXI_CLK_DIV] = {
+		.reg = CRU_RMU_AXI_CLK_DIV,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRU_SRC_CLKSEL,
+		.src = rmu_clksel,
+	},
+	[RMU_APB_CLK_DIV] = {
+		.reg = CRU_RMU_APB_CLK_DIV,
+		.max_div = 1,
+		.div = 1,
+		.flags = 0,
+		.src = rmu_axi_clk_div,
+	},
 	[RMU_QSPI_CLKEN] = {
 		.reg = CRU_RMU_QSPI_CLK_EN,
 		.rst_reg = CRU_RMU_QSPI_SW_RSTN,
@@ -179,7 +193,7 @@ struct div_clk div_clks[] = {
 		.max_div = 1,
 		.div = 1,
 		.flags = CRU_CLKEN | CRU_RESET,
-		.src = osc_clk,
+		.src = rmu_apb_clk_div,
 	},
 	[RMU_UART1_CLKEN] = {
 		.reg = CRU_RMU_UART1_CLK_EN,
@@ -187,7 +201,7 @@ struct div_clk div_clks[] = {
 		.max_div = 1,
 		.div = 1,
 		.flags = CRU_CLKEN | CRU_RESET,
-		.src = osc_clk,
+		.src = rmu_apb_clk_div,
 	},
 	[RMU_MAILBOX_S_CLKEN] = {
 		.reg = CRU_RMU_Mailbox_S_CLK_EN,
@@ -367,6 +381,8 @@ const char *div_clk_names[NR_DIV_CLKS] = {
 	[PCIE_TOP_AUX_CLKDIV] = "pcie_top_aux_clkdiv",
 	[PCIE_BOT_CFG_CLKDIV] = "pcie_bot_cfg_clkdiv",
 	[PCIE_BOT_AUX_CLKDIV] = "pcie_bot_aux_clkdiv",
+	[RMU_AXI_CLK_DIV] = "rmu_axi_clk_div",
+	[RMU_APB_CLK_DIV] = "rmu_apb_clk_div",
 	[RMU_QSPI_CLKEN] = "rmu_qspi_clken",
 	[RMU_LPC_CLKEN] = "rmu_lpc_clken",//2bits lcken, 3bits rstn
 	[RMU_ESPI_CLKEN] = "rmu_espi_clken",
@@ -416,12 +432,72 @@ static clk_freq_t get_div_freq(clk_clk_t clk)
 	return freq / div_clks[clk].div;
 }
 
+static int enable_div(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	if (div_clks[clk].flags & CRU_SRC_CLKSEL)
+		clk_select_source(div_clks[clk].src, 1);
+	else
+		clk_enable(div_clks[clk].src);
+	if (div_clks[clk].flags & CRU_CLKEN) {
+		__raw_setl(CRU_CLKENABLE(0), div_clks[clk].reg);
+		if (div_clks[clk].flags & CRU_RESET) {
+			__raw_setl(CRU_RSTN(0), div_clks[clk].rst_reg);
+			if (div_clks[clk].flags & CRU_RESET_3BIT) {
+				__raw_setl(CRU_RSTN(1), div_clks[clk].rst_reg);
+				__raw_setl(CRU_RSTN(2), div_clks[clk].rst_reg);
+			}
+		}
+		if (div_clks[clk].flags & CRU_CLKEN_2BIT)
+			__raw_setl(CRU_CLKENABLE(1), div_clks[clk].reg);
+	}
+	return 0;
+}
+
+static void disable_div(clk_clk_t clk)
+{
+	if (clk >= NR_DIV_CLKS)
+		return;
+	if (div_clks[clk].flags & CRU_SRC_CLKSEL)
+		clk_select_source(div_clks[clk].src, 0);
+	else
+		clk_disable(div_clks[clk].src);
+	if (div_clks[clk].flags & CRU_CLKEN) {
+		__raw_clearl(CRU_CLKENABLE(0), div_clks[clk].reg);
+		if (div_clks[clk].flags & CRU_RESET) {
+			__raw_clearl(CRU_RSTN(0), div_clks[clk].rst_reg);
+			if (div_clks[clk].flags & CRU_RESET_3BIT) {
+				__raw_clearl(CRU_RSTN(1), div_clks[clk].rst_reg);
+				__raw_clearl(CRU_RSTN(2), div_clks[clk].rst_reg);
+			}
+		}
+		if (div_clks[clk].flags & CRU_CLKEN_2BIT)
+			__raw_clearl(CRU_CLKENABLE(1), div_clks[clk].reg);
+	}
+}
+
+static int set_div_freq(clk_clk_t clk, clk_freq_t freq)
+{
+	clk_freq_t src_freq;
+	if (clk >= NR_DIV_CLKS)
+		return -EINVAL;
+	src_freq = clk_get_frequency(div_clks[clk].src);
+	if (src_freq == INVALID_FREQ)
+		return -EINVAL;
+	div_clks[clk].div = src_freq / freq;
+	if (div_clks[clk].div > div_clks[clk].max_div)
+		return -EINVAL;
+	__raw_writel_mask(CRU_CLKDIV0(div_clks[clk].div), CRU_CLKDIV0(CRU_CLKDIV0_MASK), div_clks[clk].reg);
+	return 0;
+}
+
 const struct clk_driver clk_div = {
     	.max_clocks = NR_DIV_CLKS,
-    	.enable = NULL,
-    	.disable = NULL,
+	.enable = enable_div,
+	.disable = disable_div,
     	.get_freq = get_div_freq,
-    	.set_freq = NULL,
+	.set_freq = set_div_freq,
     	.select = NULL,
     	.get_name = get_div_name,
 };
@@ -455,6 +531,13 @@ clk_t peri_sub_clksels[] = {
 };
 
 struct sel_clk sel_clks[] = {
+	[RMU_CLKSEL] = {
+		.reg = CRU_RMU_CLK_SEL,
+		.clksels = cpu_nic_clksels,
+		.nr_clksels = 2,
+		.sel = 1,
+		.flags = 0,
+	},
 	[CPU_NIC_CLKSEL] = {
 		.reg = CRU_CPU_NIC_CLK_CTL,
 		.clksels = cpu_nic_clksels,
@@ -522,6 +605,7 @@ struct sel_clk sel_clks[] = {
 
 #ifdef CONFIG_CLK_MNEMONICS
 const char *sel_clk_names[NR_SEL_CLKS] = {
+	[RMU_CLKSEL] = "rmu_clksel",
 	[CPU_NIC_CLKSEL] = "cpu_nic_clksel",
 	[PCIE_TOP_CFG_CLKSEL] = "pcie_top_cfg_clksel",
 	[PCIE_TOP_AUX_CLKSEL] = "pcie_top_aux_clksel",
@@ -550,13 +634,34 @@ static clk_freq_t get_sel_freq(clk_clk_t sel)
 	return clk_get_frequency(sel_clks[sel].clksels[sel_clks[sel].sel]);
 }
 
+static void select_sel_source(clk_clk_t sel, clk_t src)
+{
+	uint8_t clksel;
+	if (sel >= NR_SEL_CLKS)
+		return;
+	for (clksel = 0; clksel < sel_clks[sel].nr_clksels; clksel++) {
+		if (src == sel_clks[sel].clksels[clksel])
+			break;
+	}
+	if (clksel == sel_clks[sel].nr_clksels)
+		return;
+	if (sel_clks[sel].sel != clksel) {
+		clk_enable(src);
+		__raw_writel_mask(CRU_CLKSEL(clksel),
+				  CRU_CLKSEL(CRU_CLKSEL_OFFSET),
+				  sel_clks[sel].reg);
+		if (sel_clks[sel].flags & CRU_CLKEN)
+			__raw_setl(CRU_CLKENABLE(0), sel_clks[sel].reg);
+	}
+}
+
 const struct clk_driver clk_sel = {
 	.max_clocks = NR_SEL_CLKS,
 	.enable = NULL,
 	.disable = NULL,
 	.get_freq = get_sel_freq,
 	.set_freq = NULL,
-	.select = NULL,
+	.select = select_sel_source,
 	.get_name = get_sel_name,
 };
 

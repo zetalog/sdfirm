@@ -74,7 +74,7 @@
 #error "Multiple UART controller defined"
 #endif
 
-#ifdef CONFIG_K1M_UART_ACCEL
+#ifdef CONFIG_K1MATRIX_UART_ACCEL
 #define UART_CON_BAUDRATE		(APB_CLK_FREQ/16)
 #else
 #define UART_CON_BAUDRATE		(115200)
