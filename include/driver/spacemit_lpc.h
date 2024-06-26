@@ -154,6 +154,7 @@
 #define LPC_MEM_TRANS0_MASK			REG_8BIT_MASK
 #define LPC_MEM_TRANS0(value)			_SET_FV(LPC_MEM_TRANS0, value)
 #define LPC_MEM_TRANS_SEL			_BV(4)
+#define LPC_MEM_SIZE				_BV(24)
 #define SEL_FROM_MEM_TRANS			0
 #define SEL_FROM_MEM_HADDR			1
 #define LPC_MEM_CYCLE				_BV(0)

@@ -38,43 +38,33 @@ int do_sio(int argc, char *argv[])
 	if (argc < 2)
 		return -EINVAL;
 	if (strcmp(argv[1], "read") == 0) {
-		if (argc < 3)
-			return -EINVAL;
-		else
-			return sio_read8((uint8_t)strtoull(argv[2], 0, 0));
-	}
-	if (strcmp(argv[1], "write") == 0) {
 		if (argc < 4)
 			return -EINVAL;
 		else {
-			sio_write8((uint8_t)strtoull(argv[2], 0, 0), (uint8_t)strtoull(argv[3], 0, 0));
-			return 0;
+			sio_enter();
+			sio_select((sio_dev_t)strtoull(argv[2], 0, 0));
+			int v = sio_read8((uint8_t)strtoull(argv[3], 0, 0));
+			sio_exit();
+			return v;
 		}
 	}
-	if (strcmp(argv[1], "select") == 0) {
-		sio_select((sio_dev_t)strtoull(argv[2], 0, 0));
-		return 0;
-	}
-	if (strcmp(argv[1], "enter") == 0) {
-		sio_enter();
-		return 0;
-	}
-	if (strcmp(argv[1], "exit") == 0) {
-		sio_exit();
-		return 0;
+	if (strcmp(argv[1], "write") == 0) {
+		if (argc < 5)
+			return -EINVAL;
+		else {
+			sio_enter();
+			sio_select((sio_dev_t)strtoull(argv[2], 0, 0));
+			sio_write8((uint8_t)strtoull(argv[4], 0, 0), (uint8_t)strtoull(argv[3], 0, 0));
+			sio_exit();
+			return 0;
+		}
 	}
 	return -EINVAL;
 }
 
 DEFINE_COMMAND(sio, do_sio, "Super IO Control Commands",
-	"sio write <value> <addr>\n"
+	"sio write <dev> <addr> <value>\n"
 	"	-sio write data\n"
-	"sio read <addr>\n"
+	"sio read <dev> <addr>\n"
 	"	-sio read data\n"
-	"sio select <dev>\n"
-	"	-sio select device\n"
-	"sio enter\n"
-	"	-enter sio\n"
-	"sio exit\n"
-	"	-exit sio\n"
 );
