@@ -122,74 +122,104 @@ uint8_t lpc_io_read8(uint16_t a)
 	return __raw_readl(LPC_RDATA);
 }
 
-void lpc_mem_write8(uint8_t v, uint32_t a)
+uint8_t __lpc_mem_read8(uint32_t a)
 {
 	BUG_ON(lpc_event & LPC_OP_WAIT);
 	lpc_raise_event(LPC_OP_WAIT);
-	__lpc_mem_write8(v, a);
+	____lpc_mem_read8(a);
+	lpc_sync();
+	return __raw_readl(LPC_RDATA);
+}
+
+void __lpc_mem_write8(uint8_t v, uint32_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	____lpc_mem_write8(v, a);
+	lpc_sync();
+}
+
+void lpc_mem_write8(uint8_t v, uint32_t a)
+{
+	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
+		__lpc_mem_write8(v, a);
+	}
+	else {
+		BUG_ON(lpc_event & LPC_OP_WAIT);
+		lpc_raise_event(LPC_OP_WAIT);
+		__lpc_firm_write8(v, a);
+		lpc_sync();
+	}
+}
+
+void lpc_mem_write16(uint16_t v, uint32_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
+		__lpc_mem_write16(v, a);
+	}
+	else {
+		__lpc_firm_write16(v, a);
+	}
+	lpc_sync();
+}
+
+void lpc_mem_write32(uint32_t v, uint32_t a)
+{
+	BUG_ON(lpc_event & LPC_OP_WAIT);
+	lpc_raise_event(LPC_OP_WAIT);
+	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
+		__lpc_mem_write32(v, a);
+	}
+	else {
+		__lpc_firm_write32(v, a);
+	}
 	lpc_sync();
 }
 
 uint8_t lpc_mem_read8(uint32_t a)
 {
-	BUG_ON(lpc_event & LPC_OP_WAIT);
-	lpc_raise_event(LPC_OP_WAIT);
-	__lpc_mem_read8(a);
-	lpc_sync();
-	return __raw_readl(LPC_RDATA);
+	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
+		return __lpc_mem_read8(a);
+	}
+	else {	/* LPC_MEM_FIRM_CYCLE */
+		BUG_ON(lpc_event & LPC_OP_WAIT);
+		lpc_raise_event(LPC_OP_WAIT);
+		__lpc_firm_read8(a);
+		lpc_sync();
+		return __raw_readl(LPC_RDATA);
+	}
+}
+
+uint16_t lpc_mem_read16(uint32_t a)
+{
+	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
+		return __lpc_mem_read16(a);
+	}
+	else {	/* LPC_MEM_FIRM_CYCLE */
+		BUG_ON(lpc_event & LPC_OP_WAIT);
+		lpc_raise_event(LPC_OP_WAIT);
+		__lpc_firm_read16(a);
+		lpc_sync();
+		return __raw_readl(LPC_RDATA);
+	}
+}
+
+uint32_t lpc_mem_read32(uint32_t a)
+{
+	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
+		return __lpc_mem_read32(a);
+	}
+	else {	/* LPC_MEM_FIRM_CYCLE */
+		BUG_ON(lpc_event & LPC_OP_WAIT);
+		lpc_raise_event(LPC_OP_WAIT);
+		__lpc_firm_read32(a);
+		lpc_sync();
+		return __raw_readl(LPC_RDATA);
+	}
 }
 #endif /* CONFIG_SPACEMIT_LPC_BRIDGE */
-
-void lpc_firm_write8(uint8_t v, uint32_t a)
-{
-	BUG_ON(lpc_event & LPC_OP_WAIT);
-	lpc_raise_event(LPC_OP_WAIT);
-	__lpc_firm_write8(v, a);
-	lpc_sync();
-}
-
-uint8_t lpc_firm_read8(uint32_t a)
-{
-	BUG_ON(lpc_event & LPC_OP_WAIT);
-	lpc_raise_event(LPC_OP_WAIT);
-	__lpc_firm_read8(a);
-	lpc_sync();
-	return __raw_readl(LPC_RDATA);
-}
-
-void lpc_firm_write16(uint16_t v, uint32_t a)
-{
-	BUG_ON(lpc_event & LPC_OP_WAIT);
-	lpc_raise_event(LPC_OP_WAIT);
-	__lpc_firm_write16(v, a);
-	lpc_sync();
-}
-
-uint16_t lpc_firm_read16(uint32_t a)
-{
-	BUG_ON(lpc_event & LPC_OP_WAIT);
-	lpc_raise_event(LPC_OP_WAIT);
-	__lpc_firm_read16(a);
-	lpc_sync();
-	return __raw_readl(LPC_RDATA);
-}
-
-void lpc_firm_write32(uint32_t v, uint32_t a)
-{
-	BUG_ON(lpc_event & LPC_OP_WAIT);
-	lpc_raise_event(LPC_OP_WAIT);
-	__lpc_firm_write32(v, a);
-	lpc_sync();
-}
-
-uint32_t lpc_firm_read32(uint32_t a)
-{
-	BUG_ON(lpc_event & LPC_OP_WAIT);
-	lpc_raise_event(LPC_OP_WAIT);
-	__lpc_firm_read32(a);
-	lpc_sync();
-	return __raw_readl(LPC_RDATA);
-}
 
 #ifdef SYS_REALTIME
 static void spacemit_lpc_poll_init(void)
@@ -249,19 +279,19 @@ static int do_lpc_read(int argc, char *argv[])
 	if (argc < 3) 
 		return -EINVAL;
 
-	if (strcmp(argv[2], "fw") == 0) {
+	if (strcmp(argv[2], "mem") == 0) {
 		if (argc < 4) 
 			return -EINVAL;
 		addr = (caddr_t)strtoull(argv[4], 0, 0);
 		if (strcmp(argv[3], "1") == 0) {
-			val = lpc_firm_read8(addr);
-			printf("Firmware: 0x%08lx=%02x\n", addr, (uint8_t)val);
+			val = lpc_mem_read8(addr);
+			printf("Memory: 0x%08lx=%02x\n", addr, (uint8_t)val);
 		} else if (strcmp(argv[3], "2") == 0) {
-			val = lpc_firm_read16(addr);
-			printf("Firmware: 0x%08lx=%04x\n", addr, (uint16_t)val);
+			val = lpc_mem_read16(addr);
+			printf("Memory: 0x%08lx=%04x\n", addr, (uint16_t)val);
 		} else if (strcmp(argv[3], "4") == 0) {
-			val = lpc_firm_read32(addr);
-			printf("Firmware: 0x%08lx=%08x\n", addr, val);
+			val = lpc_mem_read32(addr);
+			printf("Memory: 0x%08lx=%08x\n", addr, val);
 		} else
 			return -EINVAL;
 		return 0;
@@ -270,10 +300,8 @@ static int do_lpc_read(int argc, char *argv[])
 		if (strcmp(argv[2], "io") == 0) {
 			val = lpc_io_read8(addr);
 			printf("IO: 0x%08lx=%02x\n", addr, (uint8_t)val);
-		} else if (strcmp(argv[2], "mem") == 0) {
-			val = lpc_mem_read8(addr);
-			printf("Memory: 0x%08lx=%02x\n", addr, (uint8_t)val);
-		} else
+		} 
+		else
 			return -EINVAL;
 		return 0;
 	}
@@ -286,7 +314,7 @@ static int do_lpc_write(int argc, char *argv[])
 
 	if (argc < 5)
 		return -EINVAL;
-	if (strcmp(argv[2], "fw") == 0) {
+	if (strcmp(argv[2], "mem") == 0) {
 		uint32_t v;
 		int size;
 		if (argc < 6) 
@@ -295,11 +323,11 @@ static int do_lpc_write(int argc, char *argv[])
 		v = (uint32_t)strtoull(argv[4], 0, 0);
 		addr = (caddr_t)strtoull(argv[5], 0, 0);
 		if (size == 1)
-			lpc_firm_write8(v, addr);
+			lpc_mem_write8(v, addr);
 		else if (size == 2)
-			lpc_firm_write16(v, addr);
+			lpc_mem_write16(v, addr);
 		else if (size == 4)
-			lpc_firm_write32(v, addr);
+			lpc_mem_write32(v, addr);
 		else
 			return -EINVAL;
 		return 0;
@@ -310,8 +338,6 @@ static int do_lpc_write(int argc, char *argv[])
 		addr = (caddr_t)strtoull(argv[4], 0, 0);
 		if (strcmp(argv[2], "io") == 0)
 			lpc_io_write8(v, addr);
-		else if (strcmp(argv[2], "mem") == 0)
-			lpc_mem_write8(v, addr);
 		else
 			return -EINVAL;
 		return 0;
@@ -381,7 +407,7 @@ static int do_lpc_serirq(int argc, char *argv[])
 }
 #endif
 
-static int do_lpc_trans(int argc, char *argv[])
+static int do_lpc_mem(int argc, char *argv[])
 {
 	uint32_t address;
 	uint8_t address0, address1;
@@ -413,22 +439,20 @@ static int do_lpc(int argc, char *argv[])
 		return do_lpc_irq(argc, argv);
 	if (strcmp(argv[1], "serirq") == 0)
 		return do_lpc_serirq(argc, argv);
-	if (strcmp(argv[1], "trans") == 0)
-		return do_lpc_trans(argc, argv);
+	if (strcmp(argv[1], "mem") == 0)
+		return do_lpc_mem(argc, argv);
 	return -EINVAL;
 }
 
 DEFINE_COMMAND(lpc, do_lpc, "SpacemiT low pin count commands",
 	"lpc read io <addr>\n"
-	"lpc read mem <addr>\n"
-	"lpc read fw [1|2|4] <addr>\n"
+	"lpc read mem [1|2|4] <addr>\n"
 	"    -LPC read sequence\n"
 	"lpc write io <value> <addr>\n"
-	"lpc write mem <value> <addr>\n"
-	"lpc write fw [1|2|4] <value> <addr>\n"
+	"lpc write mem [1|2|4] <value> <addr>\n"
 	"    -LPC write sequence\n"
-	"lpc trans <address0> <address1> <cycle> [0|1]\n"
-	"    -config LPC address translation\n"
+	"lpc mem <address0> <address1> <cycle> [0|1]\n"
+	"    -config LPC memory translation\n"
 	"lpc irq mask <irq>\n"
 	"lpc irq unmask <irq>\n"
 	"lpc irq clear <irq>\n"
