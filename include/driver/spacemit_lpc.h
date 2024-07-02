@@ -345,7 +345,7 @@ uint8_t lpc_mem_read8(uint32_t a);
 #define lpc_get_serirq(slot)			(!!(__raw_readl(SERIRQ_SLOT_IRQ) & _BV(slot)))
 #define lpc_clear_serirq(slot)			__raw_setl(_BV(slot), SERIRQ_SLOT_CLR)
 
-#define lpc_mem_cfg(sel, address0, address1, cycle)					\
+#define lpc_mem_cfg(sel, cycle, address0, address1)					\
 	do {										\
 		__raw_writel((sel), LPC_MEM_TRANS_SEL | LPC_MEM_CFG);			\
 		__raw_writel((cycle), LPC_MEM_CYCLE | LPC_MEM_CFG);			\

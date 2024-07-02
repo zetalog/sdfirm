@@ -414,16 +414,17 @@ static int do_lpc_mem(int argc, char *argv[])
 
 	if (argc < 4)
 		return -EINVAL;
-	address = (uint32_t)strtoull(argv[3], 0, 0);
+	address = (uint32_t)strtoull(argv[4], 0, 0);
 	address0 = HIBYTE(HIWORD(address));
 
 	if (argc > 4)
-		address = (uint32_t)strtoull(argv[4], 0, 0);
+		address = (uint32_t)strtoull(argv[5], 0, 0);
 	else
 		address = address0 + LPC_MEM_SIZE;
 	address1 = HIBYTE(HIWORD(address));
-	lpc_mem_cfg(0, (uint8_t)strtoull(argv[2], 0, 0),
-		    address0, address1);
+	lpc_mem_cfg((uint8_t)strtoull(argv[2], 0, 0), 
+		(uint8_t)strtoull(argv[3], 0, 0), 
+		address0, address1);
 	return 0;
 }
 
@@ -451,8 +452,14 @@ DEFINE_COMMAND(lpc, do_lpc, "SpacemiT low pin count commands",
 	"lpc write io <value> <addr>\n"
 	"lpc write mem [1|2|4] <value> <addr>\n"
 	"    -LPC write sequence\n"
-	"lpc mem <address0> <address1> <cycle> [0|1]\n"
+	"lpc mem <sel> <cycle> <address0> <address1>\n"
 	"    -config LPC memory translation\n"
+	"        <sel>:\n"
+	"            0 - high 8bit from \'lpc_mem_trans0/1\'\n"
+	"            1 - high 8bit from input signal \'lpc_mem_haddr0/1\'\n"
+	"        <cycle>:\n"
+	"            0 - firmware cycle\n"
+	"            1 - memory cycle\n"
 	"lpc irq mask <irq>\n"
 	"lpc irq unmask <irq>\n"
 	"lpc irq clear <irq>\n"
