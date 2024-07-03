@@ -118,7 +118,7 @@ config CPU_ARIANE
 	select CPU_PMP
 
 config CPU_CVA6
-	bool
+	bool "cva6"
 	select CPU_ARIANE
 	select CPU_PMP
 	select CPU_WMO
