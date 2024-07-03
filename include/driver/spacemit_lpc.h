@@ -147,14 +147,14 @@
 #define SERIRQ_DEBUG_SERIRQ_FSM(value)		_GET_FV(SERIRQ_DEBUG_SERIRQ_FSM, value)
 
 /* 8.19 LPC_MEM_CFG */
-#define LPC_MEM_TRANS1_OFFSET			23
+#define LPC_MEM_TRANS1_OFFSET			16
 #define LPC_MEM_TRANS1_MASK			REG_8BIT_MASK
 #define LPC_MEM_TRANS1(value)			_SET_FV(LPC_MEM_TRANS1, value)
-#define LPC_MEM_TRANS0_OFFSET			16
+#define LPC_MEM_TRANS0_OFFSET			8
 #define LPC_MEM_TRANS0_MASK			REG_8BIT_MASK
 #define LPC_MEM_TRANS0(value)			_SET_FV(LPC_MEM_TRANS0, value)
 #define LPC_MEM_TRANS_SEL			_BV(4)
-#define LPC_MEM_SIZE				_BV(24)
+#define LPC_MEM_SIZE				0x1FFFFFF
 #define SEL_FROM_MEM_TRANS			0
 #define SEL_FROM_MEM_HADDR			1
 #define LPC_MEM_CYCLE				_BV(0)
@@ -176,6 +176,8 @@
 
 #define lpc_get_int_status()			(__raw_readl(LPC_INT_RAW_STATUS))
 
+#define lpc_mem_is_cycle(cycle)			\
+	((__raw_readl(LPC_MEM_CFG) & LPC_MEM_CYCLE) == (cycle))
 #define lpc_serirq_enable()			__raw_setl(LPC_CFG_SERIRQ_EN, LPC_CFG)
 #define lpc_serirq_disable()			__raw_clearl(LPC_CFG_SERIRQ_EN, LPC_CFG)
 
@@ -215,13 +217,10 @@ uint8_t lpc_io_read8(uint16_t a);
 		__raw_writel(a, LPC_ADDR);					\
 		__raw_writel(LPC_CMD_OP_READ, LPC_CMD_OP);			\
 	} while (0)
-
 #define __lpc_mem_read16(a)							\
 	MAKEWORD(__lpc_mem_read8(a), __lpc_mem_read8((a) + 1))
-
 #define __lpc_mem_read32(a)							\
-	MAKEWORD(__lpc_mem_read16(a), __lpc_mem_read16((a) + 2))
-
+	MAKELONG(__lpc_mem_read16(a), __lpc_mem_read16((a) + 2))
 #define ____lpc_mem_write8(v, a)						\
 	do {									\
 		__raw_writel_mask(LPC_CFG_CYCLE_TYPE(LPC_CFG_CYCLE_MEM),	\
@@ -231,24 +230,16 @@ uint8_t lpc_io_read8(uint16_t a);
 		__raw_writel((v), LPC_WDATA);					\
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);			\
 	} while (0)
-
 #define __lpc_mem_write16(v, a)							\
 	do {									\
 		__lpc_mem_write8(LOBYTE(v), a);					\
 		__lpc_mem_write8(HIBYTE(v), (a) + 1);				\
 	} while (0)
-
 #define __lpc_mem_write32(v, a)							\
 	do {									\
 		__lpc_mem_write16(LOWORD(v), a);				\
 		__lpc_mem_write16(HIWORD(v), (a) + 2);				\
 	} while (0)
-
-void lpc_mem_write8(uint8_t v, uint32_t a);
-uint8_t lpc_mem_read8(uint32_t a);
-
-#define lpc_mem_init()				do {} while (0)
-#endif /* CONFIG_SPACEMIT_LPC_BRIDGE */
 
 #define __lpc_firm_read8(a)							\
 	do {									\
@@ -320,23 +311,33 @@ uint8_t lpc_mem_read8(uint32_t a);
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);			\
 	} while (0)
 
-#define lpc_clear_int(irq)				__raw_setl(irq, LPC_INT_CLR)
-#define lpc_get_irq(irq)				(!!(__raw_readl(LPC_INT_STATUS) & _BV(irq)))
-#define lpc_mask_irq(irq)				__raw_setl(_BV(irq), LPC_INT_MASK)
-#define lpc_unmask_irq(irq)				__raw_clearl(_BV(irq), LPC_INT_MASK)
-#define lpc_mask_all_irqs()				__raw_writel(0xffffffff, LPC_INT_MASK)
-#define lpc_get_raw_irq(irq)				(!!(__raw_readl(LPC_INT_RAW_STATUS) & _BV(irq)))
+void lpc_mem_write8(uint8_t v, uint32_t a);
+uint8_t lpc_mem_read8(uint32_t a);
+#define lpc_mem_init()				do {} while (0)
+#endif /* CONFIG_SPACEMIT_LPC_BRIDGE */
+
+void lpc_mem_write16(uint16_t v, uint32_t a);
+uint16_t lpc_mem_read16(uint32_t a);
+void lpc_mem_write32(uint32_t v, uint32_t a);
+uint32_t lpc_mem_read32(uint32_t a);
+
+#define lpc_clear_int(irq)			__raw_setl(irq, LPC_INT_CLR)
+#define lpc_get_irq(irq)			(!!(__raw_readl(LPC_INT_STATUS) & _BV(irq)))
+#define lpc_mask_irq(irq)			__raw_setl(_BV(irq), LPC_INT_MASK)
+#define lpc_unmask_irq(irq)			__raw_clearl(_BV(irq), LPC_INT_MASK)
+#define lpc_mask_all_irqs()			__raw_writel(0xffffffff, LPC_INT_MASK)
+#define lpc_get_raw_irq(irq)			(!!(__raw_readl(LPC_INT_RAW_STATUS) & _BV(irq)))
 #define lpc_count_init()							\
 	__raw_writel_mask(LPC_WAIT_ABORT_COUNT(0),				\
 		LPC_WAIT_ABORT_COUNT(LPC_WAIT_ABORT_COUNT_MASK), 		\
 		LPC_WAIT_COUNT)
 
-#define lpc_serirq_config(quiet)					\
-	do {								\
-		if (mode)						\
-			__raw_setl(SERIRQ_MODE_QUIET, SERIRQ_CFG);	\
-		else							\
-			__raw_clearl(SERIRQ_MODE_QUIET, SERIRQ_CFG);	\
+#define lpc_serirq_config(quiet)						\
+	do {									\
+		if (mode)							\
+			__raw_setl(SERIRQ_MODE_QUIET, SERIRQ_CFG);		\
+		else								\
+			__raw_clearl(SERIRQ_MODE_QUIET, SERIRQ_CFG);		\
 	} while (0)
 #define lpc_serirq_start()			__raw_writel(1, SERIRQ_OP)
 #define lpc_mask_serirq(slot)			__raw_setl(_BV(slot), SERIRQ_SLOT_MASK)
@@ -345,16 +346,16 @@ uint8_t lpc_mem_read8(uint32_t a);
 #define lpc_get_serirq(slot)			(!!(__raw_readl(SERIRQ_SLOT_IRQ) & _BV(slot)))
 #define lpc_clear_serirq(slot)			__raw_setl(_BV(slot), SERIRQ_SLOT_CLR)
 
-#define lpc_mem_cfg(sel, cycle, address0, address1)					\
-	do {										\
-		__raw_writel((sel), LPC_MEM_TRANS_SEL | LPC_MEM_CFG);			\
-		__raw_writel((cycle), LPC_MEM_CYCLE | LPC_MEM_CFG);			\
-		__raw_writel_mask(LPC_MEM_TRANS0(address0), 				\
-			LPC_MEM_TRANS0(LPC_MEM_TRANS0_MASK), 				\
-			LPC_MEM_CFG);							\
-		__raw_writel_mask(LPC_MEM_TRANS1(address1), 				\
-			LPC_MEM_TRANS1(LPC_MEM_TRANS1_MASK), 				\
-			LPC_MEM_CFG);							\
+#define lpc_mem_cfg(cycle, address0, address1)					\
+	do {									\
+		__raw_writel(0 | LPC_MEM_TRANS_SEL, LPC_MEM_CFG);		\
+		__raw_writel((cycle) | LPC_MEM_CYCLE, LPC_MEM_CFG);		\
+		__raw_writel_mask(LPC_MEM_TRANS0(address0), 			\
+			LPC_MEM_TRANS0(LPC_MEM_TRANS0_MASK), 			\
+			LPC_MEM_CFG);						\
+		__raw_writel_mask(LPC_MEM_TRANS1(address1), 			\
+			LPC_MEM_TRANS1(LPC_MEM_TRANS1_MASK), 			\
+			LPC_MEM_CFG);						\
 	} while (0)
 
 void spacemit_lpc_init(void);
