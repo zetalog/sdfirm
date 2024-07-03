@@ -73,7 +73,11 @@
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
+#ifdef CONFIG_CPU_CVA6
+			riscv,isa = "rv64imafdcsu_sscofpmf";
+#else
 			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+#endif
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
@@ -293,6 +297,7 @@
 		};
 #endif
 
+#ifndef CONFIG_CPU_CVA6
 		tcm: tcm@38000000 {
 			compatible = "spacemit,k1-pro-tcm";
 			reg = <0x0 0x38000000 0x0 0x80000>;
@@ -318,6 +323,7 @@
 				pool;
 			};
 		};
+#endif
 
 		plic: interrupt-controller@30000000 {
 			reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
