@@ -95,6 +95,64 @@ static void lpc_bh_handler(uint8_t events)
 	}
 }
 
+#ifdef CONFIG_SPACEMIT_LPC_BRIDGE
+static int do_lpc_mem(int argc, char *argv[])
+{
+	uint32_t address;
+	uint8_t address0, address1;
+
+	if (argc < 4)
+		return -EINVAL;
+	address = (uint32_t)strtoull(argv[3], 0, 0);
+	address0 = HIBYTE(HIWORD(address));
+
+	if (argc > 4)
+		address = (uint32_t)strtoull(argv[4], 0, 0);
+	else
+		address = address0 + LPC_MEM_SIZE;
+	address1 = HIBYTE(HIWORD(address));
+	lpc_mem_cfg((uint8_t)strtoull(argv[2], 0, 0), 
+		address0, address1);
+	return 0;
+}
+
+void lpc_mem_write16(uint16_t v, uint32_t a)
+{
+	if (lpc_mem_is_cycle(LPC_MEM_MEM_CYCLE)) {
+		lpc_mem_write8(LOBYTE(v), a);
+		lpc_mem_write8(HIBYTE(v), a + 1);
+	} else
+		__raw_writew(v, a);
+}
+
+void lpc_mem_write32(uint32_t v, uint32_t a)
+{
+	if (lpc_mem_is_cycle(LPC_MEM_MEM_CYCLE)) {
+		lpc_mem_write16(LOWORD(v), a);
+		lpc_mem_write16(HIWORD(v), a + 2);
+	} else
+		__raw_writel(v, a);
+}
+
+uint16_t lpc_mem_read16(uint32_t a)
+{
+	if (lpc_mem_is_cycle(LPC_MEM_MEM_CYCLE))
+		return MAKEWORD(lpc_mem_read8(a), lpc_mem_read8(a + 1));
+	else
+		return __raw_readw(a);
+}
+
+uint32_t lpc_mem_read32(uint32_t a)
+{
+	if (lpc_mem_is_cycle(LPC_MEM_MEM_CYCLE))
+		return MAKELONG(lpc_mem_read16(a), lpc_mem_read16(a + 2));
+	else
+		return __raw_readl(a);
+}
+#else
+static bool lpc_mem_cycle;
+static uint32_t lpc_mem_base;
+
 static void lpc_sync(void)
 {
 	do {
@@ -104,7 +162,6 @@ static void lpc_sync(void)
 	} while (lpc_event);
 }
 
-#ifndef CONFIG_SPACEMIT_LPC_BRIDGE
 void lpc_io_write8(uint8_t v, uint16_t a)
 {
 	BUG_ON(lpc_event & LPC_OP_WAIT);
@@ -141,52 +198,60 @@ void __lpc_mem_write8(uint8_t v, uint32_t a)
 
 void lpc_mem_write8(uint8_t v, uint32_t a)
 {
-	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
-		__lpc_mem_write8(v, a);
-	}
+	uint32_t addr = lpc_mem_base + a;
+
+	if (lpc_mem_cycle == LPC_MEM_MEM_CYCLE)
+		__lpc_mem_write8(v, addr);
 	else {
+		/* LPC_MEM_FIRM_CYCLE */
 		BUG_ON(lpc_event & LPC_OP_WAIT);
 		lpc_raise_event(LPC_OP_WAIT);
-		__lpc_firm_write8(v, a);
+		__lpc_firm_write8(v, addr);
 		lpc_sync();
 	}
 }
 
 void lpc_mem_write16(uint16_t v, uint32_t a)
 {
-	BUG_ON(lpc_event & LPC_OP_WAIT);
-	lpc_raise_event(LPC_OP_WAIT);
-	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
-		__lpc_mem_write16(v, a);
-	}
+	uint32_t addr = lpc_mem_base + a;
+
+	if (lpc_mem_cycle == LPC_MEM_MEM_CYCLE)
+		__lpc_mem_write16(v, addr);
 	else {
-		__lpc_firm_write16(v, a);
+		/* LPC_MEM_FIRM_CYCLE */
+		BUG_ON(lpc_event & LPC_OP_WAIT);
+		lpc_raise_event(LPC_OP_WAIT);
+		__lpc_firm_write16(v, addr);
+		lpc_sync();
 	}
-	lpc_sync();
 }
 
 void lpc_mem_write32(uint32_t v, uint32_t a)
 {
-	BUG_ON(lpc_event & LPC_OP_WAIT);
-	lpc_raise_event(LPC_OP_WAIT);
-	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
-		__lpc_mem_write32(v, a);
-	}
+	uint32_t addr = lpc_mem_base + a;
+
+	if (lpc_mem_cycle == LPC_MEM_MEM_CYCLE)
+		__lpc_mem_write32(v, addr);
 	else {
-		__lpc_firm_write32(v, a);
+		/* LPC_MEM_FIRM_CYCLE */
+		BUG_ON(lpc_event & LPC_OP_WAIT);
+		lpc_raise_event(LPC_OP_WAIT);
+		__lpc_firm_write32(v, addr);
+		lpc_sync();
 	}
-	lpc_sync();
 }
 
 uint8_t lpc_mem_read8(uint32_t a)
 {
-	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
-		return __lpc_mem_read8(a);
-	}
-	else {	/* LPC_MEM_FIRM_CYCLE */
+	uint32_t addr = lpc_mem_base + a;
+
+	if (lpc_mem_cycle == LPC_MEM_MEM_CYCLE)
+		return __lpc_mem_read8(addr);
+	else {
+		/* LPC_MEM_FIRM_CYCLE */
 		BUG_ON(lpc_event & LPC_OP_WAIT);
 		lpc_raise_event(LPC_OP_WAIT);
-		__lpc_firm_read8(a);
+		__lpc_firm_read8(addr);
 		lpc_sync();
 		return __raw_readl(LPC_RDATA);
 	}
@@ -194,13 +259,15 @@ uint8_t lpc_mem_read8(uint32_t a)
 
 uint16_t lpc_mem_read16(uint32_t a)
 {
-	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
-		return __lpc_mem_read16(a);
-	}
-	else {	/* LPC_MEM_FIRM_CYCLE */
+	uint32_t addr = lpc_mem_base + a;
+
+	if (lpc_mem_cycle == LPC_MEM_MEM_CYCLE)
+		return __lpc_mem_read16(addr);
+	else {
+		/* LPC_MEM_FIRM_CYCLE */
 		BUG_ON(lpc_event & LPC_OP_WAIT);
 		lpc_raise_event(LPC_OP_WAIT);
-		__lpc_firm_read16(a);
+		__lpc_firm_read16(addr);
 		lpc_sync();
 		return __raw_readl(LPC_RDATA);
 	}
@@ -208,16 +275,27 @@ uint16_t lpc_mem_read16(uint32_t a)
 
 uint32_t lpc_mem_read32(uint32_t a)
 {
-	if ((LPC_MEM_CFG & LPC_MEM_CYCLE) == LPC_MEM_MEM_CYCLE) {
-		return __lpc_mem_read32(a);
-	}
-	else {	/* LPC_MEM_FIRM_CYCLE */
+	uint32_t addr = lpc_mem_base + a;
+
+	if (lpc_mem_cycle == LPC_MEM_MEM_CYCLE)
+		return __lpc_mem_read32(addr);
+	else {
+		/* LPC_MEM_FIRM_CYCLE */
 		BUG_ON(lpc_event & LPC_OP_WAIT);
 		lpc_raise_event(LPC_OP_WAIT);
-		__lpc_firm_read32(a);
+		__lpc_firm_read32(addr);
 		lpc_sync();
 		return __raw_readl(LPC_RDATA);
 	}
+}
+
+static int do_lpc_mem(int argc, char *argv[])
+{
+	if (argc < 4)
+		return -EINVAL;
+	lpc_mem_cycle = (uint8_t)strtoull(argv[2], 0, 0);
+	lpc_mem_base = ((uint32_t)HIBYTE(HIWORD((uint32_t)strtoull(argv[3], 0, 0)))) << 24;
+	return 0;
 }
 #endif /* CONFIG_SPACEMIT_LPC_BRIDGE */
 
@@ -407,27 +485,6 @@ static int do_lpc_serirq(int argc, char *argv[])
 }
 #endif
 
-static int do_lpc_mem(int argc, char *argv[])
-{
-	uint32_t address;
-	uint8_t address0, address1;
-
-	if (argc < 4)
-		return -EINVAL;
-	address = (uint32_t)strtoull(argv[4], 0, 0);
-	address0 = HIBYTE(HIWORD(address));
-
-	if (argc > 4)
-		address = (uint32_t)strtoull(argv[5], 0, 0);
-	else
-		address = address0 + LPC_MEM_SIZE;
-	address1 = HIBYTE(HIWORD(address));
-	lpc_mem_cfg((uint8_t)strtoull(argv[2], 0, 0), 
-		(uint8_t)strtoull(argv[3], 0, 0), 
-		address0, address1);
-	return 0;
-}
-
 static int do_lpc(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -452,11 +509,12 @@ DEFINE_COMMAND(lpc, do_lpc, "SpacemiT low pin count commands",
 	"lpc write io <value> <addr>\n"
 	"lpc write mem [1|2|4] <value> <addr>\n"
 	"    -LPC write sequence\n"
-	"lpc mem <sel> <cycle> <address0> <address1>\n"
+#ifdef CONFIG_SPACEMIT_LPC_BRDGE
+	"lpc mem <cycle> <address0> [address1]\n"
+#else
+	"lpc mem <cycle> <address>\n"
+#endif
 	"    -config LPC memory translation\n"
-	"        <sel>:\n"
-	"            0 - high 8bit from \'lpc_mem_trans0/1\'\n"
-	"            1 - high 8bit from input signal \'lpc_mem_haddr0/1\'\n"
 	"        <cycle>:\n"
 	"            0 - firmware cycle\n"
 	"            1 - memory cycle\n"
