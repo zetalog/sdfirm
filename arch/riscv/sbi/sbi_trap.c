@@ -190,7 +190,7 @@ int sbi_trap_redirect(struct pt_regs *regs, struct sbi_scratch *scratch,
 		sbi_virt_save(regs, prev_mode, prev_virt, epc, cause);
 	else {
 		/* Update S-mode exception info */
-		csr_write(CSR_STVAL, regs->tval);
+		csr_write(CSR_STVAL, tval);
 		csr_write(CSR_SEPC, epc);
 		csr_write(CSR_SCAUSE, cause);
 
