@@ -16,3 +16,4 @@ obj-$(CONFIG_K1MATRIX_CRU_PLL) += cru_pll.rel
 obj-$(CONFIG_K1MATRIX_CRU_CLK_REAL) += cru_clk_real.rel
 obj-$(CONFIG_K1MATRIX_CRU_CLK_FAKE) += cru_clk_fake.rel
 obj-$(CONFIG_K1MATRIX_CRU_RST) += cru_rst.rel
+obj-$(CONFIG_K1MATRIX_I2C) += i2c.rel
