@@ -26,8 +26,12 @@ struct i2c_master {
 	uint8_t mode;
 	i2c_len_t limit;
 	i2c_len_t current;
+	i2c_len_t commit;
 	uint8_t status;
+	uint8_t state;
+	uint8_t event;
 	i2c_device_t *device;
+	i2c_addr_t abrt_slave;
 };
 
 #if NR_I2C_MASTERS > 1
@@ -40,8 +44,12 @@ extern i2c_t i2c_mid;
 #define i2c_mode	i2c_masters[i2c_mid].mode
 #define i2c_limit	i2c_masters[i2c_mid].limit
 #define i2c_current	i2c_masters[i2c_mid].current
+#define i2c_commit	i2c_masters[i2c_mid].commit
 #define i2c_status	i2c_masters[i2c_mid].status
 #define i2c_device	i2c_masters[i2c_mid].device
+#define i2c_state	i2c_masters[i2c_mid].state
+#define i2c_event	i2c_masters[i2c_mid].event
+#define i2c_abrt_slave	i2c_masters[i2c_mid].abrt_slave
 
 void i2c_master_select(i2c_t i2c);
 i2c_t i2c_master_save(i2c_t i2c);
@@ -53,8 +61,12 @@ extern uint16_t i2c_freq;
 extern uint8_t i2c_mode;
 extern i2c_len_t i2c_limit;
 extern i2c_len_t i2c_current;
+extern i2c_len_t i2c_commit;
 extern uint8_t i2c_status;
+extern uint8_t i2c_state;
+extern uint8_t i2c_event;
 extern i2c_device_t *i2c_device;
+extern i2c_addr_t i2c_abrt_slave;
 
 #define i2c_mid				0
 #define i2c_master_save(i2c)		0
@@ -98,6 +110,16 @@ extern i2c_device_t *i2c_device;
 #define I2C_STATUS_NACK		0x03
 #define I2C_STATUS_ARBI		0x04
 #define I2C_STATUS_STOP		0x05
+
+#define I2C_STATE_IDLE		0x00
+#define I2C_STATE_WAIT		0x01
+#define I2C_STATE_READ		0x02
+#define I2C_STATE_WRITE		0x03
+
+#define I2C_EVENT_START		_BV(I2C_STATUS_START)
+#define I2C_EVENT_STOP		_BV(I2C_STATUS_STOP)
+#define I2C_EVENT_PAUSE		_BV(I2C_STATUS_ACK)
+#define I2C_EVENT_ABORT		_BV(I2C_STATUS_NACK)
 
 #define I2C_BUS(x)		(x & I2C_BUS_MASK)
 #define I2C_DIR(x)		(x & I2C_DIR_MASK)
@@ -161,11 +183,18 @@ void i2c_register_device(i2c_device_t *dev);
 uint8_t i2c_read_byte(void);
 void i2c_write_byte(uint8_t byte);
 bool i2c_last_byte(void);
+void i2c_read_bytes(uint8_t *buf, i2c_len_t len);
+void i2c_write_bytes(uint8_t *buf, i2c_len_t len);
 
 /* called by bus controller driver */
 void i2c_set_status(uint8_t status);
 uint8_t i2c_bus_mode(void);
 uint8_t i2c_dir_mode(void);
 uint8_t i2c_bus_dir_mode(void);
+
+void i2c_master_commit(i2c_len_t len);
+void i2c_master_abort(i2c_addr_t slave);
+void i2c_master_start(void);
+void i2c_master_stop(void);
 
 #endif /* __I2C_H_INCLUDE__ */

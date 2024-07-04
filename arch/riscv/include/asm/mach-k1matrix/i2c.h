@@ -30,8 +30,12 @@
 #define i2c_hw_stop_condition()		dw_i2c_stop_condition()
 #define i2c_hw_read_byte()		dw_i2c_read_byte()
 #define i2c_hw_write_byte(byte)		dw_i2c_write_byte(byte)
+#define i2c_hw_read_bytes(buf, len)	dw_i2c_read_bytes(buf, len)
+#define i2c_hw_write_bytes(buf, len)	dw_i2c_write_bytes(buf, len)
 #define i2c_hw_transfer_reset()		dw_i2c_transfer_reset()
 void i2c_hw_ctrl_init(void);
+#define i2c_hw_handle_irq()		dw_i2c_handle_irq()
+#define i2c_hw_irq_init()		dw_i2c_irq_init()
 #endif
 
 #endif /* __I2C_MATRIX_H_INCLUDE__ */
