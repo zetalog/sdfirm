@@ -29,12 +29,6 @@ static void lpc_clear_event(uint8_t event)
 	lpc_event &= ~event;
 }
 
-static void lpc_start_serirq(void)
-{
-	lpc_serirq_start();
-	lpc_raise_event(LPC_SERIRQ_EVENT);
-}
-
 static void lpc_stop_serirq(void)
 {
 	lpc_clear_event(LPC_SERIRQ_EVENT);
@@ -444,6 +438,12 @@ static int do_lpc_irq(int argc, char *argv[])
 }
 
 #ifdef CONFIG_SPACEMIT_LPC_SERIRQ
+static void lpc_start_serirq(void)
+{
+	lpc_serirq_start();
+	lpc_raise_event(LPC_SERIRQ_EVENT);
+}
+
 static int do_lpc_serirq(int argc, char *argv[])
 {
 	uint8_t slot;
