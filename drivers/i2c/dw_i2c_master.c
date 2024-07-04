@@ -22,47 +22,6 @@ void dw_i2c_master_select(i2c_t i2c)
 static struct dw_i2c_ctx dw_i2c;
 #endif
 
-#ifdef CONFIG_DW_I2C_TEST_IRQ
-static unsigned int irq_test_flag = 0;
-static irq_flags_t irq_flags;
-
-/* Interrupts cared about:
- *	- RX_FULL : auto cleared
- */
-void dw_i2c_test_irq(void)
-{
-	/* The IRQ handler do not automatically mask irq for hardware, as
-	 * there is no return value indicated by the handler.
-	 */
-	irqc_mask_irq(IRQ_I2C0 + dw_i2cd);
-	irq_test_flag = 1 + dw_i2cd;
-}
-
-static dw_i2c_test_loop(void)
-{
-	while (irq_test_flag == 0) {
-		irq_local_save(irq_flags);
-		irq_local_enable();
-		irq_local_disable();
-		irq_local_restore(irq_flags);
-	}
-	irq_test_flag = 0;
-	irqc_ack_irq(IRQ_I2C0 + dw_i2cd);
-	irqc_unmask_irq(IRQ_I2C0 + dw_i2cd);
-}
-
-void dw_i2c_test_init(void)
-{
-	dw_i2c_ctrl_disable();
-	__raw_writel(IC_INTR_RX_FULL, IC_INTR_MASK(dw_i2cd));
-	dw_i2c_ctrl_enable();
-}
-#else
-#define dw_i2c_test_irq()		do { } while (0)
-#define dw_i2c_test_loop()		do { } while (0)
-#define dw_i2c_test_init()		do { } while (0)
-#endif
-
 static __inline uint32_t dw_i2c_get_status(void)
 {
 	return __raw_readl(IC_STATUS(dw_i2cd));
@@ -175,7 +134,7 @@ static void dw_i2c_update_target(i2c_addr_t addr)
 	dw_i2c_ctrl_enable();
 }
 
-#define dw_i2c_set_target(addr	)	dw_i2c_update_target(addr)
+#define dw_i2c_set_target(addr)		dw_i2c_update_target(addr)
 #endif
 
 static void dw_i2c_flush_rxfifo(void)
@@ -250,13 +209,13 @@ void dw_i2c_start_condition(bool sr)
 
 /* Do nothing I2C bus here because STOP will be issued automatically by the
  * controller.
- * If the IC_EMPTYFIFO_HOLD_MASTER_EN parameteris set to 0, allowing the
+ * If the IC_EMPTYFIFO_HOLD_MASTER_EN parameter is set to 0, allowing the
  * transmit FIFO to empty causes the DW_apb_i2c to generate a STOP
  * condition on the I2C bus.
- * If IC_EMPTYFIFO_HOLD_MASTER_EN is set to 1, then writing a 1 to
- * IC_DATA_CMD[9] causes the DW_apb_i2c to generate a STOP condition on the
- * I2C bus; a STOP condition is not issued if this bit is not set, even if
- * the transmit FIFO is empty.
+ * If the IC_EMPTYFIFO_HOLD_MASTER_EN parameter is set to 1, then writing
+ * a 1 to IC_DATA_CMD[9] causes the DW_apb_i2c to generate a STOP
+ * condition on the I2C bus; a STOP condition is not issued if this bit is
+ * not set, even if the transmit FIFO is empty.
  */
 void dw_i2c_stop_condition(void)
 {
@@ -391,32 +350,49 @@ void dw_i2c_transfer_reset(void)
 	dw_i2c.state = DW_I2C_DRIVER_INIT;
 }
 
-static void dw_i2c_handle_master_irq(uint32_t irqs)
+void dw_i2c_handle_irq(void)
 {
-	dw_i2c_test_irq();
+	uint32_t status;
+	uint32_t enable;
+	i2c_addr_t abrt_src;
+
+	enable = __raw_readl(IC_ENABLE(dw_i2cd));
+	status = __raw_readl(IC_RAW_INTR_STAT(dw_i2cd));
+	if (!enable || !(status & ~IC_INTR_ACTIVITY))
+		return;
+
+	if (status & IC_INTR_RX_UNDER)
+		__raw_readl(IC_CLR_RX_UNDER(dw_i2cd));
+	if (status & IC_INTR_RX_OVER)
+		__raw_readl(IC_CLR_RX_OVER(dw_i2cd));
+	if (status & IC_INTR_TX_OVER)
+		__raw_readl(IC_CLR_TX_OVER(dw_i2cd));
+	if (status & IC_INTR_RD_REQ)
+		__raw_readl(IC_CLR_RD_REQ(dw_i2cd));
+	if (status & IC_INTR_TX_ABRT) {
+		abrt_src = (i2c_addr_t)__raw_readl(IC_TX_ABRT_SOURCE(dw_i2cd));
+		__raw_readl(IC_CLR_TX_ABRT(dw_i2cd));
+		i2c_master_abort(abrt_src);
+	}
+	if (status & IC_INTR_RX_DONE)
+		__raw_readl(IC_CLR_RX_DONE(dw_i2cd));
+	if (status & IC_INTR_ACTIVITY)
+		__raw_readl(IC_CLR_ACTIVITY(dw_i2cd));
+	if (status & IC_INTR_STOP_DET &&
+	    (i2c_last_byte() || (status & IC_INTR_RX_FULL))) {
+		__raw_readl(IC_CLR_STOP_DET(dw_i2cd));
+		i2c_master_stop();
+	}
+	if (status & IC_INTR_START_DET) {
+		__raw_readl(IC_CLR_START_DET(dw_i2cd));
+		i2c_master_start();
+	}
+	if (status & IC_INTR_GEN_CALL)
+		__raw_readl(IC_CLR_GEN_CALL(dw_i2cd));
 }
 
-static void dw_i2c_handle_slave_irq(uint32_t irqs)
-{
-}
-
-static void dw_i2c_handle_irq(void)
-{
-	uint32_t irqs = __raw_readl(IC_INTR_STAT(dw_i2cd));
-
-	dw_i2c_handle_master_irq(irqs);
-	dw_i2c_handle_slave_irq(irqs);
-}
-
-#ifdef CONFIG_SYS_REALTIME
-void dw_i2c_irq_poll(void)
-{
-	dw_i2c_handle_irq();
-}
-
-#define dw_i2c_irq_init()		do { } while (0);
-#else
-void dw_i2c_irq_handler(irq_t irq)
+#ifndef SYS_REALTIME
+static void dw_i2c_irq_handler(irq_t irq)
 {
 	dw_i2c_master_select(irq - IRQ_I2C0);
 	dw_i2c_handle_irq();
@@ -428,9 +404,15 @@ void dw_i2c_irq_init(void)
 	irq_register_vector(IRQ_I2C0 + dw_i2cd, dw_i2c_irq_handler);
 	irqc_enable_irq(IRQ_I2C0 + dw_i2cd);
 }
-
-#define dw_i2c_irq_poll()		do { } while (0)
 #endif
+
+void dw_i2c_read_bytes(uint8_t *buf, i2c_len_t len)
+{
+}
+
+void dw_i2c_write_bytes(uint8_t *buf, i2c_len_t len)
+{
+}
 
 /* Initialize controller as master device */
 void __dw_i2c_master_init(void)
@@ -452,5 +434,4 @@ void dw_i2c_master_init(void)
 	dw_i2c.addr_mode = 0;
 	dw_i2c.state = DW_I2C_DRIVER_INVALID;
 	__dw_i2c_master_init();
-	dw_i2c_irq_init();
 }

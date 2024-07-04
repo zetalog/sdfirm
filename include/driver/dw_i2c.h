@@ -376,6 +376,11 @@ void dw_i2c_stop_condition(void);
 void dw_i2c_write_byte(uint8_t byte);
 uint8_t dw_i2c_read_byte(void);
 void dw_i2c_transfer_reset(void);
+#ifdef SYS_REALTIME
 void dw_i2c_irq_init(void);
+#endif
+void dw_i2c_handle_irq(void);
+void dw_i2c_read_bytes(uint8_t *buf, i2c_len_t len);
+void dw_i2c_write_bytes(uint8_t *buf, i2c_len_t len);
 
 #endif /* __DW_I2C_H_INCLUDE__ */

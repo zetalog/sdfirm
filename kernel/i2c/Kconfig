@@ -5,6 +5,15 @@
 config ARCH_HAS_I2C
 	bool
 
+config ARCH_HAS_I2C_BLOCK
+	bool
+
+config ARCH_HAS_I2C_START
+	bool
+
+config ARCH_HAS_I2C_STOP
+	bool
+
 menuconfig I2C
 	bool "Inter integrated circuit (I2C) support"
 
