@@ -4,6 +4,9 @@ config ARCH_HAS_LPC
 config ARCH_HAS_SIO
 	bool
 
+config ARCH_HAS_ESPI
+	bool
+
 menuconfig LPC
 	bool "Low Pin Count (LPC) support"
 
@@ -38,3 +41,6 @@ config KCS_BMC
 endif
 
 endif
+
+menuconfig ESPI
+	bool "eSPI support"

@@ -164,8 +164,6 @@ static int do_espi_recv(int argc, char *argv[])
 
 static int do_espi(int argc, char *argv[])
 {
-	espi_hw_ctrl_init(NULL);
-
 	if (argc < 2)
 		return -EINVAL;
 	if (strcmp(argv[1], "read") == 0)

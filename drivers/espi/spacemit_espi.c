@@ -49,6 +49,16 @@
 #include <driver/espi_protocol.h>
 #include <driver/spacemit_espi.h>
 
+#ifdef SYS_REALTIME
+#define espi_poll_init()	spacemit_espi_poll_init()
+#define espi_irq_init()		do { } while (0)
+#else
+#define espi_poll_init()	do { } while (0)
+#define espi_irq_init()		spacemit_espi_irq_init()
+#endif
+
+#define MAX_VW_LEN	64
+
 static bh_t espi_bh;
 static void (*rxvw_callback)(int group, uint8_t rxvw_data);
 static void (*rxoob_callback)(void *buffer, int len);
@@ -289,6 +299,7 @@ static int espi_get_unused_io_window(void)
 	return -1;
 }
 
+#if 0
 static void espi_clear_decodes(void)
 {
 	unsigned int idx;
@@ -305,6 +316,7 @@ static void espi_clear_decodes(void)
 		espi_write16(0, espi_mmio_range_size_reg(idx));
 	}
 }
+#endif
 
 /*
  * Returns decode enable bits for standard IO port addresses. If port address is not supported
@@ -1112,44 +1124,6 @@ static void espi_setup_subtractive_decode(const struct espi_config *mb_cfg)
 //	espi_write32(ESPI_GLOBAL_CONTROL_1, global_ctrl_reg);
 }
 
-static void espi_enable_all_irqs(void)
-{
-	espi_write32(SLAVE0_CONFIG_FLASH_REQ_INT_EN |
-		     SLAVE0_INT_EN_RXOOB_INT_EN |
-		     SLAVE0_INT_EN_RXMSG_INT_EN |
-		     SLAVE0_INT_EN_DNCMD_INT_EN |
-		     SLAVE0_INT_EN_RXVW_GPR3_INT_EN |
-		     SLAVE0_INT_EN_RXVW_GPR2_INT_EN |
-		     SLAVE0_INT_EN_RXVW_GPR1_INT_EN |
-		     SLAVE0_INT_EN_RXVW_GPR0_INT_EN |
-		     SLAVE0_INT_EN_PR_INT_EN |
-		     SLAVE0_INT_EN_PROTOCOL_ERR_INT_EN |
-		     SLAVE0_INT_EN_RXFLASH_OFLOW_INT_EN |
-		     SLAVE0_INT_EN_RXMSG_OFLOW_INT_EN |
-		     SLAVE0_INT_EN_RXOOB_OFLOW_INT_EN |
-		     SLAVE0_INT_EN_ILLEGAL_LEN_INT_EN |
-		     SLAVE0_INT_EN_ILLEGAL_TAG_INT_EN |
-		     SLAVE0_INT_EN_UNSUCSS_CPL_INT_EN |
-		     SLAVE0_INT_EN_INVALID_CT_RSP_INT_EN |
-		     SLAVE0_INT_EN_INVALID_ID_RSP_INT_EN |
-		     SLAVE0_INT_EN_NON_FATAL_INT_EN |
-		     SLAVE0_INT_EN_FATAL_ERR_INT_EN |
-		     SLAVE0_INT_EN_NO_RSP_INT_EN |
-		     SLAVE0_INT_EN_CRC_ERR_INT_EN |
-		     SLAVE0_INT_EN_WAIT_TIMEOUT_INT_EN |
-		     SLAVE0_INT_EN_BUS_ERR_INT_EN,
-		ESPI_SLAVE0_INT_EN
-	);
-}
-
-static void espi_irq_init(void)
-{
-	irqc_configure_irq(100, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(100, espi_handle_irq);
-	irqc_enable_irq(100);
-	espi_enable_all_irqs();
-}
-
 int espi_hw_ctrl_init(struct espi_config *cfg)
 {
 	uint32_t slave_caps;
@@ -1175,7 +1149,7 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 //	espi_write32(ESPI_RGCMD_INT(23) | ESPI_ERR_INT_SMI, ESPI_GLOBAL_CONTROL_1);
 	espi_write32(0, ESPI_SLAVE0_INT_EN);
 	espi_clear_status();
-	espi_clear_decodes();
+	//espi_clear_decodes();
 
 	/*
 	 * Boot sequence: Step 1
@@ -1285,9 +1259,12 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 //
 //	espi_write32(ctrl, ESPI_GLOBAL_CONTROL_1);
 
-	espi_irq_init();
-
 	espi_bh_create();
+
+#if 0
+	clk_set_frequency(espi_sclk, ESPI_OP_FREQ_66_MHZ);
+	clk_enable(espi_sclk);
+#endif
 
 	printf("Finished initializing eSPI.\n");
 
@@ -1404,6 +1381,51 @@ static int espi_receive_oob_smbus(uint8_t *buf)
 	return len;
 }
 
+#ifdef SYS_REALTIME
+static void spacemit_espi_poll_init(void)
+{
+	irq_register_poller(espi_bh);
+}
+#else
+static void espi_enable_all_irqs(void)
+{
+	espi_write32(SLAVE0_CONFIG_FLASH_REQ_INT_EN |
+		     SLAVE0_INT_EN_RXOOB_INT_EN |
+		     SLAVE0_INT_EN_RXMSG_INT_EN |
+		     SLAVE0_INT_EN_DNCMD_INT_EN |
+		     SLAVE0_INT_EN_RXVW_GPR3_INT_EN |
+		     SLAVE0_INT_EN_RXVW_GPR2_INT_EN |
+		     SLAVE0_INT_EN_RXVW_GPR1_INT_EN |
+		     SLAVE0_INT_EN_RXVW_GPR0_INT_EN |
+		     SLAVE0_INT_EN_PR_INT_EN |
+		     SLAVE0_INT_EN_PROTOCOL_ERR_INT_EN |
+		     SLAVE0_INT_EN_RXFLASH_OFLOW_INT_EN |
+		     SLAVE0_INT_EN_RXMSG_OFLOW_INT_EN |
+		     SLAVE0_INT_EN_RXOOB_OFLOW_INT_EN |
+		     SLAVE0_INT_EN_ILLEGAL_LEN_INT_EN |
+		     SLAVE0_INT_EN_ILLEGAL_TAG_INT_EN |
+		     SLAVE0_INT_EN_UNSUCSS_CPL_INT_EN |
+		     SLAVE0_INT_EN_INVALID_CT_RSP_INT_EN |
+		     SLAVE0_INT_EN_INVALID_ID_RSP_INT_EN |
+		     SLAVE0_INT_EN_NON_FATAL_INT_EN |
+		     SLAVE0_INT_EN_FATAL_ERR_INT_EN |
+		     SLAVE0_INT_EN_NO_RSP_INT_EN |
+		     SLAVE0_INT_EN_CRC_ERR_INT_EN |
+		     SLAVE0_INT_EN_WAIT_TIMEOUT_INT_EN |
+		     SLAVE0_INT_EN_BUS_ERR_INT_EN,
+		ESPI_SLAVE0_INT_EN
+	);
+}
+
+static void spacemit_espi_irq_init(void)
+{
+	irqc_configure_irq(100, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(100, espi_handle_irq);
+	irqc_enable_irq(100);
+	espi_enable_all_irqs();
+}
+#endif
+
 void espi_handle_irq(irq_t irq)
 {
 	int int_sts;
@@ -1458,13 +1480,7 @@ static void espi_bh_handler(uint8_t event)
 int espi_bh_create(void)
 {
 	espi_bh = bh_register_handler(espi_bh_handler);
-	irq_register_poller(espi_bh);
-
+	espi_irq_init();
+	espi_poll_init();
 	return 0;
-}
-
-static void spacemit_espi_init()
-{
-	clk_set_frequency(espi_sclk, ESPI_OP_FREQ_66_MHZ);
-	clk_enable(espi_sclk);
 }

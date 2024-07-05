@@ -498,4 +498,6 @@ DEFINE_COMMAND(lpc, do_lpc, "SpacemiT low pin count commands",
 	"    -LPC configure SERIRQ mode\n"
 	"lpc serirq start\n"
 	"    -LPC start SERIRQ operation\n"
+	"lpc stress [all|io|mem]\n"
+	"    -start lpc stress test\n"
 );

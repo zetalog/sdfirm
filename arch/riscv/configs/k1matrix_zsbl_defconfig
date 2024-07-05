@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Thu Jul  4 11:45:52 2024
+# Mon Jun 24 13:54:38 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -348,8 +348,10 @@ CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
 # CONFIG_UEFI is not set
 CONFIG_ARCH_HAS_LPC=y
+CONFIG_ARCH_HAS_ESPI=y
 CONFIG_ARCH_HAS_SIO=y
 CONFIG_LPC=y
+CONFIG_ESPI=y
 CONFIG_SIO=y
 CONFIG_ARCH_HAS_KCS=y
 CONFIG_IPMI=y
