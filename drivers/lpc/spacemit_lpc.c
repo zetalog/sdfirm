@@ -90,6 +90,8 @@ static void lpc_bh_handler(uint8_t events)
 }
 
 #ifdef CONFIG_SPACEMIT_LPC_BRIDGE
+#define LPC_MEM_CMD_FMT		"lpc mem <cycle> <address0> [address1]\n"
+
 static int do_lpc_mem(int argc, char *argv[])
 {
 	uint32_t address;
@@ -109,41 +111,9 @@ static int do_lpc_mem(int argc, char *argv[])
 		address0, address1);
 	return 0;
 }
-
-void lpc_mem_write16(uint16_t v, uint32_t a)
-{
-	if (lpc_mem_is_cycle(LPC_MEM_MEM_CYCLE)) {
-		lpc_mem_write8(LOBYTE(v), a);
-		lpc_mem_write8(HIBYTE(v), a + 1);
-	} else
-		__raw_writew(v, a);
-}
-
-void lpc_mem_write32(uint32_t v, uint32_t a)
-{
-	if (lpc_mem_is_cycle(LPC_MEM_MEM_CYCLE)) {
-		lpc_mem_write16(LOWORD(v), a);
-		lpc_mem_write16(HIWORD(v), a + 2);
-	} else
-		__raw_writel(v, a);
-}
-
-uint16_t lpc_mem_read16(uint32_t a)
-{
-	if (lpc_mem_is_cycle(LPC_MEM_MEM_CYCLE))
-		return MAKEWORD(lpc_mem_read8(a), lpc_mem_read8(a + 1));
-	else
-		return __raw_readw(a);
-}
-
-uint32_t lpc_mem_read32(uint32_t a)
-{
-	if (lpc_mem_is_cycle(LPC_MEM_MEM_CYCLE))
-		return MAKELONG(lpc_mem_read16(a), lpc_mem_read16(a + 2));
-	else
-		return __raw_readl(a);
-}
 #else
+#define LPC_MEM_CMD_FMT		"lpc mem <cycle> <address>\n"
+
 static bool lpc_mem_cycle;
 static uint32_t lpc_mem_base;
 
@@ -509,11 +479,7 @@ DEFINE_COMMAND(lpc, do_lpc, "SpacemiT low pin count commands",
 	"lpc write io <value> <addr>\n"
 	"lpc write mem [1|2|4] <value> <addr>\n"
 	"    -LPC write sequence\n"
-#ifdef CONFIG_SPACEMIT_LPC_BRDGE
-	"lpc mem <cycle> <address0> [address1]\n"
-#else
-	"lpc mem <cycle> <address>\n"
-#endif
+	LPC_MEM_CMD_FMT
 	"    -config LPC memory translation\n"
 	"        <cycle>:\n"
 	"            0 - firmware cycle\n"

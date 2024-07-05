@@ -186,6 +186,10 @@
 #define lpc_io_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_IO_BASE + (a))
 #define lpc_mem_read8(a)			__raw_readb(SPACEMIT_LPC_MEM_BASE + (a))
 #define lpc_mem_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_mem_read16(a)			__raw_readw(SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_mem_write16(v, a)			__raw_writew(v, SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_mem_read32(a)			__raw_readw(SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_mem_write32(v, a)			__raw_writew(v, SPACEMIT_LPC_MEM_BASE + (a))
 #define lpc_mem_init()				__raw_setl(LPC_MEM_CYCLE, LPC_MEM_CFG)
 #else
 #define __lpc_io_read8(a)							\
@@ -313,13 +317,12 @@ uint8_t lpc_io_read8(uint16_t a);
 
 void lpc_mem_write8(uint8_t v, uint32_t a);
 uint8_t lpc_mem_read8(uint32_t a);
-#define lpc_mem_init()				do {} while (0)
-#endif /* CONFIG_SPACEMIT_LPC_BRIDGE */
-
 void lpc_mem_write16(uint16_t v, uint32_t a);
 uint16_t lpc_mem_read16(uint32_t a);
 void lpc_mem_write32(uint32_t v, uint32_t a);
 uint32_t lpc_mem_read32(uint32_t a);
+#define lpc_mem_init()				do {} while (0)
+#endif /* CONFIG_SPACEMIT_LPC_BRIDGE */
 
 #define lpc_clear_int(irq)			__raw_setl(irq, LPC_INT_CLR)
 #define lpc_get_irq(irq)			(!!(__raw_readl(LPC_INT_STATUS) & _BV(irq)))
