@@ -42,6 +42,9 @@
 #ifndef __SPACEMIT_ESPI_H_INCLUDE__
 #define __SPACEMIT_ESPI_H_INCLUDE__
 
+#include <target/arch.h>
+#include <asm/mach/espi.h>
+
 #ifndef SPACEMIT_ESPI_REG
 #define SPACEMIT_ESPI_REG(offset)		(SPACEMIT_ESPI_BASE + (offset))
 #endif

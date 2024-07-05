@@ -5,6 +5,10 @@
 
 #include <types.h>
 
+#ifdef CONFIG_ARCH_HAS_ESPI
+#include <asm/mach/espi.h>
+#endif
+
 /* eSPI MMIO base lives at an offset of 0x10000 from the address in SPI BAR. */
 #define ESPI_OFFSET_FROM_BAR			0x10000
 

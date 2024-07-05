@@ -51,6 +51,11 @@ void lpc_init(void);
 #else
 #define lpc_init()
 #endif
+#ifdef CONFIG_ESPI
+void espi_init(void);
+#else
+#define espi_init()
+#endif
 #ifdef CONFIG_MTD
 void mtd_init(void);
 #else
@@ -168,6 +173,7 @@ void modules_init(void)
 {
 	/* buses */
 	lpc_init();
+	espi_init();
 	pci_init();
 	rio_init();
 	uart_init();
