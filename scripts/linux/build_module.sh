@@ -415,11 +415,11 @@ function build_initramfs()
 function build_linux()
 {
 	if [ "x$1" = "xv" ]; then
-		echo "== Build vLinux =="
+		echo "== Build Linux (G) =="
 		LINUX_BUILD=$TOP/obj/vlinux-$ARCH
 		BUILD_VLINUX=yes
 	else
-		echo "== Build Linux =="
+		echo "== Build Linux (S/H) =="
 		LINUX_BUILD=$TOP/obj/linux-$ARCH
 		BUILD_VLINUX=no
 	fi
@@ -450,8 +450,10 @@ function build_linux()
 			apply_modcfg linux my_defconfig d_sto.cfg
 		fi
 		if [ "xyes" = "x${BUILD_KVM}" ]; then
-			apply_modcfg linux my_defconfig e_mod.cfg
-			apply_modcfg linux my_defconfig e_kvm.cfg
+			if [ "xno" = "x${BUILD_VLINUX}" ]; then
+				apply_modcfg linux my_defconfig e_mod.cfg
+				apply_modcfg linux my_defconfig e_kvm.cfg
+			fi
 		fi
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 		# Starting the build process
@@ -477,14 +479,18 @@ function build_linux()
 		echo "Error: Failed to build Linux"
 		exit 1
 	fi
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		O=$LINUX_BUILD/ -j`nproc` modules
 	${CROSS_COMPILE}objcopy \
 		--only-keep-debug $LINUX_BUILD/vmlinux \
 		$LINUX_BUILD/kernel.sym
 	if [ "xyes" = "x${BUILD_VLINUX}" ]; then
+		#cp -f $LINUX_BUILD/arch/$ARCH/kvm/kvm.ko ${APPDIR}/
+		#make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+		#	O=$LINUX_BUILD/ \
+		#	INSTALL_PATH=$DESTDIR install
+		cp -f $LINUX_BUILD/arch/$ARCH/boot/Image ${APPDIR}/
+	else
 		if [ ! -f $LINUX_BUILD/arch/$ARCH/kvm/kvm.ko ]; then
-			echo "Error: Failed to build vLinux"
+			echo "Error: Failed to build KVM"
 			exit 1
 		fi
 		mkdir -p $DESTDIR
@@ -492,11 +498,6 @@ function build_linux()
 			O=$LINUX_BUILD/ \
 			INSTALL_MOD_STRIP=1 \
 			INSTALL_MOD_PATH=$DESTDIR modules_install
-		#cp -f $LINUX_BUILD/arch/$ARCH/kvm/kvm.ko ${APPDIR}/
-		#make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		#	O=$LINUX_BUILD/ \
-		#	INSTALL_PATH=$DESTDIR install
-		cp -f $LINUX_BUILD/arch/$ARCH/boot/Image ${APPDIR}/
 	fi
 	)
 }
