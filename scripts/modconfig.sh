@@ -57,7 +57,7 @@ parse_kconfig()
 				} else if (match(val, /^[0-9]+$/)) {	\
 					opt="--set-val";		\
 					cmds=opt""s""cfg""s""val;	\
-				} else if (match(val, /^\".*\"$/)) {	\
+				} else if (match(val, /^".*"$/)) {	\
 					str=substr(val, 1, RLENGTH);	\
 					opt="--set-str";		\
 					cmds=opt""s""cfg""s""str;	\

@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <sys/select.h>
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <linux/if_ether.h>
