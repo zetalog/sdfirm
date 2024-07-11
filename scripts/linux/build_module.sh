@@ -250,7 +250,12 @@ install_initramfs()
 	if [ -d $1$2 ]; then
 		ROOTFS_FILES=`ls $1$2`
 		for f in ${ROOTFS_FILES}; do
-			install_initramfs_one $1 $2/${f}
+			if [ "x${f}" = "xbuild" ]; then
+				echo "Skipping $2/${f}..."
+			else
+				echo "Installing $2/${f} from $1..."
+				install_initramfs_one $1 $2/${f}
+			fi
 		done
 	else
 		install_initramfs_one $1 $2
@@ -414,6 +419,7 @@ function build_initramfs()
 
 function build_linux()
 {
+	BUILD_MOD=no
 	if [ "x$1" = "xv" ]; then
 		echo "== Build Linux (G) =="
 		LINUX_BUILD=$TOP/obj/vlinux-$ARCH
@@ -437,6 +443,11 @@ function build_linux()
 		if [ "xyes" = "x${BUILD_TINY}" ]; then
 			apply_modcfg linux my_defconfig e_tiny.cfg
 		fi
+		if [ "xyes" = "x${BUILD_KVM}" ]; then
+			if [ "xno" = "x${BUILD_VLINUX}" ]; then
+				BUILD_MOD=yes
+			fi
+		fi
 		if [ "xyes" = "x${BUILD_UEFI}" ]; then
 			apply_modcfg linux my_defconfig e_uefi.cfg
 		fi
@@ -449,11 +460,11 @@ function build_linux()
 		if [ "xno" = "x${BUILD_STO}" ]; then
 			apply_modcfg linux my_defconfig d_sto.cfg
 		fi
+		if [ "xyes" = "x${BUILD_MOD}" ]; then
+			apply_modcfg linux my_defconfig e_mod.cfg
+		fi
 		if [ "xyes" = "x${BUILD_KVM}" ]; then
-			if [ "xno" = "x${BUILD_VLINUX}" ]; then
-				apply_modcfg linux my_defconfig e_mod.cfg
-				apply_modcfg linux my_defconfig e_kvm.cfg
-			fi
+			apply_modcfg linux my_defconfig e_kvm.cfg
 		fi
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 		# Starting the build process
@@ -483,7 +494,6 @@ function build_linux()
 		--only-keep-debug $LINUX_BUILD/vmlinux \
 		$LINUX_BUILD/kernel.sym
 	if [ "xyes" = "x${BUILD_VLINUX}" ]; then
-		#cp -f $LINUX_BUILD/arch/$ARCH/kvm/kvm.ko ${APPDIR}/
 		#make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		#	O=$LINUX_BUILD/ \
 		#	INSTALL_PATH=$DESTDIR install
@@ -494,10 +504,19 @@ function build_linux()
 			exit 1
 		fi
 		mkdir -p $DESTDIR
+		#cp -f $LINUX_BUILD/arch/$ARCH/kvm/kvm.ko ${APPDIR}/
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 			O=$LINUX_BUILD/ \
 			INSTALL_MOD_STRIP=1 \
 			INSTALL_MOD_PATH=$DESTDIR modules_install
+		sync
+		install_initramfs ${TOP}/obj/bench /lib/modules 1
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+			O=$LINUX_BUILD/ -j`nproc`
+		if [ ! -f $LINUX_BUILD/vmlinux ]; then
+			echo "Error: Failed to build Linux modules"
+			exit 1
+		fi
 	fi
 	)
 }
