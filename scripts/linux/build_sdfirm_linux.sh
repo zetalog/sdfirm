@@ -472,17 +472,9 @@ build_test()
 		echo "cd /usr/local/bin"  >> ${LATE_TEST}
 		if [ "x${BUILD_HTIF}" = "xyes" ]; then
 			# TODO: dynamic lkvm support
-			if [ "x${BUILD_LIB}" = "xyes" ]; then
-				echo "lkvm-static run -m 128 -c2 --console virtio -p \"console=hvc0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
-			else
-				echo "lkvm-static run -m 128 -c2 --console virtio -p \"console=hvc0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
-			fi
+			echo "lkvm run -m 128 -c2 --console virtio -p \"console=hvc0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
 		else
-			if [ "x${BUILD_LIB}" = "xyes" ]; then
-				echo "lkvm-static run -m 128 -c2 --console serial -p \"console=ttyS0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
-			else
-				echo "lkvm-static run -m 128 -c2 --console serial -p \"console=ttyS0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
-			fi
+			echo "lkvm run -m 128 -c2 --console serial -p \"console=ttyS0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
 		fi
 	fi
 	if [ "x${TEST_LATE}" = "xdmatest" ]; then

@@ -111,13 +111,14 @@ function build_kvmtool()
 	echo "== Build kvmtool =="
 	(
 	cd $KVMTOOL_PATH
-	if [ "x${BUILD_LIB}" != "xno" ]; then
-		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE lkvm-static
-		cp ${KVMTOOL_PATH}/lkvm-static ${APPDIR}/lkvm-static
-	else
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE clean
+	if [ "x${BUILD_LIB}" = "xyes" ]; then
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE DESTDIR=$DESTDIR \
 			prefix=/usr/local install
+	else
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE lkvm-static
+		cp ${KVMTOOL_PATH}/lkvm-static ${APPDIR}/lkvm
 	fi
 	)
 }
@@ -451,6 +452,7 @@ function build_linux()
 			if [ "xno" = "x${BUILD_VLINUX}" ]; then
 				BUILD_MOD=yes
 			fi
+			BUILD_NET=yes
 		fi
 		if [ "xyes" = "x${BUILD_UEFI}" ]; then
 			apply_modcfg linux my_defconfig e_uefi.cfg
@@ -490,14 +492,14 @@ function build_linux()
 	fi
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$LINUX_BUILD/ -j`nproc`
-	if [ ! -f $LINUX_BUILD/vmlinux ]; then
-		echo "Error: Failed to build Linux"
-		exit 1
-	fi
 	${CROSS_COMPILE}objcopy \
 		--only-keep-debug $LINUX_BUILD/vmlinux \
 		$LINUX_BUILD/kernel.sym
 	if [ "xyes" = "x${BUILD_VLINUX}" ]; then
+		if [ ! -f $LINUX_BUILD/vmlinux ]; then
+			echo "Error: Failed to build Linux (G)"
+			exit 1
+		fi
 		#make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		#	O=$LINUX_BUILD/ \
 		#	INSTALL_PATH=$DESTDIR install
@@ -507,18 +509,23 @@ function build_linux()
 			echo "Error: Failed to build KVM"
 			exit 1
 		fi
+	fi
+	if [ "xyes" = "x${BUILD_MOD}" ]; then
+		if [ ! -f $LINUX_BUILD/vmlinux ]; then
+			echo "Error: Failed to build Linux (S/H) modules"
+			exit 1
+		fi
 		mkdir -p $DESTDIR
-		#cp -f $LINUX_BUILD/arch/$ARCH/kvm/kvm.ko ${APPDIR}/
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 			O=$LINUX_BUILD/ \
 			INSTALL_MOD_STRIP=1 \
 			INSTALL_MOD_PATH=$DESTDIR modules_install
 		sync
-		install_initramfs ${TOP}/obj/bench /lib/modules 1
+		build_initramfs ${BUILD_STO_SIZE}
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 			O=$LINUX_BUILD/ -j`nproc`
 		if [ ! -f $LINUX_BUILD/vmlinux ]; then
-			echo "Error: Failed to build Linux modules"
+			echo "Error: Failed to build Linux (S/H)"
 			exit 1
 		fi
 	fi
