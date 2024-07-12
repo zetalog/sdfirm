@@ -289,7 +289,7 @@ build_perf()
 		PERF_ROOT=${LINUX_ROOT}/tools/perf
 		(
 			cd ${PERF_ROOT}
-			make clean
+			ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE make clean
 			ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE make NO_LIBELF=1 NO_LIBTRACEEVENT=1
 			${CROSS_COMPILE}strip -R .comment -R .note \
 				${PERF_ROOT}/perf -o ${BUILD_BIN}/perf
@@ -465,10 +465,25 @@ build_test()
 	fi
 	if [ "x${TEST_LATE}" = "xkvm" ]; then
 		echo "#!/bin/sh" > ${LATE_TEST}
+		echo "Probing kvm..." >> ${LATE_TEST}
 		echo "modprobe kvm" >> ${LATE_TEST}
+		echo "Running kvm..." >> ${LATE_TEST}
+		echo "ls /usr/local/bin" >> ${LATE_TEST}
 		echo "cd /usr/local/bin"  >> ${LATE_TEST}
-#		echo "lkvm-static run -m 128 -c2 --console serial -p \"console=ttyS0 earlycon=sbi\" -k ./Image"   >> ${LATE_TEST}
-		echo "lkvm-static run -m 128 -c2 --console virtio -p \"console=hvc0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image"   >> ${LATE_TEST}
+		if [ "x${BUILD_HTIF}" = "xyes" ]; then
+			# TODO: dynamic lkvm support
+			if [ "x${BUILD_LIB}" = "xyes" ]; then
+				echo "lkvm-static run -m 128 -c2 --console virtio -p \"console=hvc0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
+			else
+				echo "lkvm-static run -m 128 -c2 --console virtio -p \"console=hvc0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
+			fi
+		else
+			if [ "x${BUILD_LIB}" = "xyes" ]; then
+				echo "lkvm-static run -m 128 -c2 --console serial -p \"console=ttyS0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
+			else
+				echo "lkvm-static run -m 128 -c2 --console serial -p \"console=ttyS0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
+			fi
+		fi
 	fi
 	if [ "x${TEST_LATE}" = "xdmatest" ]; then
 		echo "#!/bin/sh" > ${LATE_TEST}
