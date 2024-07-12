@@ -111,10 +111,14 @@ function build_kvmtool()
 	echo "== Build kvmtool =="
 	(
 	cd $KVMTOOL_PATH
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE lkvm-static
-	${CROSS_COMPILE}strip -R .comment -R .note \
-		${KVMTOOL_PATH}/lkvm-static
-	cp ${KVMTOOL_PATH}/lkvm-static ${APPDIR}/lkvm-static
+	if [ "x${BUILD_LIB}" != "xno" ]; then
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE lkvm-static
+		cp ${KVMTOOL_PATH}/lkvm-static ${APPDIR}/lkvm-static
+	else
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE DESTDIR=$DESTDIR \
+			prefix=/usr/local install
+	fi
 	)
 }
 
@@ -250,10 +254,10 @@ install_initramfs()
 	if [ -d $1$2 ]; then
 		ROOTFS_FILES=`ls $1$2`
 		for f in ${ROOTFS_FILES}; do
-			if [ "x${f}" = "xbuild" ]; then
-				echo "Skipping $2/${f}..."
+			if [ -h $1$2/${f} ]; then
+				echo "Skipping soft link $2/${f}..."
 			else
-				echo "Installing $2/${f} from $1..."
+				echo "Installing $2/${f}..."
 				install_initramfs_one $1 $2/${f}
 			fi
 		done

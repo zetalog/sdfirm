@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jun 19 16:02:14 2024
+# Fri Jul 12 05:37:37 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -74,6 +74,7 @@ CONFIG_CONSOLE_BANNER=y
 # CONFIG_ARCH_COREV is not set
 CONFIG_ARCH_SPIKE=y
 # CONFIG_ARCH_VIRT is not set
+# CONFIG_CPU_CVA6 is not set
 CONFIG_CPU_SPIKE64=y
 CONFIG_CPU_64G=y
 CONFIG_CPU_WMO=y
@@ -153,6 +154,8 @@ CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
 # CONFIG_CLINT_XCHG_LLSC is not set
 # CONFIG_CLINT_FORCE_FAST_TIMEOUT is not set
+CONFIG_ARCH_HAS_PLIC=y
+# CONFIG_PLIC is not set
 # CONFIG_HPM is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
@@ -218,10 +221,11 @@ CONFIG_SPIKE_MEM1_SIZE=0x80000000
 #
 CONFIG_SPIKE_CLINT=y
 CONFIG_SPIKE_CLINT_RTC_FREQ=10000000
+CONFIG_SPIKE_PLIC=y
 CONFIG_SPIKE_UART=y
-CONFIG_SPIKE_HTIF=y
-# CONFIG_SPIKE_8250 is not set
-CONFIG_SPIKE_UART_HVC=y
+# CONFIG_SPIKE_HTIF is not set
+CONFIG_SPIKE_8250=y
+# CONFIG_SPIKE_UART_HVC is not set
 # CONFIG_SPIKE_PK is not set
 CONFIG_SPIKE_BBL=y
 # CONFIG_SPIKE_TB is not set
@@ -341,12 +345,19 @@ CONFIG_UART_115200=y
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
+
+#
+# Double data rate (DDR) support
+#
+# CONFIG_DDR_TS is not set
 # CONFIG_DDR is not set
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
 # CONFIG_UEFI is not set
+# CONFIG_LPC is not set
 # CONFIG_IPMI is not set
+# CONFIG_ESPI is not set
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
 
@@ -372,8 +383,18 @@ CONFIG_FDT=y
 #
 # Debugging console drivers
 #
+CONFIG_CON_NS16550=y
 CONFIG_ARCH_HAS_NS16550=y
-# CONFIG_NS16550 is not set
+CONFIG_NS16550=y
+# CONFIG_NS16550_FIFO_NONE is not set
+# CONFIG_NS16550_FIFO_16 is not set
+# CONFIG_NS16550_FIFO_32 is not set
+# CONFIG_NS16550_FIFO_64 is not set
+# CONFIG_NS16550_FIFO_128 is not set
+# CONFIG_NS16550_FIFO_256 is not set
+# CONFIG_NS16550_FIFO_512 is not set
+# CONFIG_NS16550_FIFO_1024 is not set
+# CONFIG_NS16550_FIFO_2048 is not set
 # CONFIG_DW_UART is not set
 # CONFIG_UART_PL01X is not set
 # CONFIG_SEGGER_RTT is not set
@@ -485,6 +506,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # LPC drivers
 #
+# CONFIG_AST2600_SIO is not set
 
 #
 # KCS drivers
