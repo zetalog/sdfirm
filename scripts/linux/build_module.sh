@@ -136,6 +136,9 @@ function build_busybox()
 		echo "Rebuilding $BUSYBOX_CONFIG..."
 		# Doing modcfgs in the original directory and save my_defconfig
 		cp $SCRIPT/config/$BUSYBOX_CONFIG configs/my_defconfig
+		if [ "xyes" = "x${BUILD_KVM}" ]; then
+			BUILD_NET=yes
+		fi
 		if [ "xyes" = "x${BUILD_TINY}" ]; then
 			apply_modcfg busybox my_defconfig e_tiny.cfg
 		fi

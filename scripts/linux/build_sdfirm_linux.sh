@@ -465,10 +465,7 @@ build_test()
 	fi
 	if [ "x${TEST_LATE}" = "xkvm" ]; then
 		echo "#!/bin/sh" > ${LATE_TEST}
-		echo "Probing kvm..." >> ${LATE_TEST}
 		echo "modprobe kvm" >> ${LATE_TEST}
-		echo "Running kvm..." >> ${LATE_TEST}
-		echo "ls /usr/local/bin" >> ${LATE_TEST}
 		echo "cd /usr/local/bin"  >> ${LATE_TEST}
 		if [ "x${BUILD_HTIF}" = "xyes" ]; then
 			# TODO: dynamic lkvm support
