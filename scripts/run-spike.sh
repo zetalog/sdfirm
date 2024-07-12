@@ -21,7 +21,7 @@
 
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 
-SPIKE_OPTS=
+SPIKE_OPTS="--misaligned"
 SPIKE_MISA="rv64gch_zba_zbb_zbc_zbs_zicntr_zihpm"
 SPIKE_RBB_PORT=9824
 SPIKE_RBB=no
