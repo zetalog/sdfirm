@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jun 19 16:02:38 2024
+# Sat Jul 13 10:49:05 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -74,6 +74,7 @@ CONFIG_CONSOLE_BANNER=y
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
 CONFIG_ARCH_VIRT=y
+# CONFIG_CPU_CVA6 is not set
 CONFIG_CPU_VIRT64=y
 CONFIG_CPU_64G=y
 CONFIG_CPU_WMO=y
@@ -163,7 +164,13 @@ CONFIG_SBI=y
 # SBI versions
 #
 CONFIG_SBI_V01=y
-# CONFIG_SBI_V10 is not set
+CONFIG_SBI_V10=y
+CONFIG_SBI_ECALL_LEGACY=y
+CONFIG_SBI_ECALL_TIME=y
+CONFIG_SBI_ECALL_IPI=y
+CONFIG_SBI_ECALL_RFENCE=y
+CONFIG_SBI_ECALL_HSM=y
+CONFIG_SBI_ECALL_PMU=y
 CONFIG_SBI_RISCV_F=y
 CONFIG_SBI_RISCV_D=y
 CONFIG_SBI_RISCV_C=y
@@ -181,7 +188,7 @@ CONFIG_SBI_PAYLOAD=y
 CONFIG_SBI_PAYLOAD_PATH="Image"
 # CONFIG_SBI_PAYLOAD_ALIGN_RELAXED is not set
 # CONFIG_SBI_PAYLOAD_DUMP is not set
-# CONFIG_SBI_PMU is not set
+CONFIG_SBI_PMU=y
 CONFIG_SBI_FDT=y
 CONFIG_SBI_FDT_BUILTIN=y
 # CONFIG_SBI_LDST_MISALIGNED_DELEG is not set
@@ -191,14 +198,13 @@ CONFIG_SBI_FDT_BUILTIN=y
 # RISCV specific device tree options
 #
 # CONFIG_FDT_FIXUP_RESIZE is not set
-# CONFIG_FDT_PMU is not set
+CONFIG_FDT_PMU=y
 
 #
 # QEMU RISCV (VIRT) board options
 #
 # CONFIG_VIRT_CPU32 is not set
 CONFIG_VIRT_CPU64=y
-CONFIG_VIRT_SMP_CPUS=4
 CONFIG_VIRT_MEM_SIZE=0x80000000
 # CONFIG_VIRT_TB is not set
 CONFIG_VIRT_BBL=y
@@ -235,9 +241,8 @@ CONFIG_ARCH_HAS_THREAD=y
 # Scheduling facility (SMP) support
 #
 CONFIG_ARCH_HAS_SMP=y
-CONFIG_SMP_BOOT=y
-CONFIG_SMP=y
-# CONFIG_SMP_WAIT_BOOT is not set
+# CONFIG_SMP_BOOT is not set
+# CONFIG_SMP is not set
 
 #
 # Timing facility (jiffy) support
@@ -317,12 +322,19 @@ CONFIG_UART_115200=y
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
+
+#
+# Double data rate (DDR) support
+#
+# CONFIG_DDR_TS is not set
 # CONFIG_DDR is not set
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
 # CONFIG_UEFI is not set
+# CONFIG_LPC is not set
 # CONFIG_IPMI is not set
+# CONFIG_ESPI is not set
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
 
@@ -471,6 +483,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # LPC drivers
 #
+# CONFIG_AST2600_SIO is not set
 
 #
 # KCS drivers

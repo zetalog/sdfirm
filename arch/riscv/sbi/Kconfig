@@ -63,10 +63,10 @@ config SBI_ECALL_RFENCE
 	bool "Enable remote fence ecall support"
 
 config SBI_ECALL_HSM
-	bool "Hart State Management extension"
+	bool "Enable hart state management (HSM) ecall support"
 
 config SBI_ECALL_PMU
-	bool "Performance monitor unit extension"
+	bool "Enable performance monitor unit (PMU) ecall support"
 	select SBI_PMU
 
 endif
