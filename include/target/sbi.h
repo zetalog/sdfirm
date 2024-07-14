@@ -9,10 +9,8 @@
 #include <target/clk.h>
 #include <target/list.h>
 
-#define OPENSBI_VERSION_MAJOR 0
-#define OPENSBI_VERSION_MINOR 4
-
 #ifdef CONFIG_SBI_V10
+#define OPENSBI_VERSION_MAJOR		1
 #define SBI_ECALL_VERSION_MAJOR		1
 #define SBI_ECALL_VERSION_MINOR		0
 #define SBI_OPENSBI_IMPID		1
@@ -27,11 +25,13 @@
 		SBIECALL_INPUT(align)			\
 	}
 #else
+#define OPENSBI_VERSION_MAJOR		0
 #define SBI_ECALL_VERSION_MAJOR		0
 #define SBI_ECALL_VERSION_MINOR		1
 #define SBIECALL_INPUT(align)
 #define SBIECALL_SECTION(align)
 #endif
+#define OPENSBI_VERSION_MINOR		4
 
 /**
  *  OpenSBI 32-bit version with:

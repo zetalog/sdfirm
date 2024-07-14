@@ -184,5 +184,3 @@ fi
 
 # Build linux image along with rootfs
 ${SCRIPT}/build_module.sh ${BUILD_MODULE_OPS} build
-
-cp -f ${TOP}/obj/linux-riscv/arch/${ARCH}/boot/Image ${SDFIRM_DIR}/Image

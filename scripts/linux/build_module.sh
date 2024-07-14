@@ -533,6 +533,7 @@ function build_linux()
 		fi
 	fi
 	)
+	cp -f ${TOP}/obj/linux-riscv/arch/${ARCH}/boot/Image ${SDFIRM_DIR}/Image
 }
 
 function build_sdfirm()
