@@ -83,6 +83,7 @@ CONFIG_CPU_64I=y
 CONFIG_RISCV_64I=y
 # CONFIG_RISCV_32E is not set
 # CONFIG_RISCV_128I is not set
+CONFIG_RISCV_SSTC=y
 
 #
 # ISA extensions

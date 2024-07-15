@@ -152,6 +152,7 @@ config CPU_SPIKE64
 	select CPU_PMP
 	select CPU_WMO
 	select CPU_H
+	select CPU_SSTC
 
 # VIRT
 config CPU_VIRT32
@@ -174,6 +175,7 @@ config CPU_VIRT64
 	select CPU_COUNTERS
 	select CPU_WMO
 	select CPU_H
+	select CPU_SSTC
 
 config CPU_32G
 	bool
