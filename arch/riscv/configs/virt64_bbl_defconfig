@@ -109,6 +109,7 @@ CONFIG_RISCV_COUNTERS=y
 CONFIG_RISCV_PMP=y
 # CONFIG_RISCV_H is not set
 # CONFIG_RISCV_ZIFENCEI is not set
+CONFIG_RISCV_SSTC=y
 
 #
 # CPU architecture options
