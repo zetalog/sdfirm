@@ -17,9 +17,9 @@
 
 static void virt_modify_dt(void *fdt)
 {
-#if 0
-	plic_fdt_fixup(fdt, "riscv,plic0");
-#endif
+	fdt_cpu_fixup(fdt);
+	fdt_irq_fixup(fdt, "riscv,clint0");
+	fdt_fixups(fdt);
 }
 
 static int virt_final_init(bool cold_boot)
@@ -169,6 +169,7 @@ const struct sbi_platform platform = {
 	.platform_version	= SBI_PLATFORM_VERSION(0x0, 0x01),
 	.name			= "QEMU Virt Machine",
 	.features		= SBI_PLATFORM_DEFAULT_FEATURES,
-	.disabled_hart_mask	= 0,
+	.hart_count		= NR_CPUS,
+	.disabled_hart_mask	= ~HART_ALL,
 	.platform_ops_addr	= (unsigned long)&platform_ops
 };
