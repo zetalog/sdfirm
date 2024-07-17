@@ -65,9 +65,16 @@ extern caddr_t k1mxlite_plic_ctx_base[2];
 #define clint_hw_hart_offset(hart)	(hart)
 #endif
 
+#ifdef CONFIG_K1M_PARTIAL_GOOD
+#define cpu2pic(cpu)                    ((((cpu) & 0x04) >> 1) | ((cpu) & 0x01))
+#else
+#define cpu2pic(cpu)                    (cpu)
+#endif
+
 #define PLIC_HW_PRI_MAX			31
 #define plic_hw_m_ctx(cpu)		(cpu)
 #define plic_hw_s_ctx(cpu)		((cpu) + 1)
+#define clint_hw_ctx(cpu)               cpu2pic(cpu)
 
 #include <asm/plic.h>
 
