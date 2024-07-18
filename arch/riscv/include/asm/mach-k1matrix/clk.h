@@ -60,6 +60,9 @@
 #define INVALID_FREQPLAN	(-1)
 
 #define osc_clk			clkid(CLK_INPUT, OSC_CLK)
+#define peri_sub_mclk		clkid(CLK_INPUT, PERI_SUB_MCLK)
+#define peri_sub_sclk		clkid(CLK_INPUT, PERI_SUB_SCLK)
+#define phy2gmac_rx_clk		clkid(CLK_INPUT, PHY2GMAC_RX_CLK)
 
 #define com_pll_foutpostdiv	clkid(CLK_PLL, COM_PLL)
 #define mesh_pll_foutpostdiv	clkid(CLK_PLL, MESH_PLL)
@@ -97,6 +100,7 @@
 #define peri_gpio3_db_clkdiv	clkid(CLK_DIV, PERI_GPIO3_DB_CLKDIV)
 #define peri_gpio4_db_clkdiv	clkid(CLK_DIV, PERI_GPIO4_DB_CLKDIV)
 #define peri_gmac_axi_clkdiv	clkid(CLK_DIV, PERI_GMAC_AXI_CLKDIV)
+#define peri_gmac_ahb_clkdiv	clkid(CLK_DIV, PERI_GMAC_AHB_CLKDIV)
 
 #define rmu_qspi_clken		clkid(CLK_DIV, RMU_QSPI_CLKEN)
 #define rmu_lpc_clken		clkid(CLK_DIV, RMU_LPC_CLKEN)
@@ -118,6 +122,8 @@
 #define peri_uart2_clken	clkid(CLK_DIV, PERI_UART2_CLKEN)
 #define peri_uart3_clken	clkid(CLK_DIV, PERI_UART3_CLKEN)
 #define peri_dmac_clken		clkid(CLK_DIV, PERI_DMAC_CLKEN)
+#define sys_apb_cfg_clken	clkid(CLK_DIV, SYS_APB_CFG_CLKEN)
+#define c0_clk_cfg_en		clkid(CLK_DIV, C0_CLK_CFG_EN)
 
 #define cpu_sub_rstn		clkid(CLK_RST, CPU_SUB_RSTN)
 #define pcie_top_rstn		clkid(CLK_RST, PCIE_TOP_RSTN)
@@ -138,6 +144,8 @@
 #define pcie7_perst_n		clkid(CLK_RST, PCIE7_PERST_N)
 #define pcie8_perst_n		clkid(CLK_RST, PCIE8_PERST_N)
 #define pcie9_perst_n		clkid(CLK_RST, PCIE9_PERST_N)
+#define c0_cfg_srst_n		clkid(CLK_RST, C0_CFG_SRST_N)
+#define c1_cfg_srst_n		clkid(CLK_RST, C1_CFG_SRST_N)
 
 #define cpu_nic_clk		cpu_nic_clkdiv
 #define cpu_hap_clk		cpu_hap_clkdiv
@@ -170,13 +178,20 @@
 #define peri_uart1_clk		peri_uart1_clken
 #define peri_uart2_clk		peri_uart2_clken
 #define peri_uart3_clk		peri_uart3_clken
+#define sys_apb_clk		sys_apb_cfg_clken
 #define peri_gpio0_db_clk	peri_gpio0_db_clkdiv
 #define peri_gpio1_db_clk	peri_gpio1_db_clkdiv
 #define peri_gpio2_db_clk	peri_gpio2_db_clkdiv
 #define peri_gpio3_db_clk	peri_gpio3_db_clkdiv
 #define peri_gpio4_db_clk	peri_gpio4_db_clkdiv
 #define peri_dmac_clk		peri_dmac_clken
-#define peri_gmac_axi_clk	peri_gmac_axi_clkdiv
+#define c0_cfg_srst_clk		c0_cfg_srst_n
+#define c1_cfg_srst_clk		c1_cfg_srst_n
+#define c0_cfg_clk		c0_clk_cfg_en
+
+#define gmac_aclk		peri_gmac_axi_clkdiv
+#define peri_hclk		peri_gmac_ahb_clkdiv
+#define peri_pclk		peri_hclk/2
 
 #define ddr_clk			clkid(CLK_DYN, DDR_CLK)
 #define cpu_clk			clkid(CLK_DYN, CPU_CLK)
