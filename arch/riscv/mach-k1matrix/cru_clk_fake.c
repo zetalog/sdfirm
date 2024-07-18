@@ -315,6 +315,13 @@ struct div_clk div_clks[] = {
 		.flags = CRU_CLKEN | CRU_RESET,
 		.src = osc_clk,
 	},
+	[SYS_APB_CFG_CLKEN] = {
+		.reg = CRU_SYS_APB_CLK_CTL,
+		.max_div = 1,
+		.div = 1,
+		.flags = CRU_CLKEN,
+		.src = osc_clk,
+	},
 	[PERI_GPIO0_DB_CLKDIV] = {
 		.reg = CRU_PERI_GPIO0_CLK_CTL,
 		.rst_reg = CRU_PERI_GPIO0_SW_RESET,
@@ -369,7 +376,12 @@ struct div_clk div_clks[] = {
 		.max_div = 1,
 		.div = 1,
 		.flags = CRU_CLKEN | CRU_RESET,
-		.src = peri_gmac_txclk_sel,//?
+		.src = peri_sub_mclk,
+	},
+	[C0_CLK_CFG_EN] = {
+		.reg = CRU_CLUSTER0_CLK_CTL,
+		.flags = CRU_CLKEN,
+		.src = osc_clk,
 	},
 };
 
@@ -402,13 +414,16 @@ const char *div_clk_names[NR_DIV_CLKS] = {
 	[PERI_UART1_CLKEN] = "peri_uart1_clken",
 	[PERI_UART2_CLKEN] = "peri_uart2_clken",
 	[PERI_UART3_CLKEN] = "peri_uart3_clken",
+	[SYS_APB_CFG_CLKEN] = "sys_apb_cfg_clken",
+	[C0_CLK_CFG_EN] = "c0_clk_cfg_en",
 	[PERI_GPIO0_DB_CLKDIV] = "peri_gpio0_db_clkdiv",//debounce clk
 	[PERI_GPIO1_DB_CLKDIV] = "peri_gpio1_db_clkdiv",
 	[PERI_GPIO2_DB_CLKDIV] = "peri_gpio2_db_clkdiv",
 	[PERI_GPIO3_DB_CLKDIV] = "peri_gpio3_db_clkdiv",
 	[PERI_GPIO4_DB_CLKDIV] = "peri_gpio4_db_clkdiv",
 	[PERI_DMAC_CLKEN] = "peri_dmac_clken",
-	[PERI_GMAC_AXI_CLKDIV] = "peri_gmac_axi_clkdiv",//select source null
+	[PERI_GMAC_AXI_CLKDIV] = "peri_gmac_axi_clkdiv",
+	[PERI_GMAC_AHB_CLKDIV] = "peri_gmac_ahb_clkdiv",
 };
 
 const char *get_div_name(clk_clk_t clk)
@@ -454,6 +469,7 @@ static int enable_div(clk_clk_t clk)
 	}
 	return 0;
 }
+
 
 static void disable_div(clk_clk_t clk)
 {
@@ -530,17 +546,22 @@ clk_t peri_sub_clksels[] = {
 	peri_pll_fout1ph0,
 };
 
+clk_t peri_gmac_tx_clksels[] = {
+	phy2gmac_rx_clk,
+	mac_clk1,
+};
+
 struct sel_clk sel_clks[] = {
 	[RMU_CLKSEL] = {
-		.reg = CRU_RMU_CLK_SEL,
 		.clksels = cpu_nic_clksels,
+		.reg = CRU_RMU_CLK_SEL,
 		.nr_clksels = 2,
 		.sel = 1,
 		.flags = 0,
 	},
 	[CPU_NIC_CLKSEL] = {
-		.reg = CRU_CPU_NIC_CLK_CTL,
 		.clksels = cpu_nic_clksels,
+		.reg = CRU_CPU_NIC_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 1,
 		.flags = 0,
@@ -595,7 +616,7 @@ struct sel_clk sel_clks[] = {
 		.flags = CRU_CLKEN,
 	},
 	[PERI_GMAC_TXCLK_SEL] = {
-		//.clksels = ,
+		.clksels = peri_gmac_tx_clksels,
 		.reg = CRU_PERI_GMAC_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 1,
@@ -614,7 +635,7 @@ const char *sel_clk_names[NR_SEL_CLKS] = {
 	[PCIE_BOT_AUX_CLKSEL] = "pcie_bot_aux_clksel",
 	[PCIE_BOT_XCLKSEL] = "pcie_bot_xclksel",
 	[PERI_SUB_CLKSEL] = "peri_sub_clksel",
-	[PERI_GMAC_TXCLK_SEL] = "peri_gmac_txclk_sel",//?
+	[PERI_GMAC_TXCLK_SEL] = "peri_gmac_txclk_sel",
 };
 
 static const char *get_sel_name(clk_clk_t sel)

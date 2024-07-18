@@ -114,6 +114,11 @@ void board_late_init(void)
 	k1matrix_n100_init();
 	pcie_ccix_linkup();
 	k1matrix_n100_d2d_init();
+	clk_enable(cpu_nic_clk);
+	clk_enable(c0_cfg_srst_clk);
+	clk_enable(c1_cfg_srst_clk);
+	clk_enable(c0_cfg_clk);
+	clk_enable(cpu_clk);
 	board_boot();
 }
 

@@ -336,6 +336,7 @@
 #define CRU_RESET	_BV(9)
 #define CRU_RESET_2BIT	_BV(10)
 #define CRU_RESET_3BIT	_BV(11)
+#define CRU_RESET_4BIT	_BV(12)
 
 typedef uint16_t cru_flags_t;
 

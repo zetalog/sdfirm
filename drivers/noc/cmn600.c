@@ -274,6 +274,7 @@ static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 	case CMN_HNF_MAPPING_DIRECT:
 		/* TODO: support cmn_snf_count using hnf tgt ids */
 		BUG_ON(cmn_snf_count != 1);
+		con_dbg(CMN_MODNAME "case CMN_HNF_MAPPING_DIRECT\n");
 		cmn_writeq(CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]),
 			   CMN_hnf_sam_control(hnf),
 			   "CMN_hnf_sam_control", -1);
@@ -512,6 +513,8 @@ void cmn600_discover(void)
 	con_dbg(CMN_MODNAME ": Total RN-F: %d\n", cmn_rnf_count);
 	con_dbg(CMN_MODNAME ": Total RN-D: %d\n", cmn_rnd_count);
 	con_dbg(CMN_MODNAME ": Total RN-I: %d\n", cmn_rni_count);
+	con_dbg(CMN_MODNAME ": Total CXHA: %d\n", cmn_cxha_count);
+
 	if (cmn_cxla_id != CMN_INVAL_ID)
 		con_dbg(CMN_MODNAME ": CCIX CXLA node id %016lx\n", CMN_CXLA_BASE);
 	if (cmn_cxra_id != CMN_INVAL_ID)
@@ -675,12 +678,15 @@ void cmn600_configure(void)
 	/* Setup HN-F nodes */
 	for (i = 0; i < cmn_hnf_count; i++)
 		cmn600_configure_hnf_sam(CMN_HNF_BASE(cmn_hnf_ids[i]));
+	con_dbg(CMN_MODNAME "Setup HN-F nodes\n");
 	/* Setup internal RN-SAM nodes */
 	for (i = 0; i < cmn_rn_sam_int_count; i++)
 		cmn600_configure_rn_sam(CMN_RN_SAM_INT_BASE(cmn_rn_sam_int_ids[i]));
+	con_dbg(CMN_MODNAME "Setup internal RN-SAM nodes\n");
 	/* Setup external RN-SAM nodes */
 	for (i = 0; i < cmn_rn_sam_ext_count; i++)
 		cmn600_configure_rn_sam(CMN_RN_SAM_EXT_BASE(cmn_rn_sam_ext_ids[i]));
+	con_dbg(CMN_MODNAME "Setup external RN-SAM nodes\n");
 }
 
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid)
@@ -706,7 +712,7 @@ void cmn600_init(void)
 	root_node_pointer = CMN_ROOT_NODE_POINTER(CMN_HND_NID);
 	cmn_bases[CMN_CFGM_ID] = CMN_PERIPH_BASE + root_node_pointer;
 	cmn_nr_nodes = 1;
-
+	con_dbg(CMN_MODNAME "cmn600_discover\n");
 	cmn600_discover();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
 	cmn600_configure();

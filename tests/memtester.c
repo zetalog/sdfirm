@@ -126,7 +126,7 @@ static ul memtester_testmask(void)
 		testmask = strtoul(env_testmask, 0, 0);
 		if (errno) {
 			fprintf(stderr,
-				"error parsing MEMTESTER_TEST_MASK %s: %s\n", 
+				"error parsing MEMTESTER_TEST_MASK %s: %s\n",
 			env_testmask, strerror(errno));
 			usage();
 			return -EXIT_FAIL_NONSTARTER;
@@ -182,7 +182,7 @@ static int memtester_parseopt(int argc, char **argv, size_t pagesize)
 			} else {
 				if (!S_ISCHR(statbuf.st_mode)) {
 					fprintf(stderr,
-						"can not mmap non-char device %s\n", 
+						"can not mmap non-char device %s\n",
 						optarg);
 					usage();
 					return -EXIT_FAIL_NONSTARTER;
@@ -191,7 +191,7 @@ static int memtester_parseopt(int argc, char **argv, size_t pagesize)
 					device_specified = 1;
 				}
 			}
-			break;              
+			break;
 		default: /* '?' */
 			usage();
 			return -EXIT_FAIL_NONSTARTER;
@@ -199,7 +199,7 @@ static int memtester_parseopt(int argc, char **argv, size_t pagesize)
 	}
 
 	if (device_specified && !use_phys) {
-		fprintf(stderr, 
+		fprintf(stderr,
 			"for mem device, "
 			"physaddrbase (-p) must be specified\n");
 		usage();
@@ -309,13 +309,13 @@ static void memtester_badregion(ulv *p1, ulv *p2, size_t i)
 
 	if (use_phys) {
 		physaddr = physaddrbase + (i * sizeof(ul));
-		fprintf(stderr, 
+		fprintf(stderr,
 			"FAILURE: 0x%08lx != 0x%08lx at physical address "
-			"0x%08lx.\n", 
+			"0x%08lx.\n",
 			(ul)*p1, (ul)*p2, physaddr);
 	} else {
-		fprintf(stderr, 
-			"FAILURE: 0x%08lx != 0x%08lx at offset 0x%08lx.\n", 
+		fprintf(stderr,
+			"FAILURE: 0x%08lx != 0x%08lx at offset 0x%08lx.\n",
 			(ul)*p1, (ul)*p2, (ul)(i * sizeof(ul)));
 	}
 }
@@ -326,11 +326,11 @@ static void memtester_badaddr(size_t i)
 
 	if (use_phys) {
 		physaddr = physaddrbase + (i * sizeof(ul));
-		fprintf(stderr, 
+		fprintf(stderr,
 			"FAILURE: possible bad address line at physical "
 			"address 0x%08lx.\n", physaddr);
 	} else {
-		fprintf(stderr, 
+		fprintf(stderr,
 			"FAILURE: possible bad address line at offset "
 			"0x%08lx.\n", (ul)(i * sizeof(ul)));
 	}
@@ -380,17 +380,21 @@ static int test_stuck_address(ulv *bufa, size_t count)
     for (j = 0; j < 16; j++) {
         printf("\b\b\b\b\b\b\b\b\b\b\b");
         p1 = (ulv *) bufa;
-        printf("setting %3u", j);
+        printf("setting %3u\n", j);
+	printf("count:%lu\n",count);
         fflush(stdout);
         for (i = 0; i < count; i++) {
+	     printf("entered\n");
             *p1 = ((j + i) % 2) == 0 ? (ul) p1 : ~((ul) p1);
             *p1++;
+	    printf("i:%ld\n", i);
         }
         printf("\b\b\b\b\b\b\b\b\b\b\b");
         printf("testing %3u", j);
         fflush(stdout);
         p1 = (ulv *) bufa;
         for (i = 0; i < count; i++, p1++) {
+		printf("i:%ld\n", i);
             if (*p1 != (((j + i) % 2) == 0 ? (ul) p1 : ~((ul) p1))) {
                 memtester_badaddr(i);
                 printf("Skipping to next test...\n");
@@ -763,7 +767,7 @@ static int test_bitflip_comparison(ulv *bufa, ulv *bufb, size_t count)
     return 0;
 }
 
-#ifdef CONFIG_MEMTESTER_NARROW_WRITES    
+#ifdef CONFIG_MEMTESTER_NARROW_WRITES
 static int test_8bit_wide_random(ulv* bufa, ulv* bufb, size_t count)
 {
     u8v *p1, *t;
@@ -862,7 +866,7 @@ static struct test {
 	{ "Bit Flip", test_bitflip_comparison },
 	{ "Walking Ones", test_walkbits1_comparison },
 	{ "Walking Zeroes", test_walkbits0_comparison },
-#ifdef CONFIG_MEMTESTER_NARROW_WRITES    
+#ifdef CONFIG_MEMTESTER_NARROW_WRITES
 	{ "8-bit Writes", test_8bit_wide_random },
 	{ "16-bit Writes", test_16bit_wide_random },
 #endif
@@ -898,7 +902,7 @@ static int do_memtester(int argc, char **argv)
 		return -pagesize;
 	pagesizemask = (ptrdiff_t) ~(pagesize - 1);
 	printf("pagesizemask is 0x%lx\n", pagesizemask);
-    
+
 	/* If MEMTESTER_TEST_MASK is set, we use its value as a mask of
 	 * which tests we run.
 	 */
@@ -911,7 +915,7 @@ static int do_memtester(int argc, char **argv)
 		return -opt;
 	argc -= opt;
 	argv += opt;
-    
+
 	if (argc < 2) {
 		fprintf(stderr, "need memory argument, in MB\n");
 		usage();

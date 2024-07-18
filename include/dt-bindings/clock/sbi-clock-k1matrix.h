@@ -37,6 +37,17 @@
 #define CPU1_PLL_FREQ           1250000000
 #define COM_FOUT1PH0_FREQ	625000000
 #define PERI_FOUT1PH0_FREQ	500000000
+
+#define PERI_SUB_MCLK_FREQ	500000000
+#define PERI_SUB_SCLK_FREQ	300000000
+#define PHY2GMAC_RX_CLK_FREQ	125000000
+
+#define mac_clk1		phy2gmac_rx_clk
+
+#define GMAC_125M		PERI_SUB_MCLK_FREQ/4
+#define GMAC_50M		PERI_SUB_MCLK_FREQ/10
+#define GMAC_25M		GMAC_50M/2
+#define GMAC_2_5M		GMAC_25M/10
 #endif
 
 #include <dt-bindings/clock/sbi-clock.h>
@@ -53,12 +64,15 @@
 #define CLK_SEL			2
 #define CLK_DYN			3
 #define CLK_DIV			4
-#define CLK_RSTN		5
+#define CLK_RST			5
 #define CLK_MESH		6
 
 /* INPUT */
 #define OSC_CLK			0
-#define NR_INPUT_CLKS		1
+#define PERI_SUB_MCLK		1
+#define PERI_SUB_SCLK		2
+#define PHY2GMAC_RX_CLK		3
+#define NR_INPUT_CLKS		4
 
 /* PLL */
 #define COM_PLL			0
@@ -130,7 +144,10 @@
 #define RMU_AXI_CLK_DIV		32
 #define RMU_AHB_CLK_DIV		33
 #define RMU_APB_CLK_DIV		34
-#define NR_DIV_CLKS		35
+#define PERI_GMAC_AHB_CLKDIV	35
+#define SYS_APB_CFG_CLKEN	37
+#define C0_CLK_CFG_EN		38
+#define NR_DIV_CLKS		39
 
 /*CLKRSTN*/
 #define CPU_SUB_RSTN		0
@@ -152,7 +169,9 @@
 #define PCIE7_PERST_N		16
 #define PCIE8_PERST_N		17
 #define PCIE9_PERST_N		18
-#define NR_RSTN_CLKS		19
+#define C0_CFG_SRST_N		19
+#define C1_CFG_SRST_N		20
+#define NR_RSTN_CLKS		21
 
 #define SYS_CLK_FREQ		20000000
 #define CFG_CLK_FREQ		10000000
