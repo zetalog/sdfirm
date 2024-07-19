@@ -440,10 +440,15 @@ static void ddr_spd_dump(const uint8_t *buf)
 static int do_spd_dump(int argc, char *argv[])
 {
 	ddr_sid_t slot, sslot;
+	uint8_t smbus;
 
 	if (argc < 3)
 		return -EINVAL;
 	slot = (ddr_cid_t)strtoul(argv[2], 0, 0);
+	if (argv > 3)
+		smbus = strtoul(argv[3], 0, 0);
+	ddr_slot_ctrl.smbus = smbus;
+	ddr_spd_read(ddr_slot_ctrl.spd_buf);
 	sslot = ddr_slot_save(slot);
 	ddr_spd_dump(ddr_slot_ctrl.spd_buf);
 	ddr_slot_restore(sslot);
