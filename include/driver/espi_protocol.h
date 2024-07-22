@@ -7,11 +7,11 @@
 
 /* ESPI Slave Registers (Document # 327432-004 Revision 1.0 Chapter 7) */
 
-#define ESPI_SLAVE_DEVICE_ID				0x04
+#define  ESPI_SLAVE_DEVICE_ID				0x04
 #define  ESPI_SLAVE_VERSION_ID_SHIFT			0
 #define  ESPI_SLAVE_VERSION_ID_MASK			0xf
 
-#define ESPI_SLAVE_GENERAL_CFG				0x08
+#define  ESPI_SLAVE_GENERAL_CFG				0x08
 #define  ESPI_SLAVE_CRC_ENABLE				(1 << 31)
 #define  ESPI_SLAVE_CRC_DISABLE				(0 << 31)
 #define  ESPI_SLAVE_RESP_MOD_ENABLE			(1 << 30)
