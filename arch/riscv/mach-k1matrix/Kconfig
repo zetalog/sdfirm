@@ -32,7 +32,7 @@ config K1MATRIX_ZSBL
 	select SYS_ENTR_M
 	select SYS_EXIT_M
 	select XIP
-	select K1MATRIX_BOOT
+
 config K1MATRIX_FSBL
 	bool "FSBL loader"
 	select ARCH_HAS_BOOT_LOAD
