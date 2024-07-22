@@ -169,9 +169,10 @@
 #define PCIE7_PERST_N		16
 #define PCIE8_PERST_N		17
 #define PCIE9_PERST_N		18
-#define C0_CFG_SRST_N		19
-#define C1_CFG_SRST_N		20
-#define NR_RSTN_CLKS		21
+#define CLUSTER0_SRST_N		19
+#define C0_CFG_SRST_N		20
+#define C1_CFG_SRST_N		21
+#define NR_RSTN_CLKS		22
 
 #define SYS_CLK_FREQ		20000000
 #define CFG_CLK_FREQ		10000000

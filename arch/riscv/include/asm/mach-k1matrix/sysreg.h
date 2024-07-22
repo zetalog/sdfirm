@@ -43,7 +43,7 @@
 #define __SYSREG_K1MATRIX_H_INCLUDE__
 
 #include <asm/mach/reg.h>
-
+#include <asm/mach/sysreg_cpu.h>
 #define SYSREG_REG(offset)	(SYS_REG_BASE + (offset))
 
 #define CPU_SW_RESET		SYSREG_REG(0x000)
@@ -138,6 +138,13 @@
 	BOOTHART(__raw_readl(EFUSE_INFO_REG1))
 #define sysreg_cpu_mask()		\
 	__raw_readl(EFUSE_INFO_REG0)
+#define set_cluster_core_rvba_l(cluster, core, offset, value)	\
+	__raw_writel(value & 0xffffffff, CPUREG_REG(cluster,core,offset))
+#define set_cluster_core_rvba_h(cluster, core, offset, value)	\
+	__raw_writel(value  >> 32, CPUREG_REG(cluster,core,offset))
+#define read_cluster_core(cluster, core, offset)		\
+	__raw_readl(CPUREG_REG(cluster,core,offset))
+
 
 #ifndef __ASSEMBLY__
 void k1matrix_cpu_reset(void);

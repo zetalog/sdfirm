@@ -124,12 +124,16 @@ struct rstn_clk rstn_clks[] = {
 		.rst_reg = CRU_PCIE9_SW_RESET,
 		.flags = CRU_RESET_2BIT,
 	},
-	[C0_CFG_SRST_N] = {
+	[cluster0_srst_n] = {
 		.rst_reg = CRU_CLUSTER0_SW_RESET,
 		.flags = CRU_RESET_4BIT,
 	},
 	[C1_CFG_SRST_N] = {
 		.rst_reg = CRU_CLUSTER1_SW_RESET,
+		.flags = CRU_RESET_4BIT,
+	},
+	[c0_cfg_srst_n] = {
+		.rst_reg = CRU_CLUSTER0_COREX_SW_RESET,
 		.flags = CRU_RESET_4BIT,
 	},
 
@@ -144,7 +148,9 @@ const char *rstn_clk_names[NR_RSTN_CLKS] = {
 	[MESH_SUB_RSTN] = "mesh_sub_rstn",
 	[DDR_SUB_RSTN] = "ddr_sub_rstn",
 	//CLUSTER0 ~ CLUSTER7
+	[CLUSTER0_SRST_N] = "cluster0_srst_n",
 	[C0_CFG_SRST_N] = "c0_cfg_srst_n",
+
 	[C1_CFG_SRST_N] = "c1_cfg_srst_n",
 	[RAS_SRST_N] = "ras_srst_n",
 	[CPU_SUB_SRST_N] = "cpu_sub_srst_n",
@@ -160,9 +166,18 @@ const char *rstn_clk_names[NR_RSTN_CLKS] = {
 	[PCIE7_PERST_N] = "pcie7_perst_n",
 	[PCIE8_PERST_N] = "pcie8_perst_n",
 	[PCIE9_PERST_N] = "pcie9_perst_n",
-
-
 };
+
+const char *get_rstn_name(clk_clk_t clk)
+{
+	if (clk >= NR_RSTN_CLKS)
+		return NULL;
+	return rstn_clk_names[clk];
+}
+#else
+#define get_rstn_name		NULL
+#endif
+
 static int enable_rstn(clk_clk_t clk)
 {
 	if (clk >= NR_RSTN_CLKS)
@@ -171,10 +186,18 @@ static int enable_rstn(clk_clk_t clk)
 		clk_select_source(rstn_clks[clk].src, 1);
 	else
 		clk_enable(rstn_clks[clk].src);
+	cru_trace(true, get_rstn_name(clk));
 	__raw_setl(CRU_RSTN(0), rstn_clks[clk].rst_reg);
+	if (rstn_clks[clk].flags & CRU_RESET_2BIT)
+		__raw_setl(CRU_RSTN(1), rstn_clks[clk].rst_reg);
 	if (rstn_clks[clk].flags & CRU_RESET_3BIT) {
 		__raw_setl(CRU_RSTN(1), rstn_clks[clk].rst_reg);
 		__raw_setl(CRU_RSTN(2), rstn_clks[clk].rst_reg);
+	}
+	if (rstn_clks[clk].flags & CRU_RESET_4BIT) {
+		__raw_setl(CRU_RSTN(1), rstn_clks[clk].rst_reg);
+		__raw_setl(CRU_RSTN(2), rstn_clks[clk].rst_reg);
+		__raw_setl(CRU_RSTN(3), rstn_clks[clk].rst_reg);
 	}
 	return 0;
 }
@@ -189,21 +212,18 @@ static void disable_rstn(clk_clk_t clk)
 	else
 		clk_disable(rstn_clks[clk].src);
 	__raw_clearl(CRU_RSTN(0), rstn_clks[clk].rst_reg);
+	if (rstn_clks[clk].flags & CRU_RESET_2BIT)
+		__raw_clearl(CRU_RSTN(1), rstn_clks[clk].rst_reg);
 	if (rstn_clks[clk].flags & CRU_RESET_3BIT) {
 		__raw_clearl(CRU_RSTN(1), rstn_clks[clk].rst_reg);
 		__raw_clearl(CRU_RSTN(2), rstn_clks[clk].rst_reg);
 	}
+	if (rstn_clks[clk].flags & CRU_RESET_4BIT) {
+		__raw_clearl(CRU_RSTN(1), rstn_clks[clk].rst_reg);
+		__raw_clearl(CRU_RSTN(2), rstn_clks[clk].rst_reg);
+		__raw_clearl(CRU_RSTN(3), rstn_clks[clk].rst_reg);
+	}
 }
-
-const char *get_rstn_name(clk_clk_t clk)
-{
-	if (clk >= NR_RSTN_CLKS)
-		return NULL;
-	return rstn_clk_names[clk];
-}
-#else
-#define get_rstn_name		NULL
-#endif
 
 const struct clk_driver clk_rstn = {
 	.max_clocks = NR_RSTN_CLKS,

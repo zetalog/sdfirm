@@ -300,6 +300,8 @@ typedef uint32_t cmn_id_t;
 					CMN_12BIT_REG(base, 0x0C30, n)
 #define CMN_rnsam_sys_cache_grp_region(base, n)		\
 					CMN_32BIT_REG(base, 0x0C48, n)
+#define CMN_rnsam_sys_cache_grp_secondary_region(base, n)		\
+					CMN_32BIT_REG(base, 0x0F00, n)
 #define CMN_rnsam_sys_cache_grp_hn_nodeid(base, n)	\
 					CMN_12BIT_REG(base, 0x0C58, n)
 #define CMN_rnsam_sys_cache_grp_nonhash_nodeid(base, n)	\
@@ -544,6 +546,7 @@ typedef uint8_t cmn_did_t;
 	 CMN_region_target_type(t) |		\
 	 CMN_region_base_addr(b >> 26) |	\
 	 CMN_region_size(__ilog2_u64((s) / CMN_SAM_GRANU)))
+
 #define CMN_valid_nonhash_region(t, b, s)	\
 	(CMN_region_valid |			\
 	 CMN_region_nonhash_reg_en |		\
@@ -917,11 +920,12 @@ typedef uint8_t cmn_did_t;
 	(!!(__raw_readq(CMN_cxla_ccix_prop_capabilities(CMN_CXLA_BASE)) & CMN_la_nomessagepack))
 
 /* Configuration interfaces */
-#define CMN600_MEMORY_REGION_TYPE_IO		0
-#define CMN600_MEMORY_REGION_TYPE_SYSCACHE	1
-#define CMN600_REGION_TYPE_SYSCACHE_SUB		2
-#define CMN600_REGION_TYPE_CCIX			3
-#define CMN600_REGION_TYPE_SYSCACHE_NONHASH	4
+#define CMN600_MEMORY_REGION_TYPE_IO			0
+#define CMN600_MEMORY_REGION_TYPE_SYSCACHE		1
+#define CMN600_REGION_TYPE_SYSCACHE_SUB			2
+#define CMN600_REGION_TYPE_CCIX				3
+#define CMN600_REGION_TYPE_SYSCACHE_NONHASH		4
+#define CMN600_MEMORY_REGION_TYPE_SYSCACHE_SECONDARY	5
 
 #ifdef CONFIG_CMN600_DEBUG
 void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i);

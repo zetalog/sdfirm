@@ -49,6 +49,7 @@
 #include <target/sbi.h>
 #include <target/noc.h>
 #include <target/pci.h>
+#include <asm/mach/sysreg.h>
 
 unsigned long k1matrix_die_base = DIE0_BASE;
 unsigned long k1matrix_die_hart = DIE0_HART;
@@ -114,11 +115,14 @@ void board_late_init(void)
 	k1matrix_n100_init();
 	pcie_ccix_linkup();
 	k1matrix_n100_d2d_init();
-	clk_enable(cpu_nic_clk);
+
+	set_cluster_core_rvba_l(0,0,0,DIE0_BASE);
+	set_cluster_core_rvba_h(0,0,1,DIE0_BASE);
+	clk_enable(cluster0_srst_clk);
 	clk_enable(c0_cfg_srst_clk);
-	clk_enable(c1_cfg_srst_clk);
 	clk_enable(c0_cfg_clk);
-	clk_enable(cpu_clk);
+	clk_enable(cpu_sub_rstn);
+	clk_enable(cpu_sub_srst_clk);
 	board_boot();
 }
 

@@ -144,6 +144,7 @@
 #define pcie7_perst_n		clkid(CLK_RST, PCIE7_PERST_N)
 #define pcie8_perst_n		clkid(CLK_RST, PCIE8_PERST_N)
 #define pcie9_perst_n		clkid(CLK_RST, PCIE9_PERST_N)
+#define cluster0_srst_n		clkid(CLK_RST, CLUSTER0_SRST_N)
 #define c0_cfg_srst_n		clkid(CLK_RST, C0_CFG_SRST_N)
 #define c1_cfg_srst_n		clkid(CLK_RST, C1_CFG_SRST_N)
 
@@ -185,9 +186,11 @@
 #define peri_gpio3_db_clk	peri_gpio3_db_clkdiv
 #define peri_gpio4_db_clk	peri_gpio4_db_clkdiv
 #define peri_dmac_clk		peri_dmac_clken
+#define cluster0_srst_clk	cluster0_srst_n
 #define c0_cfg_srst_clk		c0_cfg_srst_n
 #define c1_cfg_srst_clk		c1_cfg_srst_n
 #define c0_cfg_clk		c0_clk_cfg_en
+#define cpu_sub_srst_clk	cpu_sub_srst_n
 
 #define gmac_aclk		peri_gmac_axi_clkdiv
 #define peri_hclk		peri_gmac_ahb_clkdiv
