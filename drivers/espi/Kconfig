@@ -7,4 +7,9 @@ menu "eSPI Master drivers"
 
 menuconfig SPACEMIT_ESPI
 	bool "SPACEMIT eSPI support"
+
+if SPACEMIT_ESPI
+
+endif
+
 endmenu

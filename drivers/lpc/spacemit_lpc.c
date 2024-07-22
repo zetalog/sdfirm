@@ -322,7 +322,7 @@ static int do_lpc_read(int argc, char *argv[])
 		return -EINVAL;
 
 	if (strcmp(argv[2], "mem") == 0) {
-		if (argc < 4) 
+		if (argc < 4)
 			return -EINVAL;
 		addr = (caddr_t)strtoull(argv[4], 0, 0);
 		if (strcmp(argv[3], "1") == 0) {
@@ -359,7 +359,7 @@ static int do_lpc_write(int argc, char *argv[])
 	if (strcmp(argv[2], "mem") == 0) {
 		uint32_t v;
 		int size;
-		if (argc < 6) 
+		if (argc < 6)
 			return -EINVAL;
 		size = (uint32_t)strtoull(argv[3], 0, 0);
 		v = (uint32_t)strtoull(argv[4], 0, 0);

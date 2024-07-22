@@ -20,4 +20,12 @@
 #error "Multiple eSPI controller defined"
 #endif
 
+#ifdef CONFIG_K1MATRIX_ESPI
+#include <driver/spacemit_espi.h>
+#endif
+
+#define espi_hw_ctrl_init()		k1matrix_espi_init()
+
+void k1matrix_espi_init(void);
+
 #endif /* __ESPI_K1MATRIX_H_INCLUDE__ */
