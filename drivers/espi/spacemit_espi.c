@@ -38,17 +38,10 @@
  * @(#)spacemit_espi.c: SpacemiT eSPI implementation
  * $Id: spacemit_espi.c,v 1.1 2023-11-27 16:50:00 zhenglv Exp $
  */
-#include <target/console.h>
-#include <target/barrier.h>
-#include <target/irq.h>
-#include <target/stream.h>
+#include <target/espi.h>
 #include <target/cmdline.h>
-#include <target/bh.h>
+#include <target/irq.h>
 #include <target/panic.h>
-
-#include <driver/espi.h>
-#include <driver/espi_protocol.h>
-#include <driver/spacemit_espi.h>
 
 #ifdef SYS_REALTIME
 #define espi_poll_init()	spacemit_espi_poll_init()
@@ -372,7 +365,7 @@ static int espi_open_generic_io_window(uint16_t base, size_t size)
 	int idx;
 
 	for (; size; size -= win_size, base += win_size) {
-		win_size = MIN(size, ESPI_GENERIC_IO_MAX_WIN_SIZE);
+		win_size = min(size, ESPI_GENERIC_IO_MAX_WIN_SIZE);
 
 		idx = espi_find_io_window(base);
 		if (idx != -1) {
@@ -464,7 +457,7 @@ int espi_open_mmio_window(uint32_t base, size_t size)
 	int idx;
 
 	for (; size; size -= win_size, base += win_size) {
-		win_size = MIN(size, ESPI_GENERIC_MMIO_MAX_WIN_SIZE);
+		win_size = min(size, ESPI_GENERIC_MMIO_MAX_WIN_SIZE);
 
 		idx = espi_find_mmio_window(base);
 		if (idx != -1) {
@@ -966,9 +959,9 @@ static void espi_enable_ctrlr_channel(uint32_t channel_en)
 	espi_write32(reg, ESPI_SLAVE0_CONFIG);
 }
 
-static int eespi_set_channel_configurationespi_set_channel_configurationspi_set_channel_configuration(uint32_t slave_config,
-						  uint32_t slave_reg_addr,
-						  uint32_t ctrlr_enable)
+static int espi_set_channel_configuration(uint32_t slave_config,
+					  uint32_t slave_reg_addr,
+					  uint32_t ctrlr_enable)
 {
 	if (espi_set_configuration(slave_reg_addr, slave_config) != 0)
 		return -1;
@@ -1012,7 +1005,7 @@ static int espi_setup_vw_channel(const struct espi_config *mb_cfg, uint32_t slav
 	ctrlr_vw_count_supp = FIELD_GET(MASTER_CAP_VW_MAX_SIZE_MASK, ctrlr_vw_caps);
 
 	slave_vw_count_supp = espi_slave_get_vw_count_supp(slave_vw_caps);
-	use_vw_count = MIN(ctrlr_vw_count_supp, slave_vw_count_supp);
+	use_vw_count = min(ctrlr_vw_count_supp, slave_vw_count_supp);
 
 	slave_config = ESPI_SLAVE_CHANNEL_ENABLE | ESPI_SLAVE_VW_COUNT_SEL_VAL(use_vw_count);
 	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_VW_CFG, ESPI_VW_CH_EN);
