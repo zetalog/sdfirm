@@ -96,6 +96,7 @@ static const char *const cmn_mmap2name[] = {
 	[CMN600_REGION_TYPE_SYSCACHE_SUB] = "Sub-System Cache",
 	[CMN600_REGION_TYPE_CCIX] = "CCIX",
 	[CMN600_REGION_TYPE_SYSCACHE_NONHASH] = "System Cache Non-hash",
+	[CMN600_MEMORY_REGION_TYPE_SYSCACHE_SECONDARY] = "System Cache secondary",
 };
 
 const char *cmn600_mem_region_name(uint8_t type)
@@ -479,10 +480,10 @@ void cmn600_discover(void)
 	for (xp_index = 0; xp_index < xp_count; xp_index++) {
 		xp = cmn_child_node(CMN_CFGM_BASE, xp_index);
 
-		con_dbg(CMN_MODNAME ": XP (%d, %d) ID: %d, LID: %d\n",
+		/*con_dbg(CMN_MODNAME ": XP (%d, %d) ID: %d, LID: %d\n",
 			(int)cmn_node_x(xp), (int)cmn_node_y(xp),
 			(int)cmn_node_id(xp), (int)cmn_logical_id(xp));
-
+		*/
 		node_count = cmn_child_count(xp);
 		for (node_index = 0; node_index < node_count; node_index++) {
 			node = cmn_child_node(xp, node_index);
@@ -545,7 +546,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 
 	tgt_nodes = cmn600_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);
-
+	cmn_mmap_count = 10;
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
 		/* TODO: Should rely on chip id to fill remote regions */
@@ -558,10 +559,12 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		else
 			base = region->base + cmn600_cml_base();
 
-		con_dbg(CMN_MODNAME ": %s: RN SAM %d: ID: %d, [%016llx - %016llx]\n",
-			cmn600_mem_region_name(region->type), region_index,
+		//con_dbg(CMN_MODNAME "configuring...\n");
+		/*con_dbg(CMN_MODNAME ": %s-%d: RN SAM %d/%d: ID: %d, [%016llx - %016llx]\n",
+			cmn600_mem_region_name(region->type), region->type,
+			region_index, cmn_mmap_count,
 			region->node_id, (uint64_t)base, (uint64_t)(base + region->size));
-
+		*/
 		switch (region->type) {
 		case CMN600_MEMORY_REGION_TYPE_IO:
 		case CMN600_REGION_TYPE_CCIX:
@@ -611,6 +614,24 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			region_sys_count++;
 			break;
 
+		case CMN600_MEMORY_REGION_TYPE_SYSCACHE_SECONDARY:
+			if (region_sys_count >= CMN_MAX_HASH_MEM_REGIONS) {
+				con_err(CMN_MODNAME ": SYS count %d > limit %d\n",
+					region_sys_count, CMN_MAX_HASH_MEM_REGIONS);
+				BUG();
+			}
+
+			memregion = CMN_valid_region(CMN_region_target_HNF,
+						     base, region->size);
+			cmn_writeq_mask(CMN_region(region_sys_count, memregion),
+					CMN_region(region_sys_count, CMN_region_MASK),
+					CMN_rnsam_sys_cache_grp_secondary_region(rnsam, region_sys_count),
+					"CMN_rnsam_sys_cache_grp_secondary_region", region_sys_count);
+
+			cmn_hnf_cal_enable_scg(region_sys_count);
+			region_sys_count++;
+			break;
+
 		case CMN600_REGION_TYPE_SYSCACHE_NONHASH:
 			memregion = CMN_valid_nonhash_region(CMN_region_target_HNI,
 							     region->base,
@@ -633,6 +654,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			break;
 
 		default:
+			con_dbg("Wrong region type %d\n", region->type);
 			BUG();
 			break;
 		}
@@ -644,8 +666,8 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				CMN_nodeid(lid, CMN_nodeid_MASK),
 				CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, lid),
 				"CMN_rnsam_sys_cache_grp_hn_nodeid", lid);
-		con_dbg(CMN_MODNAME ": SCG: %d/%d, ID: %d\n",
-			lid, cmn_hnf_count, nid);
+		//con_dbg(CMN_MODNAME ": SCG: %d/%d, ID: %d\n",
+		//	lid, cmn_hnf_count, nid);
 	}
 	cmn_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam),
 		   "CMN_rnsam_sys_cache_group_hn_count", -1);
@@ -701,6 +723,8 @@ void cmn600_configure_rn_sam_ext(cmn_nid_t nid)
 	}
 }
 
+extern int k1matrix_test(void);
+
 void cmn600_init(void)
 {
 	caddr_t root_node_pointer;
@@ -713,6 +737,7 @@ void cmn600_init(void)
 	cmn_bases[CMN_CFGM_ID] = CMN_PERIPH_BASE + root_node_pointer;
 	cmn_nr_nodes = 1;
 	con_dbg(CMN_MODNAME "cmn600_discover\n");
+	k1matrix_test();
 	cmn600_discover();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
 	cmn600_configure();
