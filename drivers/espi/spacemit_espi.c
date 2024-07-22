@@ -44,6 +44,7 @@
 #include <target/stream.h>
 #include <target/cmdline.h>
 #include <target/bh.h>
+#include <target/panic.h>
 
 #include <driver/espi.h>
 #include <driver/espi_protocol.h>
@@ -73,6 +74,16 @@ static uint32_t espi_read32(unsigned long reg)
 static void espi_write32(uint32_t val, unsigned long reg)
 {
 	__raw_writel(val, reg);
+}
+
+static uint32_t espi_read32_mask(unsigned long reg, unsigned long mask)
+{
+	return (__raw_readl(reg) & mask);
+}
+
+static void espi_write32_mask(uint32_t val, unsigned long mask, unsigned long addr)
+{
+	__raw_writel_mask(val, mask, addr);
 }
 
 static uint16_t espi_read16(unsigned long reg)
@@ -368,12 +379,12 @@ static int espi_open_generic_io_window(uint16_t base, size_t size)
 			size_t curr_size = espi_get_io_window_size(idx);
 
 			if (curr_size > win_size) {
-				printf("eSPI window already configured to be larger than requested! ");
-				printf("Base: 0x%x, Requested size: 0x%zx, Actual size: 0x%zx\n",
+				con_err("eSPI window already configured to be larger than requested! ");
+				con_log("Base: 0x%x, Requested size: 0x%zx, Actual size: 0x%zx\n",
 				       base, win_size, curr_size);
 			} else if (curr_size < win_size) {
 				espi_write_io_window(idx, base, win_size);
-				printf("eSPI window at base: 0x%x resized from 0x%zx to 0x%zx\n",
+				con_log("eSPI window at base: 0x%x resized from 0x%zx to 0x%zx\n",
 				       base, curr_size, win_size);
 			}
 
@@ -382,9 +393,9 @@ static int espi_open_generic_io_window(uint16_t base, size_t size)
 
 		idx = espi_get_unused_io_window();
 		if (idx == -1) {
-			printf("Cannot open IO window base %x size %zx\n", base,
+			con_err("Cannot open IO window base %x size %zx\n", base,
 			       size);
-			printf("No more available IO windows!\n");
+			con_err("No more available IO windows!\n");
 			return -1;
 		}
 
@@ -460,12 +471,12 @@ int espi_open_mmio_window(uint32_t base, size_t size)
 			size_t curr_size = espi_get_mmio_window_size(idx);
 
 			if (curr_size > win_size) {
-				printf("eSPI window already configured to be larger than requested! ");
-				printf("Base: 0x%x, Requested size: 0x%zx, Actual size: 0x%zx\n",
+				con_err("eSPI window already configured to be larger than requested! ");
+				con_log("Base: 0x%x, Requested size: 0x%zx, Actual size: 0x%zx\n",
 				       base, win_size, curr_size);
 			} else if (curr_size < win_size) {
 				espi_write_mmio_window(idx, base, win_size);
-				printf("eSPI window at base: 0x%x resized from 0x%zx to 0x%zx\n",
+				con_log("eSPI window at base: 0x%x resized from 0x%zx to 0x%zx\n",
 				       base, curr_size, win_size);
 			}
 
@@ -474,9 +485,9 @@ int espi_open_mmio_window(uint32_t base, size_t size)
 
 		idx = espi_get_unused_mmio_window();
 		if (idx == -1) {
-			printf("Cannot open IO window base %x size %zx\n", base,
+			con_err("Cannot open IO window base %x size %zx\n", base,
 			       size);
-			printf("No more available MMIO windows!\n");
+			con_err("No more available MMIO windows!\n");
 			return -1;
 		}
 
@@ -525,8 +536,8 @@ union espi_txhdr0 {
 		uint32_t slave_sel:2;
 		uint32_t rsvd:2;
 		uint32_t hdata0:8;
-		uint32_t hdata1:8;
 		uint32_t hdata2:8;
+		uint32_t hdata1:8;
 	};
 } __packed;
 
@@ -603,26 +614,24 @@ static int espi_poll_status(uint32_t *status)
 			return 0;
 	} while (count--);
 
-	printf("eSPI timed out waiting for status update.\n");
+	con_err("eSPI timed out waiting for status update.\n");
 
 	return -1;
 }
 
 static void espi_show_failure(const struct espi_cmd *cmd, const char *str, uint32_t status)
 {
-	printf("eSPI cmd0-cmd2: %08x %08x %08x data: %08x.\n",
+	con_log("eSPI cmd0-cmd2: %08x %08x %08x data: %08x.\n",
 	       cmd->hdr0.val, cmd->hdr1.val, cmd->hdr2.val, cmd->data.val);
-	printf("%s (Status = 0x%x)\n", str, status);
+	con_log("%s (Status = 0x%x)\n", str, status);
 }
 
 static int espi_send_command(const struct espi_cmd *cmd)
 {
 	uint32_t status;
 
-#ifdef CONFIG_ESPI_DEBUG
-	printf("eSPI cmd0-cmd2: %08x %08x %08x data: %08x.\n",
+	con_log("eSPI cmd0-cmd2: %08x %08x %08x data: %08x.\n",
 	       cmd->hdr0.val, cmd->hdr1.val, cmd->hdr2.val, cmd->data.val);
-#endif
 
 	if (espi_wait_ready() != 0) {
 		espi_show_failure(cmd, "Error: eSPI was not ready to accept a command", 0);
@@ -631,12 +640,26 @@ static int espi_send_command(const struct espi_cmd *cmd)
 
 	espi_clear_status();
 
-	espi_write32(cmd->hdr1.val, ESPI_DN_TXHDR_1);
-	espi_write32(cmd->hdr2.val, ESPI_DN_TXHDR_2);
+	//espi_write32(cmd->hdr1.val, ESPI_DN_TXHDR_1);
+	espi_write32_mask(DN_TXHDR_1_DNCMD_HDATA5(cmd->hdr1.hdata5), DN_TXHDR_1_DNCMD_HDATA5(DN_TXHDR_1_DNCMD_HDATA5_MASK), ESPI_DN_TXHDR_1);
+	espi_write32_mask(DN_TXHDR_1_DNCMD_HDATA6(cmd->hdr1.hdata6), DN_TXHDR_1_DNCMD_HDATA6(DN_TXHDR_1_DNCMD_HDATA6_MASK), ESPI_DN_TXHDR_1);
+	espi_write32_mask(DN_TXHDR_1_DNCMD_HDATA3(cmd->hdr1.hdata3), DN_TXHDR_1_DNCMD_HDATA3(DN_TXHDR_1_DNCMD_HDATA3_MASK), ESPI_DN_TXHDR_1);
+	espi_write32_mask(DN_TXHDR_1_DNCMD_HDATA4(cmd->hdr1.hdata4), DN_TXHDR_1_DNCMD_HDATA4(DN_TXHDR_1_DNCMD_HDATA4_MASK), ESPI_DN_TXHDR_1);
+	
+	//espi_write32(cmd->hdr2.val, ESPI_DN_TXHDR_2);
+	espi_write32_mask(DN_TXHDR_2_DNCMD_HDATA7(cmd->hdr2.hdata7), DN_TXHDR_2_DNCMD_HDATA7(DN_TXHDR_2_DNCMD_HDATA7_MASK), ESPI_DN_TXHDR_2);
+	
 	espi_write32(cmd->data.val, ESPI_DN_TXDATA_PORT);
 
 	/* Dword 0 must be last as this write triggers the transaction */
-	espi_write32(cmd->hdr0.val, ESPI_DN_TXHDR_0);
+	//espi_write32(cmd->hdr0.val, ESPI_DN_TXHDR_0);
+	espi_write32_mask(DN_TXHDR_0_DNCMD_HDATA1(cmd->hdr0.hdata1), DN_TXHDR_0_DNCMD_HDATA1(DN_TXHDR_0_DNCMD_HDATA1_MASK), ESPI_DN_TXHDR_0);
+	espi_write32_mask(DN_TXHDR_0_DNCMD_HDATA2(cmd->hdr0.hdata2), DN_TXHDR_0_DNCMD_HDATA2(DN_TXHDR_0_DNCMD_HDATA2_MASK), ESPI_DN_TXHDR_0);
+	espi_write32_mask(DN_TXHDR_0_DNCMD_TYPE(cmd->hdr0.cmd_type), DN_TXHDR_0_DNCMD_TYPE(DN_TXHDR_0_DNCMD_TYPE_MASK), ESPI_DN_TXHDR_0);
+	espi_write32((cmd->hdr0.cmd_sts) | DN_TXHDR_0_DNCMD_EN, ESPI_DN_TXHDR_0);
+	espi_write32_mask(DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL(cmd->hdr0.slave_sel), DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL(DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL_MASK), ESPI_DN_TXHDR_0);
+	espi_write32_mask(DN_TXHDR_0_DNCMD_HDATA0(cmd->hdr0.hdata0), DN_TXHDR_0_DNCMD_HDATA0(DN_TXHDR_0_DNCMD_HDATA0_MASK), ESPI_DN_TXHDR_0);
+
 
 	if (espi_wait_ready() != 0) {
 		espi_show_failure(cmd,
@@ -752,10 +775,8 @@ static int espi_get_configuration(uint16_t slave_reg_addr, uint32_t *config)
 
 	*config = espi_read32(ESPI_DN_TXHDR_1);
 
-#ifdef CONFIG_ESPI_DEBUG
-	printf("Get configuration for slave register(0x%x): 0x%x\n",
+	con_log("Get configuration for slave register(0x%x): 0x%x\n",
 	       slave_reg_addr, *config);
-#endif
 
 	return 0;
 }
@@ -796,21 +817,21 @@ static int espi_set_io_mode_cfg(enum espi_io_mode mb_io_mode, uint32_t slave_cap
 			*ctrlr_config |= ESPI_IO_MODE_QUAD;
 			break;
 		}
-		printf("eSPI Quad I/O not supported. Dropping to dual mode.\n");
+		con_err("eSPI Quad I/O not supported. Dropping to dual mode.\n");
 	case ESPI_IO_MODE_DUAL:
 		if (espi_slave_supports_dual_io(slave_caps)) {
 			*slave_config |= ESPI_SLAVE_IO_MODE_SEL_DUAL;
 			*ctrlr_config |= ESPI_IO_MODE_DUAL;
 			break;
 		}
-		printf("eSPI Dual I/O not supported. Dropping to single mode.\n");
+		con_err("eSPI Dual I/O not supported. Dropping to single mode.\n");
 	case ESPI_IO_MODE_SINGLE:
 		/* Single I/O mode is always supported. */
 		*slave_config |= ESPI_SLAVE_IO_MODE_SEL_SINGLE;
 		*ctrlr_config |= ESPI_IO_MODE_SINGLE;
 		break;
 	default:
-		printf("No supported eSPI I/O modes!\n");
+		con_err("No supported eSPI I/O modes!\n");
 		return -1;
 	}
 	return 0;
@@ -853,7 +874,7 @@ static int espi_set_op_freq_cfg(enum espi_op_freq mb_op_freq, uint32_t slave_cap
 			break;
 		}
 	default:
-		printf("No supported eSPI Operating Frequency!\n");
+		con_err("No supported eSPI Operating Frequency!\n");
 		return -1;
 	}
 	return 0;
@@ -872,7 +893,7 @@ static int espi_set_alert_pin_cfg(enum espi_alert_pin alert_pin, uint32_t slave_
 		return 0;
 	case ESPI_ALERT_PIN_OPEN_DRAIN:
 		if (!(slave_caps & ESPI_SLAVE_OPEN_DRAIN_ALERT_SUPP)) {
-			printf("eSPI peripheral does not support open drain alert!");
+			con_err("eSPI peripheral does not support open drain alert!");
 			return -1;
 		}
 
@@ -880,7 +901,7 @@ static int espi_set_alert_pin_cfg(enum espi_alert_pin alert_pin, uint32_t slave_
 		*ctrlr_config |= ESPI_ALERT_MODE;
 		return 0;
 	default:
-		printf("Unknown espi alert config: %u!\n", alert_pin);
+		con_err("Unknown espi alert config: %u!\n", alert_pin);
 		return -1;
 	}
 }
@@ -906,10 +927,8 @@ static int espi_set_general_configuration(const struct espi_config *mb_cfg,
 			!= 0)
 		return -1;
 
-#ifdef CONFIG_ESPI_DEBUG
-	printf("Setting general configuration: slave: 0x%x controller: 0x%x\n",
+	con_log("Setting general configuration: slave: 0x%x controller: 0x%x\n",
 	       slave_config, ctrlr_config);
-#endif
 
 	espi_show_slave_general_configuration(slave_config);
 
@@ -923,7 +942,7 @@ static int espi_set_general_configuration(const struct espi_config *mb_cfg,
 static int espi_wait_channel_ready(uint16_t slave_reg_addr)
 {
 	uint32_t config;
-	int count = 1000;
+	int count = ESPI_CH_READY_TIMEOUT_US;
 
 	do {
 		if (espi_get_configuration(slave_reg_addr, &config) != 0)
@@ -932,7 +951,7 @@ static int espi_wait_channel_ready(uint16_t slave_reg_addr)
 			return 0;
 	} while (count--);
 
-	printf("Channel is not ready after %d usec (slave addr: 0x%x)\n",
+	con_err("Channel is not ready after %d usec (slave addr: 0x%x)\n",
 	       ESPI_CH_READY_TIMEOUT_US, slave_reg_addr);
 	return -1;
 
@@ -957,6 +976,9 @@ static int espi_set_channel_configuration(uint32_t slave_config,
 	if (!(slave_config & ESPI_SLAVE_CHANNEL_ENABLE))
 		return 0;
 
+	if (espi_set_configuration(slave_reg_addr, 0x70701) != 0)
+		return -1;
+
 	if (espi_wait_channel_ready(slave_reg_addr) != 0)
 		return -1;
 
@@ -977,12 +999,14 @@ static int espi_setup_vw_channel(const struct espi_config *mb_cfg, uint32_t slav
 		return 0;
 
 	if (!espi_slave_supports_vw_channel(slave_caps)) {
-		printf("eSPI slave doesn't support VW channel!\n");
+		con_err("eSPI slave doesn't support VW channel!\n");
 		return -1;
 	}
 
-	if (espi_get_configuration(ESPI_SLAVE_VW_CFG, &slave_vw_caps) != 0)
+	if (espi_get_configuration(ESPI_SLAVE_VW_CFG, &slave_vw_caps) != 0) {
+		con_err("Failed to get VW configuration!\n");
 		return -1;
+	}
 
 	ctrlr_vw_caps = espi_read32(ESPI_MASTER_CAP);
 	ctrlr_vw_count_supp = FIELD_GET(MASTER_CAP_VW_MAX_SIZE_MASK, ctrlr_vw_caps);
@@ -1012,7 +1036,7 @@ static int espi_setup_periph_channel(const struct espi_config *mb_cfg,
 	 */
 	if (mb_cfg->periph_ch_en) {
 		if (!espi_slave_supports_periph_channel(slave_caps)) {
-			printf("eSPI slave doesn't support periph channel!\n");
+			con_err("eSPI slave doesn't support periph channel!\n");
 			return -1;
 		}
 		slave_config |= slave_en_mask;
@@ -1048,7 +1072,7 @@ static int espi_setup_oob_channel(const struct espi_config *mb_cfg, uint32_t sla
 		return 0;
 
 	if (!espi_slave_supports_oob_channel(slave_caps)) {
-		printf("eSPI slave doesn't support OOB channel!\n");
+		con_err("eSPI slave doesn't support OOB channel!\n");
 		return -1;
 	}
 
@@ -1070,7 +1094,7 @@ static int espi_setup_flash_channel(const struct espi_config *mb_cfg,
 		return 0;
 
 	if (!espi_slave_supports_flash_channel(slave_caps)) {
-		printf("eSPI slave doesn't support flash channel!\n");
+		con_err("eSPI slave doesn't support flash channel!\n");
 		return -1;
 	}
 
@@ -1102,7 +1126,7 @@ static int espi_set_initial_config(const struct espi_config *mb_cfg)
 		espi_initial_mode |= SLAVE0_CONFIG_ALERT_MODE_SEL;
 		break;
 	default:
-		printf("Unknown espi alert config: %u!\n", mb_cfg->alert_pin);
+		con_err("Unknown espi alert config: %u!\n", mb_cfg->alert_pin);
 		return -1;
 	}
 
@@ -1129,11 +1153,11 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 	uint32_t slave_caps;
 	struct espi_config def_cfg;
 
-	printf("Initializing eSPI.\n");
+	con_log("Initializing eSPI.\n");
 
 	if (cfg == NULL) {
 		def_cfg.std_io_decode_bitmap = ESPI_DECODE_IO_0x80_EN | ESPI_DECODE_IO_0X2E_0X2F_EN | ESPI_DECODE_IO_0X60_0X64_EN,
-		def_cfg.io_mode = ESPI_IO_MODE_QUAD,
+		def_cfg.io_mode = ESPI_IO_MODE_SINGLE,
 		def_cfg.op_freq_mhz = ESPI_OP_FREQ_20_MHZ,
 		def_cfg.crc_check_en = 1,
 		def_cfg.alert_pin = ESPI_ALERT_PIN_PUSH_PULL,
@@ -1165,7 +1189,7 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 	 * The resets affects both host and slave devices, so set initial config again.
 	 */
 	if (espi_send_reset() != 0) {
-		printf("In-band reset failed!\n");
+		con_err("In-band reset failed!\n");
 		return -1;
 	}
 
@@ -1177,7 +1201,7 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 	 * Get configuration of slave device.
 	 */
 	if (espi_get_general_configuration(&slave_caps) != 0) {
-		printf("Slave GET_CONFIGURATION failed!\n");
+		con_err("Slave GET_CONFIGURATION failed!\n");
 		return -1;
 	}
 
@@ -1187,7 +1211,7 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 	 * Step 5: Set host slave config
 	 */
 	if (espi_set_general_configuration(cfg, slave_caps) != 0) {
-		printf("Slave SET_CONFIGURATION failed!\n");
+		con_err("Slave SET_CONFIGURATION failed!\n");
 		return -1;
 	}
 
@@ -1203,49 +1227,49 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 	 */
 	/* Set up VW first so we can deassert PLTRST#. */
 	if (espi_setup_vw_channel(cfg, slave_caps) != 0) {
-		printf("Setup VW channel failed!\n");
+		con_err("Setup VW channel failed!\n");
 		return -1;
 	}
 
 	/* Assert PLTRST# if VW channel is enabled by mainboard. */
 	if (espi_send_pltrst(cfg, true) != 0) {
-		printf("PLTRST# assertion failed!\n");
+		con_err("PLTRST# assertion failed!\n");
 		return -1;
 	}
 
 	/* De-assert PLTRST# if VW channel is enabled by mainboard. */
 	if (espi_send_pltrst(cfg, false) != 0) {
-		printf("PLTRST# deassertion failed!\n");
+		con_err("PLTRST# deassertion failed!\n");
 		return -1;
 	}
 
 	if (espi_setup_periph_channel(cfg, slave_caps) != 0) {
-		printf("Setup Periph channel failed!\n");
+		con_err("Setup Periph channel failed!\n");
 		return -1;
 	}
 
 	if (espi_setup_pr_base_addr_mem0(SPACEMIT_ESPI_PR_MEM0)) {
-		printf("Setup Periph channel mem0 failed!\n");
+		con_err("Setup Periph channel mem0 failed!\n");
 		return -1;
 	}
 
 	if (espi_setup_pr_base_addr_mem1(SPACEMIT_ESPI_PR_MEM1)) {
-		printf("Setup Periph channel mem1 failed!\n");
+		con_err("Setup Periph channel mem1 failed!\n");
 		return -1;
 	}
 
 	if (espi_setup_oob_channel(cfg, slave_caps) != 0) {
-		printf("Setup OOB channel failed!\n");
+		con_err("Setup OOB channel failed!\n");
 		return -1;
 	}
 
 	if (espi_setup_flash_channel(cfg, slave_caps) != 0) {
-		printf("Setup Flash channel failed!\n");
+		con_err("Setup Flash channel failed!\n");
 		return -1;
 	}
 
 	if (espi_configure_decodes(cfg) != 0) {
-		printf("Configuring decodes failed!\n");
+		con_err("Configuring decodes failed!\n");
 		return -1;
 	}
 
@@ -1266,7 +1290,7 @@ int espi_hw_ctrl_init(struct espi_config *cfg)
 	clk_enable(espi_sclk);
 #endif
 
-	printf("Finished initializing eSPI.\n");
+	con_log("Finished initializing eSPI.\n");
 
 	return 0;
 }
@@ -1456,7 +1480,7 @@ void espi_handle_irq(irq_t irq)
 		int len = espi_receive_oob_smbus((uint8_t *)rxoob_buffer);
 		rxoob_callback(rxoob_buffer, len);
 	default:
-		printf("espi irq error\n");
+		con_err("espi irq error\n");
 		break;
 	}
 }
