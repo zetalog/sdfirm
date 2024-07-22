@@ -316,12 +316,10 @@ menuconfig K1MATRIX_LPC
 	depends ARCH_HAS_LPC
 	select SPACEMIT_LPC
 
-menuconfig K1MATRIX_KCS
-	bool "Enable K1Matrix KCS slave support"
-	depends ARCH_HAS_KCS
-	depends SIMULATION
-	depends EXPERIMENTAL
-	select KCS_MICROSEMI_CORELPC
+menuconfig K1MATRIX_ESPI
+	bool "Enable K1Matrix enhanced SPI (eSPI) support"
+	depends ARCH_HAS_ESPI
+	select SPACEMIT_ESPI
 
 menuconfig K1MATRIX_I2C
 	bool "Enable K1Matrix I2C master support"
@@ -333,6 +331,13 @@ menuconfig K1MATRIX_I2C
 	select ARCH_HAS_DW_I2C_10BITADDR_SLAVE
 	select ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_8
 	select ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_8
+
+menuconfig K1MATRIX_KCS
+	bool "Enable K1Matrix KCS slave support"
+	depends ARCH_HAS_KCS
+	depends SIMULATION
+	depends EXPERIMENTAL
+	select KCS_MICROSEMI_CORELPC
 
 endmenu
 

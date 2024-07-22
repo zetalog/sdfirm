@@ -23,6 +23,8 @@
 #include <driver/spacemit_lpc.h>
 #endif
 
-#define lpc_hw_ctrl_init()		spacemit_lpc_init()
+#define lpc_hw_ctrl_init()		k1matrix_lpc_init()
+
+void k1matrix_lpc_init(void);
 
 #endif /* __LPC_K1MATRIX_H_INCLUDE__ */

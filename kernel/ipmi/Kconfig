@@ -1,24 +1,16 @@
 config ARCH_HAS_LPC
 	bool
 
-config ARCH_HAS_SIO
-	bool
-
 config ARCH_HAS_ESPI
 	bool
 
-menuconfig LPC
-	bool "Low Pin Count (LPC) support"
-
-if LPC
-
-config SIO
-	bool "Super IO (SIO) chip support"
-
-endif
+config ARCH_HAS_SIO
+	bool
 
 config ARCH_HAS_KCS
 	bool
+
+menu "Mangement interfaces support"
 
 menuconfig IPMI
 	bool "Intelligent Platform Management Interface (IPMI) support"
@@ -42,5 +34,21 @@ endif
 
 endif
 
+menuconfig LPC
+	bool "Low Pin Count (LPC) support"
+
+if LPC
+
+config SIO
+	bool "Super IO (SIO) chip support"
+
+endif
+
 menuconfig ESPI
-	bool "eSPI support"
+	bool "Enhanced Serial Peripheral Interface (eSPI) support"
+
+if ESPI
+
+endif
+
+endmenu
