@@ -120,19 +120,19 @@ struct rstn_clk rstn_clks[] = {
 		.rst_reg = CRU_PCIE8_SW_RESET,
 		.flags = CRU_RESET_2BIT,
 	},
-	[PCIE8_PERST_N] = {
+	[PCIE9_PERST_N] = {
 		.rst_reg = CRU_PCIE9_SW_RESET,
 		.flags = CRU_RESET_2BIT,
 	},
-	[cluster0_srst_n] = {
+	[CLUSTER0_SRST_N] = {
 		.rst_reg = CRU_CLUSTER0_SW_RESET,
-		.flags = CRU_RESET_4BIT,
+		.flags = CRU_RESET,
 	},
 	[C1_CFG_SRST_N] = {
 		.rst_reg = CRU_CLUSTER1_SW_RESET,
 		.flags = CRU_RESET_4BIT,
 	},
-	[c0_cfg_srst_n] = {
+	[C0_CFG_SRST_N] = {
 		.rst_reg = CRU_CLUSTER0_COREX_SW_RESET,
 		.flags = CRU_RESET_4BIT,
 	},
