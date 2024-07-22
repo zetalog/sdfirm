@@ -235,8 +235,10 @@ static void cmn_hnf_cal_apply_scg(caddr_t rnsam)
 	if (cmn_cal_supported()) {
 		for (region_index = 0; region_index < CMN_MAX_SCGS; region_index++) {
 			if (scg_region_enabled[region_index]) {
+#ifdef CONFIG_CMN600_DEBUG_CONFIGURE
 				con_dbg(CMN_MODNAME ": SCG: %d/%d, CAL: en\n",
 					region_index, CMN_MAX_SCGS);
+#endif
 				cmn_setq(CMN_scg_hnf_cal_mode_en(region_index),
 					 CMN_rnsam_sys_cache_grp_cal_mode(rnsam));
 			} else
@@ -275,7 +277,6 @@ static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 	case CMN_HNF_MAPPING_DIRECT:
 		/* TODO: support cmn_snf_count using hnf tgt ids */
 		BUG_ON(cmn_snf_count != 1);
-		con_dbg(CMN_MODNAME "case CMN_HNF_MAPPING_DIRECT\n");
 		cmn_writeq(CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]),
 			   CMN_hnf_sam_control(hnf),
 			   "CMN_hnf_sam_control", -1);
@@ -333,11 +334,13 @@ static void cmn_configure_hnf_sam_range_based(caddr_t hnf)
 			   CMN_hnf_sam_memregion(hnf, region_sub_count),
 			   "CMN_hnf_sam_memregion", region_sub_count);
 
+#ifdef CONFIG_CMN600_DEBUG_CONFIGURE
 		con_dbg(CMN_MODNAME ": %s: HN-F SAM %d: ID: %d, [%016llx - %016llx]\n",
 			cmn600_mem_region_name(region->type),
 			region_sub_count, region->node_id,
 			(uint64_t)(region->base + base),
 			(uint64_t)(region->base + base + region->size));
+#endif
 
 		region_sub_count++;
 	}
@@ -405,9 +408,11 @@ static void cmn600_discover_external(caddr_t node, caddr_t xp)
 		cmn_rn_sam_ext_ids[cmn_rn_sam_ext_count++] = cmn_nr_nodes;
 		cmn_bases[cmn_nr_nodes++] = node;
 	}
+#ifdef CONFIG_CMN600_DEBUG_DISCOVER
 	con_dbg(CMN_MODNAME ": 0x%016llx %s ID: %d, LID: %d\n",
 		(uint64_t)node, cmn600_node_type_name(cmn_node_type(node)),
 		cmn_node_id(node), cmn_logical_id(node));
+#endif
 }
 
 static void cmn600_discover_internal(caddr_t node)
@@ -462,9 +467,11 @@ static void cmn600_discover_internal(caddr_t node)
 		/* Nothing to be done for other node types */
 		break;
 	}
+#ifdef CONFIG_CMN600_DEBUG_DISCOVER
 	con_dbg(CMN_MODNAME ": 0x%016llx %s ID: %d, LID: %d\n",
 		(uint64_t)node, cmn600_node_type_name(cmn_node_type(node)),
 		cmn_node_id(node), cmn_logical_id(node));
+#endif
 }
 
 void cmn600_discover(void)
@@ -480,10 +487,12 @@ void cmn600_discover(void)
 	for (xp_index = 0; xp_index < xp_count; xp_index++) {
 		xp = cmn_child_node(CMN_CFGM_BASE, xp_index);
 
-		/*con_dbg(CMN_MODNAME ": XP (%d, %d) ID: %d, LID: %d\n",
+#ifdef CONFIG_CMN600_DEBUG_DISCOVER
+		con_dbg(CMN_MODNAME ": XP (%d, %d) ID: %d, LID: %d\n",
 			(int)cmn_node_x(xp), (int)cmn_node_y(xp),
 			(int)cmn_node_id(xp), (int)cmn_logical_id(xp));
-		*/
+#endif
+
 		node_count = cmn_child_count(xp);
 		for (node_index = 0; node_index < node_count; node_index++) {
 			node = cmn_child_node(xp, node_index);
@@ -546,7 +555,9 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 
 	tgt_nodes = cmn600_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);
+#if 0
 	cmn_mmap_count = 10;
+#endif
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
 		/* TODO: Should rely on chip id to fill remote regions */
@@ -559,12 +570,15 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		else
 			base = region->base + cmn600_cml_base();
 
-		//con_dbg(CMN_MODNAME "configuring...\n");
-		/*con_dbg(CMN_MODNAME ": %s-%d: RN SAM %d/%d: ID: %d, [%016llx - %016llx]\n",
+		con_dbg(CMN_MODNAME "configuring...\n");
+
+#ifdef CONFIG_CMN600_DEBUG_CONFIGURE
+		con_dbg(CMN_MODNAME ": %s-%d: RN SAM %d/%d: ID: %d, [%016llx - %016llx]\n",
 			cmn600_mem_region_name(region->type), region->type,
 			region_index, cmn_mmap_count,
 			region->node_id, (uint64_t)base, (uint64_t)(base + region->size));
-		*/
+#endif
+
 		switch (region->type) {
 		case CMN600_MEMORY_REGION_TYPE_IO:
 		case CMN600_REGION_TYPE_CCIX:
@@ -666,8 +680,10 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				CMN_nodeid(lid, CMN_nodeid_MASK),
 				CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, lid),
 				"CMN_rnsam_sys_cache_grp_hn_nodeid", lid);
-		//con_dbg(CMN_MODNAME ": SCG: %d/%d, ID: %d\n",
-		//	lid, cmn_hnf_count, nid);
+#ifdef CONFIG_CMN600_DEBUG_CONFIGURE
+		con_dbg(CMN_MODNAME ": SCG: %d/%d, ID: %d\n",
+			lid, cmn_hnf_count, nid);
+#endif
 	}
 	cmn_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam),
 		   "CMN_rnsam_sys_cache_group_hn_count", -1);
@@ -732,11 +748,11 @@ void cmn600_init(void)
 	if (cmn600_initialized)
 		return;
 
+	con_dbg(CMN_MODNAME ": cmn_mmap_count is %d.\n", cmn_mmap_count);
 	cmn_debug_init();
 	root_node_pointer = CMN_ROOT_NODE_POINTER(CMN_HND_NID);
 	cmn_bases[CMN_CFGM_ID] = CMN_PERIPH_BASE + root_node_pointer;
 	cmn_nr_nodes = 1;
-	con_dbg(CMN_MODNAME "cmn600_discover\n");
 	k1matrix_test();
 	cmn600_discover();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
