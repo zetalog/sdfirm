@@ -98,6 +98,14 @@ config CMN600_DEBUG
 	bool "Enable register debugging"
 	depends CONSOLE_DEBUG
 
+config CMN600_DEBUG_DISCOVER
+	bool "Enable discover result debugging"
+	depends CMN600_DEBUG
+
+config CMN600_DEBUG_CONFIGURE
+	bool "Enable configure progress debugging"
+	depends CMN600_DEBUG
+
 endif
 
 source drivers/noc/n100/Kconfig
