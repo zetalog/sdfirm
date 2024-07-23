@@ -518,12 +518,6 @@ enum espi_upcmd_type {
 	ESPI_UPCMD_OOB_CHANNEL = 1,
 };
 
-enum espi_io_mode {
-	ESPI_IO_MODE_SINGLE = 0,
-	ESPI_IO_MODE_DUAL = 1,
-	ESPI_IO_MODE_QUAD = 2,
-};
-
 enum espi_op_freq {
 	ESPI_OP_FREQ_20_MHZ = 0,
 	ESPI_OP_FREQ_25_MHZ = 1,
@@ -547,21 +541,81 @@ struct espi_config {
 		size_t size;
 	} generic_io_range[ESPI_GENERIC_IO_WIN_COUNT];
 
-	/* Slave configuration parameters */
-	enum espi_io_mode io_mode;
-	enum espi_op_freq op_freq_mhz;
-	enum espi_alert_pin alert_pin;
-
 	uint32_t crc_check_en:1;
-	uint32_t periph_ch_en:1;
-	uint32_t vw_ch_en:1;
-	uint32_t oob_ch_en:1;
-	uint32_t flash_ch_en:1;
 	uint32_t subtractive_decode:1;
 
 	/* Use ESPI_VW_IRQ_* above */
 	uint32_t vw_irq_polarity;
 };
+
+uint8_t spacemit_espi_read8(caddr_t reg);
+uint16_t spacemit_espi_read16(caddr_t reg);
+uint32_t spacemit_espi_read32(caddr_t reg);
+void spacemit_espi_write8(uint8_t val, caddr_t reg);
+void spacemit_espi_write16(uint16_t val, caddr_t reg);
+void spacemit_espi_write32(uint32_t val, caddr_t reg);
+#define spacemit_espi_set8(v,a)					\
+	do {							\
+		uint8_t __v = spacemit_espi_read8(a);		\
+		__v |= (v);					\
+		spacemit_espi_write8(__v, (a));			\
+	} while (0)
+#define spacemit_espi_clear8(v,a)				\
+	do {							\
+		uint8_t __v = spacemit_espi_read8(a);		\
+		__v &= ~(v);					\
+		spacemit_espi_write8(__v, (a));			\
+	} while (0)
+#define spacemit_espi_write8_mask(v,m,a)			\
+	do {							\
+		uint8_t __v = spacemit_espi_read8(a);		\
+		__v &= ~(m);					\
+		__v |= (v);					\
+		spacemit_espi_write8(__v, (a));			\
+	} while (0)
+#define spacemit_espi_set16(v,a)				\
+	do {							\
+		uint16_t __v = spacemit_espi_read16(a);		\
+		__v |= (v);					\
+		spacemit_espi_write16(__v, (a));		\
+	} while (0)
+#define spacemit_espi_clear16(v,a)				\
+	do {							\
+		uint16_t __v = spacemit_espi_read16(a);		\
+		__v &= ~(v);					\
+		spacemit_espi_write16(__v, (a));		\
+	} while (0)
+#define spacemit_espi_write16_mask(v,m,a)			\
+	do {							\
+		uint16_t __v = spacemit_espi_read16(a);		\
+		__v &= ~(m);					\
+		__v |= (v);					\
+		spacemit_espi_write16(__v, (a));		\
+	} while (0)
+#define spacemit_espi_set32(v,a)				\
+	do {							\
+		uint32_t __v = spacemit_espi_read32(a);		\
+		__v |= (v);					\
+		spacemit_espi_write32(__v, (a));		\
+	} while (0)
+#define spacemit_espi_clear32(v,a)				\
+	do {							\
+		uint32_t __v = spacemit_espi_read32(a);		\
+		__v &= ~(v);					\
+		spacemit_espi_write32(__v, (a));		\
+	} while (0)
+#define spacemit_espi_write32_mask(v,m,a)			\
+	do {							\
+		uint32_t __v = spacemit_espi_read32(a);		\
+		__v &= ~(m);					\
+		__v |= (v);					\
+		spacemit_espi_write32(__v, (a));		\
+	} while (0)
+
+#define espi_setup_pr_mem_base0(base)	\
+	spacemit_espi_write32(base, ESPI_PR_BASE_ADDR_MEM0)
+#define espi_setup_pr_mem_base1(base)	\
+	spacemit_espi_write32(base, ESPI_PR_BASE_ADDR_MEM1)
 
 int espi_open_io_window(uint16_t base, size_t size);
 int espi_open_mmio_window(uint32_t base, size_t size);

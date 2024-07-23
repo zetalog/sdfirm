@@ -4,6 +4,50 @@ config ARCH_HAS_LPC
 config ARCH_HAS_ESPI
 	bool
 
+config ARCH_HAS_ESPI_PERI
+	bool
+
+config ARCH_HAS_ESPI_VWIRE
+	bool
+
+config ARCH_HAS_ESPI_OOB
+	bool
+
+config ARCH_HAS_ESPI_FLASH
+	bool
+
+config ARCH_IS_ESPI_SYS_SINGLE
+	bool
+
+config ARCH_IS_ESPI_SYS_MULTI
+	bool
+
+config ARCH_HAS_ESPI_IO_SINGLE
+	bool
+
+config ARCH_HAS_ESPI_IO_DUAL
+	bool
+
+config ARCH_HAS_ESPI_IO_QUAD
+	bool
+
+config ARCH_IS_ESPI_FREQ_66MHZ
+	bool
+
+config ARCH_IS_ESPI_FREQ_50MHZ
+	bool
+
+config ARCH_IS_ESPI_FREQ_33MHZ
+	bool
+
+config ARCH_IS_ESPI_FREQ_25MHZ
+	bool
+
+config ARCH_IS_ESPI_FREQ_20MHZ
+	bool
+
+config ARCH_HAS_ESPI_CRC
+
 config ARCH_HAS_SIO
 	bool
 
@@ -48,6 +92,89 @@ menuconfig ESPI
 	bool "Enhanced Serial Peripheral Interface (eSPI) support"
 
 if ESPI
+
+choice
+	prompt "System topology"
+
+config ESPI_SYS_SINGLE
+	bool "Single master-single slave"
+	depends ARCH_IS_ESPI_SYS_SINGLE
+
+config ESPI_SYS_MULTI
+	bool "Single master-multiple slaves"
+	depends ARCH_IS_ESPI_SYS_MULTI
+
+endchoice
+
+choice
+	prompt "Default IO mode"
+	default ESPI_QUAD if ARCH_HAS_ESPI_QUAD
+	default ESPI_DUAL if ARCH_HAS_ESPI_DUAL && !ARCH_HAS_ESPI_QUAD
+	default ESPI_SINGLE if ARCH_HAS_ESPI_SINGLE && !ARCH_HAS_ESPI_DUAL && !ARCH_HAS_ESPI_QUAD
+	help
+	  If quad is the default I/O mode, it falls to dual I/O mode if
+	  slave doesn't support.
+	  If dual is the default I/O mode, it falls to single I/O mode if
+	  slave doesn't support.
+
+config ESPI_IO_SINGLE
+	bool "Single"
+	depends ARCH_HAS_ESPI_IO_SINGLE
+
+config ESPI_IO_DUAL
+	bool "Dual"
+	depends ARCH_HAS_ESPI_IO_DUAL
+
+config ESPI_IO_QUAD
+	bool "Quad"
+	depends ARCH_HAS_ESPI_IO_QUAD
+
+endchoice
+
+choice
+	prompt "Operation mode"
+
+config ESPI_FREQ_66MHZ
+	bool "66MHz"
+	depends ARCH_IS_ESPI_FREQ_66MHZ
+
+config ESPI_FREQ_50MHZ
+	bool "50MHz"
+	depends ARCH_IS_ESPI_FREQ_50MHZ
+
+config ESPI_FREQ_33MHZ
+	bool "33MHz"
+	depends ARCH_IS_ESPI_FREQ_30MHZ
+
+config ESPI_FREQ_25MHZ
+	bool "25MHz"
+	depends ARCH_IS_ESPI_FREQ_25MHZ
+
+config ESPI_FREQ_20MHZ
+	bool "20MHz"
+	depends ARCH_IS_ESPI_FREQ_20MHZ
+
+endchoice
+
+config ESPI_PERI
+	bool "Enable peripheral channel support"
+	depends ARCH_HAS_ESPI_PERI
+
+config ESPI_VWIRE
+	bool "Enable virtual wire channel support"
+	depends ARCH_HAS_ESPI_VWIRE
+
+config ESPI_OOB
+	bool "Enable out-of-band (OOB) channel support"
+	depends ARCH_HAS_ESPI_OOB
+
+config ESPI_FLASH
+	bool "Enable flash access channel support"
+	depends ARCH_HAS_ESPI_FLASH
+
+config ESPI_CRC
+	bool "Enable Cyclic Redundancy Check (CRC) support"
+	depends ARCH_HAS_ESPI_CRC
 
 endif
 
