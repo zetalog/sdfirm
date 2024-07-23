@@ -147,7 +147,8 @@
 #define PERI_GMAC_AHB_CLKDIV	35
 #define SYS_APB_CFG_CLKEN	37
 #define C0_CLK_CFG_EN		38
-#define NR_DIV_CLKS		39
+#define RMU_LPC_CLK_DIV		39
+#define NR_DIV_CLKS		40
 
 /*CLKRSTN*/
 #define CPU_SUB_RSTN		0

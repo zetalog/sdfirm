@@ -101,6 +101,7 @@
 #define peri_gpio4_db_clkdiv	clkid(CLK_DIV, PERI_GPIO4_DB_CLKDIV)
 #define peri_gmac_axi_clkdiv	clkid(CLK_DIV, PERI_GMAC_AXI_CLKDIV)
 #define peri_gmac_ahb_clkdiv	clkid(CLK_DIV, PERI_GMAC_AHB_CLKDIV)
+#define rmu_lpc_clk_div		clkid(CLK_DIV, RMU_LPC_CLK_DIV)
 
 #define rmu_qspi_clken		clkid(CLK_DIV, RMU_QSPI_CLKEN)
 #define rmu_lpc_clken		clkid(CLK_DIV, RMU_LPC_CLKEN)
@@ -124,6 +125,7 @@
 #define peri_dmac_clken		clkid(CLK_DIV, PERI_DMAC_CLKEN)
 #define sys_apb_cfg_clken	clkid(CLK_DIV, SYS_APB_CFG_CLKEN)
 #define c0_clk_cfg_en		clkid(CLK_DIV, C0_CLK_CFG_EN)
+#define rmu_lpc_clken		clkid(CLK_DIV, RMU_LPC_CLKEN)
 
 #define cpu_sub_rstn		clkid(CLK_RST, CPU_SUB_RSTN)
 #define pcie_top_rstn		clkid(CLK_RST, PCIE_TOP_RSTN)

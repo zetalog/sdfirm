@@ -134,7 +134,7 @@ struct rstn_clk rstn_clks[] = {
 	},
 	[C0_CFG_SRST_N] = {
 		.rst_reg = CRU_CLUSTER0_COREX_SW_RESET,
-		.flags = CRU_RESET_4BIT,
+		.flags = CRU_RESET,
 	},
 
 };
@@ -185,7 +185,7 @@ static int enable_rstn(clk_clk_t clk)
 	if (rstn_clks[clk].flags & CRU_SRC_CLKSEL)
 		clk_select_source(rstn_clks[clk].src, 1);
 	else
-		clk_enable(rstn_clks[clk].src);
+	clk_enable(rstn_clks[clk].src);
 	cru_trace(true, get_rstn_name(clk));
 	__raw_setl(CRU_RSTN(0), rstn_clks[clk].rst_reg);
 	if (rstn_clks[clk].flags & CRU_RESET_2BIT)

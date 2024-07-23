@@ -41,6 +41,7 @@
 
 #include <target/arch.h>
 #include <target/noc.h>
+#include <target/clk.h>
 
 void spacemit_n100_d2d_init(void)
 {
