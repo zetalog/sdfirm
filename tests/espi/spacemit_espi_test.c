@@ -46,7 +46,6 @@
 #include <target/bh.h>
 
 #include <driver/espi.h>
-#include <driver/espi_protocol.h>
 #include <driver/spacemit_espi.h>
 
 static int do_espi_read(int argc, char *argv[])
