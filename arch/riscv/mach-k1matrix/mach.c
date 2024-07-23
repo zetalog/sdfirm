@@ -118,6 +118,8 @@ void board_late_init(void)
 
 	set_cluster_core_rvba_l(0,0,0,DIE0_BASE);
 	set_cluster_core_rvba_h(0,0,1,DIE0_BASE);
+	con_dbg("read_cluster_core(0,0,0):%lx\n",read_cluster_core(0,0,0));
+	con_dbg("read_cluster_core(0,0,1):%lx\n",read_cluster_core(0,0,1));
 	clk_enable(cluster0_srst_clk);
 	clk_enable(c0_cfg_srst_clk);
 	clk_enable(c0_cfg_clk);

@@ -570,6 +570,8 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		else
 			base = region->base + cmn600_cml_base();
 
+		con_dbg(CMN_MODNAME "configuring...\n");
+
 #ifdef CONFIG_CMN600_DEBUG_CONFIGURE
 		con_dbg(CMN_MODNAME ": %s-%d: RN SAM %d/%d: ID: %d, [%016llx - %016llx]\n",
 			cmn600_mem_region_name(region->type), region->type,
@@ -712,17 +714,17 @@ void cmn600_configure(void)
 		cmn600_revision_name(cmn_revision()));
 
 	/* Setup HN-F nodes */
-	con_dbg(CMN_MODNAME ": setup HN-F nodes\n");
 	for (i = 0; i < cmn_hnf_count; i++)
 		cmn600_configure_hnf_sam(CMN_HNF_BASE(cmn_hnf_ids[i]));
+	con_dbg(CMN_MODNAME "Setup HN-F nodes\n");
 	/* Setup internal RN-SAM nodes */
-	con_dbg(CMN_MODNAME ": setup internal RN-SAM nodes\n");
 	for (i = 0; i < cmn_rn_sam_int_count; i++)
 		cmn600_configure_rn_sam(CMN_RN_SAM_INT_BASE(cmn_rn_sam_int_ids[i]));
+	con_dbg(CMN_MODNAME "Setup internal RN-SAM nodes\n");
 	/* Setup external RN-SAM nodes */
-	con_dbg(CMN_MODNAME ": setup external RN-SAM nodes\n");
 	for (i = 0; i < cmn_rn_sam_ext_count; i++)
 		cmn600_configure_rn_sam(CMN_RN_SAM_EXT_BASE(cmn_rn_sam_ext_ids[i]));
+	con_dbg(CMN_MODNAME "Setup external RN-SAM nodes\n");
 }
 
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid)
@@ -737,6 +739,8 @@ void cmn600_configure_rn_sam_ext(cmn_nid_t nid)
 	}
 }
 
+extern int k1matrix_test(void);
+
 void cmn600_init(void)
 {
 	caddr_t root_node_pointer;
@@ -749,6 +753,7 @@ void cmn600_init(void)
 	root_node_pointer = CMN_ROOT_NODE_POINTER(CMN_HND_NID);
 	cmn_bases[CMN_CFGM_ID] = CMN_PERIPH_BASE + root_node_pointer;
 	cmn_nr_nodes = 1;
+	k1matrix_test();
 	cmn600_discover();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
 	cmn600_configure();

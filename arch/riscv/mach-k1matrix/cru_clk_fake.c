@@ -177,8 +177,14 @@ struct div_clk div_clks[] = {
 		.max_div = 1,
 		.div = 1,
 		.flags = CRU_CLKEN | CRU_CLKEN_2BIT | CRU_RESET | CRU_RESET_3BIT,
-		.src = osc_clk,
+		.src = rmu_lpc_clk_div,
 	},
+	[RMU_LPC_CLK_DIV] = {
+                .reg = CRU_RMU_LPC_CLK_DIV,
+                .max_div = 1,
+                .div = 1,
+                .src = rmu_clk,
+        },
 	[RMU_ESPI_CLKEN] = {
 		.reg = CRU_RMU_eSPI_CLK_EN,
 		.rst_reg = CRU_RMU_eSPI_SW_RSTN,
@@ -424,6 +430,7 @@ const char *div_clk_names[NR_DIV_CLKS] = {
 	[PERI_DMAC_CLKEN] = "peri_dmac_clken",
 	[PERI_GMAC_AXI_CLKDIV] = "peri_gmac_axi_clkdiv",
 	[PERI_GMAC_AHB_CLKDIV] = "peri_gmac_ahb_clkdiv",
+	[RMU_LPC_CLK_DIV] = "rmu_lpc_clk_div",
 };
 
 const char *get_div_name(clk_clk_t clk)
