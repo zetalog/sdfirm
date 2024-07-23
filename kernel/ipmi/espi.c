@@ -4,21 +4,20 @@
 void espi_config_alert_pin(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config)
 {
 	switch (ESPI_ALERT_PIN) {
-	case ESPI_ALERT_PIN_IN_BAND:
+	case ESPI_GEN_ALERT_MODE_IO1:
 		*slave_config &= ~ESPI_GEN_ALERT_MODE_PIN;
 		break;
-	case ESPI_ALERT_PIN_OPEN_DRAIN:
-		if (slave_caps & ESPI_GEN_OPEN_DRAIN_ALERT_SUP) {
-			*slave_config |= ESPI_GEN_ALERT_MODE_PIN;
-			*slave_config |= ESPI_GEN_OPEN_DRAIN_ALERT_SEL;
-			*ctrlr_config |= ESPI_ALERT_MODE;
-			break;
-		}
-		con_log("espi: open drain alert PIN not supported, falls to push pull.");
-	case ESPI_ALERT_PIN_PUSH_PULL:
-		*slave_config |= ESPI_GEN_ALERT_MODE_PIN;
-		*slave_config &= ~ESPI_GEN_OPEN_DRAIN_ALERT_SEL;
+	case ESPI_GEN_ALERT_MODE_PIN:
 		*ctrlr_config |= ESPI_ALERT_MODE;
+		*slave_config |= ESPI_GEN_ALERT_MODE_PIN;
+		if (ESPI_ALERT_TYPE == ESPI_GEN_ALERT_TYPE_OD) {
+			if (slave_caps & ESPI_GEN_OPEN_DRAIN_ALERT_SUP) {
+				*slave_config |= ESPI_GEN_OPEN_DRAIN_ALERT_SEL;
+				break;
+			}
+			con_log("espi: open drain alert PIN not supported, falls to push pull.");
+		}
+		*slave_config &= ~ESPI_GEN_OPEN_DRAIN_ALERT_SEL;
 		break;
 	default:
 		BUG();
@@ -62,31 +61,31 @@ void espi_config_op_freq(uint32_t slave_caps, uint32_t *slave_config, uint32_t *
 	case ESPI_GEN_OP_FREQ_66MHZ:
 		if (slave_max_speed_mhz >= 66) {
 			*slave_config |= ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_66MHZ);
-			*ctrlr_config |= ESPI_OP_FREQ_66_MHZ;
+			*ctrlr_config |= ESPI_GEN_OP_FREQ_66MHZ;
 			break;
 		}
 	case ESPI_GEN_OP_FREQ_50MHZ:
 		if (slave_max_speed_mhz >= 50) {
 			*slave_config |= ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_50MHZ);
-			*ctrlr_config |= ESPI_OP_FREQ_50_MHZ;
+			*ctrlr_config |= ESPI_GEN_OP_FREQ_50MHZ;
 			break;
 		}
 	case ESPI_GEN_OP_FREQ_33MHZ:
 		if (slave_max_speed_mhz >= 33) {
 			*slave_config |= ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_33MHZ);
-			*ctrlr_config |= ESPI_OP_FREQ_33_MHZ;
+			*ctrlr_config |= ESPI_GEN_OP_FREQ_33MHZ;
 			break;
 		}
 	case ESPI_GEN_OP_FREQ_25MHZ:
 		if (slave_max_speed_mhz > 0) {
 			*slave_config |= ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_25MHZ);
-			*ctrlr_config |= ESPI_OP_FREQ_25_MHZ;
+			*ctrlr_config |= ESPI_GEN_OP_FREQ_25MHZ;
 			break;
 		}
 	case ESPI_GEN_OP_FREQ_20MHZ:
 		if (slave_max_speed_mhz > 0) {
 			*slave_config |= ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_20MHZ);
-			*ctrlr_config |= ESPI_OP_FREQ_20_MHZ;
+			*ctrlr_config |= ESPI_GEN_OP_FREQ_20MHZ;
 			break;
 		}
 	default:

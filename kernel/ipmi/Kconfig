@@ -22,6 +22,12 @@ config ARCH_IS_ESPI_SYS_SINGLE
 config ARCH_IS_ESPI_SYS_MULTI
 	bool
 
+config ARCH_HAS_ESPI_ALERT_PP
+	bool
+
+config ARCH_HAS_ESPI_ALERT_OD
+	bool
+
 config ARCH_HAS_ESPI_IO_SINGLE
 	bool
 
@@ -47,6 +53,7 @@ config ARCH_IS_ESPI_FREQ_20MHZ
 	bool
 
 config ARCH_HAS_ESPI_CRC
+	bool
 
 config ARCH_HAS_SIO
 	bool
@@ -171,6 +178,21 @@ config ESPI_OOB
 config ESPI_FLASH
 	bool "Enable flash access channel support"
 	depends ARCH_HAS_ESPI_FLASH
+
+choice
+	prompt "Alert type"
+	depends ESPI_SYS_MULTI
+	default ESPI_ALERT_PP
+
+config ESPI_ALERT_PP
+	bool "Push-pull"
+	depends ARCH_HAS_ESPI_ALERT_PP
+
+config ESPI_ALERT_OD
+	bool "Open-drain"
+	depends ARCH_HAS_ESPI_ALERT_OD
+
+endchoice
 
 config ESPI_CRC
 	bool "Enable Cyclic Redundancy Check (CRC) support"

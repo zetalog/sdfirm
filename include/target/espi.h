@@ -86,6 +86,31 @@
 #define ESPI_CYCLE_FLASH_WRITE			0x01
 #define ESPI_CYCLE_FLASH_ERASE			0x02
 
+#define ESPI_PERI_SHORT_MEM32_HDR_LEN		4
+#define ESPI_PERI_SHORT_IO32_HDR_LEN		2
+#define ESPI_PERI_MEM32_HDR_LEN			7
+#define ESPI_PERI_MEM64_HDR_LEN			11
+#define ESPI_PERI_MESSAGE_HDR_LEN		8
+#define ESPI_PERI_COMPLETION_HDR_LEN		3
+#define ESPI_OOB_MESSAGE_HDR_LEN		3
+
+#define ESPI_TAG_OFFSET				4
+#define ESPI_TAG_MASK				REG_4BIT_MASK
+#define ESPI_TXHDR_TAG(value)			_SET_FV(ESPI_TAG, value)
+#define ESPI_RXHDR_TAG(value)			_GET_FV(ESPI_TAG, value)
+#define ESPI_LEN_OFFSET				0
+#define ESPI_LEN_MASK				REG_4BIT_MASK
+#define ESPI_TXHDR_LEN(value)			_SET_FV(ESPI_LEN, value)
+#define ESPI_RXHDR_LEN(value)			_GET_FV(ESPI_LEN, value)
+#define ESPI_TXHDR_LENGTH(hdr, len)				\
+	do {							\
+		hdr[1] &= ~ESPI_TXHDR_LEN(REG_4BIT_MASK);	\
+		hdr[1] |= ESPI_TXHDR_LEN(HIBYTE(len));		\
+		hdr[2] = LOBYTE(len);				\
+	} while (0)
+#define ESPI_RXHDR_LENGTH(hdr)					\
+	MAKEWORD(hdr[2], ESPI_RXHDR_LEN(hdr[1]))
+
 /* 7.2 Capabilities and Configuration Registers */
 /* 7.2.1.2 Offset 04h: Device Identification */
 #define ESPI_SLAVE_DEV_ID			0x04
@@ -99,6 +124,7 @@
 #define ESPI_GEN_RESP_MOD_ENABLE		_BV(30)
 #define ESPI_GEN_RESP_MOD_DISABLE		_BV(30)
 #define ESPI_GEN_ALERT_MODE_PIN			_BV(28)
+#define ESPI_GEN_ALERT_MODE_IO1			0
 #define ESPI_GEN_IO_MODE_SEL_OFFSET		26
 #define ESPI_GEN_IO_MODE_SEL_MASK		REG_2BIT_MASK
 #define ESPI_GEN_IO_MODE_SEL(value)		_SET_FV(ESPI_GEN_IO_MODE_SEL, value)
@@ -110,6 +136,8 @@
 #define ESPI_GEN_IO_MODE_QUAD			0x2
 #define ESPI_GEN_OPEN_DRAIN_ALERT_SEL		_BV(23)
 #define ESPI_GEN_OPEN_DRAIN_ALERT_SUP		_BV(19)
+#define ESPI_GEN_ALERT_TYPE_PP			0
+#define ESPI_GEN_ALERT_TYPE_OD			ESPI_GEN_OPEN_DRAIN_ALERT_SEL
 #define ESPI_GEN_OP_FREQ_SEL_OFFSET		20
 #define ESPI_GEN_OP_FREQ_SEL_MASK		REG_3BIT_MASK
 #define ESPI_GEN_OP_FREQ_SEL(value)		_SET_FV(ESPI_GEN_OP_FREQ_SEL, value)
@@ -283,15 +311,6 @@ static inline void espi_show_slave_peripheral_channel_configuration(uint32_t con
 	(!!((cfg) & ESPI_SLAVE_CHANNEL_READY))
 #define espi_slave_vwire_max_op_count_sup(caps)		ESPI_VWIRE_MAX_OP_COUNT_SUP(caps)
 
-enum espi_cmd_type {
-	CMD_TYPE_SET_CONFIGURATION = 0,
-	CMD_TYPE_GET_CONFIGURATION = 1,
-	CMD_TYPE_IN_BAND_RESET = 2,
-	CMD_TYPE_PERI = 4,
-	CMD_TYPE_VWIRE = 5,
-	CMD_TYPE_OOB = 6,
-	CMD_TYPE_FLASH = 7,
-};
 #define ESPI_CMD_TIMEOUT_US			100
 #define ESPI_CH_READY_TIMEOUT_US		10000
 union espi_txhdr0 {
@@ -349,6 +368,11 @@ struct espi_cmd {
 #endif
 #ifdef CONFIG_ESPI_SYS_MULTI
 #define ESPI_ALERT_PIN			ESPI_GEN_ALERT_MODE_IO1
+#endif
+#ifdef CONFIG_ESPI_ALERT_OD
+#define ESPI_ALERT_TYPE			ESPI_GEN_ALERT_TYPE_OD
+#else
+#define ESPI_ALERT_TYPE			ESPI_GEN_ALERT_TYPE_PP
 #endif
 #ifdef CONFIG_ESPI_IO_SINGLE
 #define ESPI_IO_MODE			ESPI_GEN_IO_MODE_SINGLE

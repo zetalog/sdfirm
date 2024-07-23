@@ -93,12 +93,12 @@ void spacemit_espi_write8(uint8_t val, caddr_t reg)
 
 static inline void espi_clear_upcmd_status(void)
 {
-	spacemit_espi_write32(UP_RXHDR_0_UPCMD_STATUS, ESPI_UP_RXHDR_0);
+	spacemit_espi_clear32(ESPI_UPCMD_STATUS, ESPI_UP_RXHDR);
 }
 
 static inline enum espi_upcmd_type espi_get_upcmd_type(void)
 {
-	return spacemit_espi_read32(ESPI_UP_RXHDR_0) & UP_RXHDR_0_UPCMD_TYPE_MASK;
+	return ESPI_UPCMD_TYPE(spacemit_espi_read32(ESPI_UP_RXHDR));
 }
 
 static inline uint32_t espi_get_up_rxdata(void)
@@ -108,63 +108,56 @@ static inline uint32_t espi_get_up_rxdata(void)
 
 static inline uint32_t espi_get_flash_max_size(void)
 {
-	return FIELD_GET(MASTER_CAP_FLASH_MAX_SIZE_MASK,
-			 spacemit_espi_read32(ESPI_MASTER_CAP));
+	return ESPI_FLASH_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP));
 }
 
 static inline uint32_t espi_get_oob_max_size(void)
 {
-	return FIELD_GET(MASTER_CAP_OOB_MAX_SIZE_MASK,
-			 spacemit_espi_read32(ESPI_MASTER_CAP));
+	return ESPI_OOB_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP));
 }
 
 static inline uint32_t espi_get_vw_max_size(void)
 {
-	return FIELD_GET(MASTER_CAP_VW_MAX_SIZE_MASK,
-			 spacemit_espi_read32(ESPI_MASTER_CAP));
+	return ESPI_VW_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP));
 }
 
 static inline uint32_t espi_get_pr_max_size(void)
 {
-	return FIELD_GET(MASTER_CAP_PR_MAX_SIZE_MASK,
-			 spacemit_espi_read32(ESPI_MASTER_CAP));
+	return ESPI_PR_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP));
 }
 
 static inline void espi_wdg_enable(void)
 {
-	spacemit_espi_set32(GLOBAL_CONTROL_0_WDG_EN_MASK,
-			    ESPI_GLOBAL_CONTROL_0);
+	spacemit_espi_set32(ESPI_WDG_EN, ESPI_GLOBAL_CONTROL_0);
 }
 
 static inline void espi_set_wdt_count(uint32_t count)
 {
-	spacemit_espi_write32_mask(GLOBAL_CONTROL_0_WDG_CNT(count),
-				   GLOBAL_CONTROL_0_WDG_CNT(GLOBAL_CONTROL_0_WDG_CNT_MASK),
+	spacemit_espi_write32_mask(ESPI_WDG_CNT(count),
+				   ESPI_WDG_CNT(ESPI_WDG_CNT_MASK),
 				   ESPI_GLOBAL_CONTROL_0);
 }
 
 static inline void espi_set_master_wait_count(uint32_t count)
 {
-	spacemit_espi_write32_mask(GLOBAL_CONTROL_0_WAIT_CNT(count),
-				   GLOBAL_CONTROL_0_WAIT_CNT(GLOBAL_CONTROL_0_WAIT_CNT_MASK),
+	spacemit_espi_write32_mask(ESPI_WAIT_CNT(count),
+				   ESPI_WAIT_CNT(ESPI_WAIT_CNT_MASK),
 				   ESPI_GLOBAL_CONTROL_0);
 }
 
 static inline void espi_soft_reset(void)
 {
-	spacemit_espi_write32(GLOBAL_CONTROL_1_SW_RST, ESPI_GLOBAL_CONTROL_1);
+	spacemit_espi_set32(ESPI_SW_RST, ESPI_GLOBAL_CONTROL_1);
 }
 
 static inline void espi_vw_channel_slave_suspend_enter(void)
 {
-	spacemit_espi_set32(GLOBAL_CONTROL_1_SUS_STAT,
-			    ESPI_GLOBAL_CONTROL_1);
+	spacemit_espi_set32(ESPI_SUS_STAT, ESPI_GLOBAL_CONTROL_1);
 }
 
 static inline void espi_vw_channel_slave_suspend_exit(void)
 {
-	spacemit_espi_clear32(GLOBAL_CONTROL_1_SUS_STAT,
-			      ESPI_GLOBAL_CONTROL_1);
+	spacemit_espi_clear32(ESPI_SUS_STAT, ESPI_GLOBAL_CONTROL_1);
 }
 
 static inline uint32_t espi_decode_io_range_en_bit(unsigned int idx)
@@ -259,11 +252,7 @@ static inline unsigned int espi_mmio_range_size_reg(unsigned int idx)
 
 static void espi_enable_decode(uint32_t decode_en)
 {
-	uint32_t val;
-
-	val = spacemit_espi_read32(ESPI_DECODE);
-	val |= decode_en;
-	spacemit_espi_write32(val, ESPI_DECODE);
+	spacemit_espi_set32(decode_en, ESPI_DECODE);
 }
 
 static bool espi_is_decode_enabled(uint32_t decode)
@@ -285,7 +274,6 @@ static int espi_find_io_window(uint16_t win_base)
 		if (spacemit_espi_read16(espi_io_range_base_reg(i)) == win_base)
 			return i;
 	}
-
 	return -1;
 }
 
@@ -508,15 +496,12 @@ static int espi_configure_decodes(const struct espi_config *cfg)
 /* Wait up to ESPI_CMD_TIMEOUT_US for hardware to clear DNCMD_STATUS bit. */
 static int espi_wait_ready(void)
 {
-	union espi_txhdr0 hdr0;
 	int count = 1000;
 
 	do {
-		hdr0.val = spacemit_espi_read32(ESPI_DN_TXHDR_0);
-		if (!hdr0.cmd_sts)
+		if (!spacemit_espi_read_dncmd())
 			return 0;
 	} while (count--);
-
 	return -1;
 }
 
@@ -547,13 +532,6 @@ static int espi_poll_status(uint32_t *status)
 	return -1;
 }
 
-static void espi_show_failure(const struct espi_cmd *cmd, const char *str, uint32_t status)
-{
-	con_log("eSPI cmd0-cmd2: %08x %08x %08x data: %08x.\n",
-	       cmd->hdr0.val, cmd->hdr1.val, cmd->hdr2.val, cmd->data.val);
-	con_log("%s (Status = 0x%x)\n", str, status);
-}
-
 static int espi_send_command(const struct espi_cmd *cmd)
 {
 	uint32_t status;
@@ -562,80 +540,37 @@ static int espi_send_command(const struct espi_cmd *cmd)
 		cmd->hdr0.val, cmd->hdr1.val,
 		cmd->hdr2.val, cmd->data.val);
 
-	if (espi_wait_ready() != 0) {
-		espi_show_failure(cmd, "Error: eSPI was not ready to accept a command", 0);
-		return -1;
-	}
+	if (espi_wait_ready() != 0)
+		return -EBUSY;
 
 	espi_clear_status();
-
-	//spacemit_espi_write32(cmd->hdr1.val, ESPI_DN_TXHDR_1);
-	spacemit_espi_write32_mask(DN_TXHDR_1_DNCMD_HDATA5(cmd->hdr1.hdata5),
-				   DN_TXHDR_1_DNCMD_HDATA5(DN_TXHDR_1_DNCMD_HDATA5_MASK),
-				   ESPI_DN_TXHDR_1);
-	spacemit_espi_write32_mask(DN_TXHDR_1_DNCMD_HDATA6(cmd->hdr1.hdata6),
-				   DN_TXHDR_1_DNCMD_HDATA6(DN_TXHDR_1_DNCMD_HDATA6_MASK),
-				   ESPI_DN_TXHDR_1);
-	spacemit_espi_write32_mask(DN_TXHDR_1_DNCMD_HDATA3(cmd->hdr1.hdata3),
-				   DN_TXHDR_1_DNCMD_HDATA3(DN_TXHDR_1_DNCMD_HDATA3_MASK),
-				   ESPI_DN_TXHDR_1);
-	spacemit_espi_write32_mask(DN_TXHDR_1_DNCMD_HDATA4(cmd->hdr1.hdata4),
-				   DN_TXHDR_1_DNCMD_HDATA4(DN_TXHDR_1_DNCMD_HDATA4_MASK),
-				   ESPI_DN_TXHDR_1);
-	
-	//spacemit_espi_write32(cmd->hdr2.val, ESPI_DN_TXHDR_2);
-	spacemit_espi_write32_mask(DN_TXHDR_2_DNCMD_HDATA7(cmd->hdr2.hdata7),
-				   DN_TXHDR_2_DNCMD_HDATA7(DN_TXHDR_2_DNCMD_HDATA7_MASK),
-				   ESPI_DN_TXHDR_2);
 	
 	spacemit_espi_write32(cmd->data.val, ESPI_DN_TXDATA_PORT);
 
+	spacemit_espi_write_txhdr(7, cmd->hdr2.hdata7);
+	spacemit_espi_write_txhdr(6, cmd->hdr1.hdata6);
+	spacemit_espi_write_txhdr(5, cmd->hdr1.hdata5);
+	spacemit_espi_write_txhdr(4, cmd->hdr1.hdata4);
+	spacemit_espi_write_txhdr(3, cmd->hdr1.hdata3);
+	spacemit_espi_write_txhdr(2, cmd->hdr0.hdata2);
+	spacemit_espi_write_txhdr(1, cmd->hdr0.hdata1);
+	spacemit_espi_write_txhdr(0, cmd->hdr0.hdata0);
+
 	/* Dword 0 must be last as this write triggers the transaction */
 	//spacemit_espi_write32(cmd->hdr0.val, ESPI_DN_TXHDR_0);
-	spacemit_espi_write32_mask(DN_TXHDR_0_DNCMD_HDATA1(cmd->hdr0.hdata1),
-				   DN_TXHDR_0_DNCMD_HDATA1(DN_TXHDR_0_DNCMD_HDATA1_MASK),
-				   ESPI_DN_TXHDR_0);
-	spacemit_espi_write32_mask(DN_TXHDR_0_DNCMD_HDATA2(cmd->hdr0.hdata2),
-				   DN_TXHDR_0_DNCMD_HDATA2(DN_TXHDR_0_DNCMD_HDATA2_MASK),
-				   ESPI_DN_TXHDR_0);
-	spacemit_espi_write32_mask(DN_TXHDR_0_DNCMD_TYPE(cmd->hdr0.cmd_type),
-				   DN_TXHDR_0_DNCMD_TYPE(DN_TXHDR_0_DNCMD_TYPE_MASK),
-				   ESPI_DN_TXHDR_0);
-	spacemit_espi_write32((cmd->hdr0.cmd_sts) | DN_TXHDR_0_DNCMD_EN,
-			      ESPI_DN_TXHDR_0);
-	spacemit_espi_write32_mask(DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL(cmd->hdr0.slave_sel),
-				   DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL(DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL_MASK),
-				   ESPI_DN_TXHDR_0);
-	spacemit_espi_write32_mask(DN_TXHDR_0_DNCMD_HDATA0(cmd->hdr0.hdata0),
-				   DN_TXHDR_0_DNCMD_HDATA0(DN_TXHDR_0_DNCMD_HDATA0_MASK),
-				   ESPI_DN_TXHDR_0);
 
-	if (espi_wait_ready() != 0) {
-		espi_show_failure(cmd,
-				  "Error: eSPI timed out waiting for command to complete", 0);
-		return -1;
-	}
+	spacemit_espi_write_dncmd(cmd->hdr0.cmd_type, cmd->hdr0.slave_sel);
 
-	if (espi_poll_status(&status) != 0) {
-		espi_show_failure(cmd, "Error: eSPI poll status failed", 0);
-		return -1;
-	}
+	if (espi_wait_ready() != 0)
+		return -EBUSY;
+	if (espi_poll_status(&status) != 0)
+		return -EBUSY;
 
 	/* If command did not complete downstream, return error. */
-	if (!(status & SLAVE0_INT_STS_DNCMD_INT)) {
-		espi_show_failure(cmd, "Error: eSPI downstream command completion failure",
-				  status);
-		return -1;
-	}
-
-	if (status & ~(SLAVE0_INT_STS_DNCMD_INT | cmd->expected_status_codes)) {
-		espi_show_failure(cmd, "Error: unexpected eSPI status register bits set",
-				  status);
-		return -1;
-	}
+	if (!(status & ESPI_DNCMD_INT))
+		return -EIO;
 
 	spacemit_espi_write32(status, ESPI_SLAVE0_INT_STS);
-
 	return 0;
 }
 
@@ -643,7 +578,7 @@ static int espi_send_reset(void)
 {
 	struct espi_cmd cmd = {
 		.hdr0 = {
-			.cmd_type = CMD_TYPE_IN_BAND_RESET,
+			.cmd_type = ESPI_DNCMD_IN_BAND_RESET,
 			.cmd_sts = 1,
 		},
 
@@ -672,7 +607,7 @@ static int espi_send_reset(void)
 		 * As a workaround we allow the NO_RESPONSE status code when
 		 * we perform an in-band reset.
 		 */
-		.expected_status_codes = SLAVE0_INT_STS_NO_RSP_INT,
+		.expected_status_codes = ESPI_NO_RSP_INT,
 	};
 
 	return espi_send_command(&cmd);
@@ -682,7 +617,7 @@ static int espi_send_pltrst(bool assert)
 {
 	struct espi_cmd cmd = {
 		.hdr0 = {
-			.cmd_type = CMD_TYPE_VWIRE,
+			.cmd_type = ESPI_DNCMD_PUT_VW,
 			.cmd_sts = 1,
 			.hdata0 = 0, /* 1 VW group */
 		},
@@ -710,7 +645,7 @@ static int espi_get_configuration(uint16_t slave_reg_addr, uint32_t *config)
 {
 	struct espi_cmd cmd = {
 		.hdr0 = {
-			.cmd_type = CMD_TYPE_GET_CONFIGURATION,
+			.cmd_type = ESPI_DNCMD_GET_CONFIGURATION,
 			.cmd_sts = 1,
 			.hdata0 = ESPI_CONFIGURATION_HDATA0(slave_reg_addr),
 			.hdata1 = ESPI_CONFIGURATION_HDATA1(slave_reg_addr),
@@ -722,7 +657,7 @@ static int espi_get_configuration(uint16_t slave_reg_addr, uint32_t *config)
 	if (espi_send_command(&cmd) != 0)
 		return -1;
 
-	*config = spacemit_espi_read32(ESPI_DN_TXHDR_1);
+	*config = spacemit_espi_read32(ESPI_DN_TXHDRn(1));
 
 	con_log("espi: Get configuration for slave register(0x%x): 0x%x\n",
 	       slave_reg_addr, *config);
@@ -734,7 +669,7 @@ static int espi_set_configuration(uint16_t slave_reg_addr, uint32_t config)
 {
 	struct espi_cmd cmd = {
 		.hdr0 = {
-			.cmd_type = CMD_TYPE_SET_CONFIGURATION,
+			.cmd_type = ESPI_DNCMD_SET_CONFIGURATION,
 			.cmd_sts = 1,
 			.hdata0 = ESPI_CONFIGURATION_HDATA0(slave_reg_addr),
 			.hdata1 = ESPI_CONFIGURATION_HDATA1(slave_reg_addr),
@@ -762,7 +697,7 @@ static int espi_set_general_configuration(const struct espi_config *mb_cfg,
 	uint32_t slave_config = 0;
 	uint32_t ctrlr_config = 0;
 
-	if (mb_cfg->crc_check_en) {
+	if (ESPI_CRC_CHECKING) {
 		slave_config |= ESPI_CRC_CHECKING;
 		ctrlr_config |= ESPI_CRC_CHECKING_EN;
 	}
@@ -960,23 +895,20 @@ static int espi_setup_flash_channel(uint32_t slave_caps)
 #define espi_setup_flash_channel(caps)		0
 #endif
 
-/*
- * mode: 1x
+/* mode: 1x
  * freq: 16MHz
  * slect alert mode
  */
 static void espi_set_initial_config(const struct espi_config *mb_cfg)
 {
-	uint32_t io_mode = SLAVE0_CONFIG_IO_MODE_SEL(ESPI_GEN_IO_MODE_SINGLE);
-	uint32_t freq = SLAVE0_CONFIG_CLK_FREQ_SEL(ESPI_OP_FREQ_20_MHZ);
-	uint32_t espi_initial_mode = freq | io_mode;
+	uint32_t espi_initial_mode = ESPI_CLK_FREQ_SEL(ESPI_GEN_OP_FREQ_20MHZ) |
+				     ESPI_IO_MODE_SEL(ESPI_GEN_IO_MODE_SINGLE);
 
 	switch (ESPI_ALERT_PIN) {
-	case ESPI_ALERT_PIN_IN_BAND:
+	case ESPI_GEN_ALERT_MODE_IO1:
 		break;
-	case ESPI_ALERT_PIN_PUSH_PULL:
-	case ESPI_ALERT_PIN_OPEN_DRAIN:
-		espi_initial_mode |= SLAVE0_CONFIG_ALERT_MODE_SEL;
+	case ESPI_GEN_ALERT_MODE_PIN:
+		espi_initial_mode |= ESPI_ALERT_MODE_SEL;
 		break;
 	default:
 		BUG();
@@ -998,15 +930,14 @@ static void espi_setup_subtractive_decode(const struct espi_config *mb_cfg)
 //	spacemit_espi_write32(ESPI_GLOBAL_CONTROL_1, global_ctrl_reg);
 }
 
-int espi_send_vw(uint8_t *ids, uint8_t *data, int num)
+int spacemit_espi_tx_vw(uint8_t *ids, uint8_t *data, int num)
 {
 	int i;
 	uint32_t status;
 	uint32_t val = 0;
 
-	if (num > 64 || num < 1) {
-		return -1;
-	}
+	if (num > 64 || num < 1)
+		return -EINVAL;
 
 	for (i = 0; i < num; i++) {
 		val |= ids[i] << ((i % 4) << 1) | data[i] << (((i % 4) << 1) + 1);
@@ -1020,91 +951,63 @@ int espi_send_vw(uint8_t *ids, uint8_t *data, int num)
 		spacemit_espi_write32(val, ESPI_DN_TXDATA_PORT);
 	}
 
-	spacemit_espi_write32(DN_TXHDR_0_DNCMD_TYPE(CMD_TYPE_VWIRE) |
-		DN_TXHDR_0_DNCMD_EN | DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL(0) |
-		DN_TXHDR_0_DNCMD_HDATA0(num), ESPI_DN_TXHDR_0);
+	spacemit_espi_write_dncmd(ESPI_DNCMD_PUT_VW, 0);
+	spacemit_espi_write_txhdr(0, num);
 
-	if (espi_wait_ready() != 0) {
-		return -1;
-	}
-
-	if (espi_poll_status(&status) != 0) {
-		return -1;
-	}
+	if (espi_wait_ready() != 0)
+		return -EBUSY;
+	if (espi_poll_status(&status) != 0)
+		return -EBUSY;
 
 	/* If command did not complete downstream, return error. */
-	if (!(status & SLAVE0_INT_STS_DNCMD_INT)) {
-		return -1;
-	}
-
-//	if (status & ~(SLAVE0_INT_STS_DNCMD_INT | cmd->expected_status_codes)) {
-//		return -1;
-//	}
-
+	if (!(status & ESPI_DNCMD_INT))
+		return -EIO;
 	return 0;
 }
 
-/* eSPI tag + len[11:8] field */
-#define ESPI_TAG_LEN_FIELD(tag, len) \
-		((((tag) & 0xF) << 4) | (((len) >> 8) & 0xF))
-int espi_send_oob_smbus(uint8_t *buf, int len)
+int spacemit_espi_tx_oob(uint8_t *buf, int len)
 {
+	int i;
 	uint32_t status;
 	uint32_t data[16];
-
-	uint32_t val = *(uint32_t *)buf | 0x00FFFFFFU;
-
-	spacemit_espi_write32(val, ESPI_DN_TXHDR_1);
 
 	memset(&data, 0, 64);
 	memcpy(&data, &buf[3], len - 3);
 
-	for (int i = 0; i < (len - 3 + 3) / 4; i++) {
+	for (i = 0; i < (len - 3 + 3) / 4; i++) {
 		spacemit_espi_write32(data[i], ESPI_DN_TXDATA_PORT);
 	}
 
-	spacemit_espi_write32(DN_TXHDR_0_DNCMD_TYPE(CMD_TYPE_OOB) |
-		DN_TXHDR_0_DNCMD_EN | DN_TXHDR_0_DN_TXHDR_0_SLAVE_SEL(0) |
-		DN_TXHDR_0_DNCMD_HDATA0(ESPI_CYCLE_TYPE_OOB_MESSAGE) |
-		DN_TXHDR_0_DNCMD_HDATA1(ESPI_TAG_LEN_FIELD(0, len)) |
-		DN_TXHDR_0_DNCMD_HDATA2(len & 0xFFU), ESPI_DN_TXHDR_0);
+	spacemit_espi_write_dncmd(ESPI_DNCMD_PUT_OOB, 0);
+	spacemit_espi_write_txhdr(0, ESPI_CYCLE_TYPE_OOB_MESSAGE);
+	spacemit_espi_write_txhdr(1, ESPI_TXHDR_TAG(0) | ESPI_TXHDR_LEN(HIBYTE(len)));
+	spacemit_espi_write_txhdr(2, LOBYTE(len));
 
-	if (espi_wait_ready() != 0) {
-		return -1;
-	}
-
-	if (espi_poll_status(&status) != 0) {
-		return -1;
-	}
+	if (espi_wait_ready() != 0)
+		return -EBUSY;
+	if (espi_poll_status(&status) != 0)
+		return -EBUSY;
 
 	/* If command did not complete downstream, return error. */
-	if (!(status & SLAVE0_INT_STS_DNCMD_INT)) {
-		return -1;
-	}
-
-//	if (status & ~(SLAVE0_INT_STS_DNCMD_INT | cmd->expected_status_codes)) {
-//		return -1;
-//	}
-
+	if (!(status & ESPI_DNCMD_INT))
+		return -EIO;
 	return 0;
 }
 
-static int espi_receive_oob_smbus(uint8_t *buf)
+int spacemit_espi_rx_oob(uint8_t *buf)
 {
+	int i;
 	int len = 0;
 	uint32_t data[16];
-	uint32_t rxhdr0 = spacemit_espi_read32(ESPI_UP_RXHDR_0);
 
-	len = FIELD_GET(UP_RXHDR_0_UPCMD_HDATA2_MASK, rxhdr0);
-
-	*(uint32_t *)buf = spacemit_espi_read32(ESPI_UP_RXHDR_1) & 0x00FFFFFFU;
-
-	for (int i = 0; i < (len - 3) / 4; i++) {
+	for (i = 0; i < ESPI_OOB_MESSAGE_HDR_LEN; i++) {
+		buf[i] = spacemit_espi_read_rxhdr(i);
+	}
+	len = ESPI_RXHDR_LENGTH(buf);
+	for (i = 0; i < (len - 3) / 4; i++) {
 		data[i] = spacemit_espi_read32(ESPI_UP_RXDATA_PORT);
 	}
-
 	memcpy(&buf[3], &data, len - 3);
-
 	return len;
 }
 
@@ -1116,31 +1019,7 @@ static void spacemit_espi_poll_init(void)
 #else
 static void espi_enable_all_irqs(void)
 {
-	spacemit_espi_write32(SLAVE0_CONFIG_FLASH_REQ_INT_EN |
-			      SLAVE0_INT_EN_RXOOB_INT_EN |
-			      SLAVE0_INT_EN_RXMSG_INT_EN |
-			      SLAVE0_INT_EN_DNCMD_INT_EN |
-			      SLAVE0_INT_EN_RXVW_GPR3_INT_EN |
-			      SLAVE0_INT_EN_RXVW_GPR2_INT_EN |
-			      SLAVE0_INT_EN_RXVW_GPR1_INT_EN |
-			      SLAVE0_INT_EN_RXVW_GPR0_INT_EN |
-			      SLAVE0_INT_EN_PR_INT_EN |
-			      SLAVE0_INT_EN_PROTOCOL_ERR_INT_EN |
-			      SLAVE0_INT_EN_RXFLASH_OFLOW_INT_EN |
-			      SLAVE0_INT_EN_RXMSG_OFLOW_INT_EN |
-			      SLAVE0_INT_EN_RXOOB_OFLOW_INT_EN |
-			      SLAVE0_INT_EN_ILLEGAL_LEN_INT_EN |
-			      SLAVE0_INT_EN_ILLEGAL_TAG_INT_EN |
-			      SLAVE0_INT_EN_UNSUCSS_CPL_INT_EN |
-			      SLAVE0_INT_EN_INVALID_CT_RSP_INT_EN |
-			      SLAVE0_INT_EN_INVALID_ID_RSP_INT_EN |
-			      SLAVE0_INT_EN_NON_FATAL_INT_EN |
-			      SLAVE0_INT_EN_FATAL_ERR_INT_EN |
-			      SLAVE0_INT_EN_NO_RSP_INT_EN |
-			      SLAVE0_INT_EN_CRC_ERR_INT_EN |
-			      SLAVE0_INT_EN_WAIT_TIMEOUT_INT_EN |
-			      SLAVE0_INT_EN_BUS_ERR_INT_EN,
-		ESPI_SLAVE0_INT_EN);
+	spacemit_espi_write32(ESPI_ALL_INT, ESPI_SLAVE0_INT_EN);
 }
 
 static void spacemit_espi_irq_init(void)
@@ -1155,6 +1034,7 @@ static void spacemit_espi_irq_init(void)
 void espi_handle_irq(irq_t irq)
 {
 	int int_sts;
+	int len;
 	uint8_t rxvw_data;
 
 	int_sts = spacemit_espi_read32(ESPI_SLAVE0_INT_STS);
@@ -1162,27 +1042,27 @@ void espi_handle_irq(irq_t irq)
 	spacemit_espi_write32(int_sts, ESPI_SLAVE0_INT_STS);
 
 	switch (int_sts) {
-	case SLAVE0_INT_STS_RXVW_GRP0_INT:
+	case ESPI_RXVW_GRP0_INT:
 		rxvw_data = spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFFU;
 		rxvw_callback(128, rxvw_data);
 		break;
-	case SLAVE0_INT_STS_RXVW_GRP1_INT:
+	case ESPI_RXVW_GRP1_INT:
 		rxvw_data = (spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF00U) >> 8;
 		rxvw_callback(129, rxvw_data);
 		break;
-	case SLAVE0_INT_STS_RXVW_GRP2_INT:
+	case ESPI_RXVW_GRP2_INT:
 		rxvw_data = (spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF0000U) >> 8;
 		rxvw_callback(130, rxvw_data);
 		break;
-	case SLAVE0_INT_STS_RXVW_GRP3_INT:
+	case ESPI_RXVW_GRP3_INT:
 		rxvw_data = (spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF000000U) >> 8;
 		rxvw_callback(131, rxvw_data);
 		break;
-	case SLAVE0_INT_STS_RXOOB_INT:
-		int len = espi_receive_oob_smbus((uint8_t *)rxoob_buffer);
+	case ESPI_RXOOB_INT:
+		len = spacemit_espi_rx_oob((uint8_t *)rxoob_buffer);
 		rxoob_callback(rxoob_buffer, len);
 	default:
-		con_err("espi irq error\n");
+		con_err("espi: Unknown IRQ %d\n", int_sts);
 		break;
 	}
 }
@@ -1221,10 +1101,9 @@ void spacemit_espi_init(void)
 	con_log("Initializing eSPI.\n");
 
 	def_cfg.std_io_decode_bitmap = ESPI_DECODE_IO_0x80_EN | ESPI_DECODE_IO_0X2E_0X2F_EN | ESPI_DECODE_IO_0X60_0X64_EN,
-	def_cfg.crc_check_en = 1,
 	cfg = &def_cfg;
 
-	spacemit_espi_write32(GLOBAL_CONTROL_0_MST_STOP_EN, ESPI_GLOBAL_CONTROL_0);
+	spacemit_espi_set32(ESPI_MST_STOP_EN, ESPI_GLOBAL_CONTROL_0);
 //	spacemit_espi_write32(ESPI_RGCMD_INT(23) | ESPI_ERR_INT_SMI, ESPI_GLOBAL_CONTROL_1);
 	spacemit_espi_write32(0, ESPI_SLAVE0_INT_EN);
 	espi_clear_status();
