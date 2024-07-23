@@ -88,227 +88,160 @@
 
 /* 7.2 Capabilities and Configuration Registers */
 /* 7.2.1.2 Offset 04h: Device Identification */
-#define ESPI_SLAVE_DEVICE_ID				0x04
-#define ESPI_SLAVE_VERSION_ID_OFFSET			0
-#define ESPI_SLAVE_VERSION_ID_MASK			0xf
-#define ESPI_SLAVE_VERSION_ID(value)			_GET_FV(ESPI_SLAVE_VERSION_ID)
+#define ESPI_SLAVE_DEV_ID			0x04
+#define ESPI_SLAVE_VERSION_ID_OFFSET		0
+#define ESPI_SLAVE_VERSION_ID_MASK		REG_4BIT_MASK
+#define ESPI_SLAVE_VERSION_ID(value)		_GET_FV(ESPI_SLAVE_VERSION_ID)
 
-#define  ESPI_SLAVE_GENERAL_CFG				0x08
-#define  ESPI_SLAVE_CRC_ENABLE				(1 << 31)
-#define  ESPI_SLAVE_CRC_DISABLE				(0 << 31)
-#define  ESPI_SLAVE_RESP_MOD_ENABLE			(1 << 30)
-#define  ESPI_SLAVE_RESP_MOD_DISABLE			(0 << 30)
-#define  ESPI_SLAVE_ALERT_MODE_PIN			(1 << 28)
-#define  ESPI_SLAVE_ALERT_MODE_IO1			(0 << 28)
-#define  ESPI_SLAVE_IO_MODE_SEL_SHIFT			26
-#define  ESPI_SLAVE_IO_MODE_SEL_MASK			(0x3 << ESPI_SLAVE_IO_MODE_SEL_SHIFT)
-#define  ESPI_SLAVE_IO_MODE_SEL_VAL(x)			((x) << ESPI_SLAVE_IO_MODE_SEL_SHIFT)
-#define  ESPI_SLAVE_IO_MODE_SEL_SINGLE			ESPI_SLAVE_IO_MODE_SEL_VAL(0)
-#define  ESPI_SLAVE_IO_MODE_SEL_DUAL			ESPI_SLAVE_IO_MODE_SEL_VAL(1)
-#define  ESPI_SLAVE_IO_MODE_SEL_QUAD			ESPI_SLAVE_IO_MODE_SEL_VAL(2)
-#define  ESPI_SLAVE_IO_MODE_SUPP_SHIFT			24
-#define  ESPI_SLAVE_IO_MODE_SUPP_MASK			(0x3 << ESPI_SLAVE_IO_MODE_SUPP_SHIFT)
-#define  ESPI_SLAVE_IO_MODE_SUPP_VAL(x)			((x) << ESPI_SLAVE_IO_MODE_SUPP_SHIFT)
-#define  ESPI_SLAVE_IO_MODE_SUPP_SINGLE_ONLY		ESPI_SLAVE_IO_MODE_SUPP_VAL(0)
-#define  ESPI_SLAVE_IO_MODE_SUPP_SINGLE_DUAL		ESPI_SLAVE_IO_MODE_SUPP_VAL(1)
-#define  ESPI_SLAVE_IO_MODE_SUPP_SINGLE_QUAD		ESPI_SLAVE_IO_MODE_SUPP_VAL(2)
-#define  ESPI_SLAVE_IO_MODE_SUPP_SINGLE_DUAL_QUAD	ESPI_SLAVE_IO_MODE_SUPP_VAL(3)
-#define  ESPI_SLAVE_OPEN_DRAIN_ALERT_SEL		(1 << 23)
-#define  ESPI_SLAVE_PUSH_PULL_ALERT_SEL			(0 << 23)
-#define  ESPI_SLAVE_OP_FREQ_SEL_SHIFT			20
-#define  ESPI_SLAVE_OP_FREQ_SEL_MASK			(0x7 << ESPI_SLAVE_OP_FREQ_SEL_SHIFT)
-#define  ESPI_SLAVE_OP_FREQ_SEL_VAL(x)			((x) << ESPI_SLAVE_OP_FREQ_SEL_SHIFT)
-#define  ESPI_SLAVE_OP_FREQ_SEL_20_MHZ			ESPI_SLAVE_OP_FREQ_SEL_VAL(0)
-#define  ESPI_SLAVE_OP_FREQ_SEL_25_MHZ			ESPI_SLAVE_OP_FREQ_SEL_VAL(1)
-#define  ESPI_SLAVE_OP_FREQ_SEL_33_MHZ			ESPI_SLAVE_OP_FREQ_SEL_VAL(2)
-#define  ESPI_SLAVE_OP_FREQ_SEL_50_MHZ			ESPI_SLAVE_OP_FREQ_SEL_VAL(3)
-#define  ESPI_SLAVE_OP_FREQ_SEL_66_MHZ			ESPI_SLAVE_OP_FREQ_SEL_VAL(4)
-#define  ESPI_SLAVE_OPEN_DRAIN_ALERT_SUPP		(1 << 19)
-#define  ESPI_SLAVE_OP_FREQ_SUPP_SHIFT			16
-#define  ESPI_SLAVE_OP_FREQ_SUPP_MASK			(0x7 << ESPI_SLAVE_OP_FREQ_SUPP_SHIFT)
-#define  ESPI_SLAVE_OP_FREQ_SUPP_VAL(x)			((x) << ESPI_SLAVE_OP_FREQ_SUPP_SHIFT)
-#define  ESPI_SLAVE_OP_FREQ_SUPP_20_MHZ			ESPI_SLAVE_OP_FREQ_SUPP_VAL(0)
-#define  ESPI_SLAVE_OP_FREQ_SUPP_25_MHZ			ESPI_SLAVE_OP_FREQ_SUPP_VAL(1)
-#define  ESPI_SLAVE_OP_FREQ_SUPP_33_MHZ			ESPI_SLAVE_OP_FREQ_SUPP_VAL(2)
-#define  ESPI_SLAVE_OP_FREQ_SUPP_50_MHZ			ESPI_SLAVE_OP_FREQ_SUPP_VAL(3)
-#define  ESPI_SLAVE_OP_FREQ_SUPP_66_MHZ			ESPI_SLAVE_OP_FREQ_SUPP_VAL(4)
-#define  ESPI_SLAVE_MAX_WAIT_SHIFT			12
-#define  ESPI_SLAVE_MAX_WAIT_MASK			(0xf << ESPI_SLAVE_MAX_WAIT_SHIFT)
-#define  ESPI_SLAVE_MAX_WAIT_STATE(x)			\
-				(((x) << ESPI_SLAVE_MAX_WAIT_SHIFT) & ESPI_MAX_WAIT_MASK)
-#define  ESPI_SLAVE_FLASH_CH_SUPP			(1 << 3)
-#define  ESPI_SLAVE_OOB_CH_SUPP				(1 << 2)
-#define  ESPI_SLAVE_VW_CH_SUPP				(1 << 1)
-#define  ESPI_SLAVE_PERIPH_CH_SUPP			(1 << 0)
+/* 7.2.1.3 Offset 08h: General Capabilities and Configurations */
+#define ESPI_SLAVE_GEN_CFG			0x08
+#define ESPI_GEN_CRC_ENABLE			_BV(31)
+#define ESPI_GEN_RESP_MOD_ENABLE		_BV(30)
+#define ESPI_GEN_RESP_MOD_DISABLE		_BV(30)
+#define ESPI_GEN_ALERT_MODE_PIN			_BV(28)
+#define ESPI_GEN_IO_MODE_SEL_OFFSET		26
+#define ESPI_GEN_IO_MODE_SEL_MASK		REG_2BIT_MASK
+#define ESPI_GEN_IO_MODE_SEL(value)		_SET_FV(ESPI_GEN_IO_MODE_SEL, value)
+#define ESPI_GEN_IO_MODE_SUP_OFFSET		24
+#define ESPI_GEN_IO_MODE_SUP_MASK		REG_2BIT_MASK
+#define ESPI_GEN_IO_MODE_SUP(value)		_GET_FV(ESPI_GEN_IO_MODE_SUP, value)
+#define ESPI_GEN_IO_MODE_SINGLE			0x0
+#define ESPI_GEN_IO_MODE_DUAL			0x1
+#define ESPI_GEN_IO_MODE_QUAD			0x2
+#define ESPI_GEN_OPEN_DRAIN_ALERT_SEL		_BV(23)
+#define ESPI_GEN_OPEN_DRAIN_ALERT_SUP		_BV(19)
+#define ESPI_GEN_OP_FREQ_SEL_OFFSET		20
+#define ESPI_GEN_OP_FREQ_SEL_MASK		REG_3BIT_MASK
+#define ESPI_GEN_OP_FREQ_SEL(value)		_SET_FV(ESPI_GEN_OP_FREQ_SEL, value)
+#define ESPI_GEN_OP_FREQ_SUP_OFFSET		16
+#define ESPI_GEN_OP_FREQ_SUP_MASK		REG_3BIT_MASK
+#define ESPI_GEN_OP_FREQ_SUP(value)		_GET_FV(ESPI_GEN_OP_FREQ_SUP, value)
+#define ESPI_GEN_OP_FREQ_20MHZ			0
+#define ESPI_GEN_OP_FREQ_25MHZ			1
+#define ESPI_GEN_OP_FREQ_33MHZ			2
+#define ESPI_GEN_OP_FREQ_50MHZ			3
+#define ESPI_GEN_OP_FREQ_66MHZ			4
+#define ESPI_GEN_MAX_WAIT_STATE_OFFSET		12
+#define ESPI_GEN_MAX_WAIT_STATE_MASK		REG_4BIT_MASK
+#define ESPI_GEN_MAX_WAIT_STATE(value)		_SET_FV(ESPI_GEN_MAX_WAIT_STATE, value)
+#define ESPI_GEN_FLASH_CHAN_SUP			_BV(3)
+#define ESPI_GEN_OOB_CHAN_SUP			_BV(2)
+#define ESPI_GEN_VWIRE_CHAN_SUP			_BV(1)
+#define ESPI_GEN_PERI_CHAN_SUP			_BV(0)
 
-#define ESPI_SLAVE_PERIPH_CFG				0x10
-#define  ESPI_SLAVE_PERIPH_MAX_READ_SIZE_SHIFT		12
-#define  ESPI_SLAVE_PERIPH_MAX_READ_SIZE_MASK		\
-						(0x7 << ESPI_SLAVE_PERIPH_MAX_READ_SIZE_SHIFT)
-#define  ESPI_SLAVE_PERIPH_MAX_READ_SIZE_VAL(x)		\
-						((x) << ESPI_SLAVE_PERIPH_MAX_READ_SIZE_SHIFT)
-#define  ESPI_SLAVE_PERIPH_MAX_READ_64B			ESPI_SLAVE_PERIPH_MAX_READ_SIZE_VAL(1)
-#define  ESPI_SLAVE_PERIPH_MAX_READ_128B		ESPI_SLAVE_PERIPH_MAX_READ_SIZE_VAL(2)
-#define  ESPI_SLAVE_PERIPH_MAX_READ_256B		ESPI_SLAVE_PERIPH_MAX_READ_SIZE_VAL(3)
-#define  ESPI_SLAVE_PERIPH_MAX_READ_512B		ESPI_SLAVE_PERIPH_MAX_READ_SIZE_VAL(4)
-#define  ESPI_SLAVE_PERIPH_MAX_READ_1024B		ESPI_SLAVE_PERIPH_MAX_READ_SIZE_VAL(5)
-#define  ESPI_SLAVE_PERIPH_MAX_READ_2048B		ESPI_SLAVE_PERIPH_MAX_READ_SIZE_VAL(6)
-#define  ESPI_SLAVE_PERIPH_MAX_READ_4096B		ESPI_SLAVE_PERIPH_MAX_READ_SIZE_VAL(7)
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_SHIFT	8
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_MASK	\
-					(0x7 << ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_SHIFT)
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_VAL(x)	\
-					((x) << ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_SHIFT)
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_64B	\
-						ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_VAL(1)
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_128B	\
-						ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_VAL(2)
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_256B	\
-						ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SEL_VAL(3)
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_SHIFT	4
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_MASK	\
-					(0x7 << ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_SHIFT)
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_VAL(x)	\
-					((x) << ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_SHIFT)
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_64B	\
-						ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_VAL(1)
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_128B	\
-						ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_VAL(2)
-#define  ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_256B	\
-						ESPI_SLAVE_PERIPH_MAX_PAYLOAD_SIZE_SUPP_VAL(3)
-#define  ESPI_SLAVE_PERIPH_BUS_MASTER_ENABLE		(1 << 2)
-
-#define ESPI_SLAVE_VW_CFG				0x20
-#define  ESPI_SLAVE_VW_COUNT_SEL_SHIFT			16
-#define  ESPI_SLAVE_VW_COUNT_SEL_MASK			(0x3f << ESPI_SLAVE_VW_COUNT_SEL_SHIFT)
-/* 0-based field. Value of 0 indicates 1 virtual wire selected. */
-#define  ESPI_SLAVE_VW_COUNT_SEL_VAL(x)			\
-						((x) << ESPI_SLAVE_VW_COUNT_SEL_SHIFT)
-#define  ESPI_SLAVE_VW_COUNT_SUPP_SHIFT			8
-#define  ESPI_SLAVE_VW_COUNT_SUPP_MASK			\
-						(0x3f << ESPI_SLAVE_VW_COUNT_SUPP_SHIFT)
-
-#define ESPI_SLAVE_OOB_CFG				0x30
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_SHIFT	8
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_MASK	\
-					(0x7 << ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_SHIFT)
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_VAL(x)	\
-					((x) << ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_SHIFT)
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_64B	\
-						ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_VAL(1)
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_128B	\
-						ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_VAL(2)
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_256B	\
-						ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SEL_VAL(3)
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_SHIFT	4
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_MASK	\
-					(0x7 << ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_SHIFT)
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_VAL(x)	\
-					((x) << ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_SHIFT)
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_64B	\
-						ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_VAL(1)
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_128B	\
-						ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_VAL(2)
-#define  ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_256B	\
-						ESPI_SLAVE_OOB_MAX_PAYLOAD_SIZE_SUPP_VAL(3)
-
-#define ESPI_SLAVE_FLASH_CFG				0x40
-#define  ESPI_SLAVE_FLASH_MAX_READ_SIZE_SHIFT		12
-#define  ESPI_SLAVE_FLASH_MAX_READ_SIZE_MASK		\
-						(0x7 << ESPI_SLAVE_FLASH_MAX_READ_SIZE_SHIFT)
-#define  ESPI_SLAVE_FLASH_MAX_READ_SIZE_VAL(x)		\
-						((x) << ESPI_SLAVE_FLASH_MAX_READ_SIZE_SHIFT)
-#define  ESPI_SLAVE_FLASH_MAX_READ_64B			ESPI_SLAVE_FLASH_MAX_READ_SIZE_VAL(1)
-#define  ESPI_SLAVE_FLASH_MAX_READ_128B			ESPI_SLAVE_FLASH_MAX_READ_SIZE_VAL(2)
-#define  ESPI_SLAVE_FLASH_MAX_READ_256B			ESPI_SLAVE_FLASH_MAX_READ_SIZE_VAL(3)
-#define  ESPI_SLAVE_FLASH_MAX_READ_512B			ESPI_SLAVE_FLASH_MAX_READ_SIZE_VAL(4)
-#define  ESPI_SLAVE_FLASH_MAX_READ_1024B		ESPI_SLAVE_FLASH_MAX_READ_SIZE_VAL(5)
-#define  ESPI_SLAVE_FLASH_MAX_READ_2048B		ESPI_SLAVE_FLASH_MAX_READ_SIZE_VAL(6)
-#define  ESPI_SLAVE_FLASH_MAX_READ_4096B		ESPI_SLAVE_FLASH_MAX_READ_SIZE_VAL(7)
-#define  ESPI_SLAVE_FLASH_SHARING_MODE_MAF		(1 << 11)
-#define  ESPI_SLAVE_FLASH_SHARING_MODE_SAF		(0 << 11)
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_SHIFT	8
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_MASK	\
-					(0x7 << ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_SHIFT)
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_VAL(x)	\
-					((x) << ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_SHIFT)
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_64B	\
-						ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_VAL(1)
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_128B	\
-						ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_VAL(2)
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_256B	\
-						ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SEL_VAL(3)
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_SHIFT	5
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_MASK	\
-					(0x7 << ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_SHIFT)
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_VAL(x)	\
-					((x) << ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_SHIFT)
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_64B	\
-						ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_VAL(1)
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_128B	\
-						ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_VAL(2)
-#define  ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_256B	\
-						ESPI_SLAVE_FLASH_MAX_PAYLOAD_SIZE_SUPP_VAL(3)
-#define  ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_SHIFT	2
-#define  ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_MASK		\
-					(0x7 << ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_SHIFT)
-#define  ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_VAL(x)	\
-					((x) << ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_SHIFT)
-#define  ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_4K		\
-						ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_VAL(1)
-#define  ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_64K		\
-						ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_VAL(2)
-#define  ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_4K_64K	\
-						ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_VAL(3)
-#define  ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_128K		\
-						ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_VAL(4)
-#define  ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_256K		\
-						ESPI_SLAVE_FLASH_BLOCK_ERASE_SIZE_VAL(5)
-
-/*
- * All channels -- peripheral, OOB, VW and flash use the same bits for channel ready and channel
- * enable.
+/* Peripheral Read Request Size
+ * Peripheral Payload Size
+ * VWire Payload Size
+ * Flash Read Request Size
+ * Flash Payload Size
+ * 1: 64Bytes
+ * 2: 128Bytes
+ * 3: 256Bytes
+ * 4: 512Bytes
+ * 5: 1024Bytes
+ * 6: 2048Bytes
+ * 7: 4096Bytes
  */
-#define  ESPI_SLAVE_CHANNEL_READY		(1 << 1)
-#define  ESPI_SLAVE_CHANNEL_ENABLE		(1 << 0)
+#define ESPI_PAYLOAD_SIZE(nbytes)		(ilog2_const(nbytes) - 5)
+#define ESPI_PERI_READ_REQ_SIZE_MAX		4096
+#define ESPI_PERI_PAYLOAD_SIZE_MAX		256
+#define ESPI_OOB_PAYLOAD_SIZE_MAX		256
+#define ESPI_FLASH_READ_REQ_SIZE_MAX		4096
+#define ESPI_FLASH_PAYLOAD_SIZE_MAX		256
+/* 7.2.1.4 Offset 10h: Channel 0 Capabilities and Configurations */
+#define ESPI_SLAVE_PERI_CFG			0x10
+#define ESPI_PERI_MAX_READ_REQ_SIZE_OFFSET	12
+#define ESPI_PERI_MAX_READ_REQ_SIZE_MASK	REG_3BIT_MASK
+#define ESPI_PERI_MAX_READ_REQ_SIZE(value)	_SET_FV(ESPI_PERI_MAX_READ_REQ_SIZE, value)
+#define ESPI_PERI_MAX_PAYLOAD_SIZE_SEL_OFFSET	8
+#define ESPI_PERI_MAX_PAYLOAD_SIZE_SEL_MASK	REG_3BIT_MASK
+#define ESPI_PERI_MAX_PAYLOAD_SIZE_SEL(value)	_SET_FV(ESPI_PERI_MAX_PAYLOAD_SIZE_SEL, value)
+#define ESPI_PERI_MAX_PAYLOAD_SIZE_SUP_OFFSET	4
+#define ESPI_PERI_MAX_PAYLOAD_SIZE_SUP_MASK	REG_3BIT_MASK
+#define ESPI_PERI_MAX_PAYLOAD_SIZE_SUP(value)	_GET_FV(ESPI_PERI_MAX_PAYLOAD_SIZE_SUP, value)
+#define ESPI_PERI_BUS_MASTER_ENABLE		_BV(2)
 
-/* ESPI Slave Registers (Document # 327432-004 Revision 1.0 Chapter 5) */
-#define ESPI_VW_INDEX_INTERRUPT_EVENT_0		0	/* Interrupt lines 0 - 127 */
-#define ESPI_VW_INDEX_INTERRUPT_EVENT_1		1	/* Interrupt lines 128-255 */
-#define  ESPI_VW_INTERRUPT_LEVEL_HIGH		(1 << 7)
-#define  ESPI_VW_INTERRUPT_LEVEL_LOW		(0 << 7)
+/* 7.2.1.5 Offset 20h: Channel 1 Capabilities and Configurations */
+#define ESPI_SLAVE_VWIRE_CFG			0x20
+#define ESPI_VWIRE_MAX_OP_COUNT_SEL_OFFSET	16
+#define ESPI_VWIRE_MAX_OP_COUNT_SEL_MASK	REG_6BIT_MASK
+/* 0-based where 0 indicates 1 virtual wire */
+#define ESPI_VWIRE_MAX_OP_COUNT_SEL(value)	_SET_FV(ESPI_VWIRE_MAX_OP_COUNT_SEL, (value)-1)
+#define ESPI_VWIRE_MAX_OP_COUNT_SUP_OFFSET	8
+#define ESPI_VWIRE_MAX_OP_COUNT_SUP_MASK	REG_6BIT_MASK
+#define ESPI_VWIRE_MAX_OP_COUNT_SUP(value)	_GET_FV(ESPI_VWIRE_MAX_OP_COUNT_SUP, (value)-1)
 
-#define ESPI_VW_INDEX_SYSTEM_EVENT_2		2
-#define  ESPI_VW_SLP_S5				2
-#define  ESPI_VW_SLP_S4				1
-#define  ESPI_VW_SLP_S3				0
-#define ESPI_VW_INDEX_SYSTEM_EVENT_3		3
-#define  ESPI_VW_OOB_RST_WARN			2
-#define  ESPI_VW_PLTRST				1
-#define  ESPI_VW_SUS_STAT			0
-#define ESPI_VW_INDEX_SYSTEM_EVENT_4		4
-#define  ESPI_VW_PME				3
-#define  ESPI_VW_WAKE				2
-#define  ESPI_VW_OOB_RST_ACK			0
-#define ESPI_VW_INDEX_SYSTEM_EVENT_5		5
-#define  ESPI_VW_SLAVE_BOOT_LOAD_STATUS		3
-#define  ESPI_VW_ERROR_NON_FATAL		2
-#define  ESPI_VW_ERROR_FATAL			1
-#define  ESPI_VW_SLV_BOOT_LOAD_DONE		0
-#define ESPI_VW_INDEX_SYSTEM_EVENT_6		6
-#define  ESPI_VW_HOST_RST_ACK			3
-#define  ESPI_VW_RCIN				2
-#define  ESPI_VW_SMI				1
-#define  ESPI_VW_SCI				0
-#define ESPI_VW_INDEX_SYSTEM_EVENT_7		7
-#define  ESPI_VW_NMIOUT				2
-#define  ESPI_VW_SMIOUT				1
-#define  ESPI_VW_HOST_RST_WARN			0
+/* 7.2.1.6 Offset 30h: Channel 2 Capabilities and Configurations */
+#define ESPI_SLAVE_OOB_CFG			0x30
+#define ESPI_OOB_MAX_PAYLOAD_SIZE_SEL_OFFSET	8
+#define ESPI_OOB_MAX_PAYLOAD_SIZE_SEL_MASK	REG_3BIT_MASK
+#define ESPI_OOB_MAX_PAYLOAD_SIZE_SEL(value)	_SET_FV(ESPI_OOB_MAX_PAYLOAD_SIZE_SEL, value)
+#define ESPI_OOB_MAX_PAYLOAD_SIZE_SUP_OFFSET	4
+#define ESPI_OOB_MAX_PAYLOAD_SIZE_SUP_MASK	REG_3BIT_MASK
+#define ESPI_OOB_MAX_PAYLOAD_SIZE_SUP(value)	_GET_FV(ESPI_OOB_MAX_PAYLOAD_SIZE_SUP, value)
 
-#define  ESPI_VW_VALID(x)			(1 << ((x) + 4))
-#define  ESPI_VW_VALUE(x, v)			((v) << (x))
-#define  ESPI_VW_SIGNAL_HIGH(x)			(ESPI_VW_VALID(x) | ESPI_VW_VALUE(1, x))
-#define  ESPI_VW_SIGNAL_LOW(x)			(ESPI_VW_VALID(x) | ESPI_VW_VALUE(0, x))
+/* 7.2.1.7 Offset 40h: Channel 3 Capabilities and Configurations */
+#define ESPI_SLAVE_FLASH_CFG			0x40
+#define ESPI_FLASH_MAX_READ_REQ_SIZE_OFFSET	12
+#define ESPI_FLASH_MAX_READ_REQ_SIZE_MASK	REG_3BIT_MASK
+#define ESPI_FLASH_MAX_READ_REQ_SIZE(value)	_SET_FV(ESPI_FLASH_MAX_READ_REQ_SIZE, value)
+#define ESPI_FLASH_SHARING_MODE_MAF		_BV(11)
+#define ESPI_FLASH_MAX_PAYLOAD_SIZE_SEL_OFFSET	8
+#define ESPI_FLASH_MAX_PAYLOAD_SIZE_SEL_MASK	REG_3BIT_MASK
+#define ESPI_FLASH_MAX_PAYLOAD_SIZE_SEL(value)	_SET_FV(ESPI_FLASH_MAX_PAYLOAD_SIZE_SEL, value)
+#define ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP_OFFSET	5
+#define ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP_MASK	REG_3BIT_MASK
+#define ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP(value)	_GET_FV(ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP, value)
+#define ESPI_FLASH_BLOCK_ERASE_SIZE_OFFSET	2
+#define ESPI_FLASH_BLOCK_ERASE_SIZE_MASK	REG_3BIT_MASK
+#define ESPI_FLASH_BLOCK_ERASE_SIZE(value)	_SET_FV(ESPI_FLASH_BLOCK_ERASE_SIZE, value)
+#define ESPI_FLASH_BLOCK_ERASE_4KB		0x01
+#define ESPI_FLASH_BLOCK_ERASE_64KB		0x02
+#define ESPI_FLASH_BLOCK_ERASE_4KB_64KB		(ESPI_FLASH_BLOCK_ERASE_4KB | ESPI_FLASH_BLOCK_ERASE_64KB)
+#define ESPI_FLASH_BLOCK_ERASE_128KB		0x04
+#define ESPI_FLASH_BLOCK_ERASE_256KB		0x05
+
+/* All channels -- peripheral, virtual wire, OOB, and flash access use the
+ * same bits for channel ready and channel enable.
+ */
+#define ESPI_SLAVE_CHANNEL_READY		_BV(1)
+#define ESPI_SLAVE_CHANNEL_ENABLE		_BV(0)
+
+/* 5.2.2.1 Virtual Wire Index */
+#define ESPI_VWIRE_INTERRUPT_LEVEL_HIGH		_BV(7)
+#define ESPI_VWIRE_INDEX_INTERRUPT_EVENT_0	0 /* Interrupt lines 0 - 127 */
+#define ESPI_VWIRE_INDEX_INTERRUPT_EVENT_1	1 /* Interrupt lines 128-255 */
+
+#define ESPI_VWIRE_SYSTEM_LEVEL_HIGH(evt)	_BV(evt)
+#define ESPI_VWIRE_SYSTEM_VALID(evt)		_BV((evt) + 4)
+#define ESPI_VWIRE_SYSTEM_EVENT_HIGH(x)		(ESPI_VWIRE_SYSTEM_VALID(x) | ESPI_VWIRE_SYSTEM_LEVEL_HIGH(x))
+#define ESPI_VWIRE_SYSTEM_EVENT_LOW(x)		(ESPI_VWIRE_SYSTEM_VALID(x))
+#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_2		2
+#define ESPI_VWIRE_SYSTEM_SLP_S5		2
+#define ESPI_VWIRE_SYSTEM_SLP_S4		1
+#define ESPI_VWIRE_SYSTEM_SLP_S3		0
+#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_3		3
+#define ESPI_VWIRE_SYSTEM_OOB_RST_WARN		2
+#define ESPI_VWIRE_SYSTEM_PLTRST		1
+#define ESPI_VWIRE_SYSTEM_SUS_STAT		0
+#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_4		4
+#define ESPI_VWIRE_SYSTEM_PME			3
+#define ESPI_VWIRE_SYSTEM_WAKE			2
+#define ESPI_VWIRE_SYSTEM_OOB_RST_ACK		0
+#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_5		5
+#define ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_STATUS	3
+#define ESPI_VWIRE_ERROR_NONFATAL		2
+#define ESPI_VWIRE_ERROR_FATAL			1
+#define ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE	0
+#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_6		6
+#define ESPI_VWIRE_SYSTEM_HOST_RST_ACK		3
+#define ESPI_VWIRE_SYSTEM_RCIN			2
+#define ESPI_VWIRE_SYSTEM_SMI			1
+#define ESPI_VWIRE_SYSTEM_SCI			0
+#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_7		7
+#define ESPI_VWIRE_SYSTEM_NMIOUT		2
+#define ESPI_VWIRE_SYSTEM_SMIOUT		1
+#define ESPI_VWIRE_SYSTEM_HOST_RST_WARN		0
 
 #ifdef CONFIG_ESPI_DEBUG
 void espi_show_slave_general_configuration(uint32_t config);
@@ -318,95 +251,156 @@ static inline void espi_show_slave_general_configuration(uint32_t config) {}
 static inline void espi_show_slave_peripheral_channel_configuration(uint32_t config) {}
 #endif
 
-static inline bool espi_slave_supports_quad_io(uint32_t gen_caps)
-{
-	uint32_t mode = gen_caps & ESPI_SLAVE_IO_MODE_SUPP_MASK;
-	return (mode == ESPI_SLAVE_IO_MODE_SUPP_SINGLE_QUAD) ||
-		(mode == ESPI_SLAVE_IO_MODE_SUPP_SINGLE_DUAL_QUAD);
-}
+#define espi_slave_io_mode_sup_quad(caps)		\
+	(ESPI_GEN_IO_MODE_SUP(caps) & ESPI_GEN_IO_MODE_SUP(ESPI_GEN_IO_MODE_QUAD))
+#define espi_slave_io_mode_sup_dual(caps)		\
+	(ESPI_GEN_IO_MODE_SUP(caps) & ESPI_GEN_IO_MODE_SUP(ESPI_GEN_IO_MODE_DUAL))
+#define espi_slave_op_freq_sup_66mhz(caps)		\
+	(ESPI_GEN_OP_FREQ_SUP(caps) & ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_66MHZ))
+#define espi_slave_op_freq_sup_50mhz(caps)		\
+	(ESPI_GEN_OP_FREQ_SUP(caps) & ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_50MHZ))
+#define espi_slave_op_freq_sup_33mhz(caps)		\
+	(ESPI_GEN_OP_FREQ_SUP(caps) & ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_33MHZ))
+#define espi_slave_op_freq_sup_25mhz(caps)		\
+	(ESPI_GEN_OP_FREQ_SUP(caps) & ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_25MHZ))
+#define espi_slave_op_freq_sup_20mhz(caps)		\
+	(ESPI_GEN_OP_FREQ_SUP(caps) & ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_20MHZ))
+#define espi_slave_op_freq_sup_max(caps)		\
+	(espi_slave_op_freq_sup_66mhz(caps) ? 66 :	\
+	 espi_slave_op_freq_sup_50mhz(caps) ? 50 :	\
+	 espi_slave_op_freq_sup_33mhz(caps) ? 33 :	\
+	 espi_slave_op_freq_sup_25mhz(caps) ? 25 : 20)
+#define espi_slave_peri_chan_sup(caps)			\
+	(!!((caps) & ESPI_GEN_PERI_CHAN_SUP))
+#define espi_slave_vw_chan_sup(caps)			\
+	(!!((caps) & ESPI_GEN_VWIRE_CHAN_SUP))
+#define espi_slave_oob_chan_sup(caps)			\
+	(!!((caps) & ESPI_GEN_OOB_CHAN_SUP))
+#define espi_slave_flash_chan_sup(caps)			\
+	(!!((caps) & ESPI_GEN_FLASH_CHAN_SUP))
 
-static inline bool espi_slave_supports_dual_io(uint32_t gen_caps)
-{
-	uint32_t mode = gen_caps & ESPI_SLAVE_IO_MODE_SUPP_MASK;
-	return (mode == ESPI_SLAVE_IO_MODE_SUPP_SINGLE_DUAL) ||
-		(mode == ESPI_SLAVE_IO_MODE_SUPP_SINGLE_DUAL_QUAD);
-}
+#define espi_slave_channel_ready(cfg)			\
+	(!!((cfg) & ESPI_SLAVE_CHANNEL_READY))
+#define espi_slave_vwire_max_op_count_sup(caps)		ESPI_VWIRE_MAX_OP_COUNT_SUP(caps)
 
-static inline bool espi_slave_supports_66_mhz(uint32_t gen_caps)
-{
-	uint32_t freq = gen_caps & ESPI_SLAVE_OP_FREQ_SUPP_MASK;
-	return freq == ESPI_SLAVE_OP_FREQ_SUPP_66_MHZ;
-}
+enum espi_cmd_type {
+	CMD_TYPE_SET_CONFIGURATION = 0,
+	CMD_TYPE_GET_CONFIGURATION = 1,
+	CMD_TYPE_IN_BAND_RESET = 2,
+	CMD_TYPE_PERI = 4,
+	CMD_TYPE_VWIRE = 5,
+	CMD_TYPE_OOB = 6,
+	CMD_TYPE_FLASH = 7,
+};
+#define ESPI_CMD_TIMEOUT_US			100
+#define ESPI_CH_READY_TIMEOUT_US		10000
+union espi_txhdr0 {
+	uint32_t val;
+	struct  {
+		uint32_t cmd_type:3;
+		uint32_t cmd_sts:1;
+		uint32_t slave_sel:2;
+		uint32_t rsvd:2;
+		uint32_t hdata0:8;
+		uint32_t hdata2:8;
+		uint32_t hdata1:8;
+	};
+} __packed;
+union espi_txhdr1 {
+	uint32_t val;
+	struct {
+		uint32_t hdata3:8;
+		uint32_t hdata4:8;
+		uint32_t hdata5:8;
+		uint32_t hdata6:8;
+	};
+} __packed;
+union espi_txhdr2 {
+	uint32_t val;
+	struct {
+		uint32_t hdata7:8;
+		uint32_t rsvd:24;
+	};
+} __packed;
+union espi_txdata {
+	uint32_t val;
+	struct {
+		uint32_t byte0:8;
+		uint32_t byte1:8;
+		uint32_t byte2:8;
+		uint32_t byte3:8;
+	};
+} __packed;
+struct espi_cmd {
+	union espi_txhdr0 hdr0;
+	union espi_txhdr1 hdr1;
+	union espi_txhdr2 hdr2;
+	union espi_txdata data;
+	uint32_t expected_status_codes;
+} __packed;
 
-static inline bool espi_slave_supports_50_mhz(uint32_t gen_caps)
-{
-	uint32_t freq = gen_caps & ESPI_SLAVE_OP_FREQ_SUPP_MASK;
-	return freq == ESPI_SLAVE_OP_FREQ_SUPP_50_MHZ;
-}
-
-static inline bool espi_slave_supports_33_mhz(uint32_t gen_caps)
-{
-	uint32_t freq = gen_caps & ESPI_SLAVE_OP_FREQ_SUPP_MASK;
-	return freq == ESPI_SLAVE_OP_FREQ_SUPP_33_MHZ;
-}
-
-static inline bool espi_slave_supports_25_mhz(uint32_t gen_caps)
-{
-	uint32_t freq = gen_caps & ESPI_SLAVE_OP_FREQ_SUPP_MASK;
-	return freq == ESPI_SLAVE_OP_FREQ_SUPP_25_MHZ;
-}
-
-static inline bool espi_slave_supports_20_mhz(uint32_t gen_caps)
-{
-	uint32_t freq = gen_caps & ESPI_SLAVE_OP_FREQ_SUPP_MASK;
-	return freq == ESPI_SLAVE_OP_FREQ_SUPP_20_MHZ;
-}
-
-static inline int espi_slave_max_speed_mhz_supported(uint32_t gen_caps)
-{
-	if (espi_slave_supports_66_mhz(gen_caps))
-		return 66;
-	else if (espi_slave_supports_50_mhz(gen_caps))
-		return 50;
-	else if (espi_slave_supports_33_mhz(gen_caps))
-		return 33;
-	else if (espi_slave_supports_25_mhz(gen_caps))
-		return 25;
-	else if (espi_slave_supports_20_mhz(gen_caps))
-		return 20;
-	return 0;
-}
-
-static inline bool espi_slave_supports_vw_channel(uint32_t gen_caps)
-{
-	return !!(gen_caps & ESPI_SLAVE_VW_CH_SUPP);
-}
-
-static inline bool espi_slave_supports_periph_channel(uint32_t gen_caps)
-{
-	return !!(gen_caps & ESPI_SLAVE_PERIPH_CH_SUPP);
-}
-
-static inline bool espi_slave_supports_oob_channel(uint32_t gen_caps)
-{
-	return !!(gen_caps & ESPI_SLAVE_OOB_CH_SUPP);
-}
-
-static inline bool espi_slave_supports_flash_channel(uint32_t gen_caps)
-{
-	return !!(gen_caps & ESPI_SLAVE_FLASH_CH_SUPP);
-}
-
-static inline bool espi_slave_is_channel_ready(uint32_t config)
-{
-	return !!(config & ESPI_SLAVE_CHANNEL_READY);
-}
-
-static inline uint32_t espi_slave_get_vw_count_supp(uint32_t vw_caps)
-{
-	return (vw_caps & ESPI_SLAVE_VW_COUNT_SUPP_MASK) >> ESPI_SLAVE_VW_COUNT_SUPP_SHIFT;
-}
+#ifdef CONFIG_ESPI_CRC
+#define ESPI_CRC_CHECKING		ESPI_GEN_CRC_ENABLE
+#else
+#define ESPI_CRC_CHECKING		0
+#endif
+#ifdef CONFIG_ESPI_SYS_SINGLE
+#define ESPI_ALERT_PIN			ESPI_GEN_ALERT_MODE_PIN
+#endif
+#ifdef CONFIG_ESPI_SYS_MULTI
+#define ESPI_ALERT_PIN			ESPI_GEN_ALERT_MODE_IO1
+#endif
+#ifdef CONFIG_ESPI_IO_SINGLE
+#define ESPI_IO_MODE			ESPI_GEN_IO_MODE_SINGLE
+#endif
+#ifdef CONFIG_ESPI_IO_DUAL
+#define ESPI_IO_MODE			ESPI_GEN_IO_MODE_DUAL
+#endif
+#ifdef CONFIG_ESPI_IO_QUAD
+#define ESPI_IO_MODE			ESPI_GEN_IO_MODE_QUAD
+#endif
+#ifdef CONFIG_ESPI_FREQ_66MHZ
+#define ESPI_OP_FREQ			ESPI_GEN_OP_FREQ_66MHZ
+#endif
+#ifdef CONFIG_ESPI_FREQ_50MHZ
+#define ESPI_OP_FREQ			ESPI_GEN_OP_FREQ_50MHZ
+#endif
+#ifdef CONFIG_ESPI_FREQ_33MHZ
+#define ESPI_OP_FREQ			ESPI_GEN_OP_FREQ_33MHZ
+#endif
+#ifdef CONFIG_ESPI_FREQ_25MHZ
+#define ESPI_OP_FREQ			ESPI_GEN_OP_FREQ_25MHZ
+#endif
+#ifdef CONFIG_ESPI_FREQ_20MHZ
+#define ESPI_OP_FREQ			ESPI_GEN_OP_FREQ_20MHZ
+#endif
+#ifdef CONFIG_ESPI_PERI
+#define ESPI_PERI_CHAN			ESPI_GEN_PERI_CHAN_SUP
+#else
+#define ESPI_PERI_CHAN			0
+#endif
+#ifdef CONFIG_ESPI_VW
+#define ESPI_VW_CHAN			ESPI_GEN_VW_CHAN_SUP
+#else
+#define ESPI_VW_CHAN			0
+#endif
+#ifdef CONFIG_ESPI_OOB
+#define ESPI_OOB_CHAN			ESPI_GEN_OOB_CHAN_SUP
+#else
+#define ESPI_OOB_CHAN			0
+#endif
+#ifdef CONFIG_ESPI_FLASH
+#define ESPI_FLASH_CHAN			ESPI_GEN_FLASH_CHAN_SUP
+#else
+#define ESPI_FLASH_CHAN			0
+#endif
+#define ESPI_ALL_CHAN			\
+	(ESPI_PERI_CHAN | ESPI_VW_CHAN | ESPI_OOB_CHAN | ESPI_FLASH_CHAN)
 
 #include <driver/espi.h>
+
+void espi_config_alert_pin(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
+void espi_config_io_mode(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
+void espi_config_op_freq(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
 
 #endif /* __ESPI_H_INCLUDE__ */
