@@ -217,7 +217,7 @@ static int k1matrix_system_finish(uint32_t code)
 
 static bool k1matrix_hart_disabled(uint32_t hartid)
 {
-	return ~acpu_get_cpu_map() & CPU_TO_MASK(hartid);
+	return false;
 }
 
 const struct sbi_platform_operations platform_ops = {
