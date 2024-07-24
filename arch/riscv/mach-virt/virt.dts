@@ -26,23 +26,23 @@
 
 	poweroff {
 		value = <0x5555>;
-		offset = <0x0>;
-		regmap = <0xa>;
+		offset = <0x00>;
+		regmap = <&test>;
 		compatible = "syscon-poweroff";
 	};
 
 	reboot {
 		value = <0x7777>;
-		offset = <0x0>;
-		regmap = <0xa>;
+		offset = <0x00>;
+		regmap = <&test>;
 		compatible = "syscon-reboot";
 	};
 
-	platform-bus@4000000 {
-		interrupt-parent = <0x9>;
-		ranges = <0x0 0x0 0x4000000 0x2000000>;
-		#address-cells = <0x1>;
-		#size-cells = <0x1>;
+	scon: platform-bus@4000000 {
+		interrupt-parent = <&plic>;
+		ranges = <0x00 0x00 0x4000000 0x2000000>;
+		#address-cells = <0x01>;
+		#size-cells = <0x01>;
 		compatible = "qemu,platform", "simple-bus";
 	};
 
@@ -64,9 +64,43 @@
 			riscv,cbop-block-size = <0x40>;
 			riscv,cboz-block-size = <0x40>;
 			riscv,cbom-block-size = <0x40>;
-			riscv,isa-extensions = "i\0m\0a\0f\0d\0c\0h\0zic64b\0zicbom\0zicbop\0zicboz\0ziccamoa\0ziccif\0zicclsm\0ziccrse\0zicntr\0zicsr\0zifencei\0zihintntl\0zihintpause\0zihpm\0zmmul\0za64rs\0zaamo\0zalrsc\0zawrs\0zfa\0zca\0zcd\0zba\0zbb\0zbc\0zbs\0ssccptr\0sscounterenw\0sstc\0sstvala\0sstvecd\0svadu";
 			riscv,isa-base = "rv64i";
-			riscv,isa = "rv64imafdch_zic64b_zicbom_zicbop_zicboz_ziccamoa_ziccif_zicclsm_ziccrse_zicntr_zicsr_zifencei_zihintntl_zihintpause_zihpm_zmmul_za64rs_zaamo_zalrsc_zawrs_zfa_zca_zcd_zba_zbb_zbc_zbs_ssccptr_sscounterenw_sstc_sstvala_sstvecd_svadu";
+			riscv,isa-extensions = "i", "m", "a", "f", "d"
+#ifdef CONFIG_RISCV_C
+					     , "c"
+#endif
+					     , "h"
+					     , "zic64b"
+					     , "ziccamoa", "ziccif", "zicclsm", "ziccrse"
+					     , "zicntr"
+					     , "zicsr", "zifencei"
+					     , "zihintntl", "zihintpause"
+					     , "zihpm"
+					     , "zmmul"
+#ifdef CONFIG_RISCV_ZICBOM
+					     , "zicbom"
+#endif
+#ifdef CONFIG_RISCV_ZICBOP
+					     , "zicbop"
+#endif
+#ifdef CONFIG_RISCV_ZICBOZ
+					     , "zicboz"
+#endif
+#ifdef CONFIG_RISCV_SSTC
+					     , "sstc"
+#endif
+					     , "sscof"
+					     , "za64rs"
+					     , "zaamo"
+					     , "zalrsc"
+					     , "zawrs"
+					     , "zfa", "zca", "zcd", "zba" , "zbb", "zbc", "zbs"
+					     , "ssccptr"
+					     , "sscounterenw"
+					     , "sstvala"
+					     , "sstvecd"
+					     , "svadu"
+					     ;
 			mmu-type = "riscv,sv57";
 
 			cpu0_intc: interrupt-controller {
@@ -75,14 +109,54 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
-
+#ifdef CONFIG_SMP
+#if CONFIG_VIRT_SMP_CPUS > 1
 		cpu1: cpu@1 {
 			device_type = "cpu";
 			reg = <0x1>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdch_zicsr_zifencei_zihintpause_zba_zbb_zbc_zbs_sstc";
-			mmu-type = "riscv,sv48";
+			riscv,cbop-block-size = <0x40>;
+			riscv,cboz-block-size = <0x40>;
+			riscv,cbom-block-size = <0x40>;
+			riscv,isa-base = "rv64i";
+			riscv,isa-extensions = "i", "m", "a", "f", "d"
+#ifdef CONFIG_RISCV_C
+					     , "c"
+#endif
+					     , "h"
+					     , "zic64b"
+					     , "ziccamoa", "ziccif", "zicclsm", "ziccrse"
+					     , "zicntr"
+					     , "zicsr", "zifencei"
+					     , "zihintntl", "zihintpause"
+					     , "zihpm"
+					     , "zmmul"
+#ifdef CONFIG_RISCV_ZICBOM
+					     , "zicbom"
+#endif
+#ifdef CONFIG_RISCV_ZICBOP
+					     , "zicbop"
+#endif
+#ifdef CONFIG_RISCV_ZICBOZ
+					     , "zicboz"
+#endif
+#ifdef CONFIG_RISCV_SSTC
+					     , "sstc"
+#endif
+					     , "sscof"
+					     , "za64rs"
+					     , "zaamo"
+					     , "zalrsc"
+					     , "zawrs"
+					     , "zfa", "zca", "zcd", "zba" , "zbb", "zbc", "zbs"
+					     , "ssccptr"
+					     , "sscounterenw"
+					     , "sstvala"
+					     , "sstvecd"
+					     , "svadu"
+					     ;
+			mmu-type = "riscv,sv57";
 
 			cpu1_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -90,14 +164,54 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
-
+#endif
+#if CONFIG_VIRT_SMP_CPUS > 2
 		cpu2: cpu@2 {
 			device_type = "cpu";
 			reg = <0x2>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdch_zicsr_zifencei_zihintpause_zba_zbb_zbc_zbs_sstc";
-			mmu-type = "riscv,sv48";
+			riscv,cbop-block-size = <0x40>;
+			riscv,cboz-block-size = <0x40>;
+			riscv,cbom-block-size = <0x40>;
+			riscv,isa-base = "rv64i";
+			riscv,isa-extensions = "i", "m", "a", "f", "d"
+#ifdef CONFIG_RISCV_C
+					     , "c"
+#endif
+					     , "h"
+					     , "zic64b"
+					     , "ziccamoa", "ziccif", "zicclsm", "ziccrse"
+					     , "zicntr"
+					     , "zicsr", "zifencei"
+					     , "zihintntl", "zihintpause"
+					     , "zihpm"
+					     , "zmmul"
+#ifdef CONFIG_RISCV_ZICBOM
+					     , "zicbom"
+#endif
+#ifdef CONFIG_RISCV_ZICBOP
+					     , "zicbop"
+#endif
+#ifdef CONFIG_RISCV_ZICBOZ
+					     , "zicboz"
+#endif
+#ifdef CONFIG_RISCV_SSTC
+					     , "sstc"
+#endif
+					     , "sscof"
+					     , "za64rs"
+					     , "zaamo"
+					     , "zalrsc"
+					     , "zawrs"
+					     , "zfa", "zca", "zcd", "zba" , "zbb", "zbc", "zbs"
+					     , "ssccptr"
+					     , "sscounterenw"
+					     , "sstvala"
+					     , "sstvecd"
+					     , "svadu"
+					     ;
+			mmu-type = "riscv,sv57";
 
 			cpu2_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -105,14 +219,53 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
-
+#endif
+#if CONFIG_VIRT_SMP_CPUS > 3
 		cpu3: cpu@3 {
 			device_type = "cpu";
 			reg = <0x3>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdch_zicsr_zifencei_zihintpause_zba_zbb_zbc_zbs_sstc";
-			mmu-type = "riscv,sv48";
+			riscv,cbop-block-size = <0x40>;
+			riscv,cboz-block-size = <0x40>;
+			riscv,cbom-block-size = <0x40>;
+			riscv,isa-extensions = "i", "m", "a", "f", "d"
+#ifdef CONFIG_RISCV_C
+					     , "c"
+#endif
+					     , "h"
+					     , "zic64b"
+					     , "ziccamoa", "ziccif", "zicclsm", "ziccrse"
+					     , "zicntr"
+					     , "zicsr", "zifencei"
+					     , "zihintntl", "zihintpause"
+					     , "zihpm"
+					     , "zmmul"
+#ifdef CONFIG_RISCV_ZICBOM
+					     , "zicbom"
+#endif
+#ifdef CONFIG_RISCV_ZICBOP
+					     , "zicbop"
+#endif
+#ifdef CONFIG_RISCV_ZICBOZ
+					     , "zicboz"
+#endif
+#ifdef CONFIG_RISCV_SSTC
+					     , "sstc"
+#endif
+					     , "sscof"
+					     , "za64rs"
+					     , "zaamo"
+					     , "zalrsc"
+					     , "zawrs"
+					     , "zfa", "zca", "zcd", "zba" , "zbb", "zbc", "zbs"
+					     , "ssccptr"
+					     , "sscounterenw"
+					     , "sstvala"
+					     , "sstvecd"
+					     , "svadu"
+					     ;
+			mmu-type = "riscv,sv57";
 
 			cpu3_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
@@ -120,21 +273,31 @@
 				compatible = "riscv,cpu-intc";
 			};
 		};
+#endif
+#endif
 
 		cpu-map {
 			cluster0 {
 				core0 {
 					cpu = <&cpu0>;
 				};
+#ifdef CONFIG_SMP
+#if CONFIG_VIRT_SMP_CPUS > 1
 				core1 {
 					cpu = <&cpu1>;
 				};
+#endif
+#if CONFIG_VIRT_SMP_CPUS > 2
 				core2 {
 					cpu = <&cpu2>;
 				};
+#endif
+#if CONFIG_VIRT_SMP_CPUS > 3
 				core3 {
 					cpu = <&cpu3>;
 				};
+#endif
+#endif
 			};
 		};
 	};
@@ -144,6 +307,12 @@
 		#size-cells = <0x2>;
 		compatible = "simple-bus";
 		ranges;
+
+		test: test@100000 {
+			phandle = <0x04>;
+			reg = <0x00 0x100000 0x00 0x1000>;
+			compatible = "sifive,test1", "sifive,test0", "syscon";
+		};
 
 		pmu {
 			riscv,event-to-mhpmcounters = <0x1 0x1 0x7fff9 0x2 0x2 0x7fffc 0x10019 0x10019 0x7fff8 0x1001b 0x1001b 0x7fff8 0x10021 0x10021 0x7fff8 0x0 0x0 0x0 0x0 0x0>;
@@ -184,9 +353,18 @@
 			riscv,ndev = <0x60>;
 			reg = <0x0 0xc000000 0x0 0x600000>;
 			interrupts-extended = <&cpu0_intc 0xb &cpu0_intc 0x9
+#ifdef CONFIG_SMP
+#if CONFIG_VIRT_SMP_CPUS > 1
 					       &cpu1_intc 0xb &cpu1_intc 0x9
+#endif
+#if CONFIG_VIRT_SMP_CPUS > 2
 					       &cpu2_intc 0xb &cpu2_intc 0x9
-					       &cpu3_intc 0xb &cpu3_intc 0x9>;
+#endif
+#if CONFIG_VIRT_SMP_CPUS > 3
+					       &cpu3_intc 0xb &cpu3_intc 0x9
+#endif
+#endif
+					      >;
 			interrupt-controller;
 			compatible = "sifive,plic-1.0.0", "riscv,plic0";
 			#address-cells = <0x0>;
@@ -195,9 +373,18 @@
 
 		clint: clint@2000000 {
 			interrupts-extended = <&cpu0_intc 0x3 &cpu0_intc 0x7
+#ifdef CONFIG_SMP
+#if CONFIG_VIRT_SMP_CPUS > 1
 					       &cpu1_intc 0x3 &cpu1_intc 0x7
+#endif
+#if CONFIG_VIRT_SMP_CPUS > 2
 					       &cpu2_intc 0x3 &cpu2_intc 0x7
-					       &cpu3_intc 0x3 &cpu3_intc 0x7>;
+#endif
+#if CONFIG_VIRT_SMP_CPUS > 3
+					       &cpu3_intc 0x3 &cpu3_intc 0x7
+#endif
+#endif
+					      >;
 			reg = <0x0 0x2000000 0x0 0x10000>;
 			compatible = "sifive,clint0", "riscv,clint0";
 		};
