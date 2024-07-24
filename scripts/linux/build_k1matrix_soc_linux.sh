@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ARCH=riscv
-MACH=k1mxlite
+MACH=k1matrix
 BBLVAR=
 CROSS_COMPILE=riscv64-unknown-linux-gnu-
 
@@ -43,7 +43,7 @@ CPU2006_REPORT=specinvoke
 CPU2006_DATA=all
 CPU2006_BENCHMARKS="401.bzip2"
 
-PERF_UPDATE=yes
+PERF_UPDATE=no
 
 # Early tests include benchmark, litmus, cpu2006
 TEST_EARLY=
