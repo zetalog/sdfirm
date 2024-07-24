@@ -19,8 +19,8 @@
 #ifdef CONFIG_VIRT_UART_CON_HVC
 		bootargs = "console=hvc0 earlycon=sbi rdinit=/sdfirm_init";
 #else
-		stdout-path = "/soc/serial@10000000";
-		bootargs = "console=ttyS0 rdinit=/sdfirm_init";
+		stdout-path = &uart;
+		bootargs = "console=ttyS0 earlycon rdinit=/sdfirm_init";
 #endif
 	};
 
@@ -69,7 +69,7 @@
 			riscv,isa = "rv64imafdch_zic64b_zicbom_zicbop_zicboz_ziccamoa_ziccif_zicclsm_ziccrse_zicntr_zicsr_zifencei_zihintntl_zihintpause_zihpm_zmmul_za64rs_zaamo_zalrsc_zawrs_zfa_zca_zcd_zba_zbb_zbc_zbs_ssccptr_sscounterenw_sstc_sstvala_sstvecd_svadu";
 			mmu-type = "riscv,sv57";
 
-			interrupt-controller {
+			cpu0_intc: interrupt-controller {
 				#interrupt-cells = <0x01>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
@@ -84,7 +84,7 @@
 			riscv,isa = "rv64imafdch_zicsr_zifencei_zihintpause_zba_zbb_zbc_zbs_sstc";
 			mmu-type = "riscv,sv48";
 
-			interrupt-controller {
+			cpu1_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
@@ -99,7 +99,7 @@
 			riscv,isa = "rv64imafdch_zicsr_zifencei_zihintpause_zba_zbb_zbc_zbs_sstc";
 			mmu-type = "riscv,sv48";
 
-			interrupt-controller {
+			cpu2_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
@@ -114,7 +114,7 @@
 			riscv,isa = "rv64imafdch_zicsr_zifencei_zihintpause_zba_zbb_zbc_zbs_sstc";
 			mmu-type = "riscv,sv48";
 
-			interrupt-controller {
+			cpu3_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
@@ -157,7 +157,7 @@
 			compatible = "google,goldfish-rtc";
 		};
 
-		serial@10000000 {
+		uart: serial@10000000 {
 			interrupts = <0xa>;
 			interrupt-parent = <&plic>;
 			clock-frequency = <0x384000>;
@@ -183,7 +183,10 @@
 		plic: plic@c000000 {
 			riscv,ndev = <0x60>;
 			reg = <0x0 0xc000000 0x0 0x600000>;
-			interrupts-extended = <0x8 0xb 0x8 0x9 0x6 0xb 0x6 0x9 0x4 0xb 0x4 0x9 0x2 0xb 0x2 0x9>;
+			interrupts-extended = <&cpu0_intc 0xb &cpu0_intc 0x9
+					       &cpu1_intc 0xb &cpu1_intc 0x9
+					       &cpu2_intc 0xb &cpu2_intc 0x9
+					       &cpu3_intc 0xb &cpu3_intc 0x9>;
 			interrupt-controller;
 			compatible = "sifive,plic-1.0.0", "riscv,plic0";
 			#address-cells = <0x0>;
@@ -191,7 +194,10 @@
 		};
 
 		clint: clint@2000000 {
-			interrupts-extended = <0x8 0x3 0x8 0x7 0x6 0x3 0x6 0x7 0x4 0x3 0x4 0x7 0x2 0x3 0x2 0x7>;
+			interrupts-extended = <&cpu0_intc 0x3 &cpu0_intc 0x7
+					       &cpu1_intc 0x3 &cpu1_intc 0x7
+					       &cpu2_intc 0x3 &cpu2_intc 0x7
+					       &cpu3_intc 0x3 &cpu3_intc 0x7>;
 			reg = <0x0 0x2000000 0x0 0x10000>;
 			compatible = "sifive,clint0", "riscv,clint0";
 		};
