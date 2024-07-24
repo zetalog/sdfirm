@@ -469,9 +469,9 @@ build_test()
 		echo "cd /usr/local/bin"  >> ${LATE_TEST}
 		if [ "x${BUILD_HTIF}" = "xyes" ]; then
 			# TODO: dynamic lkvm support
-			echo "lkvm run -m 128 -c2 --console virtio -p \"console=hvc0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
+			echo "lkvm run -m 128 -c1 --console virtio -p \"console=hvc0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
 		else
-			echo "lkvm run -m 128 -c2 --console serial -p \"console=ttyS0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
+			echo "lkvm run -m 128 -c1 --console serial -p \"console=ttyS0 earlycon=sbi rdinit=/sdfirm_init\" -k ./Image" >> ${LATE_TEST}
 		fi
 	fi
 	if [ "x${TEST_LATE}" = "xdmatest" ]; then
