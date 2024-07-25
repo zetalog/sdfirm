@@ -739,8 +739,6 @@ void cmn600_configure_rn_sam_ext(cmn_nid_t nid)
 	}
 }
 
-extern int k1matrix_test(void);
-
 void cmn600_init(void)
 {
 	caddr_t root_node_pointer;
@@ -753,7 +751,6 @@ void cmn600_init(void)
 	root_node_pointer = CMN_ROOT_NODE_POINTER(CMN_HND_NID);
 	cmn_bases[CMN_CFGM_ID] = CMN_PERIPH_BASE + root_node_pointer;
 	cmn_nr_nodes = 1;
-	k1matrix_test();
 	cmn600_discover();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
 	cmn600_configure();

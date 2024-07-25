@@ -45,9 +45,9 @@
 #include <target/arch.h>
 
 #define N100_HW_BASE		N100_CFG_BASE
-#define N100_HW_NODES		32
-#define N100_HW_COLS		3
-#define N100_HW_ROWS		2
+#define N100_HW_NODES		48
+#define N100_HW_COLS		4
+#define N100_HW_ROWS		6
 
 #include <driver/n100.h>
 
