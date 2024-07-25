@@ -122,13 +122,13 @@ static int do_espi_send(int argc, char *argv[])
 	if (strcmp(argv[2], "vw") == 0) {
 		int idx = (uint32_t)strtoull(argv[3], 0, 0);
 		int val = (uint32_t)strtoull(argv[4], 0, 0);
-		espi_send_vw((uint8_t *)&idx, (uint8_t *)&val, 1);
+		spacemit_espi_tx_vw((uint8_t *)&idx, (uint8_t *)&val, 1);
 	} else if (strcmp(argv[2], "oob") == 0) {
 		long val = (uint32_t)strtoull(argv[3], 0, 0);
 		int len = (uint32_t)strtoull(argv[4], 0, 0);
 		if (len > 8)
 			return -EINVAL;
-		espi_send_oob_smbus((uint8_t *)&val, len);
+		spacemit_espi_tx_oob((uint8_t *)&val, len);
 	}
 
 	return 0;
@@ -177,16 +177,16 @@ static int do_espi(int argc, char *argv[])
 }
 
 DEFINE_COMMAND(espi, do_espi, "SpacemiT eSPI commands",
-	"espi read io\n"
+	/*"espi read io\n"
 	"espi read mem\n"
 	"espi read fw [1|2|4]\n"
 	"    -eSPI read sequence\n"
 	"espi write io value\n"
 	"espi write mem value\n"
 	"espi write fw value [1|2|4]\n"
-	"    -eSPI write sequence\n"
-	"espi send vw\n"
-	"espi send oob\n"
+	"    -eSPI write sequence\n"*/
+	"espi send vw <idx> <val>\n"
+	"espi send oob <val> <len>\n"
 	"espi recv vw\n"
 	"espi recv oob\n"
 );

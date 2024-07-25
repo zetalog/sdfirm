@@ -773,7 +773,7 @@ static int espi_setup_peri_channel(uint32_t slave_caps)
 	const uint32_t slave_en_mask =
 		ESPI_SLAVE_CHANNEL_ENABLE | ESPI_PERI_BUS_MASTER_ENABLE;
 
-	if (espi_get_configuration(ESPI_SLAVE_PERIPH_CFG, &slave_config) != 0) {
+	if (espi_get_configuration(ESPI_SLAVE_PERI_CFG, &slave_config) != 0) {
 		con_err("espi: peripheral channel not obtained!\n");
 		return -EINVAL;
 	}
@@ -786,7 +786,7 @@ static int espi_setup_peri_channel(uint32_t slave_caps)
 
 	espi_show_slave_peripheral_channel_configuration(slave_config);
 
-	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_PERIPH_CFG,
+	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_PERI_CFG,
 					      ESPI_PERIPH_CH_EN);
 }
 #else
@@ -1042,6 +1042,8 @@ void espi_handle_irq(irq_t irq)
 	spacemit_espi_write32(int_sts, ESPI_SLAVE0_INT_STS);
 
 	switch (int_sts) {
+	case 0:
+		break;
 	case ESPI_RXVW_GRP0_INT:
 		rxvw_data = spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFFU;
 		rxvw_callback(128, rxvw_data);
@@ -1134,6 +1136,7 @@ void spacemit_espi_init(void)
 		con_err("Slave GET_CONFIGURATION failed!\n");
 		return;
 	}
+	con_log("Slave GET_CONFIGURATION success!\n");
 
 	/* Boot sequence:
 	 * Step 4: Write slave device general config
@@ -1143,6 +1146,7 @@ void spacemit_espi_init(void)
 		con_err("Slave SET_CONFIGURATION failed!\n");
 		return;
 	}
+	con_log("Slave SET_CONFIGURATION success!\n");
 
 	/* Setup polarity before enabling the VW channel so any interrupts
 	 * received will have the correct polarity.
@@ -1155,35 +1159,42 @@ void spacemit_espi_init(void)
 	/* Set up VW first so we can deassert PLTRST#. */
 	if (espi_setup_vw_channel(slave_caps) != 0)
 		return;
+	con_log("VW Channel setup success!\n");
 
 	/* Assert PLTRST# if VW channel is enabled by mainboard. */
 	if (espi_send_pltrst(true) != 0) {
 		con_err("PLTRST# assertion failed!\n");
 		return;
 	}
+	con_log("PLTRST# assertion success!\n");
 
 	/* De-assert PLTRST# if VW channel is enabled by mainboard. */
 	if (espi_send_pltrst(false) != 0) {
 		con_err("PLTRST# deassertion failed!\n");
 		return;
 	}
+	con_log("PLTRST# deassertion success!\n");
 
 	if (espi_setup_peri_channel(slave_caps) != 0)
 		return;
 
 	espi_setup_pr_mem_base0(SPACEMIT_ESPI_PR_MEM0);
 	espi_setup_pr_mem_base1(SPACEMIT_ESPI_PR_MEM1);
+	con_log("Peripheral Channel setup success!\n");
 
 	if (espi_setup_oob_channel(slave_caps) != 0)
 		return;
+	con_log("OOB Channel setup success!\n");
 
 	if (espi_setup_flash_channel(slave_caps) != 0)
 		return;
+	con_log("Flash Channel setup success!\n");
 
-	if (espi_configure_decodes(cfg) != 0) {
-		con_err("Configuring decodes failed!\n");
-		return;
-	}
+	// if (espi_configure_decodes(cfg) != 0) {
+	// 	con_err("Configuring decodes failed!\n");
+	// 	return;
+	// }
+	// con_err("Configuring decodes success!\n");
 
 	/* Enable subtractive decode if configured */
 	espi_setup_subtractive_decode(cfg);
@@ -1204,7 +1215,7 @@ void spacemit_espi_init(void)
 
 	con_log("espi: initialized spacemit_espi.\n");
 }
-
+#if 0
 static int do_espi_read(int argc, char *argv[])
 {
 #if 0
@@ -1317,3 +1328,5 @@ DEFINE_COMMAND(espi, do_espi, "SpacemiT enhanced SPI commands",
 	"espi write mem [1|2|4] <value> <addr>\n"
 	"    -eSPI write sequence\n"
 );
+
+#endif
