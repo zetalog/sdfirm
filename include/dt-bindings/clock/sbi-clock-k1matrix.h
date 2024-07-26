@@ -32,6 +32,9 @@
 #define DDR1_PLL_FREQ		S2CCLK_4_FREQ
 #define CPU0_PLL_FREQ		S2CCLK_3_FREQ
 #define CPU1_PLL_FREQ		S2CCLK_3_FREQ
+#define COM_FOUT1PH0_FREQ	(S2CCLK_1_FREQ) << 2
+#define PERI_FOUT1PH0_FREQ	S2CCLK_2_FREQ
+#define mac_clk1		phy2gmac_rx_clk
 #endif
 
 #ifdef CONFIG_K1MATRIX_PZ1
