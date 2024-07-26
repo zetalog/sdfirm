@@ -334,7 +334,6 @@ config ARCH_K1MXLITE
 
 config ARCH_K1MATRIX
 	bool "SpacemiT K1Matrix Family"
-	select CPU_SPACEMIT
 	select ARCH_IS_MMIO_32BIT
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_NOVEC

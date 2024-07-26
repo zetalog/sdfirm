@@ -47,19 +47,40 @@
  */
 
 #include <asm/mach/cpus.h>
+#ifdef CONFIG_K1MATRIX_APU
 #include <asm/x100.h>
+#if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
+	.macro	k1matrix_cpu_smp_init
+	x100_smp_init
+	.endm
+	.macro	k1matrix_cpu_up_init
+	x100_init
+	.endm
+#endif
+#endif
+#ifdef CONFIG_K1MATRIX_RMU
+#include <asm/c910.h>
+#if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
+	.macro	k1matrix_cpu_smp_init
+	c910_smp_init
+	.endm
+	.macro	k1matrix_cpu_up_init
+	c910_init
+	.endm
+#endif
+#endif
 #include <asm/mach/sysreg.h>
 #include <asm/mach/d2d.h> /* D2D ROM registers */
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	boot0_hook
-	x100_init
+	k1matrix_cpu_up_init
 	.endm
 	.macro	boot1_hook
 	jal	ra, k1matrix_cpu_reset
 	.endm
 	.macro	boot2_hook
-	x100_smp_init
+	k1matrix_cpu_smp_init
 	.endm
 
 	/* SMP ID <-> HART ID conversions on APC */
