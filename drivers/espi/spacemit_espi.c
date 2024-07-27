@@ -475,7 +475,7 @@ int espi_open_mmio_window(uint32_t base, size_t size)
 
 	return 0;
 }
-
+#if 0
 static int espi_configure_decodes(const struct espi_config *cfg)
 {
 	int i;
@@ -492,7 +492,7 @@ static int espi_configure_decodes(const struct espi_config *cfg)
 
 	return 0;
 }
-
+#endif
 /* Wait up to ESPI_CMD_TIMEOUT_US for hardware to clear DNCMD_STATUS bit. */
 static int espi_wait_ready(void)
 {
@@ -773,7 +773,7 @@ static int espi_setup_peri_channel(uint32_t slave_caps)
 	const uint32_t slave_en_mask =
 		ESPI_SLAVE_CHANNEL_ENABLE | ESPI_PERI_BUS_MASTER_ENABLE;
 
-	if (espi_get_configuration(ESPI_SLAVE_PERI_CFG, &slave_config) != 0) {
+	if (espi_get_configuration(SPACEMIT_ESPI_SLAVE_PERI_CFG, &slave_config) != 0) {
 		con_err("espi: peripheral channel not obtained!\n");
 		return -EINVAL;
 	}
@@ -786,7 +786,7 @@ static int espi_setup_peri_channel(uint32_t slave_caps)
 
 	espi_show_slave_peripheral_channel_configuration(slave_config);
 
-	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_PERI_CFG,
+	return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_PERI_CFG,
 					      ESPI_PERIPH_CH_EN);
 }
 #else
@@ -809,12 +809,12 @@ static int espi_setup_peri_channel(uint32_t slave_caps)
 	 */
 	slave_config &= ~slave_en_mask;
 
-	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_PERI_CFG,
+	return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_PERI_CFG,
 					      ESPI_PERIPH_CH_EN);
 }
 #endif
 
-#ifdef CONFIG_ESPI_VW
+#ifdef CONFIG_ESPI_VWIRE
 static int espi_setup_vw_channel(uint32_t slave_caps)
 {
 	uint32_t slave_vw_caps;
@@ -825,23 +825,23 @@ static int espi_setup_vw_channel(uint32_t slave_caps)
 	uint32_t slave_config;
 
 	if (!espi_slave_vw_chan_sup(slave_caps)) {
-		con_err("espi: VW channel not supported!");
+		con_err("espi: VW channel not supported: %x\n", slave_caps);
 		return -ENOTSUP;
 	}
 
-	if (espi_get_configuration(ESPI_SLAVE_VW_CFG, &slave_vw_caps) != 0) {
+	if (espi_get_configuration(SPACEMIT_ESPI_SLAVE_VW_CFG, &slave_vw_caps) != 0) {
 		con_err("espi: VW channel not obtained!\n");
 		return -EINVAL;
 	}
 
 	ctrlr_vw_caps = spacemit_espi_read32(ESPI_MASTER_CAP);
-	ctrlr_vw_count_supp = FIELD_GET(MASTER_CAP_VW_MAX_SIZE_MASK, ctrlr_vw_caps);
+	ctrlr_vw_count_supp = FIELD_GET(ESPI_VW_MAX_SIZE_MASK, ctrlr_vw_caps);
 
-	slave_vw_count_supp = espi_slave_get_vw_count_supp(slave_vw_caps);
+	slave_vw_count_supp = espi_slave_vwire_max_op_count_sup(slave_vw_caps);
 	use_vw_count = min(ctrlr_vw_count_supp, slave_vw_count_supp);
 
-	slave_config = ESPI_SLAVE_CHANNEL_ENABLE | ESPI_SLAVE_VW_COUNT_SEL_VAL(use_vw_count);
-	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_VW_CFG, ESPI_VW_CH_EN);
+	slave_config = ESPI_SLAVE_CHANNEL_ENABLE | ESPI_VWIRE_MAX_OP_COUNT_SEL(use_vw_count);
+	return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_VW_CFG, ESPI_VW_CH_EN);
 }
 #else
 #define espi_setup_vw_channel(caps)		0
@@ -857,14 +857,14 @@ static int espi_setup_oob_channel(uint32_t slave_caps)
 		return -ENOTSUP;
 	}
 
-	if (espi_get_configuration(ESPI_SLAVE_OOB_CFG, &slave_config) != 0) {
+	if (espi_get_configuration(SPACEMIT_ESPI_SLAVE_OOB_CFG, &slave_config) != 0) {
 		con_err("espi: OOB channel not obtained!\n");
 		return -EINVAL;
 	}
 
 	slave_config |= ESPI_SLAVE_CHANNEL_ENABLE;
 
-	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_OOB_CFG,
+	return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_OOB_CFG,
 					      ESPI_OOB_CH_EN);
 }
 #else
@@ -881,14 +881,14 @@ static int espi_setup_flash_channel(uint32_t slave_caps)
 		return -ENOTSUP;
 	}
 
-	if (espi_get_configuration(ESPI_SLAVE_FLASH_CFG, &slave_config) != 0) {
+	if (espi_get_configuration(SPACEMIT_ESPI_SLAVE_FLASH_CFG, &slave_config) != 0) {
 		con_err("espi: flash channel not obtained!\n");
 		return -EINVAL;
 	}
 
 	slave_config |= ESPI_SLAVE_CHANNEL_ENABLE;
 
-	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_FLASH_CFG,
+	return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_FLASH_CFG,
 					      ESPI_FLASH_CH_EN);
 }
 #else
@@ -1106,10 +1106,10 @@ void spacemit_espi_init(void)
 	cfg = &def_cfg;
 
 	spacemit_espi_set32(ESPI_MST_STOP_EN, ESPI_GLOBAL_CONTROL_0);
-//	spacemit_espi_write32(ESPI_RGCMD_INT(23) | ESPI_ERR_INT_SMI, ESPI_GLOBAL_CONTROL_1);
+	// spacemit_espi_write32(ESPI_RGCMD_INT(23) | ESPI_ERR_INT_SMI, ESPI_GLOBAL_CONTROL_1);
 	spacemit_espi_write32(0, ESPI_SLAVE0_INT_EN);
 	espi_clear_status();
-	//espi_clear_decodes();
+	// espi_clear_decodes();
 
 	/* Boot sequence: Step 1
 	 * Set correct initial configuration to talk to the slave:
@@ -1199,12 +1199,12 @@ void spacemit_espi_init(void)
 	/* Enable subtractive decode if configured */
 	espi_setup_subtractive_decode(cfg);
 
-//	ctrl = spacemit_espi_read32(ESPI_GLOBAL_CONTROL_1);
-//	ctrl |= ESPI_BUS_MASTER_EN;
-//
-//	ctrl |= ESPI_ALERT_ENABLE;
-//
-//	spacemit_espi_write32(ctrl, ESPI_GLOBAL_CONTROL_1);
+	// ctrl = spacemit_espi_read32(ESPI_GLOBAL_CONTROL_1);
+	// ctrl |= ESPI_BUS_MASTER_EN;
+
+	// ctrl |= ESPI_ALERT_ENABLE;
+
+	// spacemit_espi_write32(ctrl, ESPI_GLOBAL_CONTROL_1);
 
 	espi_bh_create();
 
