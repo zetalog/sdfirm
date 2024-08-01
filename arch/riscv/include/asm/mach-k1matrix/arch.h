@@ -47,8 +47,9 @@
  */
 
 #include <asm/mach/cpus.h>
-#ifdef CONFIG_K1MATRIX_APU
 #include <asm/x100.h>
+#include <asm/c910.h>
+#ifdef CONFIG_K1MATRIX_APU
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	k1matrix_cpu_smp_init
 	x100_smp_init
@@ -59,7 +60,6 @@
 #endif
 #endif
 #ifdef CONFIG_K1MATRIX_RMU
-#include <asm/c910.h>
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	k1matrix_cpu_smp_init
 	c910_smp_init

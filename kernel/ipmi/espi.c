@@ -1,5 +1,60 @@
 #include <target/espi.h>
 #include <target/panic.h>
+#include <target/bitops.h>
+
+#ifdef SYS_REALTIME
+#define espi_poll_init()	__espi_poll_init()
+#define espi_irq_init()		do { } while (0)
+#else
+#define espi_poll_init()	do { } while (0)
+#define espi_irq_init()		__espi_irq_init()
+#endif
+
+static bh_t espi_bh;
+uint8_t espi_state;
+espi_event_t espi_event;
+espi_op_t espi_op;
+espi_cmpl_cb espi_op_cb;
+uint16_t espi_cmd;
+
+void espi_enter_state(uint8_t state)
+{
+	espi_state = state;
+	espi_seq_handler();
+}
+
+void espi_raise_event(espi_event_t event)
+{
+	espi_event |= event;
+	bh_resume(espi_bh);
+}
+
+void espi_clear_event(espi_event_t event)
+{
+	espi_event &= ~event;
+}
+
+espi_event_t espi_event_save(void)
+{
+	espi_event_t events;
+	events = espi_event;
+	espi_event = 0;
+	return events;
+}
+
+void espi_event_restore(espi_event_t event)
+{
+	espi_event |= event;
+}
+
+void espi_sync(void)
+{
+	do {
+		bh_sync();
+		if (espi_event)
+			bh_resume(espi_bh);
+	} while (espi_event);
+}
 
 void espi_config_alert_pin(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config)
 {
@@ -93,7 +148,93 @@ void espi_config_op_freq(uint32_t slave_caps, uint32_t *slave_config, uint32_t *
 	}
 }
 
+int espi_start_op(espi_op_t op, espi_cmpl_cb cb)
+{
+	if (espi_op_busy())
+		return -EBUSY;
+
+	espi_op = op;
+	espi_op_cb = cb;
+	espi_seq_handler();
+	return 0;
+}
+
+void espi_cmd_complete(uint8_t status)
+{
+	espi_clear_event(ESPI_EVENT_WAIT_CMD);
+}
+
+void espi_handle_setup_slave(bool is_op)
+{
+	if (espi_state == ESPI_STATE_INIT) {
+		espi_inband_reset();
+	}
+}
+
+void espi_seq_handler(void)
+{
+	if (espi_op_is(ESPI_OP_SETUP_SLAVE))
+		espi_handle_setup_slave(true);
+}
+
+static void espi_async_handler(void)
+{
+	espi_event_t flags;
+
+	flags = espi_event_save();
+	if (flags & ESPI_EVENT_SETUP) {
+		espi_setup_slave();
+		unraise_bits(flags, ESPI_EVENT_SETUP);
+	}
+	espi_event_restore(flags);
+}
+
+static void espi_bh_handler(uint8_t events)
+{
+	if (events == BH_POLLIRQ) {
+		espi_hw_handle_irq();
+		return;
+	} else {
+		switch (events) {
+		case BH_WAKEUP:
+			espi_async_handler();
+			break;
+		default:
+			BUG();
+		}
+	}
+}
+
+#ifdef SYS_REALTIME
+void __espi_poll_init(void)
+{
+	irq_register_poller(espi_bh);
+}
+#else
+void __espi_irq_init(void)
+{
+	espi_hw_irq_init();
+}
+#endif
+
+void espi_write_cmd(uint8_t opcode, uint8_t hlen, uint8_t *hbuf,
+		    uint8_t dlen, uint8_t *dbuf)
+{
+	espi_cmd = opcode;
+	espi_hw_write_cmd(opcode, hlen, hbuf, dlen, dbuf);
+}
+
 void espi_init(void)
 {
+	espi_bh = bh_register_handler(espi_bh_handler);
+	espi_irq_init();
+	espi_poll_init();
+
+	espi_state = ESPI_STATE_INIT;
+	espi_event = 0;
+	espi_op = ESPI_OP_NONE;
+	espi_cmd = ESPI_CMD_NONE;
+
 	espi_hw_ctrl_init();
+	espi_raise_event(ESPI_EVENT_SETUP);
 }
