@@ -106,6 +106,13 @@ struct div_clk {
 
 };
 
+#ifdef CONFIG_K1MATRIX_64C
+struct div_clk div_clks[] = {
+
+
+}
+#endif
+
 struct div_clk div_clks[] = {
 	[CPU_NIC_CLKDIV] = {
 		.reg = CRU_CPU_NIC_CLK_CTL,
@@ -391,7 +398,7 @@ struct div_clk div_clks[] = {
 	},
 };
 
-#ifdef CONFIG_CLK_MNEMONICS
+
 const char *div_clk_names[NR_DIV_CLKS] = {
 	[CPU_NIC_CLKDIV] = "cpu_nic_clkdiv",
 	[CPU_HAP_CLKDIV] = "cpu_hap_clkdiv",
@@ -433,6 +440,7 @@ const char *div_clk_names[NR_DIV_CLKS] = {
 	[RMU_LPC_CLK_DIV] = "rmu_lpc_clk_div",
 };
 
+#ifdef CONFIG_CLK_MNEMONICS
 const char *get_div_name(clk_clk_t clk)
 {
 	if (clk >= NR_DIV_CLKS)
@@ -533,7 +541,7 @@ struct sel_clk {
 	cru_flags_t flags;
 };
 
-clk_t cpu_nic_clksels[] = {
+clk_t fout1ph0_clksels[] = {
 	osc_clk,
 	com_pll_fout1ph0,
 };
@@ -543,7 +551,7 @@ clk_t pcie_peri_xclksels[] = {
 	peri_pll_foutpostdiv,
 };
 
-clk_t pcie_com_xclksels[] = {
+clk_t com_clksels[] = {
 	osc_clk,
 	com_pll_foutpostdiv,
 };
@@ -560,14 +568,14 @@ clk_t peri_gmac_tx_clksels[] = {
 
 struct sel_clk sel_clks[] = {
 	[RMU_CLKSEL] = {
-		.clksels = cpu_nic_clksels,
+		.clksels = fout1ph0_clksels,
 		.reg = CRU_RMU_CLK_SEL,
 		.nr_clksels = 2,
 		.sel = 1,
 		.flags = 0,
 	},
 	[CPU_NIC_CLKSEL] = {
-		.clksels = cpu_nic_clksels,
+		.clksels = fout1ph0_clksels,
 		.reg = CRU_CPU_NIC_CLK_CTL,
 		.nr_clksels = 2,
 		.sel = 1,
@@ -588,14 +596,14 @@ struct sel_clk sel_clks[] = {
 		.flags = 0,
 	},
 	[PCIE_TOP_CFG_CLKSEL] = {
-		.clksels = pcie_com_xclksels,
+		.clksels = com_clksels,
 		.reg = CRU_PCIE_TOP_CFGCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 1,
 		.flags = 0,
 	},
 	[PCIE_BOT_CFG_CLKSEL] = {
-		.clksels = pcie_com_xclksels,
+		.clksels = com_clksels,
 		.reg = CRU_PCIE_BOT_CFGCLK_CTL,
 		.nr_clksels = 2,
 		.sel = 1,
@@ -629,9 +637,158 @@ struct sel_clk sel_clks[] = {
 		.sel = 1,
 		.flags = CRU_CLKEN,
 	},
+#ifdef CONFIG_K1MATRIX_64C
+	[LTOP_CFG_CLKSEL] = {
+		.clksels = com_clksels,
+		.reg = CRU_LTOP_CFG_CLK_CTL,
+		.nr_clksels = 2,
+		.sel = 1,
+		.flags = CRU_CLKEN,
+	},
+	[LTOP_PCIE_CFG_CLKSEL] = {
+		.clksels = com_clksels,
+		.reg = CRU_LTOP_PCIE_CFG_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = CRU_CLKEN,
+	},
+	[LTOP_PCIE_AUX_CLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_LTOP_PCIE_AUX_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = 0,
+	}
+	[LTOP_PCIE_TFR_CLKSEL] = {
+		.clksels = com_clksels,
+		.reg = CRU_LTOP_PCIE_TFR_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = 0,
+	}
+	[LTOP_PHY_FW_CLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_LTOP_PHY_FW_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = CRU_CLKEN,
+	}
+	[RTOP_CFG_CLKSEL] = {
+		.clksels = com_clksels,
+		.reg = CRU_RTOP_CFG_CLK_CTL,
+		.nr_clksels = 2,
+		.sel = 1,
+		.flags = CRU_CLKEN,
+	},
+	[RTOP_PCIE_CFG_CLKSEL] = {
+		.clksels = com_clksels,
+		.reg = CRU_RTOP_PCIE_CFG_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = CRU_CLKEN,
+	},
+	[RTOP_PCIE_AUX_CLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_RTOP_PCIE_AUX_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = 0,
+	},
+	[RTOP_PCIE_TFR_CLKSEL] = {
+		.clksels = com_clksels,
+		.reg = CRU_RTOP_PCIE_TFR_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = 0,
+	},
+	[BOT_PHY_FW_CLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_BOT_PHY_FW_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = CRU_CLKEN,
+	},
+	[BOT_CFG_CLKSEL] = {
+		.clksels = com_clksels,
+		.reg = CRU_BOT_CFG_CLK_CTL,
+		.nr_clksels = 2,
+		.sel = 1,
+		.flags = CRU_CLKEN,
+	},
+	[BOT_PCIE_CFG_CLKSEL] = {
+		.clksels = com_clksels,
+		.reg = CRU_BOT_PCIE_CFG_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = CRU_CLKEN,
+	},
+	[BOT_PCIE_AUX_CLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_BOT_PCIE_AUX_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = 0,
+	},
+	[BOT_PCIE_TFR_CLKSEL] = {
+		.clksels = com_clksels,
+		.reg = CRU_BOT_PCIE_TFR_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = 0,
+	},
+	[BOT_PHY_FW_CLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_BOT_PHY_FW_CLK_CTL,
+		.nr_clksels = 2,
+		.sel =1,
+		.flags = CRU_CLKEN,
+	},
+	[CPU_NIC_CLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_CPU_NIC_CLK_CTL,
+		.nr_clksels = 2,
+		.sel = 1,
+		.flags = 0,
+	},
+	[TRMU_IOPMP_CFG_CLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_TRMU_IOPMP_CFG_CLK_CTL,
+		.nr_clksels = 2,
+		.sel = 1,
+		.flags = CRU_CLKEN,
+	},
+	[DDR_CFG_CLKSEL] = {
+		.clksels = com_clksels,
+		.reg = CRU_DDR_CFG_CLK_CTL,
+		.nr_clksels = 2,
+		.sel = 1,
+		.flags = 0,
+	},
+	[TPERI_SUB_MCLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_TPERI_SUB_MCLK_CTL,
+		.nr_clksels = 2,
+		.sel = 1,
+		.flags = CRU_CLKEN,
+	},
+	[TPERI_SUB_SCLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_TPERI_SUB_SCLK_CTL,
+		.nr_clksels = 2,
+		.sel = 1,
+		.flags = CRU_CLKEN,
+	},
+	[HNI_PERI_CFG_SCLKSEL] = {
+		.clksels = fout1ph0_clksels,
+		.reg = CRU_HNI_PERI_CFG_CLK_CTL,
+		.nr_clksels = 2,
+		.sel = 1,
+		.flags = CRU_CLKEN,
+	},
+#endif
 };
 
-#ifdef CONFIG_CLK_MNEMONICS
+
 const char *sel_clk_names[NR_SEL_CLKS] = {
 	[RMU_CLKSEL] = "rmu_clksel",
 	[CPU_NIC_CLKSEL] = "cpu_nic_clksel",
@@ -643,8 +800,32 @@ const char *sel_clk_names[NR_SEL_CLKS] = {
 	[PCIE_BOT_XCLKSEL] = "pcie_bot_xclksel",
 	[PERI_SUB_CLKSEL] = "peri_sub_clksel",
 	[PERI_GMAC_TXCLK_SEL] = "peri_gmac_txclk_sel",
+	#ifdef CONFIG_K1MATRIX_64C
+	[LTOP_CFG_CLKSEL] = "ltop_cfg_clksel",
+	[LTOP_PCIE_CFG_CLKSEL] = "ltop_pcie_cfg_clksel",
+	[LTOP_PCIE_AUX_CLKSEL] = "ltop_pcie_aux_clksel",
+	[LTOP_PCIE_TFR_CLKSEL] = "ltop_pcie_tfr_clksel",
+	[LTOP_PHY_FW_CLKSEL] = "ltop_phy_fw_clksel",
+	[RTOP_CFG_CLKSEL] = "rtop_cfg_clksel",
+	[RTOP_PCIE_CFG_CLKSEL] = "rtop_pcie_cfg_clksel",
+	[RTOP_PCIE_AUX_CLKSEL] = "rtop_pcie_aux_clksel",
+	[RTOP_PCIE_TFR_CLKSEL] = "rtop_pcie_tfr_clksel",
+	[RTOP_PHY_FW_CLKSEL] = "rtop_phy_fw_clksel",
+	[BOT_CFG_CLKSEL] = "bot_cfg_clksel",
+	[BOT_PCIE_CFG_CLKSEL] = "bot_pcie_cfg_clksel",
+	[BOT_PCIE_AUX_CLKSEL] = "bot_pcie_aux_clksel",
+	[BOT_PCIE_TFR_CLKSEL] = "bot_pcie_tfr_clksel",
+	[BOT_PHY_FW_CLKSEL] = "bot_phy_fw_clksel",
+	[CPU_NIC_CLKSEL] = "cpu_nic_clksel",
+	[TRMU_IOPMP_CFG_CLKSEL] = "trmu_iopmp_cfg_clksel",
+	[DDR_CFG_CLKSEL] = "ddr_cfg_clksel",
+	[TPERI_SUB_MCLKSEL] = "tperi_sub_mclksel",
+	[TPERI_SUB_SCLKSEL] = "tperi_sub_sclksel",
+	[HNI_PERI_CFG_SCLKSEL] = "hni_peri_cfg_sclksel",
+	#endif
 };
 
+#ifdef CONFIG_CLK_MNEMONICS
 static const char *get_sel_name(clk_clk_t sel)
 {
 	if (sel >= NR_SEL_CLKS)
