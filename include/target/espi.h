@@ -3,6 +3,10 @@
 
 #include <target/generic.h>
 
+/* No commands */
+#define ESPI_CMD_NONE				0xffff
+#define ESPI_CMD(cmd)				(HIBYTE(cmd) == 0xff ? ESPI_CMD_NONE : LOBYTE(cmd))
+
 /* eSPI Interface Base Specification - Document # 327432-004 Revision 1.0 */
 /* 4.2 Command phase */
 #define ESPI_CMD_PUT_PC				0x00
@@ -421,8 +425,47 @@ struct espi_cmd {
 #define ESPI_ALL_CHAN			\
 	(ESPI_PERI_CHAN | ESPI_VW_CHAN | ESPI_OOB_CHAN | ESPI_FLASH_CHAN)
 
+#define MAX_VWIRE_LEN			64
+
+typedef uint16_t espi_event_t;
+typedef uint8_t espi_slave_t;
+typedef uint8_t espi_op_t;
+typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
+
+#define ESPI_STATE_INIT			0x00
+#define ESPI_STATE_CONFIG		0x01
+
+#define ESPI_EVENT_SETUP		0x01
+#define ESPI_EVENT_RESET		0x02
+#define ESPI_EVENT_WAIT_CMD		0x03
+
+#define ESPI_OP_NONE			0x00
+#define ESPI_OP_SETUP_SLAVE		0x01
+
+#define espi_op_busy()		(!!(espi_op != ESPI_OP_NONE))
+#define espi_op_is(op)		(espi_op == (op))
+#define espi_cmd_is(cmd)	(ESPI_CMD(espi_cmd) == (cmd))
+#define espi_setup_slave()	espi_start_op(ESPI_OP_SETUP_SLAVE, NULL)
+
 #include <driver/espi.h>
 
+int espi_start_op(espi_op_t op, espi_cmpl_cb cb);
+void espi_cmd_complete(uint8_t status);
+void espi_enter_state(uint8_t state);
+void espi_raise_event(espi_event_t event);
+void espi_clear_event(espi_event_t event);
+espi_event_t espi_event_save(void);
+void espi_event_restore(espi_event_t event);
+void espi_sync(void);
+void espi_seq_handler(void);
+
+#define espi_inband_reset()				\
+	espi_write_cmd(ESPI_CMD_RESET, 0, NULL, 0, NULL)
+
+extern uint8_t espi_op;
+
+void espi_write_cmd(uint8_t opcode, uint8_t hlen, uint8_t *hbuf,
+		    uint8_t dlen, uint8_t *dbuf);
 void espi_config_alert_pin(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
 void espi_config_io_mode(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
 void espi_config_op_freq(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
