@@ -60,6 +60,7 @@ static void *rxoob_buffer;
 
 uint32_t spacemit_espi_read32(caddr_t reg)
 {
+	con_dbg("spacemit_espi: %016lx\n", reg);
 	return __raw_readl(reg);
 }
 
@@ -71,6 +72,7 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg)
 
 uint16_t spacemit_espi_read16(caddr_t reg)
 {
+	con_dbg("spacemit_espi: %016lx\n", reg);
 	return __raw_readw(reg);
 }
 
@@ -82,6 +84,7 @@ void spacemit_espi_write16(uint16_t val, caddr_t reg)
 
 uint8_t spacemit_espi_read8(caddr_t reg)
 {
+	con_dbg("spacemit_espi: %016lx\n", reg);
 	return __raw_readb(reg);
 }
 
@@ -755,9 +758,6 @@ static int espi_set_channel_configuration(uint32_t slave_config,
 	if (!(slave_config & ESPI_SLAVE_CHANNEL_ENABLE))
 		return 0;
 
-	if (espi_set_configuration(slave_reg_addr, 0x70701) != 0)
-		return -1;
-
 	if (espi_wait_channel_ready(slave_reg_addr) != 0)
 		return -1;
 
@@ -841,7 +841,13 @@ static int espi_setup_vw_channel(uint32_t slave_caps)
 	use_vw_count = min(ctrlr_vw_count_supp, slave_vw_count_supp);
 
 	slave_config = ESPI_SLAVE_CHANNEL_ENABLE | ESPI_VWIRE_MAX_OP_COUNT_SEL(use_vw_count);
-	return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_VW_CFG, ESPI_VW_CH_EN);
+	if (espi_set_configuration(SPACEMIT_ESPI_SLAVE_VW_CFG, slave_config) != 0)
+		return -1;
+	spacemit_espi_write32(ESPI_ENABLE_VW_CHANNEL, ESPI_DN_TXHDRn(1));
+	if (spacemit_espi_read32(ESPI_DN_TXHDRn(1)) == 0x70703)
+		return 0;
+	//return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_VW_CFG, ESPI_VW_CH_EN);
+	return -1;
 }
 #else
 #define espi_setup_vw_channel(caps)		0
@@ -908,26 +914,36 @@ static void espi_set_initial_config(const struct espi_config *mb_cfg)
 	case ESPI_GEN_ALERT_MODE_IO1:
 		break;
 	case ESPI_GEN_ALERT_MODE_PIN:
-		espi_initial_mode |= ESPI_ALERT_MODE_SEL;
+		//espi_initial_mode |= ESPI_ALERT_MODE_SEL;
 		break;
 	default:
 		BUG();
 	}
+	espi_initial_mode |= ESPI_CRC_CHECK_EN;
+	if (CONFIG_ESPI_PERI)
+		espi_initial_mode |= ESPI_PR_EN;
+	if (CONFIG_ESPI_VWIRE)
+		espi_initial_mode |= ESPI_VW_EN;
+	if (CONFIG_ESPI_OOB)
+		espi_initial_mode |= ESPI_OOB_EN;
+	if (CONFIG_ESPI_FLASH)
+		espi_initial_mode |= ESPI_FLASH_EN;
+
 	spacemit_espi_write32(espi_initial_mode, ESPI_SLAVE0_CONFIG);
 }
 
 static void espi_setup_subtractive_decode(const struct espi_config *mb_cfg)
 {
-//	uint32_t global_ctrl_reg;
-//	global_ctrl_reg = spacemit_espi_read32(ESPI_GLOBAL_CONTROL_1);
-//
-//	if (mb_cfg->subtractive_decode) {
-//		global_ctrl_reg &= ~ESPI_SUB_DECODE_SLV_MASK;
-//		global_ctrl_reg |= ESPI_SUB_DECODE_EN;
-//	} else {
-//		global_ctrl_reg &= ~ESPI_SUB_DECODE_EN;
-//	}
-//	spacemit_espi_write32(ESPI_GLOBAL_CONTROL_1, global_ctrl_reg);
+	// uint32_t global_ctrl_reg;
+	// global_ctrl_reg = spacemit_espi_read32(ESPI_GLOBAL_CONTROL_1);
+
+	// if (mb_cfg->subtractive_decode) {
+	// 	global_ctrl_reg &= ~ESPI_SUB_DECODE_SLV_MASK;
+	// 	global_ctrl_reg |= ESPI_SUB_DECODE_EN;
+	// } else {
+	// 	global_ctrl_reg &= ~ESPI_SUB_DECODE_EN;
+	// }
+	// spacemit_espi_write32(ESPI_GLOBAL_CONTROL_1, global_ctrl_reg);
 }
 
 int spacemit_espi_tx_vw(uint8_t *ids, uint8_t *data, int num)
@@ -1102,10 +1118,11 @@ void spacemit_espi_init(void)
 
 	con_log("Initializing eSPI.\n");
 
-	def_cfg.std_io_decode_bitmap = ESPI_DECODE_IO_0x80_EN | ESPI_DECODE_IO_0X2E_0X2F_EN | ESPI_DECODE_IO_0X60_0X64_EN,
+	def_cfg.std_io_decode_bitmap = ESPI_DECODE_IO_0x80_EN | ESPI_DECODE_IO_0X2E_0X2F_EN | ESPI_DECODE_IO_0X60_0X64_EN;
 	cfg = &def_cfg;
 
 	spacemit_espi_set32(ESPI_MST_STOP_EN, ESPI_GLOBAL_CONTROL_0);
+	spacemit_espi_set32(ESPI_ESPI_RSTN, ESPI_GLOBAL_CONTROL_1);
 	// spacemit_espi_write32(ESPI_RGCMD_INT(23) | ESPI_ERR_INT_SMI, ESPI_GLOBAL_CONTROL_1);
 	spacemit_espi_write32(0, ESPI_SLAVE0_INT_EN);
 	espi_clear_status();
@@ -1126,6 +1143,7 @@ void spacemit_espi_init(void)
 		con_err("In-band reset failed!\n");
 		return;
 	}
+	con_log("In-band reset success!\n");
 
 	espi_set_initial_config(cfg);
 
