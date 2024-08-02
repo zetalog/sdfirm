@@ -17,11 +17,107 @@ espi_op_t espi_op;
 espi_cmpl_cb espi_op_cb;
 uint16_t espi_cmd;
 uint16_t espi_rsp;
+uint16_t espi_addr;
+uint32_t espi_gen_cfg;
+uint32_t espi_peri_cfg;
+uint32_t espi_vwire_cfg;
+uint32_t espi_oob_cfg;
+uint32_t espi_flash_cfg;
+
+#ifdef CONFIG_ESPI_DEBUG
+const char *espi_op_names[] = {
+	"NONE",
+	"PROBE",
+};
+
+const char *espi_op_name(uint32_t val)
+{
+	if (val >= ARRAY_SIZE(espi_op_names))
+		return "UNKNOWN";
+	return espi_op_names[val];
+}
+
+const char *espi_state_names[] = {
+	"INIT",
+	"RESET",
+	"GET_GEN",
+	"SET_GEN",
+	"PLTRST",
+	"GET_PERI",
+	"SET_PERI",
+	"GET_VWIRE",
+	"SET_VWIRE",
+	"GET_OOB",
+	"SET_OOB",
+	"GET_FLASH",
+	"SET_FLASH",
+	"VALID",
+	"INVALID",
+};
+
+const char *espi_state_name(uint32_t val)
+{
+	if (val >= ARRAY_SIZE(espi_state_names))
+		return "UNKNOWN";
+	return espi_state_names[val];
+}
+
+const char *espi_event_names[] = {
+	"INIT",
+	"ACCEPT",
+	"DEFER",
+	"WAIT_STATE",
+	"REJECT",
+	"NO_RESPONSE",
+};
+
+const char *espi_event_name(espi_event_t event)
+{
+	int i, nr_evts = 0;
+
+	for (i = 0; i < ARRAY_SIZE(espi_event_names); i++) {
+		if (_BV(i) & event) {
+			nr_evts++;
+			return espi_event_names[i];
+		}
+	}
+	return "NONE";
+}
+
+void espi_debug(uint8_t tag, uint32_t val)
+{
+	switch (tag) {
+	case ESPI_DEBUG_STATE:
+		con_dbg("espi: state %s\n", espi_state_name(val));
+		break;
+	case ESPI_DEBUG_EVENT:
+		con_dbg("espi: event %s\n", espi_event_name(val));
+		break;
+	case ESPI_DEBUG_OP:
+		con_dbg("espi: op %s\n", espi_op_name(val));
+		break;
+	default:
+		BUG();
+		break;
+	}
+}
+#endif
+
+uint8_t espi_state_get(void)
+{
+	return espi_state;
+}
+
+void espi_state_set(uint8_t state)
+{
+	espi_debug_state(state);
+	espi_state = state;
+	espi_seq_handler();
+}
 
 void espi_enter_state(uint8_t state)
 {
-	espi_state = state;
-	espi_seq_handler();
+	espi_state_set(state);
 }
 
 void espi_raise_event(espi_event_t event)
@@ -149,15 +245,25 @@ void espi_config_op_freq(uint32_t slave_caps, uint32_t *slave_config, uint32_t *
 	}
 }
 
+void espi_inband_reset(void)
+{
+	espi_write_cmd_async(ESPI_CMD_RESET, 0, NULL, 0, NULL);
+}
+
 void espi_get_configuration(uint16_t address)
 {
 	uint8_t hbuf[2];
 
+	espi_addr = address;
 	hbuf[0] = HIBYTE(address);
 	hbuf[1] = LOBYTE(address);
 
 	espi_write_cmd_async(ESPI_CMD_GET_CONFIGURATION,
 			     2, hbuf, 0, NULL);
+}
+
+void espi_set_configuration(uint16_t address, uint32_t config)
+{
 }
 
 int espi_write_cmd(uint8_t opcode,
@@ -183,28 +289,47 @@ int espi_start_op(espi_op_t op, espi_cmpl_cb cb)
 	if (espi_op_busy())
 		return -EBUSY;
 
+	espi_debug_op(op);
 	espi_op = op;
 	espi_op_cb = cb;
 	espi_seq_handler();
 	return 0;
 }
 
-void espi_cmd_complete(uint8_t status)
+void espi_cmd_complete(uint8_t rsp)
 {
-	espi_clear_event(ESPI_EVENT_WAIT_STATE);
+	espi_rsp = rsp;
+	switch (rsp) {
+	case ESPI_RSP_NON_FATAL_ERROR:
+	case ESPI_RSP_FATAL_ERROR:
+		espi_raise_event(ESPI_EVENT_REJECT);
+		break;
+	case ESPI_RSP_ACCEPT(0):
+		espi_raise_event(ESPI_EVENT_ACCEPT);
+		break;
+	case ESPI_RSP_NO_RESPONSE:
+		espi_raise_event(ESPI_EVENT_NO_RESPONSE);
+		break;
+	}
 }
 
-void espi_handle_setup_slave(bool is_op)
+void espi_handle_probe(bool is_op)
 {
-	if (espi_state == ESPI_STATE_INIT) {
+	if (espi_cmd_is(ESPI_CMD_NONE)) {
 		espi_inband_reset();
+	} else if (espi_state == ESPI_STATE_RESET) {
+		espi_get_configuration(ESPI_SLAVE_GEN_CFG);
+	} else if (espi_state == ESPI_STATE_GET_GEN) {
+		espi_set_configuration(ESPI_SLAVE_GEN_CFG, espi_gen_cfg);
+	} else if (espi_state == ESPI_STATE_SET_GEN) {
+	} else if (espi_state == ESPI_STATE_INVALID) {
 	}
 }
 
 void espi_seq_handler(void)
 {
-	if (espi_op_is(ESPI_OP_SETUP_SLAVE))
-		espi_handle_setup_slave(true);
+	if (espi_op_is(ESPI_OP_PROBE))
+		espi_handle_probe(true);
 }
 
 static void espi_async_handler(void)
@@ -214,13 +339,25 @@ static void espi_async_handler(void)
 	flags = espi_event_save();
 	if (flags & ESPI_EVENT_INIT) {
 		unraise_bits(flags, ESPI_EVENT_INIT);
-		espi_setup_slave();
+		espi_auto_probe();
 	} else if (flags & ESPI_EVENT_ACCEPT) {
+		unraise_bits(flags, ESPI_EVENT_ACCEPT);
+		if (espi_cmd_is(ESPI_CMD_RESET))
+			espi_enter_state(ESPI_STATE_RESET);
+		if (espi_cmd_is_get(ESPI_SLAVE_GEN_CFG))
+			espi_enter_state(ESPI_STATE_GET_GEN);
+		if (espi_cmd_is_set(ESPI_SLAVE_GEN_CFG))
+			espi_enter_state(ESPI_STATE_SET_GEN);
+	} else if (flags & ESPI_EVENT_REJECT) {
+		unraise_bits(flags, ESPI_EVENT_REJECT);
+		espi_enter_state(ESPI_STATE_INVALID);
 	} else if (flags & ESPI_EVENT_DEFER) {
-	} else if (flags & ESPI_EVENT_NON_FATAL_ERROR) {
-	} else if (flags & ESPI_EVENT_FATAL_ERROR) {
+		unraise_bits(flags, ESPI_EVENT_REJECT);
 	} else if (flags & ESPI_EVENT_NO_RESPONSE) {
-	} else if (espi_state == ESPI_STATE_INIT) {
+		if (espi_cmd_is(ESPI_CMD_RESET))
+			espi_enter_state(ESPI_STATE_RESET);
+		else
+			espi_enter_state(ESPI_STATE_INVALID);
 	}
 	espi_event_restore(flags);
 }
@@ -230,14 +367,12 @@ static void espi_bh_handler(uint8_t events)
 	if (events == BH_POLLIRQ) {
 		espi_hw_handle_irq();
 		return;
+	} else if (events == BH_WAKEUP) {
+		espi_async_handler();
+		return;
 	} else {
-		switch (events) {
-		case BH_WAKEUP:
-			espi_async_handler();
-			break;
-		default:
-			BUG();
-		}
+		BUG();
+		return;
 	}
 }
 

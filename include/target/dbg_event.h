@@ -18,7 +18,8 @@
 #define DBG_SRC_BULK		11
 #define DBG_SRC_USER		12
 #define DBG_SRC_MMC		13
-#define NR_DBG_SRCS		14
+#define DBG_SRC_ESPI		14
+#define NR_DBG_SRCS		15
 /* XXX: Current DBG_SRCS Limitation
  * current NR_DBG_SRCS should not exceed 0x14, or 0x15 could not be used
  * as raw data in the UI
@@ -118,6 +119,11 @@
 #define MMC_DEBUG_ACMD		MMC_DEBUG_BASE+4
 #define MMC_DEBUG_ERROR		MMC_DEBUG_BASE+5
 #define NR_MMC_EVENTS		(MMC_DEBUG_ERROR - MMC_DEBUG_BASE + 1)
+
+#define ESPI_DEBUG_BASE		(DBG_SRC_ESPI<<4)
+#define ESPI_DEBUG_OP		ESPI_DEBUG_BASE+0
+#define ESPI_DEBUG_STATE	ESPI_DEBUG_BASE+1
+#define ESPI_DEBUG_EVENT	ESPI_DEBUG_BASE+2
 
 #define IDLE_DEBUG_BASE		(DBG_SRC_IDLE<<4)
 #define IDLE_DEBUG_SID		IDLE_DEBUG_BASE

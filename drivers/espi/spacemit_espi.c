@@ -901,6 +901,7 @@ void spacemit_espi_handle_irq(void)
 	int int_sts;
 	int len;
 	uint8_t rxvw_data;
+	uint8_t rsp = ESPI_RSP_ACCEPT(0);
 
 	int_sts = __raw_readl(ESPI_SLAVE0_INT_STS);
 	__raw_writel(int_sts, ESPI_SLAVE0_INT_STS);
@@ -959,15 +960,15 @@ void spacemit_espi_handle_irq(void)
 			con_log("spacemit_espi: ESPI_WAIT_TIMEOUT_INT\n");
 		if (int_sts & ESPI_BUS_ERR_INT)
 			con_log("spacemit_espi: ESPI_BUS_ERR_INT\n");
-		spacemit_espi_rsp = ESPI_RSP_FATAL_ERROR;
+		rsp = ESPI_RSP_FATAL_ERROR;
 	}
 	if (int_sts & ESPI_NON_FATAL_INT) {
 		con_log("spacemit_espi: ESPI_NON_FATAL_INT\n");
-		spacemit_espi_rsp = ESPI_RSP_NON_FATAL_ERROR;
+		rsp = ESPI_RSP_NON_FATAL_ERROR;
 	}
 	if (int_sts & ESPI_FATAL_ERR_INT) {
 		con_log("spacemit_espi: ESPI_FATAL_ERR_INT\n");
-		spacemit_espi_rsp = ESPI_RSP_FATAL_ERROR;
+		rsp = ESPI_RSP_FATAL_ERROR;
 	}
 	if (int_sts & ESPI_NO_RSP_INT) {
 		/* When performing an in-band reset the host controller
@@ -999,11 +1000,12 @@ void spacemit_espi_handle_irq(void)
 		 * when we perform an in-band reset.
 		 */
 		con_log("spacemit_espi: ESPI_NO_RSP_INT\n");
-		spacemit_espi_rsp = ESPI_RSP_NO_RESPONSE;
+		rsp = ESPI_RSP_NO_RESPONSE;
 	}
 	if (int_sts & ESPI_DNCMD_INT) {
 		con_log("spacemit_espi: ESPI_DNCMD_INT\n");
-		espi_cmd_complete(spacemit_espi_rsp);
+		spacemit_espi_rsp = rsp;
+		espi_cmd_complete(rsp);
 	}
 }
 
