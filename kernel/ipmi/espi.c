@@ -16,6 +16,7 @@ espi_event_t espi_event;
 espi_op_t espi_op;
 espi_cmpl_cb espi_op_cb;
 uint16_t espi_cmd;
+uint16_t espi_rsp;
 
 void espi_enter_state(uint8_t state)
 {
@@ -148,6 +149,35 @@ void espi_config_op_freq(uint32_t slave_caps, uint32_t *slave_config, uint32_t *
 	}
 }
 
+void espi_get_configuration(uint16_t address)
+{
+	uint8_t hbuf[2];
+
+	hbuf[0] = HIBYTE(address);
+	hbuf[1] = LOBYTE(address);
+
+	espi_write_cmd_async(ESPI_CMD_GET_CONFIGURATION,
+			     2, hbuf, 0, NULL);
+}
+
+int espi_write_cmd(uint8_t opcode,
+		   uint8_t hlen, uint8_t *hbuf,
+		   uint8_t dlen, uint8_t *dbuf)
+{
+	espi_raise_event(ESPI_EVENT_WAIT_STATE);
+	espi_write_cmd_async(opcode, hlen, hbuf, dlen, dbuf);
+	espi_sync();
+	return 0;
+}
+
+uint8_t espi_read_rsp(uint8_t opcode,
+		      uint8_t hlen, uint8_t *hbuf,
+		      uint8_t dlen, uint8_t *dbuf)
+{
+	espi_hw_read_rsp(opcode, hlen, hbuf, dlen, dbuf);
+	return espi_rsp;
+}
+
 int espi_start_op(espi_op_t op, espi_cmpl_cb cb)
 {
 	if (espi_op_busy())
@@ -161,7 +191,7 @@ int espi_start_op(espi_op_t op, espi_cmpl_cb cb)
 
 void espi_cmd_complete(uint8_t status)
 {
-	espi_clear_event(ESPI_EVENT_WAIT_CMD);
+	espi_clear_event(ESPI_EVENT_WAIT_STATE);
 }
 
 void espi_handle_setup_slave(bool is_op)
@@ -182,9 +212,15 @@ static void espi_async_handler(void)
 	espi_event_t flags;
 
 	flags = espi_event_save();
-	if (flags & ESPI_EVENT_SETUP) {
+	if (flags & ESPI_EVENT_INIT) {
+		unraise_bits(flags, ESPI_EVENT_INIT);
 		espi_setup_slave();
-		unraise_bits(flags, ESPI_EVENT_SETUP);
+	} else if (flags & ESPI_EVENT_ACCEPT) {
+	} else if (flags & ESPI_EVENT_DEFER) {
+	} else if (flags & ESPI_EVENT_NON_FATAL_ERROR) {
+	} else if (flags & ESPI_EVENT_FATAL_ERROR) {
+	} else if (flags & ESPI_EVENT_NO_RESPONSE) {
+	} else if (espi_state == ESPI_STATE_INIT) {
 	}
 	espi_event_restore(flags);
 }
@@ -217,8 +253,9 @@ void __espi_irq_init(void)
 }
 #endif
 
-void espi_write_cmd(uint8_t opcode, uint8_t hlen, uint8_t *hbuf,
-		    uint8_t dlen, uint8_t *dbuf)
+void espi_write_cmd_async(uint8_t opcode,
+			  uint8_t hlen, uint8_t *hbuf,
+			  uint8_t dlen, uint8_t *dbuf)
 {
 	espi_cmd = opcode;
 	espi_hw_write_cmd(opcode, hlen, hbuf, dlen, dbuf);
@@ -234,7 +271,8 @@ void espi_init(void)
 	espi_event = 0;
 	espi_op = ESPI_OP_NONE;
 	espi_cmd = ESPI_CMD_NONE;
+	espi_rsp = ESPI_RSP_NONE;
 
 	espi_hw_ctrl_init();
-	espi_raise_event(ESPI_EVENT_SETUP);
+	espi_raise_event(ESPI_EVENT_INIT);
 }
