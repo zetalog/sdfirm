@@ -43,15 +43,16 @@ const char *espi_state_names[] = {
 	"RESET",
 	"GET_GEN",
 	"SET_GEN",
-	"PLTRST",
-	"GET_PERI",
-	"SET_PERI",
 	"GET_VWIRE",
 	"SET_VWIRE",
 	"GET_OOB",
 	"SET_OOB",
 	"GET_FLASH",
 	"SET_FLASH",
+	"ASSERT_PLTRST",
+	"DEASSERT_PLTRST",
+	"GET_PERI",
+	"SET_PERI",
 	"VALID",
 	"INVALID",
 };
@@ -70,6 +71,7 @@ const char *espi_event_names[] = {
 	"WAIT_STATE",
 	"REJECT",
 	"NO_RESPONSE",
+	"PROBE",
 };
 
 const char *espi_event_name(espi_event_t event)
@@ -414,6 +416,10 @@ void espi_cmd_complete(uint8_t rsp)
 	}
 }
 
+void espi_config_vwire(uint8_t vwire, bool state)
+{
+}
+
 void espi_handle_probe(bool is_op)
 {
 	if (espi_cmd_is(ESPI_CMD_NONE)) {
@@ -423,6 +429,27 @@ void espi_handle_probe(bool is_op)
 	} else if (espi_state == ESPI_STATE_GET_GEN) {
 		espi_set_configuration(ESPI_SLAVE_GEN_CFG, espi_gen_cfg);
 	} else if (espi_state == ESPI_STATE_SET_GEN) {
+		espi_get_configuration(ESPI_SLAVE_VWIRE_CFG);
+	} else if (espi_state == ESPI_STATE_GET_VWIRE) {
+		espi_set_configuration(ESPI_SLAVE_VWIRE_CFG, espi_vwire_cfg);
+	} else if (espi_state == ESPI_STATE_SET_VWIRE) {
+		espi_get_configuration(ESPI_SLAVE_OOB_CFG);
+	} else if (espi_state == ESPI_STATE_GET_OOB) {
+		espi_set_configuration(ESPI_SLAVE_OOB_CFG, espi_oob_cfg);
+	} else if (espi_state == ESPI_STATE_SET_OOB) {
+		espi_get_configuration(ESPI_SLAVE_FLASH_CFG);
+	} else if (espi_state == ESPI_STATE_GET_FLASH) {
+		espi_set_configuration(ESPI_SLAVE_FLASH_CFG, espi_flash_cfg);
+	} else if (espi_state == ESPI_STATE_SET_FLASH) {
+		espi_assert_vwire(ESPI_VWIRE_SYSTEM_PLTRST);
+	} else if (espi_state == ESPI_STATE_ASSERT_PLTRST) {
+		espi_deassert_vwire(ESPI_VWIRE_SYSTEM_PLTRST);
+	} else if (espi_state == ESPI_STATE_DEASSERT_PLTRST) {
+		espi_get_configuration(ESPI_SLAVE_PERI_CFG);
+	} else if (espi_state == ESPI_STATE_GET_PERI) {
+		espi_set_configuration(ESPI_SLAVE_PERI_CFG, espi_peri_cfg);
+	} else if (espi_state == ESPI_STATE_SET_PERI) {
+		espi_raise_event(ESPI_EVENT_PROBE);
 	} else if (espi_state == ESPI_STATE_VALID) {
 		if (is_op)
 			espi_op_success();
@@ -517,120 +544,6 @@ void espi_init(void)
 	espi_hw_ctrl_init();
 	espi_raise_event(ESPI_EVENT_INIT);
 }
-
-#if 0
-void spacemit_espi_test(void)
-{
-	uint32_t slave_caps;
-
-	// spacemit_espi_write32(ESPI_RGCMD_INT(23) | ESPI_ERR_INT_SMI, ESPI_GLOBAL_CONTROL_1);
-	spacemit_espi_write32(0, ESPI_SLAVE0_INT_EN);
-	espi_clear_status();
-	// espi_clear_decodes();
-
-	/* Boot sequence: Step 1
-	 * Set correct initial configuration to talk to the slave:
-	 * Set clock frequency to 16.7MHz and single IO mode.
-	 */
-	espi_set_initial_config();
-
-	/* Boot sequence: Step 2
-	 * Send in-band reset
-	 * The resets affects both host and slave devices, so set initial
-	 * config again.
-	 */
-	con_log("In-band reset success!\n");
-
-	espi_set_initial_config();
-
-	/* Boot sequence: Step 3
-	 * Get configuration of slave device.
-	 */
-	if (espi_get_general_configuration(&slave_caps) != 0) {
-		con_err("Slave GET_CONFIGURATION failed!\n");
-		return;
-	}
-	con_log("Slave GET_CONFIGURATION success!\n");
-
-	/* Boot sequence:
-	 * Step 4: Write slave device general config
-	 * Step 5: Set host slave config
-	 */
-	if (espi_set_general_configuration(slave_caps) != 0) {
-		con_err("Slave SET_CONFIGURATION failed!\n");
-		return;
-	}
-	con_log("Slave SET_CONFIGURATION success!\n");
-
-	/* Setup polarity before enabling the VW channel so any interrupts
-	 * received will have the correct polarity.
-	 */
-	spacemit_espi_write32(0, ESPI_SLAVE0_VW_POLARITY);
-
-	/* Boot Sequences: Steps 6 - 9
-	 * Channel setup
-	 */
-	/* Set up VW first so we can deassert PLTRST#. */
-	if (espi_setup_vw_channel(slave_caps) != 0)
-		return;
-	con_log("VW Channel setup success!\n");
-
-	/* Assert PLTRST# if VW channel is enabled by mainboard. */
-	if (espi_send_pltrst(true) != 0) {
-		con_err("PLTRST# assertion failed!\n");
-		return;
-	}
-	con_log("PLTRST# assertion success!\n");
-
-	/* De-assert PLTRST# if VW channel is enabled by mainboard. */
-	if (espi_send_pltrst(false) != 0) {
-		con_err("PLTRST# deassertion failed!\n");
-		return;
-	}
-	con_log("PLTRST# deassertion success!\n");
-
-	if (espi_setup_peri_channel(slave_caps) != 0)
-		return;
-
-	espi_setup_pr_mem_base0(SPACEMIT_ESPI_PR_MEM0);
-	espi_setup_pr_mem_base1(SPACEMIT_ESPI_PR_MEM1);
-	con_log("Peripheral Channel setup success!\n");
-
-	if (espi_setup_oob_channel(slave_caps) != 0)
-		return;
-	con_log("OOB Channel setup success!\n");
-
-	if (espi_setup_flash_channel(slave_caps) != 0)
-		return;
-	con_log("Flash Channel setup success!\n");
-
-	// if (espi_configure_decodes(cfg) != 0) {
-	// 	con_err("Configuring decodes failed!\n");
-	// 	return;
-	// }
-	// con_err("Configuring decodes success!\n");
-
-	/* Enable subtractive decode if configured */
-	espi_setup_subtractive_decode(ESPI_DECODE_IO_0x80_EN |
-				      ESPI_DECODE_IO_0X2E_0X2F_EN |
-				      ESPI_DECODE_IO_0X60_0X64_EN);
-
-	// ctrl = spacemit_espi_read32(ESPI_GLOBAL_CONTROL_1);
-	// ctrl |= ESPI_BUS_MASTER_EN;
-
-	// ctrl |= ESPI_ALERT_ENABLE;
-
-	// spacemit_espi_write32(ctrl, ESPI_GLOBAL_CONTROL_1);
-
-
-#if 0
-	clk_set_frequency(espi_sclk, ESPI_OP_FREQ_66_MHZ);
-	clk_enable(espi_sclk);
-#endif
-
-	con_log("espi: initialized spacemit_espi.\n");
-}
-#endif
 
 #if 0
 static int do_espi_read(int argc, char *argv[])
