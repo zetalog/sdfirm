@@ -6,6 +6,9 @@
 /* No commands */
 #define ESPI_CMD_NONE				0xffff
 #define ESPI_CMD(cmd)				(HIBYTE(cmd) == 0xff ? ESPI_CMD_NONE : LOBYTE(cmd))
+/* No responses */
+#define ESPI_RSP_NONE				0xffff
+#define ESPI_RSP(rsp)				(HIBYTE(rsp) == 0xff ? ESPI_RSP_NONE : LOBYTE(rsp))
 
 /* eSPI Interface Base Specification - Document # 327432-004 Revision 1.0 */
 /* 4.2 Command phase */
@@ -47,6 +50,7 @@
 /* 4.4 Response phase */
 #define ESPI_RESPONSE_MODIFIER_OFFSET		6
 #define ESPI_RESPONSE_MODIFIER_MASK		REG_2BIT_MASK
+#define ESPI_RESPONSE_MODIFIER(mod)		_SET_FV(ESPI_RESPONSE_MODIFIER, mod)
 #define ESPI_RSP_NRESPONSE			ESPI_RESPONSE_MODIFIER(0x3)
 #define ESPI_RSP_RESPONSE			ESPI_RESPONSE_MODIFIER(0x0)
 #define ESPI_RSP_ACCEPT(r)			(ESPI_RESPONSE_MODIFIER(r) | 0x08)
@@ -433,11 +437,21 @@ typedef uint8_t espi_op_t;
 typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 
 #define ESPI_STATE_INIT			0x00
-#define ESPI_STATE_CONFIG		0x01
+#define ESPI_STATE_INBAND_RESET		0x01
+#define ESPI_STATE_GEN_CONFIG		0x02
+#define ESPI_STATE_PLAT_RESET		0x03
+#define ESPI_STATE_PERI_CONFIG		0x04
+#define ESPI_STATE_VWIRE_CONFIG		0x05
+#define ESPI_STATE_OOB_CONFIG		0x06
+#define ESPI_STATE_FLASH_CONFIG		0x07
 
-#define ESPI_EVENT_SETUP		0x01
-#define ESPI_EVENT_RESET		0x02
-#define ESPI_EVENT_WAIT_CMD		0x03
+#define ESPI_EVENT_INIT			_BV(0x01)
+#define ESPI_EVENT_ACCEPT		_BV(0x02)
+#define ESPI_EVENT_DEFER		_BV(0x03)
+#define ESPI_EVENT_WAIT_STATE		_BV(0x04)
+#define ESPI_EVENT_NON_FATAL_ERROR	_BV(0x05)
+#define ESPI_EVENT_FATAL_ERROR		_BV(0x06)
+#define ESPI_EVENT_NO_RESPONSE		_BV(0x07)
 
 #define ESPI_OP_NONE			0x00
 #define ESPI_OP_SETUP_SLAVE		0x01
@@ -445,9 +459,14 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define espi_op_busy()		(!!(espi_op != ESPI_OP_NONE))
 #define espi_op_is(op)		(espi_op == (op))
 #define espi_cmd_is(cmd)	(ESPI_CMD(espi_cmd) == (cmd))
+#define espi_rsp_is(rsp)	(ESPI_CMD(espi_rsp) == (rsp))
 #define espi_setup_slave()	espi_start_op(ESPI_OP_SETUP_SLAVE, NULL)
 
 #include <driver/espi.h>
+
+extern uint16_t espi_cmd;
+extern uint16_t espi_rsp;
+extern uint8_t espi_op;
 
 int espi_start_op(espi_op_t op, espi_cmpl_cb cb);
 void espi_cmd_complete(uint8_t status);
@@ -460,12 +479,18 @@ void espi_sync(void);
 void espi_seq_handler(void);
 
 #define espi_inband_reset()				\
-	espi_write_cmd(ESPI_CMD_RESET, 0, NULL, 0, NULL)
+	espi_write_cmd_async(ESPI_CMD_RESET, 0, NULL, 0, NULL)
+void espi_get_configuration(uint16_t address);
 
-extern uint8_t espi_op;
-
-void espi_write_cmd(uint8_t opcode, uint8_t hlen, uint8_t *hbuf,
-		    uint8_t dlen, uint8_t *dbuf);
+void espi_write_cmd_async(uint8_t opcode,
+			  uint8_t hlen, uint8_t *hbuf,
+			  uint8_t dlen, uint8_t *dbuf);
+uint8_t espi_read_rsp(uint8_t opcode,
+		      uint8_t hlen, uint8_t *hbuf,
+		      uint8_t dlen, uint8_t *dbuf);
+int espi_write_cmd(uint8_t opcode,
+		   uint8_t hlen, uint8_t *hbuf,
+		   uint8_t dlen, uint8_t *dbuf);
 void espi_config_alert_pin(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
 void espi_config_io_mode(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
 void espi_config_op_freq(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);

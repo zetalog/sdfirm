@@ -49,11 +49,6 @@
 #define SPACEMIT_ESPI_REG(offset)		(SPACEMIT_ESPI_BASE + (offset))
 #endif
 
-#define SPACEMIT_ESPI_SLAVE_PERI_CFG		ESPI_SLAVE_PERI_CFG
-#define SPACEMIT_ESPI_SLAVE_VW_CFG		ESPI_SLAVE_VWIRE_CFG
-#define SPACEMIT_ESPI_SLAVE_OOB_CFG		ESPI_SLAVE_OOB_CFG
-#define SPACEMIT_ESPI_SLAVE_FLASH_CFG		ESPI_SLAVE_FLASH_CFG
-
 /* Register offset */
 #define ESPI_DN_TXHDR				SPACEMIT_ESPI_REG(0x00)
 #define ESPI_DN_TXHDRn(n)			SPACEMIT_ESPI_REG(0x00 + ((n) << 2))
@@ -87,6 +82,7 @@
 #define ESPI_DNCMD_HDATA_OFFSET(n)		REG32_8BIT_OFFSET((n) + 1)
 #define ESPI_DNCMD_HDATA_MASK			REG_8BIT_MASK
 #define ESPI_DNCMD_HDATA(n, value)		_SET_FVn(n, ESPI_DNCMD_HDATA, value)
+#define espi_dncmd_hdata(n, value)		_GET_FVn(n, ESPI_DNCMD_HDATA, value)
 /* DN_TXHDR_0 */
 #define ESPI_DNCMD_SLAVE_SEL_OFFSET		4
 #define ESPI_DNCMD_SLAVE_SEL_MASK		REG_2BIT_MASK
@@ -225,7 +221,15 @@
 #define ESPI_RXVW_GRP2_INT			_BV(26)
 #define ESPI_RXVW_GRP1_INT			_BV(25)
 #define ESPI_RXVW_GRP0_INT			_BV(24)
-#define ESPI_PR_INT				_BV(23)
+#define ESPI_CALLBACK_INT			\
+	(ESPI_FLASH_REQ_INT |			\
+	 ESPI_RXOOB_INT |			\
+	 ESPI_RXMSG_INT |			\
+	 ESPI_DNCMD_INT |			\
+	 ESPI_RXVW_GRP3_INT |			\
+	 ESPI_RXVW_GRP2_INT |			\
+	 ESPI_RXVW_GRP1_INT |			\
+	 ESPI_RXVW_GRP0_INT)
 #define ESPI_PROTOCOL_ERR_INT			_BV(15)
 #define ESPI_RXFLASH_OFLOW_INT			_BV(14)
 #define ESPI_RXMSG_OFLOW_INT			_BV(13)
@@ -234,24 +238,12 @@
 #define ESPI_ILLEGAL_TAG_INT			_BV(10)
 #define ESPI_UNSUCSS_CPL_INT			_BV(9)
 #define ESPI_INVALID_CT_RSP_INT			_BV(8)
-#define ESPI_INVALID_ID_RSP_INT			_BV(7)
-#define ESPI_NON_FATAL_INT			_BV(6)
-#define ESPI_FATAL_ERR_INT			_BV(5)
-#define ESPI_NO_RSP_INT				_BV(4)
+#define ESPI_UNKNOWN_RSP_INT			_BV(7)
 #define ESPI_CRC_ERR_INT			_BV(2)
 #define ESPI_WAIT_TIMEOUT_INT			_BV(1)
 #define ESPI_BUS_ERR_INT			_BV(0)
-#define ESPI_ALL_INT				\
-	(ESPI_FLASH_REQ_INT |			\
-	 ESPI_RXOOB_INT |			\
-	 ESPI_RXMSG_INT |			\
-	 ESPI_DNCMD_INT |			\
-	 ESPI_RXVW_GRP3_INT |			\
-	 ESPI_RXVW_GRP2_INT |			\
-	 ESPI_RXVW_GRP1_INT |			\
-	 ESPI_RXVW_GRP0_INT |			\
-	 ESPI_PR_INT |				\
-	 ESPI_PROTOCOL_ERR_INT |		\
+#define ESPI_PROTOCOL_INT			\
+	(ESPI_PROTOCOL_ERR_INT |		\
 	 ESPI_RXFLASH_OFLOW_INT |		\
 	 ESPI_RXMSG_OFLOW_INT |			\
 	 ESPI_RXOOB_OFLOW_INT |			\
@@ -259,14 +251,21 @@
 	 ESPI_ILLEGAL_TAG_INT |			\
 	 ESPI_UNSUCSS_CPL_INT |			\
 	 ESPI_INVALID_CT_RSP_INT |		\
-	 ESPI_INVALID_ID_RSP_INT |		\
-	 ESPI_NON_FATAL_INT |			\
-	 ESPI_FATAL_ERR_INT |			\
-	 ESPI_NO_RSP_INT |			\
+	 ESPI_UNKNOWN_RSP_INT |			\
 	 ESPI_CRC_ERR_INT |			\
 	 ESPI_WAIT_TIMEOUT_INT |		\
-	 ESPI_BUS_ERR_INT |			\
 	 ESPI_BUS_ERR_INT)
+#define ESPI_NON_FATAL_INT			_BV(6)
+#define ESPI_FATAL_ERR_INT			_BV(5)
+#define ESPI_NO_RSP_INT				_BV(4)
+#define ESPI_RESPONSE_INT			\
+	(ESPI_NON_FATAL_INT |			\
+	 ESPI_FATAL_ERR_INT |			\
+	 ESPI_NO_RSP_INT)
+#define ESPI_ALL_INT				\
+	(ESPI_CALLBACK_INT |			\
+	 ESPI_PROTOCOL_INT |			\
+	 ESPI_RESPONSE_INT)
 
 /* SLAVE0_RXMSG_HDR0 */
 #define SLAVE0_RXMSG_HDR0_RXMSG_HDATA2_OFFSET	24
@@ -481,10 +480,14 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg);
 	spacemit_espi_write32_mask(ESPI_DNCMD_HDATA(n, byte),	\
 		ESPI_DNCMD_HDATA(n, REG_8BIT_MASK),		\
 		ESPI_DN_TXHDRn(n))
+#define spacemit_espi_read_txhdr(n)				\
+	((uint8_t)espi_dncmd_hdata(n,				\
+	       spacemit_espi_read32(ESPI_DN_TXHDRn(n))))
 #define spacemit_espi_write_done()				\
 	(!(spacemit_espi_read32(ESPI_DN_TXHDR) & ESPI_DNCMD_EN))
 #define spacemit_espi_read_rxhdr(n)				\
-	((uint8_t)ESPI_UPCMD_HDATA(n, __raw_readl(ESPI_UP_RXHDRn(n))))
+	((uint8_t)ESPI_UPCMD_HDATA(n,				\
+	       spacemit_espi_read32(ESPI_UP_RXHDRn(n))))
 #define espi_setup_pr_mem_base0(base)	\
 	spacemit_espi_write32(base, ESPI_PR_BASE_ADDR_MEM0)
 #define espi_setup_pr_mem_base1(base)	\
@@ -502,12 +505,12 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg);
 
 void spacemit_espi_irq_init(void);
 void spacemit_espi_handle_irq(void);
-void spacemit_espi_write_cmd_async(uint8_t cmd,
-				   uint8_t hlen, uint8_t *hbuf,
-				   uint8_t dlen, uint8_t *dbuf);
-int spacemit_espi_write_cmd(uint8_t cmd,
-			    uint8_t hdr_len, uint8_t *hdr,
-			    uint8_t dat_len, uint8_t *dat);
+void spacemit_espi_write_cmd(uint8_t opcode,
+			     uint8_t hlen, uint8_t *hbuf,
+			     uint8_t dlen, uint8_t *dbuf);
+uint8_t spacemit_espi_read_rsp(uint8_t opcod,
+			       uint8_t hlen, uint8_t *hbuf,
+			       uint8_t dlen, uint8_t *dbuf);
 
 int espi_open_io_window(uint16_t base, size_t size);
 int espi_open_mmio_window(uint32_t base, size_t size);

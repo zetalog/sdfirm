@@ -46,6 +46,7 @@
 static void (*rxvw_callback)(int group, uint8_t rxvw_data);
 static void (*rxoob_callback)(void *buffer, int len);
 static void *rxoob_buffer;
+static uint8_t spacemit_espi_rsp;
 
 uint32_t spacemit_espi_read32(caddr_t reg)
 {
@@ -567,59 +568,18 @@ static int espi_send_pltrst(bool assert)
 	return espi_send_command(&cmd);
 }
 
-/* In case of get configuration command, hdata0 contains bits 15:8 of the
- * slave register address and hdata1 contains bits 7:0 of the slave
- * register address.
- */
-#define ESPI_CONFIGURATION_HDATA0(a)		(((a) >> 8) & 0xff)
-#define ESPI_CONFIGURATION_HDATA1(a)		((a) & 0xff)
-
-static int espi_get_configuration(uint16_t slave_reg_addr, uint32_t *config)
+static uint32_t spacemit_espi_get_configuration(uint16_t address)
 {
-	struct espi_cmd cmd = {
-		.hdr0 = {
-			.cmd_type = ESPI_DNCMD_GET_CONFIGURATION,
-			.cmd_sts = 1,
-			.hdata0 = ESPI_CONFIGURATION_HDATA0(slave_reg_addr),
-			.hdata1 = ESPI_CONFIGURATION_HDATA1(slave_reg_addr),
-		},
-	};
-
-	*config = 0;
-
-	if (espi_send_command(&cmd) != 0)
-		return -1;
-
-	*config = spacemit_espi_read32(ESPI_DN_TXHDRn(1));
-
-	con_log("espi: Get configuration for slave register(0x%x): 0x%x\n",
-	       slave_reg_addr, *config);
-
 	return 0;
 }
 
-static int espi_set_configuration(uint16_t slave_reg_addr, uint32_t config)
+static void spacemit_espi_set_configuration(uint16_t address, uint32_t config)
 {
-	struct espi_cmd cmd = {
-		.hdr0 = {
-			.cmd_type = ESPI_DNCMD_SET_CONFIGURATION,
-			.cmd_sts = 1,
-			.hdata0 = ESPI_CONFIGURATION_HDATA0(slave_reg_addr),
-			.hdata1 = ESPI_CONFIGURATION_HDATA1(slave_reg_addr),
-		},
-		.hdr1 = {
-			 .val = config,
-		},
-	};
-
-	return espi_send_command(&cmd);
 }
 
 static int espi_get_general_configuration(uint32_t *config)
 {
-	if (espi_get_configuration(ESPI_SLAVE_GEN_CFG, config) != 0)
-		return -1;
-
+	*config = spacemit_espi_get_configuration(ESPI_SLAVE_GEN_CFG);
 	espi_show_slave_general_configuration(*config);
 	return 0;
 }
@@ -643,27 +603,24 @@ static int espi_set_general_configuration(uint32_t slave_caps)
 
 	espi_show_slave_general_configuration(slave_config);
 
-	if (espi_set_configuration(ESPI_SLAVE_GEN_CFG, slave_config) != 0)
-		return -1;
-
+	spacemit_espi_set_configuration(ESPI_SLAVE_GEN_CFG, slave_config);
 	spacemit_espi_write32(ctrlr_config, ESPI_SLAVE0_CONFIG);
 	return 0;
 }
 
-static int espi_wait_channel_ready(uint16_t slave_reg_addr)
+static int espi_wait_channel_ready(uint16_t address)
 {
 	uint32_t config;
 	int count = ESPI_CH_READY_TIMEOUT_US;
 
 	do {
-		if (espi_get_configuration(slave_reg_addr, &config) != 0)
-			return -1;
+		config = spacemit_espi_get_configuration(address);
 		if (espi_slave_channel_ready(config))
 			return 0;
 	} while (count--);
 
 	con_err("Channel is not ready after %d usec (slave addr: 0x%x)\n",
-	       ESPI_CH_READY_TIMEOUT_US, slave_reg_addr);
+	       ESPI_CH_READY_TIMEOUT_US, address);
 	return -1;
 
 }
@@ -681,9 +638,7 @@ static int espi_set_channel_configuration(uint32_t slave_config,
 					  uint32_t slave_reg_addr,
 					  uint32_t ctrlr_enable)
 {
-	if (espi_set_configuration(slave_reg_addr, slave_config) != 0)
-		return -1;
-
+	spacemit_espi_set_configuration(slave_reg_addr, slave_config);
 	if (!(slave_config & ESPI_SLAVE_CHANNEL_ENABLE))
 		return 0;
 
@@ -702,20 +657,15 @@ static int espi_setup_peri_channel(uint32_t slave_caps)
 	const uint32_t slave_en_mask =
 		ESPI_SLAVE_CHANNEL_ENABLE | ESPI_PERI_BUS_MASTER_ENABLE;
 
-	if (espi_get_configuration(SPACEMIT_ESPI_SLAVE_PERI_CFG, &slave_config) != 0) {
-		con_err("espi: peripheral channel not obtained!\n");
-		return -EINVAL;
-	}
-
+	slave_config = spacemit_espi_get_configuration(ESPI_SLAVE_PERI_CFG);
 	if (!espi_slave_peri_chan_sup(slave_caps)) {
 		con_err("espi: peripheral channel not supported!\n");
 		return -ENOTSUP;
 	}
 	slave_config |= slave_en_mask;
-
 	espi_show_slave_peripheral_channel_configuration(slave_config);
 
-	return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_PERI_CFG,
+	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_PERI_CFG,
 					      ESPI_PERIPH_CH_EN);
 }
 #else
@@ -726,19 +676,14 @@ static int espi_setup_peri_channel(uint32_t slave_caps)
 	const uint32_t slave_en_mask =
 		ESPI_SLAVE_CHANNEL_ENABLE | ESPI_PERI_BUS_MASTER_ENABLE;
 
-	if (espi_get_configuration(ESPI_SLAVE_PERI_CFG, &slave_config) != 0) {
-		con_err("espi: peripheral channel not obtained!\n");
-		return -EINVAL;
-	}
-
+	slave_config = spacemit_espi_get_configuration(ESPI_SLAVE_PERI_CFG);
 	/* Peripheral channel is the only one which is enabled on reset.
 	 * So, if the mainboard wants to disable it, set configuration to
 	 * disable peripheral channel. It also requires that BME bit be
 	 * cleared.
 	 */
 	slave_config &= ~slave_en_mask;
-
-	return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_PERI_CFG,
+	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_PERI_CFG,
 					      ESPI_PERIPH_CH_EN);
 }
 #endif
@@ -758,11 +703,7 @@ static int espi_setup_vw_channel(uint32_t slave_caps)
 //		return -ENOTSUP;
 	}
 
-	if (espi_get_configuration(SPACEMIT_ESPI_SLAVE_VW_CFG, &slave_vw_caps) != 0) {
-		con_err("espi: VW channel not obtained!\n");
-		return -EINVAL;
-	}
-
+	slave_config = spacemit_espi_get_configuration(ESPI_SLAVE_VWIRE_CFG);
 	ctrlr_vw_caps = spacemit_espi_read32(ESPI_MASTER_CAP);
 	ctrlr_vw_count_supp = FIELD_GET(ESPI_VW_MAX_SIZE_MASK, ctrlr_vw_caps);
 
@@ -770,12 +711,11 @@ static int espi_setup_vw_channel(uint32_t slave_caps)
 	use_vw_count = min(ctrlr_vw_count_supp, slave_vw_count_supp);
 
 	slave_config = ESPI_SLAVE_CHANNEL_ENABLE | ESPI_VWIRE_MAX_OP_COUNT_SEL(use_vw_count);
-	if (espi_set_configuration(SPACEMIT_ESPI_SLAVE_VW_CFG, slave_config) != 0)
-		return -1;
+	spacemit_espi_set_configuration(ESPI_SLAVE_VWIRE_CFG, slave_config);
 	spacemit_espi_write32(ESPI_ENABLE_VW_CHANNEL, ESPI_DN_TXHDRn(1));
 	if (spacemit_espi_read32(ESPI_DN_TXHDRn(1)) == 0x70703)
 		return 0;
-	//return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_VW_CFG, ESPI_VW_CH_EN);
+	//return espi_set_channel_configuration(slave_config, ESPI_SLAVE_VWIRE_CFG, ESPI_VW_CH_EN);
 	return -1;
 }
 #else
@@ -792,14 +732,10 @@ static int espi_setup_oob_channel(uint32_t slave_caps)
 		return -ENOTSUP;
 	}
 
-	if (espi_get_configuration(SPACEMIT_ESPI_SLAVE_OOB_CFG, &slave_config) != 0) {
-		con_err("espi: OOB channel not obtained!\n");
-		return -EINVAL;
-	}
-
+	slave_config = spacemit_espi_get_configuration(ESPI_SLAVE_OOB_CFG);
 	slave_config |= ESPI_SLAVE_CHANNEL_ENABLE;
 
-	return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_OOB_CFG,
+	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_OOB_CFG,
 					      ESPI_OOB_CH_EN);
 }
 #else
@@ -816,14 +752,10 @@ static int espi_setup_flash_channel(uint32_t slave_caps)
 		return -ENOTSUP;
 	}
 
-	if (espi_get_configuration(SPACEMIT_ESPI_SLAVE_FLASH_CFG, &slave_config) != 0) {
-		con_err("espi: flash channel not obtained!\n");
-		return -EINVAL;
-	}
-
+	slave_config = spacemit_espi_get_configuration(ESPI_SLAVE_FLASH_CFG);
 	slave_config |= ESPI_SLAVE_CHANNEL_ENABLE;
 
-	return espi_set_channel_configuration(slave_config, SPACEMIT_ESPI_SLAVE_FLASH_CFG,
+	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_FLASH_CFG,
 					      ESPI_FLASH_CH_EN);
 }
 #else
@@ -982,10 +914,6 @@ void spacemit_espi_handle_irq(void)
 	}
 	if (int_sts & ESPI_RXMSG_INT)
 		con_log("spacemit_espi: ESPI_RXMSG_INT\n");
-	if (int_sts & ESPI_DNCMD_INT) {
-		con_log("spacemit_espi: ESPI_DNCMD_INT\n");
-		espi_cmd_complete(0);
-	}
 	if (int_sts & ESPI_RXVW_GRP3_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP3_INT\n");
 		rxvw_data = (spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF000000U) >> 8;
@@ -1006,30 +934,41 @@ void spacemit_espi_handle_irq(void)
 		rxvw_data = spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFFU;
 		rxvw_callback(128, rxvw_data);
 	}
-	if (int_sts & ESPI_PR_INT)
-		con_log("spacemit_espi: ESPI_PR_INT\n");
-	if (int_sts & ESPI_PROTOCOL_ERR_INT)
-		con_log("spacemit_espi: ESPI_PROTOCOL_ERR_INT\n");
-	if (int_sts & ESPI_RXFLASH_OFLOW_INT)
-		con_log("spacemit_espi: ESPI_RXFLASH_OFLOW_INT\n");
-	if (int_sts & ESPI_RXMSG_OFLOW_INT)
-		con_log("spacemit_espi: ESPI_RXMSG_OFLOW_INT\n");
-	if (int_sts & ESPI_RXOOB_OFLOW_INT)
-		con_log("spacemit_espi: ESPI_RXOOB_OFLOW_INT\n");
-	if (int_sts & ESPI_ILLEGAL_LEN_INT)
-		con_log("spacemit_espi: ESPI_ILLEGAL_LEN_INT\n");
-	if (int_sts & ESPI_ILLEGAL_TAG_INT)
-		con_log("spacemit_espi: ESPI_ILLEGAL_TAG_INT\n");
-	if (int_sts & ESPI_UNSUCSS_CPL_INT)
-		con_log("spacemit_espi: ESPI_UNSUCSS_CPL_INT\n");
-	if (int_sts & ESPI_INVALID_CT_RSP_INT)
-		con_log("spacemit_espi: ESPI_INVALID_CP_RSP_INT\n");
-	if (int_sts & ESPI_INVALID_ID_RSP_INT)
-		con_log("spacemit_espi: ESPI_INVALID_ID_RSP_INT\n");
-	if (int_sts & ESPI_NON_FATAL_INT)
+	if (int_sts & ESPI_PROTOCOL_INT) {
+		if (int_sts & ESPI_PROTOCOL_ERR_INT)
+			con_log("spacemit_espi: ESPI_PROTOCOL_ERR_INT\n");
+		if (int_sts & ESPI_RXFLASH_OFLOW_INT)
+			con_log("spacemit_espi: ESPI_RXFLASH_OFLOW_INT\n");
+		if (int_sts & ESPI_RXMSG_OFLOW_INT)
+			con_log("spacemit_espi: ESPI_RXMSG_OFLOW_INT\n");
+		if (int_sts & ESPI_RXOOB_OFLOW_INT)
+			con_log("spacemit_espi: ESPI_RXOOB_OFLOW_INT\n");
+		if (int_sts & ESPI_ILLEGAL_LEN_INT)
+			con_log("spacemit_espi: ESPI_ILLEGAL_LEN_INT\n");
+		if (int_sts & ESPI_ILLEGAL_TAG_INT)
+			con_log("spacemit_espi: ESPI_ILLEGAL_TAG_INT\n");
+		if (int_sts & ESPI_UNSUCSS_CPL_INT)
+			con_log("spacemit_espi: ESPI_UNSUCSS_CPL_INT\n");
+		if (int_sts & ESPI_INVALID_CT_RSP_INT)
+			con_log("spacemit_espi: ESPI_INVALID_CP_RSP_INT\n");
+		if (int_sts & ESPI_UNKNOWN_RSP_INT)
+			con_log("spacemit_espi: ESPI_UNKNOWN_RSP_INT\n");
+		if (int_sts & ESPI_CRC_ERR_INT)
+			con_log("spacemit_espi: ESPI_CRC_ERR_INT\n");
+		if (int_sts & ESPI_WAIT_TIMEOUT_INT)
+			con_log("spacemit_espi: ESPI_WAIT_TIMEOUT_INT\n");
+		if (int_sts & ESPI_BUS_ERR_INT)
+			con_log("spacemit_espi: ESPI_BUS_ERR_INT\n");
+		spacemit_espi_rsp = ESPI_RSP_FATAL_ERROR;
+	}
+	if (int_sts & ESPI_NON_FATAL_INT) {
 		con_log("spacemit_espi: ESPI_NON_FATAL_INT\n");
-	if (int_sts & ESPI_FATAL_ERR_INT)
+		spacemit_espi_rsp = ESPI_RSP_NON_FATAL_ERROR;
+	}
+	if (int_sts & ESPI_FATAL_ERR_INT) {
 		con_log("spacemit_espi: ESPI_FATAL_ERR_INT\n");
+		spacemit_espi_rsp = ESPI_RSP_FATAL_ERROR;
+	}
 	if (int_sts & ESPI_NO_RSP_INT) {
 		/* When performing an in-band reset the host controller
 		 * and the peripheral can have mismatched IO configs.
@@ -1060,13 +999,12 @@ void spacemit_espi_handle_irq(void)
 		 * when we perform an in-band reset.
 		 */
 		con_log("spacemit_espi: ESPI_NO_RSP_INT\n");
+		spacemit_espi_rsp = ESPI_RSP_NO_RESPONSE;
 	}
-	if (int_sts & ESPI_CRC_ERR_INT)
-		con_log("spacemit_espi: ESPI_CRC_ERR_INT\n");
-	if (int_sts & ESPI_WAIT_TIMEOUT_INT)
-		con_log("spacemit_espi: ESPI_WAIT_TIMEOUT_INT\n");
-	if (int_sts & ESPI_BUS_ERR_INT)
-		con_log("spacemit_espi: ESPI_BUS_ERR_INT\n");
+	if (int_sts & ESPI_DNCMD_INT) {
+		con_log("spacemit_espi: ESPI_DNCMD_INT\n");
+		espi_cmd_complete(spacemit_espi_rsp);
+	}
 }
 
 void espi_handle_irq(irq_t irq)
@@ -1085,14 +1023,9 @@ void espi_register_rxoob_callbcak(void *callback, void *buffer)
 	rxoob_buffer = buffer;
 }
 
-void spacemit_espi_write_cmd_async(uint8_t opcode,
-				   uint8_t hlen, uint8_t *hbuf,
-				   uint8_t dlen, uint8_t *dbuf)
+uint8_t spacemit_espi_cmd2dncmd(uint8_t opcode)
 {
-	uint8_t i;
 	uint8_t dncmd;
-	uint32_t txdata;
-	uint8_t db0, db1, db2, db3;
 
 	switch (opcode) {
 	case ESPI_CMD_SET_CONFIGURATION:
@@ -1106,6 +1039,19 @@ void spacemit_espi_write_cmd_async(uint8_t opcode,
 		dncmd = ESPI_DNCMD_IN_BAND_RESET;
 		break;
 	}
+	return dncmd;
+}
+
+void spacemit_espi_write_cmd(uint8_t opcode,
+			     uint8_t hlen, uint8_t *hbuf,
+			     uint8_t dlen, uint8_t *dbuf)
+{
+	uint8_t i;
+	uint8_t dncmd;
+	uint32_t txdata;
+	uint8_t db0, db1, db2, db3;
+
+	dncmd = spacemit_espi_cmd2dncmd(opcode);
 
 	con_dbg("spacemit_espi: cmd: %02x, hdr=%d, dat=%d\n", dncmd, hlen, dlen);
 
@@ -1137,22 +1083,32 @@ void spacemit_espi_write_cmd_async(uint8_t opcode,
 	spacemit_espi_write_dncmd(dncmd, 0);
 }
 
+uint8_t spacemit_espi_read_rsp(uint8_t opcode,
+			       uint8_t hlen, uint8_t *hbuf,
+			       uint8_t dlen, uint8_t *dbuf)
+{
+	uint8_t dncmd;
+
+	dncmd = spacemit_espi_cmd2dncmd(opcode);
+
+	con_dbg("spacemit_espi: cmd: %02x, hdr=%d, dat=%d\n", dncmd, hlen, dlen);
+
+	switch (dncmd) {
+	case ESPI_DNCMD_GET_CONFIGURATION:
+		BUG_ON(hlen < 4);
+		hbuf[0] = spacemit_espi_read_txhdr(3);
+		hbuf[1] = spacemit_espi_read_txhdr(4);
+		hbuf[2] = spacemit_espi_read_txhdr(5);
+		hbuf[3] = spacemit_espi_read_txhdr(6);
+		break;
+	}
+	return spacemit_espi_rsp;
+}
+
 int spacemit_espi_write_complete(void)
 {
 	while (!spacemit_espi_write_done());
 	return 0;
-}
-
-int spacemit_espi_write_cmd(uint8_t opcode,
-			    uint8_t hlen, uint8_t *hbuf,
-			    uint8_t dlen, uint8_t *dbuf)
-{
-	if (!spacemit_espi_write_done())
-		return -EAGAIN;
-
-	espi_raise_event(ESPI_EVENT_WAIT_CMD);
-	spacemit_espi_write_cmd_async(opcode, hlen, hbuf, dlen, dbuf);
-	espi_sync();
 }
 
 #ifdef CONFIG_SPACEMIT_ESPI_AUTO_GATING

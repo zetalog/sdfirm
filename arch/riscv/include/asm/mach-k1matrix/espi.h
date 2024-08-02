@@ -31,6 +31,8 @@
 #define espi_hw_set_cfg(cfgs)		spacemit_espi_set_cfg(cfgs)
 #define espi_hw_write_cmd(opcode, hlen, hbuf, dlen, dbuf)	\
 	spacemit_espi_write_cmd(opcode, hlen, hbuf, dlen, dbuf)
+#define espi_hw_read_rsp(opcode, hlen, hbuf, dlen, dbuf)	\
+	spacemit_espi_read_rsp(opcode, hlen, hbuf, dlen, dbuf)
 #define espi_hw_irq_init()		spacemit_espi_irq_init()
 #define espi_hw_handle_irq()		spacemit_espi_handle_irq()
 
