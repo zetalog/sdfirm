@@ -859,8 +859,9 @@ void spacemit_espi_write_cmd(uint8_t opcode,
 	con_dbg("spacemit_espi: cmd: %02x, hdr=%d, dat=%d\n", dncmd, hlen, dlen);
 
 	for (i = 0; i < hlen; i++) {
+		if (i == 0)
+			con_dbg("cmd: %s %d %d\n", __FILE__, __LINE__, i);
 		spacemit_espi_write_txhdr(i, hbuf[i]);
-		printf("%s %d %d\n", __FILE__, __LINE__, i);
 	}
 	for (i = 0; i < ((dlen + 3) / 4); i++) {
 		uint8_t ilen = i * 4;
@@ -901,7 +902,7 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 	switch (dncmd) {
 	case ESPI_DNCMD_GET_CONFIGURATION:
 		BUG_ON(hlen < 4);
-		printf("%s %d\n", __FILE__, __LINE__);
+		con_dbg("rsp: %s %d\n", __FILE__, __LINE__);
 		hbuf[0] = spacemit_espi_read_txhdr(3);
 		hbuf[1] = spacemit_espi_read_txhdr(4);
 		hbuf[2] = spacemit_espi_read_txhdr(5);
