@@ -39,7 +39,6 @@
  * $Id: spacemit_espi.c,v 1.1 2023-11-27 16:50:00 zhenglv Exp $
  */
 #include <target/espi.h>
-#include <target/cmdline.h>
 #include <target/irq.h>
 #include <target/panic.h>
 
@@ -577,37 +576,6 @@ static void spacemit_espi_set_configuration(uint16_t address, uint32_t config)
 {
 }
 
-static int espi_get_general_configuration(uint32_t *config)
-{
-	*config = spacemit_espi_get_configuration(ESPI_SLAVE_GEN_CFG);
-	espi_show_slave_general_configuration(*config);
-	return 0;
-}
-
-static int espi_set_general_configuration(uint32_t slave_caps)
-{
-	uint32_t slave_config = 0;
-	uint32_t ctrlr_config = 0;
-
-	if (ESPI_CRC_CHECKING) {
-		slave_config |= ESPI_CRC_CHECKING;
-		ctrlr_config |= ESPI_CRC_CHECKING_EN;
-	}
-
-	espi_config_alert_pin(slave_caps, &slave_config, &ctrlr_config);
-	espi_config_io_mode(slave_caps, &slave_config, &ctrlr_config);
-	espi_config_op_freq(slave_caps, &slave_config, &ctrlr_config);
-
-	con_log("spacemit_espi: configuration: slave=0x%x master=0x%x\n",
-	        slave_config, ctrlr_config);
-
-	espi_show_slave_general_configuration(slave_config);
-
-	spacemit_espi_set_configuration(ESPI_SLAVE_GEN_CFG, slave_config);
-	spacemit_espi_write32(ctrlr_config, ESPI_SLAVE0_CONFIG);
-	return 0;
-}
-
 static int espi_wait_channel_ready(uint16_t address)
 {
 	uint32_t config;
@@ -635,8 +603,7 @@ static void espi_enable_ctrlr_channel(uint32_t channel_en)
 }
 
 static int espi_set_channel_configuration(uint32_t slave_config,
-					  uint32_t slave_reg_addr,
-					  uint32_t ctrlr_enable)
+					  uint32_t slave_reg_addr)
 {
 	spacemit_espi_set_configuration(slave_reg_addr, slave_config);
 	if (!(slave_config & ESPI_SLAVE_CHANNEL_ENABLE))
@@ -645,7 +612,7 @@ static int espi_set_channel_configuration(uint32_t slave_config,
 	if (espi_wait_channel_ready(slave_reg_addr) != 0)
 		return -1;
 
-	espi_enable_ctrlr_channel(ctrlr_enable);
+	//espi_enable_ctrlr_channel(ctrlr_enable);
 	return 0;
 }
 
@@ -665,8 +632,7 @@ static int espi_setup_peri_channel(uint32_t slave_caps)
 	slave_config |= slave_en_mask;
 	espi_show_slave_peripheral_channel_configuration(slave_config);
 
-	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_PERI_CFG,
-					      ESPI_PERIPH_CH_EN);
+	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_PERI_CFG);
 }
 #else
 static int espi_setup_peri_channel(uint32_t slave_caps)
@@ -715,7 +681,7 @@ static int espi_setup_vw_channel(uint32_t slave_caps)
 	spacemit_espi_write32(ESPI_ENABLE_VW_CHANNEL, ESPI_DN_TXHDRn(1));
 	if (spacemit_espi_read32(ESPI_DN_TXHDRn(1)) == 0x70703)
 		return 0;
-	//return espi_set_channel_configuration(slave_config, ESPI_SLAVE_VWIRE_CFG, ESPI_VW_CH_EN);
+	//return espi_set_channel_configuration(slave_config, ESPI_SLAVE_VWIRE_CFG);
 	return -1;
 }
 #else
@@ -735,8 +701,7 @@ static int espi_setup_oob_channel(uint32_t slave_caps)
 	slave_config = spacemit_espi_get_configuration(ESPI_SLAVE_OOB_CFG);
 	slave_config |= ESPI_SLAVE_CHANNEL_ENABLE;
 
-	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_OOB_CFG,
-					      ESPI_OOB_CH_EN);
+	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_OOB_CFG);
 }
 #else
 #define espi_setup_oob_channel(caps)		0
@@ -755,8 +720,7 @@ static int espi_setup_flash_channel(uint32_t slave_caps)
 	slave_config = spacemit_espi_get_configuration(ESPI_SLAVE_FLASH_CFG);
 	slave_config |= ESPI_SLAVE_CHANNEL_ENABLE;
 
-	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_FLASH_CFG,
-					      ESPI_FLASH_CH_EN);
+	return espi_set_channel_configuration(slave_config, ESPI_SLAVE_FLASH_CFG);
 }
 #else
 #define espi_setup_flash_channel(caps)		0
@@ -971,34 +935,6 @@ void spacemit_espi_handle_irq(void)
 		rsp = ESPI_RSP_FATAL_ERROR;
 	}
 	if (int_sts & ESPI_NO_RSP_INT) {
-		/* When performing an in-band reset the host controller
-		 * and the peripheral can have mismatched IO configs.
-		 *
-		 * i.e., The eSPI peripheral can be in IO-4 mode while, the
-		 * eSPI host will be in IO-1. This results in the
-		 * peripheral getting invalid packets and thus not
-		 * responding.
-		 *
-		 * If the peripheral is alerting when we perform an in-band
-		 * reset, there is a race condition in
-		 * spacemit_espi_write_cmd().
-		 * 1) spacemit_espi_write_cmd() clears the interrupt
-		 *    status.
-		 * 2) eSPI host controller hardware notices the alert and
-		 *    sends a GET_STATUS.
-		 * 3) spacemit_espi_write_cmd() writes the in-band reset
-		 *    command.
-		 * 4) eSPI hardware enqueues the in-band reset until
-		 *    GET_STATUS is complete.
-		 * 5) GET_STATUS fails with NO_RSP_INT and sets the
-		 *    interrupt status.
-		 * 6) eSPI hardware performs in-band reset.
-		 * 7) spacemit_espi_write_cmd() checks the status and sees
-		 *    a NO_RSP_INT bit.
-		 *
-		 * As a workaround we allow the NO_RSP_INT status code
-		 * when we perform an in-band reset.
-		 */
 		con_log("spacemit_espi: ESPI_NO_RSP_INT\n");
 		rsp = ESPI_RSP_NO_RESPONSE;
 	}
@@ -1107,10 +1043,18 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 	return spacemit_espi_rsp;
 }
 
-int spacemit_espi_write_complete(void)
+void spacemit_espi_set_cfg(uint32_t address, uint32_t config)
 {
-	while (!spacemit_espi_write_done());
-	return 0;
+	switch (address) {
+	case ESPI_SLAVE_GEN_CFG:
+		if (config & ESPI_GEN_CRC_ENABLE)
+			spacemit_espi_set32(ESPI_CRC_CHECK_EN, ESPI_SLAVE0_CONFIG);
+		spacemit_espi_config_io_mode(ESPI_GEN_IO_MODE_SEL(config));
+		spacemit_espi_config_clk_freq(ESPI_GEN_OP_FREQ_SEL(config));
+		if (config & ESPI_GEN_ALERT_MODE_PIN)
+			spacemit_espi_set32(ESPI_ALERT_MODE_SEL, ESPI_SLAVE0_CONFIG);
+		break;
+	}
 }
 
 #ifdef CONFIG_SPACEMIT_ESPI_AUTO_GATING
@@ -1128,233 +1072,3 @@ void spacemit_espi_init(void)
 	spacemit_espi_config_gating();
 	spacemit_espi_reset();
 }
-
-#if 0
-void spacemit_espi_test(void)
-{
-	uint32_t slave_caps;
-
-	// spacemit_espi_write32(ESPI_RGCMD_INT(23) | ESPI_ERR_INT_SMI, ESPI_GLOBAL_CONTROL_1);
-	spacemit_espi_write32(0, ESPI_SLAVE0_INT_EN);
-	espi_clear_status();
-	// espi_clear_decodes();
-
-	/* Boot sequence: Step 1
-	 * Set correct initial configuration to talk to the slave:
-	 * Set clock frequency to 16.7MHz and single IO mode.
-	 */
-	espi_set_initial_config();
-
-	/* Boot sequence: Step 2
-	 * Send in-band reset
-	 * The resets affects both host and slave devices, so set initial
-	 * config again.
-	 */
-	con_log("In-band reset success!\n");
-
-	espi_set_initial_config();
-
-	/* Boot sequence: Step 3
-	 * Get configuration of slave device.
-	 */
-	if (espi_get_general_configuration(&slave_caps) != 0) {
-		con_err("Slave GET_CONFIGURATION failed!\n");
-		return;
-	}
-	con_log("Slave GET_CONFIGURATION success!\n");
-
-	/* Boot sequence:
-	 * Step 4: Write slave device general config
-	 * Step 5: Set host slave config
-	 */
-	if (espi_set_general_configuration(slave_caps) != 0) {
-		con_err("Slave SET_CONFIGURATION failed!\n");
-		return;
-	}
-	con_log("Slave SET_CONFIGURATION success!\n");
-
-	/* Setup polarity before enabling the VW channel so any interrupts
-	 * received will have the correct polarity.
-	 */
-	spacemit_espi_write32(0, ESPI_SLAVE0_VW_POLARITY);
-
-	/* Boot Sequences: Steps 6 - 9
-	 * Channel setup
-	 */
-	/* Set up VW first so we can deassert PLTRST#. */
-	if (espi_setup_vw_channel(slave_caps) != 0)
-		return;
-	con_log("VW Channel setup success!\n");
-
-	/* Assert PLTRST# if VW channel is enabled by mainboard. */
-	if (espi_send_pltrst(true) != 0) {
-		con_err("PLTRST# assertion failed!\n");
-		return;
-	}
-	con_log("PLTRST# assertion success!\n");
-
-	/* De-assert PLTRST# if VW channel is enabled by mainboard. */
-	if (espi_send_pltrst(false) != 0) {
-		con_err("PLTRST# deassertion failed!\n");
-		return;
-	}
-	con_log("PLTRST# deassertion success!\n");
-
-	if (espi_setup_peri_channel(slave_caps) != 0)
-		return;
-
-	espi_setup_pr_mem_base0(SPACEMIT_ESPI_PR_MEM0);
-	espi_setup_pr_mem_base1(SPACEMIT_ESPI_PR_MEM1);
-	con_log("Peripheral Channel setup success!\n");
-
-	if (espi_setup_oob_channel(slave_caps) != 0)
-		return;
-	con_log("OOB Channel setup success!\n");
-
-	if (espi_setup_flash_channel(slave_caps) != 0)
-		return;
-	con_log("Flash Channel setup success!\n");
-
-	// if (espi_configure_decodes(cfg) != 0) {
-	// 	con_err("Configuring decodes failed!\n");
-	// 	return;
-	// }
-	// con_err("Configuring decodes success!\n");
-
-	/* Enable subtractive decode if configured */
-	espi_setup_subtractive_decode(ESPI_DECODE_IO_0x80_EN |
-				      ESPI_DECODE_IO_0X2E_0X2F_EN |
-				      ESPI_DECODE_IO_0X60_0X64_EN);
-
-	// ctrl = spacemit_espi_read32(ESPI_GLOBAL_CONTROL_1);
-	// ctrl |= ESPI_BUS_MASTER_EN;
-
-	// ctrl |= ESPI_ALERT_ENABLE;
-
-	// spacemit_espi_write32(ctrl, ESPI_GLOBAL_CONTROL_1);
-
-
-#if 0
-	clk_set_frequency(espi_sclk, ESPI_OP_FREQ_66_MHZ);
-	clk_enable(espi_sclk);
-#endif
-
-	con_log("espi: initialized spacemit_espi.\n");
-}
-#endif
-
-#if 0
-static int do_espi_read(int argc, char *argv[])
-{
-#if 0
-	caddr_t addr;
-	uint32_t val;
-
-	if (argc < 3)
-		return -EINVAL;
-
-	if (strcmp(argv[2], "io") == 0) {
-		if (argc < 4)
-			return -EINVAL;
-		addr = (caddr_t)strtoull(argv[4], 0, 0);
-		if (strcmp(argv[3], "1") == 0) {
-			val = espi_io_read8(addr);
-			printf("IO: 0x%08lx=%02x\n", addr, (uint8_t)val);
-		} else if (strcmp(argv[3], "2") == 0) {
-			val = espi_io_read16(addr);
-			printf("IO: 0x%08lx=%04x\n", addr, (uint16_t)val);
-		} else if (strcmp(argv[3], "4") == 0) {
-			val = espi_io_read32(addr);
-			printf("IO: 0x%08lx=%08x\n", addr, val);
-		} else
-			return -EINVAL;
-		return 0;
-	} else {
-		if (argc < 4)
-			return -EINVAL;
-		addr = (caddr_t)strtoull(argv[4], 0, 0);
-		if (strcmp(argv[3], "1") == 0) {
-			val = espi_mem_read8(addr);
-			printf("Memory: 0x%08lx=%02x\n", addr, (uint8_t)val);
-		} else if (strcmp(argv[3], "2") == 0) {
-			val = espi_mem_read16(addr);
-			printf("Memory: 0x%08lx=%04x\n", addr, (uint16_t)val);
-		} else if (strcmp(argv[3], "4") == 0) {
-			val = espi_mem_read32(addr);
-			printf("Memory: 0x%08lx=%08x\n", addr, val);
-		} else
-			return -EINVAL;
-		return 0;
-	}
-#endif
-	return -EINVAL;
-}
-
-static int do_espi_write(int argc, char *argv[])
-{
-#if 0
-	caddr_t addr;
-
-	if (argc < 5)
-		return -EINVAL;
-
-	if (strcmp(argv[2], "io") == 0) {
-		uint32_t v;
-		int size;
-		if (argc < 6)
-			return -EINVAL;
-		size = (uint32_t)strtoull(argv[3], 0, 0);
-		v = (uint32_t)strtoull(argv[4], 0, 0);
-		addr = (caddr_t)strtoull(argv[5], 0, 0);
-		if (size == 1)
-			espi_io_write8(v, addr);
-		else if (size == 2)
-			espi_io_write16(v, addr);
-		else if (size == 4)
-			espi_io_write32(v, addr);
-		else
-			return -EINVAL;
-		return 0;
-	} else {
-		uint32_t v;
-		int size;
-		if (argc < 6)
-			return -EINVAL;
-		size = (uint32_t)strtoull(argv[3], 0, 0);
-		v = (uint32_t)strtoull(argv[4], 0, 0);
-		addr = (caddr_t)strtoull(argv[5], 0, 0);
-		if (size == 1)
-			espi_mem_write8(v, addr);
-		else if (size == 2)
-			espi_mem_write16(v, addr);
-		else if (size == 4)
-			espi_mem_write32(v, addr);
-		else
-			return -EINVAL;
-		return 0;
-	}
-#endif
-	return -EINVAL;
-}
-
-static int do_espi(int argc, char *argv[])
-{
-	if (argc < 2)
-		return -EINVAL;
-	if (strcmp(argv[1], "read") == 0)
-		return do_espi_read(argc, argv);
-	if (strcmp(argv[1], "write") == 0)
-		return do_espi_write(argc, argv);
-	return -EINVAL;
-}
-
-DEFINE_COMMAND(espi, do_espi, "SpacemiT enhanced SPI commands",
-	"espi read io [1|2|4] <addr>\n"
-	"espi read mem [1|2|4] <addr>\n"
-	"    -eSPI read sequence\n"
-	"espi write io [1|2|4] <value> <addr>\n"
-	"espi write mem [1|2|4] <value> <addr>\n"
-	"    -eSPI write sequence\n"
-);
-
-#endif

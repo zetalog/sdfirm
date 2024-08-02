@@ -151,7 +151,6 @@
 #define ESPI_SLAVE_GEN_CFG			0x08
 #define ESPI_GEN_CRC_ENABLE			_BV(31)
 #define ESPI_GEN_RESP_MOD_ENABLE		_BV(30)
-#define ESPI_GEN_RESP_MOD_DISABLE		_BV(30)
 #define ESPI_GEN_ALERT_MODE_PIN			_BV(28)
 #define ESPI_GEN_ALERT_MODE_IO1			0
 #define ESPI_GEN_IO_MODE_SEL_OFFSET		26
@@ -185,6 +184,22 @@
 #define ESPI_GEN_OOB_CHAN_SUP			_BV(2)
 #define ESPI_GEN_VWIRE_CHAN_SUP			_BV(1)
 #define ESPI_GEN_PERI_CHAN_SUP			_BV(0)
+#define ESPI_GEN_CAP_MASK					\
+	(ESPI_GEN_IO_MODE_SUP(ESPI_GEN_IO_MODE_SUP_MASK) |	\
+	 ESPI_GEN_OPEN_DRAIN_ALERT_SUP |			\
+	 ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_SUP_MASK) |	\
+	 ESPI_GEN_FLASH_CHAN_SUP |				\
+	 ESPI_GEN_OOB_CHAN_SUP |				\
+	 ESPI_GEN_VWIRE_CHAN_SUP |				\
+	 ESPI_GEN_PERI_CHAN_SUP)
+#define ESPI_GEN_CFG_MASK					\
+	(ESPI_GEN_CRC_ENABLE |					\
+	 ESPI_GEN_RESP_MOD_ENABLE |				\
+	 ESPI_GEN_ALERT_MODE_PIN |				\
+	 ESPI_GEN_IO_MODE_SEL(ESPI_GEN_IO_MODE_SEL_MASK) |	\
+	 ESPI_GEN_OPEN_DRAIN_ALERT_SEL |			\
+	 ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_SEL_MASK) |	\
+	 ESPI_GEN_MAX_WAIT_STATE(ESPI_GEN_MAX_WAIT_STATE_MASK))
 
 /* Peripheral Read Request Size
  * Peripheral Payload Size
@@ -392,16 +407,22 @@ struct espi_cmd {
 #else
 #define ESPI_CRC_CHECKING		0
 #endif
-#ifdef CONFIG_ESPI_SYS_SINGLE
-#define ESPI_ALERT_PIN			ESPI_GEN_ALERT_MODE_PIN
+#ifdef CONFIG_ESPI_RSP_MOD
+#define ESPI_RSP_MODIFIER		ESPI_GEN_RESP_MOD_ENABLE
+#else
+#define ESPI_RSP_MODIFIER		0
 #endif
-#ifdef CONFIG_ESPI_SYS_MULTI
+#ifdef CONFIG_ESPI_ALERT_IO1
 #define ESPI_ALERT_PIN			ESPI_GEN_ALERT_MODE_IO1
+#define ESPI_ALERT_TYPE			0
+#endif
+#ifdef CONFIG_ESPI_ALERT_PP
+#define ESPI_ALERT_PIN			ESPI_GEN_ALERT_MODE_PIN
+#define ESPI_ALERT_TYPE			0
 #endif
 #ifdef CONFIG_ESPI_ALERT_OD
+#define ESPI_ALERT_PIN			ESPI_GEN_ALERT_MODE_PIN
 #define ESPI_ALERT_TYPE			ESPI_GEN_ALERT_TYPE_OD
-#else
-#define ESPI_ALERT_TYPE			ESPI_GEN_ALERT_TYPE_PP
 #endif
 #ifdef CONFIG_ESPI_IO_SINGLE
 #define ESPI_IO_MODE			ESPI_GEN_IO_MODE_SINGLE
@@ -495,7 +516,21 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 	(espi_cmd_is(ESPI_CMD_SET_CONFIGURATION) &&	\
 	 espi_addr == (addr))
 
+#define espi_op_success()		espi_op_complete(true)
+#define espi_op_failure()		espi_op_complete(false)
+
 #define espi_auto_probe()		espi_start_op(ESPI_OP_PROBE, NULL)
+
+#define espi_get_gen()			espi_get_config(ESPI_SLAVE_GEN_CFG)
+#define espi_get_peri()			espi_get_config(ESPI_SLAVE_PERI_CFG)
+#define espi_get_vwire()		espi_get_config(ESPI_SLAVE_VWIRE_CFG)
+#define espi_get_oob()			espi_get_config(ESPI_SLAVE_OOB_CFG)
+#define espi_get_flash()		espi_get_config(ESPI_SLAVE_FLASH_CFG)
+#define espi_set_gen()			espi_set_config(ESPI_SLAVE_GEN_CFG)
+#define espi_set_peri()			espi_set_config(ESPI_SLAVE_PERI_CFG)
+#define espi_set_vwire()		espi_set_config(ESPI_SLAVE_VWIRE_CFG)
+#define espi_set_oob()			espi_set_config(ESPI_SLAVE_OOB_CFG)
+#define espi_set_flash()		espi_set_config(ESPI_SLAVE_FLASH_CFG)
 
 #include <driver/espi.h>
 
@@ -505,12 +540,12 @@ extern uint8_t espi_op;
 extern uint16_t espi_addr;
 
 int espi_start_op(espi_op_t op, espi_cmpl_cb cb);
-void espi_cmd_complete(uint8_t status);
+void espi_cmd_complete(uint8_t rsp);
+void espi_op_complete(bool result);
 uint8_t espi_state_get(void);
 void espi_state_set(uint8_t state);
 void espi_enter_state(uint8_t state);
 void espi_raise_event(espi_event_t event);
-void espi_clear_event(espi_event_t event);
 espi_event_t espi_event_save(void);
 void espi_event_restore(espi_event_t event);
 void espi_sync(void);
@@ -529,8 +564,7 @@ uint8_t espi_read_rsp(uint8_t opcode,
 int espi_write_cmd(uint8_t opcode,
 		   uint8_t hlen, uint8_t *hbuf,
 		   uint8_t dlen, uint8_t *dbuf);
-void espi_config_alert_pin(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
-void espi_config_io_mode(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
-void espi_config_op_freq(uint32_t slave_caps, uint32_t *slave_config, uint32_t *ctrlr_config);
+void espi_get_config(uint16_t address);
+void espi_set_config(uint16_t address);
 
 #endif /* __ESPI_H_INCLUDE__ */
