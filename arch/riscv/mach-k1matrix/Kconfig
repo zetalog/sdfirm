@@ -321,18 +321,7 @@ menuconfig K1MATRIX_LPC
 menuconfig K1MATRIX_ESPI
 	bool "Enable K1Matrix enhanced SPI (eSPI) support"
 	depends ARCH_HAS_ESPI
-	select ARCH_IS_ESPI_SYS_SINGLE
-	select ARCH_HAS_ESPI_IO_SINGLE
-	select ARCH_HAS_ESPI_IO_DUAL
-	select ARCH_HAS_ESPI_IO_QUAD
-	select ARCH_IS_ESPI_FREQ_66MHZ
 	select SPACEMIT_ESPI
-	select ARCH_HAS_ESPI_PERI
-	select ARCH_HAS_ESPI_VWIRE
-	select ARCH_HAS_ESPI_OOB
-	select ARCH_HAS_ESPI_FLASH
-	select ARCH_HAS_ESPI_ALERT_PP
-	select ARCH_HAS_ESPI_ALERT_OD
 
 menuconfig K1MATRIX_I2C
 	bool "Enable K1Matrix I2C master support"

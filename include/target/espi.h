@@ -448,16 +448,8 @@ struct espi_cmd {
 #ifdef CONFIG_ESPI_FREQ_20MHZ
 #define ESPI_OP_FREQ			ESPI_GEN_OP_FREQ_20MHZ
 #endif
-#ifdef CONFIG_ESPI_PERI
 #define ESPI_PERI_CHAN			ESPI_GEN_PERI_CHAN_SUP
-#else
-#define ESPI_PERI_CHAN			0
-#endif
-#ifdef CONFIG_ESPI_VW
 #define ESPI_VW_CHAN			ESPI_GEN_VW_CHAN_SUP
-#else
-#define ESPI_VW_CHAN			0
-#endif
 #ifdef CONFIG_ESPI_OOB
 #define ESPI_OOB_CHAN			ESPI_GEN_OOB_CHAN_SUP
 #else
@@ -482,17 +474,18 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define ESPI_STATE_RESET		0x01
 #define ESPI_STATE_GET_GEN		0x02
 #define ESPI_STATE_SET_GEN		0x03
-#define ESPI_STATE_PLTRST		0x04
-#define ESPI_STATE_GET_PERI		0x05
-#define ESPI_STATE_SET_PERI		0x06
-#define ESPI_STATE_GET_VWIRE		0x07
-#define ESPI_STATE_SET_VWIRE		0x08
-#define ESPI_STATE_GET_OOB		0x09
-#define ESPI_STATE_SET_OOB		0x0A
-#define ESPI_STATE_GET_FLASH		0x0B
-#define ESPI_STATE_SET_FLASH		0x0C
-#define ESPI_STATE_VALID		0x0D
-#define ESPI_STATE_INVALID		0x0E
+#define ESPI_STATE_GET_VWIRE		0x04
+#define ESPI_STATE_SET_VWIRE		0x05
+#define ESPI_STATE_GET_OOB		0x06
+#define ESPI_STATE_SET_OOB		0x07
+#define ESPI_STATE_GET_FLASH		0x08
+#define ESPI_STATE_SET_FLASH		0x09
+#define ESPI_STATE_ASSERT_PLTRST	0x0A
+#define ESPI_STATE_DEASSERT_PLTRST	0x0B
+#define ESPI_STATE_GET_PERI		0x0C
+#define ESPI_STATE_SET_PERI		0x0D
+#define ESPI_STATE_VALID		0x0E
+#define ESPI_STATE_INVALID		0x0F
 
 #define ESPI_EVENT_INIT			_BV(0x00)
 #define ESPI_EVENT_ACCEPT		_BV(0x01)
@@ -501,6 +494,7 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 /* fatal/non-fatal error */
 #define ESPI_EVENT_REJECT		_BV(0x04)
 #define ESPI_EVENT_NO_RESPONSE		_BV(0x05)
+#define ESPI_EVENT_PROBE		_BV(0x06)
 
 #define ESPI_OP_NONE			0x00
 #define ESPI_OP_PROBE			0x01
@@ -531,6 +525,9 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define espi_set_vwire()		espi_set_config(ESPI_SLAVE_VWIRE_CFG)
 #define espi_set_oob()			espi_set_config(ESPI_SLAVE_OOB_CFG)
 #define espi_set_flash()		espi_set_config(ESPI_SLAVE_FLASH_CFG)
+
+#define espi_assert_vwire(vwire)	espi_config_vwire(vwire, false)
+#define espi_deassert_vwire(vwire)	espi_config_vwire(vwire, true)
 
 #include <driver/espi.h>
 
@@ -566,5 +563,6 @@ int espi_write_cmd(uint8_t opcode,
 		   uint8_t dlen, uint8_t *dbuf);
 void espi_get_config(uint16_t address);
 void espi_set_config(uint16_t address);
+void espi_config_vwire(uint8_t vwire, bool state);
 
 #endif /* __ESPI_H_INCLUDE__ */

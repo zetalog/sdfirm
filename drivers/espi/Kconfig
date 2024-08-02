@@ -8,8 +8,6 @@ menu "eSPI Master drivers"
 menuconfig SPACEMIT_ESPI
 	bool "SPACEMIT eSPI support"
 	depends ESPI
-	select ARCH_HAS_ESPI_PERI
-	select ARCH_HAS_ESPI_VWIRE
 	select ARCH_HAS_ESPI_OOB
 	select ARCH_HAS_ESPI_FLASH
 	select ARCH_IS_ESPI_SYS_SINGLE

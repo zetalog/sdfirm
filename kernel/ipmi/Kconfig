@@ -4,12 +4,6 @@ config ARCH_HAS_LPC
 config ARCH_HAS_ESPI
 	bool
 
-config ARCH_HAS_ESPI_PERI
-	bool
-
-config ARCH_HAS_ESPI_VWIRE
-	bool
-
 config ARCH_HAS_ESPI_OOB
 	bool
 
@@ -162,16 +156,6 @@ config ESPI_FREQ_20MHZ
 	depends ARCH_IS_ESPI_FREQ_20MHZ
 
 endchoice
-
-config ESPI_PERI
-	bool "Enable peripheral channel support"
-	depends ARCH_HAS_ESPI_PERI
-	default y if ARCH_HAS_ESPI_PERI
-
-config ESPI_VWIRE
-	bool "Enable virtual wire channel support"
-	depends ARCH_HAS_ESPI_VWIRE
-	default y if ARCH_HAS_ESPI_VWIRE
 
 config ESPI_OOB
 	bool "Enable out-of-band (OOB) channel support"
