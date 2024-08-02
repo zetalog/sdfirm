@@ -3,6 +3,27 @@
 
 #include <target/generic.h>
 
+#ifdef CONFIG_ESPI_DEBUG
+#define espi_debug_state(state)					\
+	do {							\
+		if (state != espi_state_get()) {		\
+			espi_debug(ESPI_DEBUG_STATE, state);	\
+		}						\
+	} while (0)
+#define espi_debug_event(event)					\
+	do {							\
+		espi_debug(ESPI_DEBUG_EVENT, event);		\
+	} while (0)
+#define espi_debug_op(op)					\
+	do {							\
+		espi_debug(ESPI_DEBUG_OP, op);			\
+	} while (0)
+#else
+#define espi_debug_state(state)
+#define espi_debug_event(event)
+#define espi_debug_op(op)
+#endif
+
 /* No commands */
 #define ESPI_CMD_NONE				0xffff
 #define ESPI_CMD(cmd)				(HIBYTE(cmd) == 0xff ? ESPI_CMD_NONE : LOBYTE(cmd))
@@ -437,39 +458,56 @@ typedef uint8_t espi_op_t;
 typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 
 #define ESPI_STATE_INIT			0x00
-#define ESPI_STATE_INBAND_RESET		0x01
-#define ESPI_STATE_GEN_CONFIG		0x02
-#define ESPI_STATE_PLAT_RESET		0x03
-#define ESPI_STATE_PERI_CONFIG		0x04
-#define ESPI_STATE_VWIRE_CONFIG		0x05
-#define ESPI_STATE_OOB_CONFIG		0x06
-#define ESPI_STATE_FLASH_CONFIG		0x07
+#define ESPI_STATE_RESET		0x01
+#define ESPI_STATE_GET_GEN		0x02
+#define ESPI_STATE_SET_GEN		0x03
+#define ESPI_STATE_PLTRST		0x04
+#define ESPI_STATE_GET_PERI		0x05
+#define ESPI_STATE_SET_PERI		0x06
+#define ESPI_STATE_GET_VWIRE		0x07
+#define ESPI_STATE_SET_VWIRE		0x08
+#define ESPI_STATE_GET_OOB		0x09
+#define ESPI_STATE_SET_OOB		0x0A
+#define ESPI_STATE_GET_FLASH		0x0B
+#define ESPI_STATE_SET_FLASH		0x0C
+#define ESPI_STATE_VALID		0x0D
+#define ESPI_STATE_INVALID		0x0E
 
-#define ESPI_EVENT_INIT			_BV(0x01)
-#define ESPI_EVENT_ACCEPT		_BV(0x02)
-#define ESPI_EVENT_DEFER		_BV(0x03)
-#define ESPI_EVENT_WAIT_STATE		_BV(0x04)
-#define ESPI_EVENT_NON_FATAL_ERROR	_BV(0x05)
-#define ESPI_EVENT_FATAL_ERROR		_BV(0x06)
-#define ESPI_EVENT_NO_RESPONSE		_BV(0x07)
+#define ESPI_EVENT_INIT			_BV(0x00)
+#define ESPI_EVENT_ACCEPT		_BV(0x01)
+#define ESPI_EVENT_DEFER		_BV(0x02)
+#define ESPI_EVENT_WAIT_STATE		_BV(0x03)
+/* fatal/non-fatal error */
+#define ESPI_EVENT_REJECT		_BV(0x04)
+#define ESPI_EVENT_NO_RESPONSE		_BV(0x05)
 
 #define ESPI_OP_NONE			0x00
-#define ESPI_OP_SETUP_SLAVE		0x01
+#define ESPI_OP_PROBE			0x01
 
 #define espi_op_busy()		(!!(espi_op != ESPI_OP_NONE))
 #define espi_op_is(op)		(espi_op == (op))
 #define espi_cmd_is(cmd)	(ESPI_CMD(espi_cmd) == (cmd))
 #define espi_rsp_is(rsp)	(ESPI_CMD(espi_rsp) == (rsp))
-#define espi_setup_slave()	espi_start_op(ESPI_OP_SETUP_SLAVE, NULL)
+#define espi_cmd_is_get(addr)				\
+	(espi_cmd_is(ESPI_CMD_GET_CONFIGURATION) &&	\
+	 espi_addr == (addr))
+#define espi_cmd_is_set(addr)				\
+	(espi_cmd_is(ESPI_CMD_SET_CONFIGURATION) &&	\
+	 espi_addr == (addr))
+
+#define espi_auto_probe()		espi_start_op(ESPI_OP_PROBE, NULL)
 
 #include <driver/espi.h>
 
 extern uint16_t espi_cmd;
 extern uint16_t espi_rsp;
 extern uint8_t espi_op;
+extern uint16_t espi_addr;
 
 int espi_start_op(espi_op_t op, espi_cmpl_cb cb);
 void espi_cmd_complete(uint8_t status);
+uint8_t espi_state_get(void);
+void espi_state_set(uint8_t state);
 void espi_enter_state(uint8_t state);
 void espi_raise_event(espi_event_t event);
 void espi_clear_event(espi_event_t event);
@@ -478,9 +516,9 @@ void espi_event_restore(espi_event_t event);
 void espi_sync(void);
 void espi_seq_handler(void);
 
-#define espi_inband_reset()				\
-	espi_write_cmd_async(ESPI_CMD_RESET, 0, NULL, 0, NULL)
+void espi_inband_reset(void);
 void espi_get_configuration(uint16_t address);
+void espi_set_configuration(uint16_t address, uint32_t config);
 
 void espi_write_cmd_async(uint8_t opcode,
 			  uint8_t hlen, uint8_t *hbuf,

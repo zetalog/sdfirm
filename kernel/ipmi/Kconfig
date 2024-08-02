@@ -198,6 +198,10 @@ config ESPI_CRC
 	bool "Enable Cyclic Redundancy Check (CRC) support"
 	depends ARCH_HAS_ESPI_CRC
 
+config ESPI_DEBUG
+	bool "Enabling debugging messages"
+	depends CONSOLE_DEBUG
+
 endif
 
 endmenu
