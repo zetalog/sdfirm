@@ -166,30 +166,39 @@ endchoice
 config ESPI_PERI
 	bool "Enable peripheral channel support"
 	depends ARCH_HAS_ESPI_PERI
+	default y if ARCH_HAS_ESPI_PERI
 
 config ESPI_VWIRE
 	bool "Enable virtual wire channel support"
 	depends ARCH_HAS_ESPI_VWIRE
+	default y if ARCH_HAS_ESPI_VWIRE
 
 config ESPI_OOB
 	bool "Enable out-of-band (OOB) channel support"
 	depends ARCH_HAS_ESPI_OOB
+	default y if ARCH_HAS_ESPI_OOB
 
 config ESPI_FLASH
 	bool "Enable flash access channel support"
 	depends ARCH_HAS_ESPI_FLASH
+	default y if ARCH_HAS_ESPI_FLASH
 
 choice
 	prompt "Alert type"
-	depends ESPI_SYS_MULTI
-	default ESPI_ALERT_PP
+	default ESPI_ALERT_OD if ARCH_HAS_ESPI_ALERT_OD
+	default ESPI_ALERT_PP if ARCH_HAS_ESPI_ALERT_PP && !ARCH_HAS_ESPI_ALERT_OD
+
+config ESPI_ALERT_IO1
+	bool "IO pin 1"
 
 config ESPI_ALERT_PP
 	bool "Push-pull"
+	depends !ESPI_SYS_MULTI
 	depends ARCH_HAS_ESPI_ALERT_PP
 
 config ESPI_ALERT_OD
 	bool "Open-drain"
+	depends !ESPI_SYS_MULTI
 	depends ARCH_HAS_ESPI_ALERT_OD
 
 endchoice
@@ -197,6 +206,7 @@ endchoice
 config ESPI_CRC
 	bool "Enable Cyclic Redundancy Check (CRC) support"
 	depends ARCH_HAS_ESPI_CRC
+	default y if ARCH_HAS_ESPI_CRC
 
 config ESPI_DEBUG
 	bool "Enabling debugging messages"

@@ -365,22 +365,6 @@
 #define ESPI_GENERIC_IO_MAX_WIN_SIZE		0x100
 #define ESPI_GENERIC_MMIO_MAX_WIN_SIZE		0x10000
 
-#define  ESPI_CRC_CHECKING_EN			(1 << 31)
-#define  ESPI_ALERT_MODE			(1 << 30)
-
-#define  ESPI_IO_MODE_SHIFT			28
-#define  ESPI_IO_MODE_MASK			(0x3 << ESPI_IO_MODE_SHIFT)
-#define  ESPI_IO_MODE_VALUE(x)			((x) << ESPI_IO_MODE_SHIFT)
-
-#define  ESPI_OP_FREQ_SHIFT			25
-#define  ESPI_OP_FREQ_MASK			(0x7 << ESPI_OP_FREQ_SHIFT)
-#define  ESPI_OP_FREQ_VALUE(x)			((x) << ESPI_OP_FREQ_SHIFT)
-
-#define  ESPI_PERIPH_CH_EN			(1 << 3)
-#define  ESPI_VW_CH_EN				(1 << 2)
-#define  ESPI_OOB_CH_EN				(1 << 1)
-#define  ESPI_FLASH_CH_EN			(1 << 0)
-
 #define ESPI_CYCLE_TYPE_OOB_MESSAGE		0x21
 
 /*
@@ -488,6 +472,16 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg);
 #define spacemit_espi_read_rxhdr(n)				\
 	((uint8_t)ESPI_UPCMD_HDATA(n,				\
 	       spacemit_espi_read32(ESPI_UP_RXHDRn(n))))
+
+#define spacemit_espi_config_io_mode(mode)			\
+	spacemit_espi_write32_mask(ESPI_IO_MODE_SEL(mode),	\
+		ESPI_IO_MODE_SEL(ESPI_IO_MODE_SEL_MASK),	\
+		ESPI_SLAVE0_CONFIG)
+#define spacemit_espi_config_clk_freq(freq)			\
+	spacemit_espi_write32_mask(ESPI_CLK_FREQ_SEL(freq),	\
+		ESPI_CLK_FREQ_SEL(ESPI_CLK_FREQ_SEL_MASK),	\
+		ESPI_SLAVE0_CONFIG)
+
 #define espi_setup_pr_mem_base0(base)	\
 	spacemit_espi_write32(base, ESPI_PR_BASE_ADDR_MEM0)
 #define espi_setup_pr_mem_base1(base)	\
@@ -511,6 +505,7 @@ void spacemit_espi_write_cmd(uint8_t opcode,
 uint8_t spacemit_espi_read_rsp(uint8_t opcod,
 			       uint8_t hlen, uint8_t *hbuf,
 			       uint8_t dlen, uint8_t *dbuf);
+void spacemit_espi_set_cfg(uint32_t address, uint32_t config);
 
 int espi_open_io_window(uint16_t base, size_t size);
 int espi_open_mmio_window(uint32_t base, size_t size);

@@ -26,15 +26,14 @@
 #include <driver/spacemit_espi.h>
 #endif
 
-#define espi_hw_ctrl_init()		k1matrix_espi_init()
-#define espi_hw_get_cfg()		spacemit_espi_get_cfg()
-#define espi_hw_set_cfg(cfgs)		spacemit_espi_set_cfg(cfgs)
+#define espi_hw_ctrl_init()			k1matrix_espi_init()
+#define espi_hw_irq_init()			spacemit_espi_irq_init()
+#define espi_hw_handle_irq()			spacemit_espi_handle_irq()
 #define espi_hw_write_cmd(opcode, hlen, hbuf, dlen, dbuf)	\
 	spacemit_espi_write_cmd(opcode, hlen, hbuf, dlen, dbuf)
 #define espi_hw_read_rsp(opcode, hlen, hbuf, dlen, dbuf)	\
 	spacemit_espi_read_rsp(opcode, hlen, hbuf, dlen, dbuf)
-#define espi_hw_irq_init()		spacemit_espi_irq_init()
-#define espi_hw_handle_irq()		spacemit_espi_handle_irq()
+#define espi_hw_set_cfg(address, config)	spacemit_espi_set_cfg(address, config)
 
 void k1matrix_espi_init(void);
 
