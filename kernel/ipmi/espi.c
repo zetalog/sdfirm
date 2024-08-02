@@ -242,14 +242,15 @@ void espi_inband_reset(void)
 
 void espi_get_configuration(uint16_t address)
 {
-	uint8_t hbuf[2];
+	uint8_t hbuf[3];
 
 	espi_addr = address;
-	hbuf[0] = HIBYTE(address);
-	hbuf[1] = LOBYTE(address);
+	hbuf[0] = 0x0;
+	hbuf[1] = HIBYTE(address);
+	hbuf[2] = LOBYTE(address);
 
 	espi_write_cmd_async(ESPI_CMD_GET_CONFIGURATION,
-			     2, hbuf, 0, NULL);
+			     3, hbuf, 0, NULL);
 }
 
 void espi_set_configuration(uint16_t address, uint32_t config)
@@ -282,6 +283,7 @@ uint8_t espi_read_rsp(uint8_t opcode,
 		      uint8_t hlen, uint8_t *hbuf,
 		      uint8_t dlen, uint8_t *dbuf)
 {
+	printf("%s %d\n", __FILE__, __LINE__);
 	espi_hw_read_rsp(opcode, hlen, hbuf, dlen, dbuf);
 	return espi_rsp;
 }
