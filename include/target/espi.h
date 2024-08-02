@@ -18,10 +18,15 @@
 	do {							\
 		espi_debug(ESPI_DEBUG_OP, op);			\
 	} while (0)
+#define espi_debug_reg(reg)					\
+	do {							\
+		espi_debug(ESPI_DEBUG_REG, reg);			\
+	} while (0)
 #else
 #define espi_debug_state(state)
 #define espi_debug_event(event)
 #define espi_debug_op(op)
+#define espi_debug_reg(reg)
 #endif
 
 /* No commands */
@@ -324,19 +329,19 @@ static inline void espi_show_slave_peripheral_channel_configuration(uint32_t con
 #endif
 
 #define espi_slave_io_mode_sup_quad(caps)		\
-	(ESPI_GEN_IO_MODE_SUP(caps) & ESPI_GEN_IO_MODE_SUP(ESPI_GEN_IO_MODE_QUAD))
+	(ESPI_GEN_IO_MODE_SUP(caps) == ESPI_GEN_IO_MODE_QUAD)
 #define espi_slave_io_mode_sup_dual(caps)		\
-	(ESPI_GEN_IO_MODE_SUP(caps) & ESPI_GEN_IO_MODE_SUP(ESPI_GEN_IO_MODE_DUAL))
+	(ESPI_GEN_IO_MODE_SUP(caps) == ESPI_GEN_IO_MODE_DUAL)
 #define espi_slave_op_freq_sup_66mhz(caps)		\
-	(ESPI_GEN_OP_FREQ_SUP(caps) & ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_66MHZ))
+	(ESPI_GEN_OP_FREQ_SUP(caps) == ESPI_GEN_OP_FREQ_66MHZ)
 #define espi_slave_op_freq_sup_50mhz(caps)		\
-	(ESPI_GEN_OP_FREQ_SUP(caps) & ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_50MHZ))
+	(ESPI_GEN_OP_FREQ_SUP(caps) == ESPI_GEN_OP_FREQ_50MHZ)
 #define espi_slave_op_freq_sup_33mhz(caps)		\
-	(ESPI_GEN_OP_FREQ_SUP(caps) & ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_33MHZ))
+	(ESPI_GEN_OP_FREQ_SUP(caps) == ESPI_GEN_OP_FREQ_33MHZ)
 #define espi_slave_op_freq_sup_25mhz(caps)		\
-	(ESPI_GEN_OP_FREQ_SUP(caps) & ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_25MHZ))
+	(ESPI_GEN_OP_FREQ_SUP(caps) == ESPI_GEN_OP_FREQ_25MHZ)
 #define espi_slave_op_freq_sup_20mhz(caps)		\
-	(ESPI_GEN_OP_FREQ_SUP(caps) & ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_20MHZ))
+	(ESPI_GEN_OP_FREQ_SUP(caps) == ESPI_GEN_OP_FREQ_20MHZ)
 #define espi_slave_op_freq_sup_max(caps)		\
 	(espi_slave_op_freq_sup_66mhz(caps) ? 66 :	\
 	 espi_slave_op_freq_sup_50mhz(caps) ? 50 :	\
@@ -494,7 +499,8 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 /* fatal/non-fatal error */
 #define ESPI_EVENT_REJECT		_BV(0x04)
 #define ESPI_EVENT_NO_RESPONSE		_BV(0x05)
-#define ESPI_EVENT_PROBE		_BV(0x06)
+#define ESPI_EVENT_RESPONSE		_BV(0x06)
+#define ESPI_EVENT_PROBE		_BV(0x07)
 
 #define ESPI_OP_NONE			0x00
 #define ESPI_OP_PROBE			0x01
