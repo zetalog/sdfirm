@@ -264,6 +264,18 @@ void espi_get_configuration(uint16_t address)
 
 void espi_set_configuration(uint16_t address, uint32_t config)
 {
+	uint8_t hbuf[2];
+	uint8_t dbuf[4];
+	espi_addr = address;
+	hbuf[0] = HIBYTE(address);
+	hbuf[1] = LOBYTE(address);
+	dbuf[0] = HIBYTE(HIWORD(config));
+	dbuf[1] = LOBYTE(HIWORD(config));
+	dbuf[2] = HIBYTE(LOWORD(config));
+	dbuf[3] = LOBYTE(LOWORD(config));
+
+	espi_write_cmd_async(ESPI_CMD_SET_CONFIGURATION, 
+			     2, hbuf, 4, dbuf);
 }
 
 int espi_write_cmd(uint8_t opcode,
