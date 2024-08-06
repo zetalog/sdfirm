@@ -106,13 +106,6 @@ struct div_clk {
 
 };
 
-#ifdef CONFIG_K1MATRIX_64C
-struct div_clk div_clks[] = {
-
-
-}
-#endif
-
 struct div_clk div_clks[] = {
 	[CPU_NIC_CLKDIV] = {
 		.reg = CRU_CPU_NIC_CLK_CTL,
@@ -396,6 +389,115 @@ struct div_clk div_clks[] = {
 		.flags = CRU_CLKEN,
 		.src = osc_clk,
 	},
+#ifdef CONFIG_K1MATRIX_64C
+	[LTOP_CFG_CLKDIV] = {
+		.reg = CRU_LTOP_CFG_CLK_CTL,
+		.max_div = 8,
+		.div = 2,
+		.flags = CRU_CLKEN | CRU_RESET,
+		.src = peri_sub_mclk,
+	},
+	[LTOP_PCIE_CFG_CLKDIV] = {
+		.reg = CRU_LTOP_PCIE_CFG_CLK_CTL,
+		.max_div = 8,
+		.div = 6,
+		.flags = CRU_CLKEN | CRU_RESET,
+		.src = peri_sub_mclk,
+	},
+	[LTOP_PCIE_AUX_CLKDIV] = {
+		.reg = CRU_LTOP_PCIE_AUX_CLK_CTL,
+		.max_div = 16,
+		.div = 10,
+		.flags = CRU_CLKEN | CRU_RESET,
+		.src = peri_sub_mclk,
+	},
+	[RTOP_CFG_CLKDIV] = {
+		.reg = CRU_RTOP_CFG_CLK_CTL,
+		.max_div = 8,
+		.div = 2,
+		.flags = CRU_CLKEN | CRU_RESET,
+		.src = peri_sub_mclk,
+	},
+	[RTOP_PCIE_CFG_CLKDIV] = {
+		.reg = CRU_RTOP_PCIE_CFG_CLK_CTL,
+		.max_div = 8,
+		.div = 6,
+		.flags = CRU_CLKEN | CRU_RESET,
+		.src = peri_sub_mclk,
+	},
+	[RTOP_PCIE_AUX_CLKDIV] = {
+		.reg = CRU_RTOP_PCIE_AUX_CLK_CTL,
+		.max_div = 16,
+		.div = 10,
+		.flags = CRU_CLKEN | CRU_RESET,
+		.src = peri_sub_mclk,
+	},
+	[BOT_CFG_CLKDIV] = {
+		.reg = CRU_BOT_CFG_CLK_CTL,
+		.max_div = 8,
+		.div = 2,
+		.flags = CRU_CLKEN | CRU_RESET,
+		.src = peri_sub_mclk,
+	},
+	[BOT_PCIE_CFG_CLKDIV] = {
+		.reg = CRU_BOT_PCIE_CFG_CLK_CTL,
+		.max_div = 8,
+		.div = 6,
+		.flags = CRU_CLKEN | CRU_RESET,
+		.src = peri_sub_mclk,
+	},
+	[BOT_PCIE_AUX_CLKDIV] = {
+		.reg = CRU_BOT_PCIE_AUX_CLK_CTL,
+		.max_div = 16,
+		.div = 10,
+		.flags = CRU_CLKEN | CRU_RESET,
+		.src = peri_sub_mclk,
+	},
+	[CPU_NIC_CLKDIV] = {
+		.reg = CRU_CPU_NIC_CLK_CTL,
+		.max_div = 4,
+		.div = 1,
+		.flags = CRU_CLKEN,
+		.src = cpu_nic_clksel
+	},
+	[CPU_HAP_CLKDIV] = {
+		.reg = CRU_CPU_HAP_CLK_CTL,
+		.max_div = 4,
+		.div = 1,
+		.flags = CRU_CLKEN,
+		.src = cpu_nic_clksel
+	},
+	[TRMU_IOPMP_CFG_CLKDIV] = {
+		.reg = CRU_TRMU_IOPMP_CFG_CLK_CTL,
+		.max_div = 8,
+		.div = 6,
+		.flags = CRU_CLKEN,
+		.src = cpu_nic_clksel
+	},
+	[DDR_CFG_CLKDIV] = {
+		.reg = CRU_DDR_CFG_CLK_CTL,
+		.max_div = 8,
+		.div = 1,
+		.flags = CRU_CLKEN,
+		.src = cpu_nic_clksel
+	},
+	[TPERI_SUB_SCLK_DIV] = {
+		.reg = CRU_TPERI_SUB_SCLK_CTL,
+		.max_div = 8,
+		.div = 6,
+		.flags = CRU_CLKEN,
+		.src = cpu_nic_clksel
+	},
+	[HNI_PERI_CFG_CLKDIV] = {
+		.reg = CRU_HNI_PERI_CFG_CLK_CTL,
+		.max_div = 8,
+		.div = 6,
+		.flags = CRU_CLKEN,
+		.src = cpu_nic_clksel
+	},
+
+
+#endif
 };
 
 
@@ -409,7 +511,7 @@ const char *div_clk_names[NR_DIV_CLKS] = {
 	[RMU_AXI_CLK_DIV] = "rmu_axi_clk_div",
 	[RMU_APB_CLK_DIV] = "rmu_apb_clk_div",
 	[RMU_QSPI_CLKEN] = "rmu_qspi_clken",
-	[RMU_LPC_CLKEN] = "rmu_lpc_clken",//2bits lcken, 3bits rstn
+	[RMU_LPC_CLKEN] = "rmu_lpc_clken",
 	[RMU_ESPI_CLKEN] = "rmu_espi_clken",
 	[RMU_UART0_CLKEN] = "rmu_uart0_clken",
 	[RMU_UART1_CLKEN] = "rmu_uart1_clken",
@@ -429,7 +531,7 @@ const char *div_clk_names[NR_DIV_CLKS] = {
 	[PERI_UART3_CLKEN] = "peri_uart3_clken",
 	[SYS_APB_CFG_CLKEN] = "sys_apb_cfg_clken",
 	[C0_CLK_CFG_EN] = "c0_clk_cfg_en",
-	[PERI_GPIO0_DB_CLKDIV] = "peri_gpio0_db_clkdiv",//debounce clk
+	[PERI_GPIO0_DB_CLKDIV] = "peri_gpio0_db_clkdiv",
 	[PERI_GPIO1_DB_CLKDIV] = "peri_gpio1_db_clkdiv",
 	[PERI_GPIO2_DB_CLKDIV] = "peri_gpio2_db_clkdiv",
 	[PERI_GPIO3_DB_CLKDIV] = "peri_gpio3_db_clkdiv",
@@ -438,6 +540,23 @@ const char *div_clk_names[NR_DIV_CLKS] = {
 	[PERI_GMAC_AXI_CLKDIV] = "peri_gmac_axi_clkdiv",
 	[PERI_GMAC_AHB_CLKDIV] = "peri_gmac_ahb_clkdiv",
 	[RMU_LPC_CLK_DIV] = "rmu_lpc_clk_div",
+#ifdef CONFIG_K1MATRIX_64C
+	[LTOP_CFG_CLKDIV] = "ltop_cfg_clkdiv",
+	[LTOP_PCIE_CFG_CLKDIV] = "ltop_pcie_cfg_clkdiv",
+	[LTOP_PCIE_AUX_CLKDIV] = "ltop_pcie_aux_clkdiv",
+	[RTOP_CFG_CLKDIV] = "rtop_cfg_clkdiv",
+	[RTOP_PCIE_CFG_CLKDIV] = "rtop_pcie_cfg_clkdiv",
+	[RTOP_PCIE_AUX_CLKDIV] = "rtop_pcie_aux_clkdiv",
+	[BOT_CFG_CLKDIV] = "bot_cfg_clkdiv"
+	[BOT_PCIE_CFG_CLKDIV] = "bot_pcie_cfg_clkdiv",
+	[BOT_PCIE_AUX_CLKDIV] = "bot_pcie_aux_clkdiv",
+	[CPU_NIC_CLKDIV] = "cpu_nic_clkdiv",
+	[CPU_HAP_CLKDIV] = "cpu_hap_clkdiv",
+	[TRMU_IOPMP_CFG_CLKDIV] = "trmu_iopmp_cfg_clkdiv",
+	[DDR_CFG_CLKDIV] = "ddr_cfg_clkdiv",
+	[TPERI_SUB_SCLK_DIV] = "tperi_sub_sclk_div",
+	[HNI_PERI_CFG_CLKDIV] = "hni_peri_cfg_clkdiv",
+#endif
 };
 
 #ifdef CONFIG_CLK_MNEMONICS
@@ -800,7 +919,7 @@ const char *sel_clk_names[NR_SEL_CLKS] = {
 	[PCIE_BOT_XCLKSEL] = "pcie_bot_xclksel",
 	[PERI_SUB_CLKSEL] = "peri_sub_clksel",
 	[PERI_GMAC_TXCLK_SEL] = "peri_gmac_txclk_sel",
-	#ifdef CONFIG_K1MATRIX_64C
+#ifdef CONFIG_K1MATRIX_64C
 	[LTOP_CFG_CLKSEL] = "ltop_cfg_clksel",
 	[LTOP_PCIE_CFG_CLKSEL] = "ltop_pcie_cfg_clksel",
 	[LTOP_PCIE_AUX_CLKSEL] = "ltop_pcie_aux_clksel",
@@ -822,7 +941,7 @@ const char *sel_clk_names[NR_SEL_CLKS] = {
 	[TPERI_SUB_MCLKSEL] = "tperi_sub_mclksel",
 	[TPERI_SUB_SCLKSEL] = "tperi_sub_sclksel",
 	[HNI_PERI_CFG_SCLKSEL] = "hni_peri_cfg_sclksel",
-	#endif
+#endif
 };
 
 #ifdef CONFIG_CLK_MNEMONICS
