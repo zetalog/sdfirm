@@ -12,6 +12,7 @@ BUILD_NET=yes
 BUILD_STO=yes
 BUILD_KVM=no
 INSTALL_INITRAMFS=yes
+INSTALL_LINK=yes
 FORCE_REBUILD=no
 
 if [ -z $LIBFDT_DIR ]; then
@@ -55,6 +56,7 @@ STORAGE_DIR=obj/storage/$ARCH
 BBL_DIR=obj/bbl
 ARCHIVES_DIR=$TOP/archive
 DESTDIR=${TOP}/obj/bench
+MODSDIR=${TOP}/obj/linux-modules
 APPDIR=${DESTDIR}/usr/local/bin
 mkdir -p ${APPDIR}
 
@@ -259,7 +261,12 @@ install_initramfs()
 		ROOTFS_FILES=`ls $1$2`
 		for f in ${ROOTFS_FILES}; do
 			if [ -h $1$2/${f} ]; then
-				echo "Skipping soft link $2/${f}..."
+				if [ "x${INSTALL_LINK}" = "xno" ]; then
+					echo "Skipping soft link $2/${f}..."
+				else
+					echo "Installing $2/${f}..."
+					install_initramfs_one $1 $2/${f}
+				fi
 			else
 				echo "Installing $2/${f}..."
 				install_initramfs_one $1 $2/${f}
@@ -411,6 +418,12 @@ function build_initramfs()
 		echo "Installing rootfs testbench $TOP/obj/bench..."
 		install_initramfs $TOP/obj/bench
 	fi
+	if [ -x $TOP/obj/linux-modules ]; then
+		echo "Installing rootfs modules $TOP/obj/linux-modules..."
+		INSTALL_LINK=no
+		install_initramfs $TOP/obj/linux-modules
+		INSTALL_LINK=yes
+	fi
 
 	# Following stuffs are not installed in initramfs
 	export INSTALL_INITRAMFS=no
@@ -518,11 +531,11 @@ function build_linux()
 			echo "Error: Failed to build Linux (S/H) modules"
 			exit 1
 		fi
-		mkdir -p $DESTDIR
+		mkdir -p $MODSDIR
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 			O=$LINUX_BUILD/ \
 			INSTALL_MOD_STRIP=1 \
-			INSTALL_MOD_PATH=$DESTDIR modules_install
+			INSTALL_MOD_PATH=$MODSDIR modules_install
 		sync
 		build_initramfs ${BUILD_STO_SIZE}
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
