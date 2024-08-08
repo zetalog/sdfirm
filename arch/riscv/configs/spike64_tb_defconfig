@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jun 19 16:18:07 2024
+# Thu Aug  8 22:48:35 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -76,6 +76,7 @@ CONFIG_CONSOLE_BANNER=y
 # CONFIG_ARCH_COREV is not set
 CONFIG_ARCH_SPIKE=y
 # CONFIG_ARCH_VIRT is not set
+# CONFIG_CPU_CVA6 is not set
 CONFIG_CPU_SPIKE64=y
 CONFIG_CPU_64G=y
 CONFIG_CPU_WMO=y
@@ -98,6 +99,7 @@ CONFIG_CPU_H=y
 CONFIG_CPU_COUNTERS=y
 CONFIG_CPU_ZIFENCEI=y
 CONFIG_CPU_ZICSR=y
+CONFIG_CPU_SSTC=y
 CONFIG_CPU_PMP=y
 CONFIG_CPU_SV39=y
 CONFIG_CPU_SV48=y
@@ -108,6 +110,7 @@ CONFIG_RISCV_A=y
 # CONFIG_RISCV_D is not set
 # CONFIG_RISCV_C is not set
 CONFIG_RISCV_COUNTERS=y
+# CONFIG_RISCV_SSTC is not set
 CONFIG_RISCV_PMP=y
 # CONFIG_RISCV_H is not set
 CONFIG_RISCV_SV=y
@@ -232,9 +235,9 @@ CONFIG_SPIKE_TB=y
 #
 # Generic kernel features
 #
-# CONFIG_SYS_NOIRQ is not set
+CONFIG_SYS_NOIRQ=y
 # CONFIG_SYS_IRQ is not set
-CONFIG_SYS_RT=y
+# CONFIG_SYS_RT is not set
 # CONFIG_SYS_TASK is not set
 CONFIG_ARCH_HAS_NOVEC=y
 CONFIG_ARCH_HAS_IRQC=y
@@ -243,11 +246,6 @@ CONFIG_ARCH_HAS_TSC=y
 CONFIG_ARCH_HAS_TSC_CONST=y
 CONFIG_ARCH_IS_TICKLESS=y
 CONFIG_ARCH_HAS_BOOT_LOAD=y
-
-#
-# Scheduling facility (irq) support
-#
-CONFIG_MAX_VECTORS=4
 
 #
 # Scheduling facility (bh) support
@@ -362,12 +360,23 @@ CONFIG_UART_115200=y
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
+
+#
+# Double data rate (DDR) support
+#
+# CONFIG_DDR_TS is not set
 # CONFIG_DDR is not set
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 CONFIG_FDT=y
 # CONFIG_UEFI is not set
+
+#
+# Mangement interfaces support
+#
 # CONFIG_IPMI is not set
+# CONFIG_LPC is not set
+# CONFIG_ESPI is not set
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
 
@@ -437,7 +446,6 @@ CONFIG_ARCH_HAS_NS16550=y
 #
 # eSPI Master drivers
 #
-# CONFIG_SPACEMIT_ESPI is not set
 
 #
 # STM drivers
@@ -506,6 +514,7 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # LPC drivers
 #
+# CONFIG_AST2600_SIO is not set
 
 #
 # KCS drivers
@@ -518,7 +527,6 @@ CONFIG_SPD_BUS_KHZ=60
 CONFIG_TEST_BENCH=y
 CONFIG_TEST_BENCH_LOCAL=y
 # CONFIG_TEST_BENCH_REMOTE is not set
-CONFIG_TEST_BENCH_DIDT=y
 CONFIG_TEST_BENCH_START_DELAY=64
 # CONFIG_TEST_BENCH_DEBUG is not set
 
