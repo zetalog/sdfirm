@@ -249,7 +249,6 @@ config ARCH_VEGA
 config ARCH_K1MAX
 	bool "Spacemit K1MAX"
 	select CPU_SPACEMIT
-	select ARCH_IS_MMIO_32BIT
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_TSC
