@@ -84,11 +84,19 @@ config CPU_SPACEMIT
 	select CPU_ZICBOZ
 	select CPU_ZICBOM
 	select ARCH_IS_ATOMIC_UNFAIR
+
+config CPU_X100
+	bool
+	select CPU_SPACEMIT
 	select ARCH_HAS_ACLINT
+	select ARCH_HAS_IMSIC
 	select CPU_H
 	select CPU_SMAIA
 	select CPU_SMAIA_IMSIC
-	select ARCH_HAS_IMSIC
+
+config CPU_X60
+	bool
+	select CPU_SPACEMIT
 
 # RI5CY
 config CPU_RI5CY

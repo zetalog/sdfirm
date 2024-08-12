@@ -7,11 +7,11 @@ choice
 
 config K1MATRIX_RMU
 	bool "RMU subsystem"
-	select CPU_C910
+	select CPU_X60
 
 config K1MATRIX_APU
 	bool "APU subsystem"
-	select CPU_SPACEMIT
+	select CPU_X100
 
 endchoice
 
