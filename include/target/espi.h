@@ -164,6 +164,7 @@
 #define ESPI_GEN_IO_MODE_SUP_OFFSET		24
 #define ESPI_GEN_IO_MODE_SUP_MASK		REG_2BIT_MASK
 #define ESPI_GEN_IO_MODE_SUP(value)		_GET_FV(ESPI_GEN_IO_MODE_SUP, value)
+#define espi_gen_io_mode_sup(value)		_SET_FV(ESPI_GEN_IO_MODE_SUP, value)
 #define ESPI_GEN_IO_MODE_SINGLE			0x0
 #define ESPI_GEN_IO_MODE_DUAL			0x1
 #define ESPI_GEN_IO_MODE_QUAD			0x2
@@ -177,6 +178,7 @@
 #define ESPI_GEN_OP_FREQ_SUP_OFFSET		16
 #define ESPI_GEN_OP_FREQ_SUP_MASK		REG_3BIT_MASK
 #define ESPI_GEN_OP_FREQ_SUP(value)		_GET_FV(ESPI_GEN_OP_FREQ_SUP, value)
+#define espi_gen_op_freq_sup(value)		_SET_FV(ESPI_GEN_OP_FREQ_SUP, value)
 #define ESPI_GEN_OP_FREQ_20MHZ			0
 #define ESPI_GEN_OP_FREQ_25MHZ			1
 #define ESPI_GEN_OP_FREQ_33MHZ			2
@@ -190,9 +192,9 @@
 #define ESPI_GEN_VWIRE_CHAN_SUP			_BV(1)
 #define ESPI_GEN_PERI_CHAN_SUP			_BV(0)
 #define ESPI_GEN_CAP_MASK					\
-	(ESPI_GEN_IO_MODE_SUP(ESPI_GEN_IO_MODE_SUP_MASK) |	\
+	(espi_gen_io_mode_sup(ESPI_GEN_IO_MODE_SUP_MASK) |	\
 	 ESPI_GEN_OPEN_DRAIN_ALERT_SUP |			\
-	 ESPI_GEN_OP_FREQ_SUP(ESPI_GEN_OP_FREQ_SUP_MASK) |	\
+	 espi_gen_op_freq_sup(ESPI_GEN_OP_FREQ_SUP_MASK) |	\
 	 ESPI_GEN_FLASH_CHAN_SUP |				\
 	 ESPI_GEN_OOB_CHAN_SUP |				\
 	 ESPI_GEN_VWIRE_CHAN_SUP |				\

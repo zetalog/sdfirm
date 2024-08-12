@@ -229,22 +229,26 @@ uint32_t espi_config_op_freq(uint32_t cfgs)
 	case ESPI_GEN_OP_FREQ_66MHZ:
 		if (fmax >= 66)
 			return ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_66MHZ);
+		con_log("espi: 66MHz frequency is not supported, falls to 50MHz.\n");
 	case ESPI_GEN_OP_FREQ_50MHZ:
 		if (fmax >= 50)
 			return ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_50MHZ);
+		con_log("espi: 50MHz frequency is not supported, falls to 33MHz.\n");
 	case ESPI_GEN_OP_FREQ_33MHZ:
 		if (fmax >= 33)
 			return ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_33MHZ);
+		con_log("espi: 33MHz frequency is not supported, falls to 25MHz.\n");
 	case ESPI_GEN_OP_FREQ_25MHZ:
 		if (fmax > 0)
 			return ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_25MHZ);
+		con_log("espi: 25MHz frequency is not supported, falls to 20MHz.\n");
 	case ESPI_GEN_OP_FREQ_20MHZ:
 	default:
 		return ESPI_GEN_OP_FREQ_SEL(ESPI_GEN_OP_FREQ_20MHZ);
 	}
 }
 
-void espi_nego_config(uint16_t address, uint32_t cfgs)
+uint32_t espi_nego_config(uint16_t address, uint32_t cfgs)
 {
 	uint32_t hwcfgs;
 
@@ -266,6 +270,7 @@ void espi_nego_config(uint16_t address, uint32_t cfgs)
 	case ESPI_SLAVE_FLASH_CFG:
 		break;
 	}
+	return hwcfgs;
 }
 
 void espi_inband_reset(void)
@@ -358,8 +363,9 @@ void espi_get_config(uint16_t address)
 	cfgs = MAKELONG(MAKEWORD(hbuf[0], hbuf[1]),
 			MAKEWORD(hbuf[2], hbuf[3]));
 	espi_debug_reg(address);
-	con_dbg("espi: %04x=%08x\n", address, cfgs);
-	espi_nego_config(address, cfgs);
+	con_dbg("espi: GET_CONFIGURATION: %04x=%08x\n", address, cfgs);
+	cfgs = espi_nego_config(address, cfgs);
+	con_dbg("espi: SET_CONFIGURATION: %04x=%08x\n", address, cfgs);
 }
 
 void espi_set_config(uint16_t address)
