@@ -248,7 +248,7 @@ config ARCH_VEGA
 
 config ARCH_K1MAX
 	bool "Spacemit K1MAX"
-	select CPU_SPACEMIT
+	select CPU_X60
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_NOVEC
 	select ARCH_HAS_TSC
@@ -274,7 +274,7 @@ config ARCH_K1MAX
 
 config ARCH_K1X
 	bool "Spacemit K1X"
-	select CPU_SPACEMIT
+	select CPU_X60
 	select ARCH_IS_MMIO_32BIT
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_NOVEC
@@ -300,7 +300,7 @@ config ARCH_K1X
 
 config ARCH_K1MXLITE
 	bool "SpacemiT K1MXLite Family"
-	select CPU_SPACEMIT
+	select CPU_X100
 	select ARCH_IS_MMIO_32BIT
 	select ARCH_IS_TICKLESS
 	select ARCH_HAS_NOVEC
