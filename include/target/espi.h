@@ -242,13 +242,17 @@
 
 /* 7.2.1.5 Offset 20h: Channel 1 Capabilities and Configurations */
 #define ESPI_SLAVE_VWIRE_CFG			0x20
-#define ESPI_VWIRE_MAX_OP_COUNT_SEL_OFFSET	16
-#define ESPI_VWIRE_MAX_OP_COUNT_SEL_MASK	REG_6BIT_MASK
+#define ESPI_VWIRE_MAX_COUNT_SEL_OFFSET		16
+#define ESPI_VWIRE_MAX_COUNT_SEL_MASK		REG_6BIT_MASK
 /* 0-based where 0 indicates 1 virtual wire */
-#define ESPI_VWIRE_MAX_OP_COUNT_SEL(value)	_SET_FV(ESPI_VWIRE_MAX_OP_COUNT_SEL, (value)-1)
-#define ESPI_VWIRE_MAX_OP_COUNT_SUP_OFFSET	8
-#define ESPI_VWIRE_MAX_OP_COUNT_SUP_MASK	REG_6BIT_MASK
-#define ESPI_VWIRE_MAX_OP_COUNT_SUP(value)	_GET_FV(ESPI_VWIRE_MAX_OP_COUNT_SUP, (value)-1)
+#define ESPI_VWIRE_MAX_COUNT_SEL(value)		_SET_FV(ESPI_VWIRE_MAX_COUNT_SEL, (value)-1)
+#define ESPI_VWIRE_MAX_COUNT_SUP_OFFSET		8
+#define ESPI_VWIRE_MAX_COUNT_SUP_MASK		REG_6BIT_MASK
+#define ESPI_VWIRE_MAX_COUNT_SUP(value)		(_GET_FV(ESPI_VWIRE_MAX_COUNT_SUP, (value))+1)
+#define espi_vwire_max_count_sup(value)		_SET_FV(ESPI_VWIRE_MAX_COUNT_SUP, value)
+#define ESPI_VWIRE_CAP_MASK			\
+	(ESPI_SLAVE_CHANNEL_READY |		\
+	 espi_vwire_max_count_sup(ESPI_VWIRE_MAX_COUNT_SUP_MASK))
 
 /* 7.2.1.6 Offset 30h: Channel 2 Capabilities and Configurations */
 #define ESPI_SLAVE_OOB_CFG			0x30
@@ -470,8 +474,6 @@ struct espi_cmd {
 #define ESPI_ALL_CHAN			\
 	(ESPI_PERI_CHAN | ESPI_VW_CHAN | ESPI_OOB_CHAN | ESPI_FLASH_CHAN)
 
-#define MAX_VWIRE_LEN			64
-
 typedef uint16_t espi_event_t;
 typedef uint8_t espi_slave_t;
 typedef uint8_t espi_op_t;
@@ -483,16 +485,20 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define ESPI_STATE_SET_GEN		0x03
 #define ESPI_STATE_GET_VWIRE		0x04
 #define ESPI_STATE_SET_VWIRE		0x05
-#define ESPI_STATE_GET_OOB		0x06
-#define ESPI_STATE_SET_OOB		0x07
-#define ESPI_STATE_GET_FLASH		0x08
-#define ESPI_STATE_SET_FLASH		0x09
-#define ESPI_STATE_ASSERT_PLTRST	0x0A
-#define ESPI_STATE_DEASSERT_PLTRST	0x0B
-#define ESPI_STATE_GET_PERI		0x0C
-#define ESPI_STATE_SET_PERI		0x0D
-#define ESPI_STATE_VALID		0x0E
-#define ESPI_STATE_INVALID		0x0F
+#define ESPI_STATE_INIT_VWIRE		0x06
+#define ESPI_STATE_GET_OOB		0x07
+#define ESPI_STATE_SET_OOB		0x08
+#define ESPI_STATE_INIT_OOB		0x09
+#define ESPI_STATE_GET_FLASH		0x0A
+#define ESPI_STATE_SET_FLASH		0x0B
+#define ESPI_STATE_INIT_FLASH		0x0C
+#define ESPI_STATE_ASSERT_PLTRST	0x0D
+#define ESPI_STATE_DEASSERT_PLTRST	0x0E
+#define ESPI_STATE_GET_PERI		0x0F
+#define ESPI_STATE_SET_PERI		0x10
+#define ESPI_STATE_INIT_PERI		0x11
+#define ESPI_STATE_VALID		0x12
+#define ESPI_STATE_INVALID		0xFF
 
 #define ESPI_EVENT_INIT			_BV(0x00)
 #define ESPI_EVENT_ACCEPT		_BV(0x01)
@@ -503,6 +509,7 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define ESPI_EVENT_NO_RESPONSE		_BV(0x05)
 #define ESPI_EVENT_RESPONSE		_BV(0x06)
 #define ESPI_EVENT_PROBE		_BV(0x07)
+#define ESPI_EVENT_CHANNEL_READY	_BV(0x08)
 
 #define ESPI_OP_NONE			0x00
 #define ESPI_OP_PROBE			0x01

@@ -405,6 +405,9 @@
 #define ESPI_VW_IRQ_EDGE_HIGH(x)		(0 << (x))
 #define ESPI_VW_IRQ_EDGE_LOW(x)			(1 << (x))
 
+/* Maximum supported vwire groups */
+#define SPACEMIT_ESPI_VWIRE_GROUPS		64
+
 enum espi_upcmd_type {
 	ESPI_UPCMD_FLASH_CHANNEL = 0,
 	ESPI_UPCMD_OOB_CHANNEL = 1,
