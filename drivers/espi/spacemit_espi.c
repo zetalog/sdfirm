@@ -856,13 +856,24 @@ void spacemit_espi_write_cmd(uint8_t opcode,
 
 	dncmd = spacemit_espi_cmd2dncmd(opcode);
 
-	con_dbg("spacemit_espi: cmd: %02x, hdr=%d, dat=%d\n", dncmd, hlen, dlen);
-
+	con_dbg("spacemit_espi: cmd: %02x\n", dncmd);
+	con_dbg("spacemit_espi: hdr=%d", hlen);
 	for (i = 0; i < hlen; i++) {
 		if (i == 0)
-			con_dbg("cmd: %s %d %d\n", __FILE__, __LINE__, i);
-		spacemit_espi_write_txhdr(i, hbuf[i]);
+			con_dbg(",");
+		con_dbg("%02x ", ((uint8_t *)hbuf)[i]);
 	}
+	con_dbg("\n");
+	for (i = 0; i < hlen; i++)
+		spacemit_espi_write_txhdr(i, hbuf[i]);
+
+	con_dbg("spacemit_espi: dat=%d", dlen);
+	for (i = 0; i < dlen; i++) {
+		if (i == 0)
+			con_dbg(",");
+		con_dbg("%02x ", ((uint8_t *)dbuf)[i]);
+	}
+	con_dbg("\n");
 	for (i = 0; i < ((dlen + 3) / 4); i++) {
 		uint8_t ilen = i * 4;
 
