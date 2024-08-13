@@ -258,10 +258,14 @@
 #define ESPI_SLAVE_OOB_CFG			0x30
 #define ESPI_OOB_MAX_PAYLOAD_SIZE_SEL_OFFSET	8
 #define ESPI_OOB_MAX_PAYLOAD_SIZE_SEL_MASK	REG_3BIT_MASK
-#define ESPI_OOB_MAX_PAYLOAD_SIZE_SEL(value)	_SET_FV(ESPI_OOB_MAX_PAYLOAD_SIZE_SEL, value)
+#define ESPI_OOB_MAX_PAYLOAD_SIZE_SEL(value)	_SET_FV(ESPI_OOB_MAX_PAYLOAD_SIZE_SEL, (value)+1)
 #define ESPI_OOB_MAX_PAYLOAD_SIZE_SUP_OFFSET	4
 #define ESPI_OOB_MAX_PAYLOAD_SIZE_SUP_MASK	REG_3BIT_MASK
-#define ESPI_OOB_MAX_PAYLOAD_SIZE_SUP(value)	_GET_FV(ESPI_OOB_MAX_PAYLOAD_SIZE_SUP, value)
+#define ESPI_OOB_MAX_PAYLOAD_SIZE_SUP(value)	(_GET_FV(ESPI_OOB_MAX_PAYLOAD_SIZE_SUP, value)-1)
+#define espi_oob_max_payload_size_sup(value)	_SET_FV(ESPI_OOB_MAX_PAYLOAD_SIZE_SUP, value)
+#define ESPI_OOB_CAP_MASK			\
+	(ESPI_SLAVE_CHANNEL_READY |		\
+	 espi_oob_max_payload_size_sup(ESPI_OOB_MAX_PAYLOAD_SIZE_SUP_MASK))
 
 /* 7.2.1.7 Offset 40h: Channel 3 Capabilities and Configurations */
 #define ESPI_SLAVE_FLASH_CFG			0x40
@@ -275,6 +279,7 @@
 #define ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP_OFFSET	5
 #define ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP_MASK	REG_3BIT_MASK
 #define ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP(value)	_GET_FV(ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP, value)
+#define espi_flash_max_payload_size_sup(value)	_SET_FV(ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP, value)
 #define ESPI_FLASH_BLOCK_ERASE_SIZE_OFFSET	2
 #define ESPI_FLASH_BLOCK_ERASE_SIZE_MASK	REG_3BIT_MASK
 #define ESPI_FLASH_BLOCK_ERASE_SIZE(value)	_SET_FV(ESPI_FLASH_BLOCK_ERASE_SIZE, value)
@@ -283,12 +288,22 @@
 #define ESPI_FLASH_BLOCK_ERASE_4KB_64KB		(ESPI_FLASH_BLOCK_ERASE_4KB | ESPI_FLASH_BLOCK_ERASE_64KB)
 #define ESPI_FLASH_BLOCK_ERASE_128KB		0x04
 #define ESPI_FLASH_BLOCK_ERASE_256KB		0x05
+#define ESPI_FLASH_CAP_MASK			\
+	(ESPI_SLAVE_CHANNEL_READY |		\
+	 ESPI_FLASH_SHARING_MODE_MAF |		\
+	 espi_flash_max_payload_size_sup(ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP_MASK))
 
 /* All channels -- peripheral, virtual wire, OOB, and flash access use the
  * same bits for channel ready and channel enable.
  */
 #define ESPI_SLAVE_CHANNEL_READY		_BV(1)
 #define ESPI_SLAVE_CHANNEL_ENABLE		_BV(0)
+#define ESPI_CHANNEL(n)				_BV(n)
+#define ESPI_CHANNEL_PERI			0
+#define ESPI_CHANNEL_VWIRE			1
+#define ESPI_CHANNEL_OOB			2
+#define ESPI_CHANNEL_FLASH			3
+#define ESPI_CHANNEL_INVALID			4
 
 /* 5.2.2.1 Virtual Wire Index */
 #define ESPI_VWIRE_INTERRUPT_LEVEL_HIGH		_BV(7)
@@ -485,19 +500,20 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define ESPI_STATE_SET_GEN		0x03
 #define ESPI_STATE_GET_VWIRE		0x04
 #define ESPI_STATE_SET_VWIRE		0x05
-#define ESPI_STATE_INIT_VWIRE		0x06
+#define ESPI_STATE_VWIRE_READY		0x06
 #define ESPI_STATE_GET_OOB		0x07
 #define ESPI_STATE_SET_OOB		0x08
-#define ESPI_STATE_INIT_OOB		0x09
+#define ESPI_STATE_OOB_READY		0x09
 #define ESPI_STATE_GET_FLASH		0x0A
 #define ESPI_STATE_SET_FLASH		0x0B
-#define ESPI_STATE_INIT_FLASH		0x0C
+#define ESPI_STATE_FLASH_READY		0x0C
+#define ESPI_STATE_EARLY_INIT		ESPI_STATE_FLASH_READY
 #define ESPI_STATE_ASSERT_PLTRST	0x0D
 #define ESPI_STATE_DEASSERT_PLTRST	0x0E
 #define ESPI_STATE_GET_PERI		0x0F
 #define ESPI_STATE_SET_PERI		0x10
-#define ESPI_STATE_INIT_PERI		0x11
-#define ESPI_STATE_VALID		0x12
+#define ESPI_STATE_PERI_READY		0x11
+#define ESPI_STATE_LATE_INIT		ESPI_STATE_PERI_READY
 #define ESPI_STATE_INVALID		0xFF
 
 #define ESPI_EVENT_INIT			_BV(0x00)
@@ -509,10 +525,10 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define ESPI_EVENT_NO_RESPONSE		_BV(0x05)
 #define ESPI_EVENT_RESPONSE		_BV(0x06)
 #define ESPI_EVENT_PROBE		_BV(0x07)
-#define ESPI_EVENT_CHANNEL_READY	_BV(0x08)
 
 #define ESPI_OP_NONE			0x00
 #define ESPI_OP_PROBE			0x01
+#define ESPI_OP_RESET			0x02
 
 #define espi_op_busy()		(!!(espi_op != ESPI_OP_NONE))
 #define espi_op_is(op)		(espi_op == (op))

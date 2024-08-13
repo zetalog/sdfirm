@@ -62,26 +62,6 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg)
 	__raw_writel(val, reg);
 }
 
-static inline uint32_t espi_get_flash_max_size(void)
-{
-	return ESPI_FLASH_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP));
-}
-
-static inline uint32_t espi_get_oob_max_size(void)
-{
-	return ESPI_OOB_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP));
-}
-
-static inline uint32_t espi_get_vw_max_size(void)
-{
-	return ESPI_VW_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP));
-}
-
-static inline uint32_t espi_get_pr_max_size(void)
-{
-	return ESPI_PR_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP));
-}
-
 static inline void espi_wdg_enable(void)
 {
 	spacemit_espi_set32(ESPI_WDG_EN, ESPI_GLOBAL_CONTROL_0);
@@ -116,6 +96,7 @@ static inline void espi_vw_channel_slave_suspend_exit(void)
 	spacemit_espi_clear32(ESPI_SUS_STAT, ESPI_GLOBAL_CONTROL_1);
 }
 
+#if 0
 static void espi_enable_decode(uint32_t decode_en)
 {
 	spacemit_espi_set32(decode_en, ESPI_DECODE);
@@ -131,30 +112,22 @@ static bool espi_is_decode_enabled(uint32_t decode)
 
 static inline uint32_t espi_decode_io_range_en_bit(unsigned int idx)
 {
-	return 0;
-#if 0
 	if (ESPI_DECODE_RANGE_TO_REG_GROUP(idx) == 0)
 		return ESPI_DECODE_IO_RANGE_EN(idx);
 	else
 		return ESPI_DECODE_IO_RANGE_EXT_EN(idx - ESPI_DECODE_RANGES_PER_REG_GROUP);
-#endif
 }
 
 static inline uint32_t espi_decode_mmio_range_en_bit(unsigned int idx)
 {
-	return 0;
-#if 0
 	if (ESPI_DECODE_RANGE_TO_REG_GROUP(idx) == 0)
 		return ESPI_DECODE_MMIO_RANGE_EN(idx);
 	else
 		return ESPI_DECODE_MMIO_RANGE_EXT_EN(idx - ESPI_DECODE_RANGES_PER_REG_GROUP);
-#endif
 }
 
 static inline unsigned int espi_mmio_range_base_reg(unsigned int idx)
 {
-	return 0;
-#if 0
 	unsigned int reg_base;
 
 	if (ESPI_DECODE_RANGE_TO_REG_GROUP(idx) == 0)
@@ -163,13 +136,10 @@ static inline unsigned int espi_mmio_range_base_reg(unsigned int idx)
 		reg_base = ESPI_MMIO_BASE_REG4;
 
 	return ESPI_MMIO_RANGE_BASE_REG(reg_base, ESPI_DECODE_RANGE_TO_REG_OFFSET(idx));
-#endif
 }
 
 static inline unsigned int espi_mmio_range_size_reg(unsigned int idx)
 {
-	return 0;
-#if 0
 	unsigned int reg_base;
 	if (ESPI_DECODE_RANGE_TO_REG_GROUP(idx) == 0)
 		reg_base = ESPI_MMIO_SIZE_REG0;
@@ -177,13 +147,10 @@ static inline unsigned int espi_mmio_range_size_reg(unsigned int idx)
 		reg_base = ESPI_MMIO_SIZE_REG2;
 
 	return ESPI_MMIO_RANGE_SIZE_REG(reg_base, ESPI_DECODE_RANGE_TO_REG_OFFSET(idx));
-#endif
 }
 
 static inline unsigned int espi_io_range_base_reg(unsigned int idx)
 {
-	return 0;
-#if 0
 	unsigned int reg_base;
 
 	switch (ESPI_DECODE_RANGE_TO_REG_GROUP(idx)) {
@@ -201,13 +168,10 @@ static inline unsigned int espi_io_range_base_reg(unsigned int idx)
 		break;
 	}
 	return ESPI_IO_RANGE_BASE_REG(reg_base, ESPI_DECODE_RANGE_TO_REG_OFFSET(idx));
-#endif
 }
 
 static inline unsigned int espi_io_range_size_reg(unsigned int idx)
 {
-	return 0;
-#if 0
 	unsigned int reg_base;
 
 	switch (ESPI_DECODE_RANGE_TO_REG_GROUP(idx)) {
@@ -225,7 +189,6 @@ static inline unsigned int espi_io_range_size_reg(unsigned int idx)
 		break;
 	}
 	return ESPI_IO_RANGE_SIZE_REG(reg_base, ESPI_DECODE_RANGE_TO_REG_OFFSET(idx));
-#endif
 }
 
 static int espi_find_io_window(uint16_t win_base)
@@ -254,7 +217,6 @@ static int espi_get_unused_io_window(void)
 	return -1;
 }
 
-#if 0
 static void espi_clear_decodes(void)
 {
 	unsigned int idx;
@@ -271,7 +233,6 @@ static void espi_clear_decodes(void)
 		spacemit_espi_write16(0, espi_mmio_range_size_reg(idx));
 	}
 }
-#endif
 
 /*
  * Returns decode enable bits for standard IO port addresses. If port address is not supported
@@ -440,7 +401,7 @@ int espi_open_mmio_window(uint32_t base, size_t size)
 
 	return 0;
 }
-#if 0
+
 static int espi_configure_decodes(const struct espi_config *cfg)
 {
 	int i;
@@ -457,6 +418,21 @@ static int espi_configure_decodes(const struct espi_config *cfg)
 
 	return 0;
 }
+
+static void espi_setup_subtractive_decode(uint32_t std_io_decode_bitmap)
+{
+	uint32_t global_ctrl_reg;
+
+	global_ctrl_reg = spacemit_espi_read32(ESPI_GLOBAL_CONTROL_1);
+
+	if (mb_cfg->subtractive_decode) {
+		global_ctrl_reg &= ~ESPI_SUB_DECODE_SLV_MASK;
+		global_ctrl_reg |= ESPI_SUB_DECODE_EN;
+	} else {
+		global_ctrl_reg &= ~ESPI_SUB_DECODE_EN;
+	}
+	spacemit_espi_write32(ESPI_GLOBAL_CONTROL_1, global_ctrl_reg);
+}
 #endif
 
 /* Wait up to ESPI_CMD_TIMEOUT_US for hardware to clear DNCMD_STATUS bit. */
@@ -469,14 +445,6 @@ static int espi_wait_ready(void)
 			return 0;
 	} while (count--);
 	return -EAGAIN;
-}
-
-/* Clear interrupt status register */
-static void espi_clear_status(void)
-{
-	uint32_t status = spacemit_espi_read32(ESPI_SLAVE0_INT_STS);
-	if (status)
-		spacemit_espi_write32(status, ESPI_SLAVE0_INT_STS);
 }
 
 /*
@@ -496,144 +464,6 @@ static int espi_poll_status(uint32_t *status)
 	con_err("eSPI timed out waiting for status update.\n");
 
 	return -1;
-}
-
-static int espi_send_command(const struct espi_cmd *cmd)
-{
-	uint32_t status;
-
-	con_dbg("espi: cmd0-cmd2: hdr=%08x %08x %08x data=%08x.\n",
-		cmd->hdr0.val, cmd->hdr1.val,
-		cmd->hdr2.val, cmd->data.val);
-
-	if (espi_wait_ready() != 0)
-		return -EBUSY;
-
-	espi_clear_status();
-	
-	spacemit_espi_write32(cmd->data.val, ESPI_DN_TXDATA_PORT);
-
-	spacemit_espi_write_txhdr(7, cmd->hdr2.hdata7);
-	spacemit_espi_write_txhdr(6, cmd->hdr1.hdata6);
-	spacemit_espi_write_txhdr(5, cmd->hdr1.hdata5);
-	spacemit_espi_write_txhdr(4, cmd->hdr1.hdata4);
-	spacemit_espi_write_txhdr(3, cmd->hdr1.hdata3);
-	spacemit_espi_write_txhdr(2, cmd->hdr0.hdata2);
-	spacemit_espi_write_txhdr(1, cmd->hdr0.hdata1);
-	spacemit_espi_write_txhdr(0, cmd->hdr0.hdata0);
-
-	/* Dword 0 must be last as this write triggers the transaction */
-	//spacemit_espi_write32(cmd->hdr0.val, ESPI_DN_TXHDR_0);
-
-	spacemit_espi_write_dncmd(cmd->hdr0.cmd_type, cmd->hdr0.slave_sel);
-
-	if (espi_wait_ready() != 0)
-		return -EBUSY;
-	if (espi_poll_status(&status) != 0)
-		return -EBUSY;
-
-	/* If command did not complete downstream, return error. */
-	if (!(status & ESPI_DNCMD_INT))
-		return -EIO;
-
-	spacemit_espi_write32(status, ESPI_SLAVE0_INT_STS);
-	return 0;
-}
-
-static uint32_t spacemit_espi_get_configuration(uint16_t address)
-{
-	return 0;
-}
-
-static void spacemit_espi_set_configuration(uint16_t address, uint32_t config)
-{
-}
-
-static int espi_wait_channel_ready(uint16_t address)
-{
-	uint32_t config;
-	int count = ESPI_CH_READY_TIMEOUT_US;
-
-	do {
-		config = spacemit_espi_get_configuration(address);
-		if (espi_slave_channel_ready(config))
-			return 0;
-	} while (count--);
-
-	con_err("Channel is not ready after %d usec (slave addr: 0x%x)\n",
-	       ESPI_CH_READY_TIMEOUT_US, address);
-	return -1;
-
-}
-
-static void espi_enable_ctrlr_channel(uint32_t channel_en)
-{
-	uint32_t reg = spacemit_espi_read32(ESPI_SLAVE0_CONFIG);
-
-	reg |= channel_en;
-
-	spacemit_espi_write32(reg, ESPI_SLAVE0_CONFIG);
-}
-
-static int espi_set_channel_configuration(uint32_t slave_config,
-					  uint32_t slave_reg_addr)
-{
-	spacemit_espi_set_configuration(slave_reg_addr, slave_config);
-	if (!(slave_config & ESPI_SLAVE_CHANNEL_ENABLE))
-		return 0;
-
-	if (espi_wait_channel_ready(slave_reg_addr) != 0)
-		return -1;
-
-	//espi_enable_ctrlr_channel(ctrlr_enable);
-	return 0;
-}
-
-/* mode: 1x
- * freq: 16MHz
- * slect alert mode
- */
-static void espi_set_initial_config(void)
-{
-	uint32_t espi_initial_mode = ESPI_CLK_FREQ_SEL(ESPI_GEN_OP_FREQ_20MHZ) |
-				     ESPI_IO_MODE_SEL(ESPI_GEN_IO_MODE_SINGLE);
-
-	switch (ESPI_ALERT_PIN) {
-	case ESPI_GEN_ALERT_MODE_IO1:
-		break;
-	case ESPI_GEN_ALERT_MODE_PIN:
-		//espi_initial_mode |= ESPI_ALERT_MODE_SEL;
-		break;
-	default:
-		BUG();
-	}
-	espi_initial_mode |= ESPI_CRC_CHECK_EN;
-#if 0
-	if (CONFIG_ESPI_PERI)
-		espi_initial_mode |= ESPI_PR_EN;
-	if (CONFIG_ESPI_VWIRE)
-		espi_initial_mode |= ESPI_VW_EN;
-	if (CONFIG_ESPI_OOB)
-		espi_initial_mode |= ESPI_OOB_EN;
-	if (CONFIG_ESPI_FLASH)
-		espi_initial_mode |= ESPI_FLASH_EN;
-#endif
-
-	spacemit_espi_write32(espi_initial_mode, ESPI_SLAVE0_CONFIG);
-}
-
-static void espi_setup_subtractive_decode(uint32_t std_io_decode_bitmap)
-{
-	// uint32_t global_ctrl_reg;
-	// global_ctrl_reg = spacemit_espi_read32(ESPI_GLOBAL_CONTROL_1);
-
-	// if (mb_cfg->subtractive_decode) {
-	// 	global_ctrl_reg &= ~ESPI_SUB_DECODE_SLV_MASK;
-	// 	global_ctrl_reg |= ESPI_SUB_DECODE_EN;
-	// } else {
-	// 	global_ctrl_reg &= ~ESPI_SUB_DECODE_EN;
-	// }
-	// spacemit_espi_write32(ESPI_GLOBAL_CONTROL_1, global_ctrl_reg);
 }
 
 int spacemit_espi_tx_vw(uint8_t *ids, uint8_t *data, int num)
@@ -893,8 +723,8 @@ void spacemit_espi_write_cmd(uint8_t opcode,
 			db3 = dbuf[ilen + 3];
 		else
 			db3 = 0x00;
-		txdata = MAKELONG(MAKEWORD(db0, db1),
-				  MAKEWORD(db2, db3));
+		txdata = MAKELONG(MAKEWORD(db1, db0),
+				  MAKEWORD(db3, db2));
 		spacemit_espi_write32(txdata, ESPI_DN_TXDATA_PORT);
 	}
 	spacemit_espi_write_dncmd(dncmd, 0);
@@ -905,6 +735,7 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 			       uint8_t dlen, uint8_t *dbuf)
 {
 	uint8_t dncmd;
+	uint8_t i;
 
 	dncmd = spacemit_espi_cmd2dncmd(opcode);
 
@@ -913,13 +744,19 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 	switch (dncmd) {
 	case ESPI_DNCMD_GET_CONFIGURATION:
 		BUG_ON(hlen < 4);
-		con_dbg("rsp: %s %d\n", __FILE__, __LINE__);
 		hbuf[0] = spacemit_espi_read_txhdr(3);
 		hbuf[1] = spacemit_espi_read_txhdr(4);
 		hbuf[2] = spacemit_espi_read_txhdr(5);
 		hbuf[3] = spacemit_espi_read_txhdr(6);
 		break;
 	}
+	con_dbg("spacemit_espi: hdr=%d", hlen);
+	for (i = 0; i < hlen; i++) {
+		if (i == 0)
+			con_dbg(",");
+		con_dbg("%02x ", ((uint8_t *)hbuf)[i]);
+	}
+	con_dbg("\n");
 	return spacemit_espi_rsp;
 }
 
@@ -948,7 +785,6 @@ void spacemit_espi_config_gating(void)
 
 void spacemit_espi_init(void)
 {
-	con_dbg("spacemit_espi: initializing...\n");
 	spacemit_espi_config_gating();
 	spacemit_espi_reset();
 }

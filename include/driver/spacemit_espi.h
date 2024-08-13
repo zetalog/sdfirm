@@ -98,7 +98,6 @@
 #define ESPI_DNCMD_PUT_VW			0x05
 #define ESPI_DNCMD_PUT_OOB			0x06
 #define ESPI_DNCMD_PUT_FLASH_C			0x07
-#define ESPI_ENABLE_VW_CHANNEL			0x70701
 
 /* UP_RXHDR_0
  * UP_RXHDR_1
@@ -405,8 +404,11 @@
 #define ESPI_VW_IRQ_EDGE_HIGH(x)		(0 << (x))
 #define ESPI_VW_IRQ_EDGE_LOW(x)			(1 << (x))
 
-/* Maximum supported vwire groups */
-#define SPACEMIT_ESPI_VWIRE_GROUPS		64
+/* Capabilities of the channels */
+#define SPACEMIT_ESPI_VW_COUNT			16
+#define SPACEMIT_ESPI_OOB_SIZE			128
+#define SPACEMIT_ESPI_FLASH_SIZE		128
+#define SPACEMIT_ESPI_PR_SIZE			64
 
 enum espi_upcmd_type {
 	ESPI_UPCMD_FLASH_CHANNEL = 0,
@@ -499,6 +501,15 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg);
 		spacemit_espi_set32(ESPI_ESPI_RSTN,		\
 			            ESPI_GLOBAL_CONTROL_1);	\
 	} while (0)
+
+#define spacemit_espi_flash_max_size()				\
+	ESPI_FLASH_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP))
+#define spacemit_espi_oob_max_size()				\
+	ESPI_OOB_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP))
+#define spacemit_espi_vw_max_count()				\
+	ESPI_VW_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP))
+#define spacemit_espi_pr_max_size()				\
+	ESPI_PR_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP))
 
 void spacemit_espi_irq_init(void);
 void spacemit_espi_handle_irq(void);
