@@ -269,6 +269,8 @@ static void spacemit_lpc_poll_init(void)
 {
 	irq_register_poller(lpc_bh);
 }
+
+#define spacemit_lpc_serirq_irq_init()	do { } while (0)
 #else
 static void spacemit_lpc_irq_init(void)
 {
@@ -277,8 +279,10 @@ static void spacemit_lpc_irq_init(void)
 	irqc_configure_irq(LPC_IRQ, 0, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector(LPC_IRQ, lpc_handle_irq);
 	irqc_enable_irq(LPC_IRQ);
-	/* TODO enable irqs */
+	lpc_unmask_irq(LPC_INT_OPIRQ);
 }
+
+#define spacemit_lpc_serirq_irq_init()	lpc_unmask_irq(LPC_INT_SERIRQ)
 #endif
 
 #ifdef CONFIG_SPACEMIT_LPC_SERIRQ
@@ -294,6 +298,7 @@ static void spacemit_lpc_serirq_init(void)
 	__raw_writel_mask(SERIRQ_CFG_SERIRQ_START_WIDE((LPC_HW_SERIRQ_START- 2) >> 1),
 			  SERIRQ_CFG_SERIRQ_START_WIDE(SERIRQ_CFG_SERIRQ_START_WIDE_MASK),
 			  SERIRQ_CFG);
+	spacemit_lpc_serirq_irq_init();
 	con_log("lpc: start serirq.\n");
 }
 #else
