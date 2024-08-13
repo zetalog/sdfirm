@@ -82,6 +82,8 @@
 						 LPC_INT_LWAIT_TIMEOUT | \
 						 LPC_INT_SWAIT_TIMEOUT)
 #define LPC_INT_OP_STATUS			(LPC_INT_OP_DONE | LPC_INT_OP_ERR)
+#define LPC_INT_OPIRQ				(LPC_INT_OP_ERR | LPC_INT_OP_STATUS)
+#define LPC_INT_SERIRQ				(LPC_INT_SERIRQ_INT | LPC_INT_SERIRQ_DONE)
 
 /* 8.8 LPC_WAIT_COUNT */
 #define LPC_WAIT_ABORT_COUNT_OFFSET		24
@@ -330,9 +332,9 @@ uint32_t lpc_mem_read32(uint32_t a);
 #endif /* CONFIG_SPACEMIT_LPC_BRIDGE */
 
 #define lpc_clear_int(irq)			__raw_setl(irq, LPC_INT_CLR)
-#define lpc_get_irq(irq)			(!!(__raw_readl(LPC_INT_STATUS) & _BV(irq)))
-#define lpc_mask_irq(irq)			__raw_setl(_BV(irq), LPC_INT_MASK)
-#define lpc_unmask_irq(irq)			__raw_clearl(_BV(irq), LPC_INT_MASK)
+#define lpc_get_irq(irq)			(!!(__raw_readl(LPC_INT_STATUS) & irq))
+#define lpc_mask_irq(irq)			__raw_setl(irq, LPC_INT_MASK)
+#define lpc_unmask_irq(irq)			__raw_clearl(irq, LPC_INT_MASK)
 #define lpc_mask_all_irqs()			__raw_writel(0xffffffff, LPC_INT_MASK)
 #define lpc_get_raw_irq(irq)			(!!(__raw_readl(LPC_INT_RAW_STATUS) & _BV(irq)))
 #define lpc_count_init()							\
