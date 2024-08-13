@@ -216,9 +216,6 @@ if [ "x${BUILD_RISCV64}" = "xyes" ]; then
 	build_sdfirm riscv64 k1mxlite_fsbl
 	build_sdfirm riscv64 k1mxlite_d2d_fsbl
 	build_sdfirm riscv64 k1mxlite_litmus
-	# K1Matrix
-	build_sdfirm riscv64 k1matrix_zsbl
-	build_sdfirm riscv64 k1matrix_fsbl
 fi
 
 # Restore environments
