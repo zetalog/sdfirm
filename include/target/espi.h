@@ -306,40 +306,75 @@
 #define ESPI_CHANNEL_INVALID			4
 
 /* 5.2.2.1 Virtual Wire Index */
-#define ESPI_VWIRE_INTERRUPT_LEVEL_HIGH		_BV(7)
-#define ESPI_VWIRE_INDEX_INTERRUPT_EVENT_0	0 /* Interrupt lines 0 - 127 */
-#define ESPI_VWIRE_INDEX_INTERRUPT_EVENT_1	1 /* Interrupt lines 128-255 */
+#define ESPI_VWIRE_INTERRUPT			0
+#define ESPI_VWIRE_SYSTEM			1
+#define ESPI_VWIRE_GPIO				2
+#define ESPI_VWIRE_TYPE_OFFSET			11
+#define ESPI_VWIRE_TYPE_MASK			REG_2BIT_MASK
+#define espi_vwire_type(value)			_SET_FV(ESPI_VWIRE_TYPE, value)
+#define ESPI_VWIRE_TYPE(value)			_GET_FV(ESPI_VWIRE_TYPE, value)
 
+/* Interrupt events */
+#define ESPI_VWIRE_INTERRUPT_LEVEL_HIGH		_BV(7)
+#define ESPI_VWIRE_IS_INTERRUPT_EVENT(group)	((group) < 2)
+#define ESPI_VWIRE_INTERRUPT_GROUP(event)	(((event) & _BV(7)) >> 7)
+#define ESPI_VWIRE_INTERRUPT_LINE(event)	((event) & ~_BV(7))
+#define ESPI_VWIRE_INTERRUPT_EVENT(irq)		\
+	(ESPI_VWIRE_TYPE(ESPI_VWIRE_INTERRUPT) | (irq))
+
+/* System events */
 #define ESPI_VWIRE_SYSTEM_LEVEL_HIGH(evt)	_BV(evt)
 #define ESPI_VWIRE_SYSTEM_VALID(evt)		_BV((evt) + 4)
 #define ESPI_VWIRE_SYSTEM_EVENT_HIGH(x)		(ESPI_VWIRE_SYSTEM_VALID(x) | ESPI_VWIRE_SYSTEM_LEVEL_HIGH(x))
 #define ESPI_VWIRE_SYSTEM_EVENT_LOW(x)		(ESPI_VWIRE_SYSTEM_VALID(x))
-#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_2		2
-#define ESPI_VWIRE_SYSTEM_SLP_S5		2
-#define ESPI_VWIRE_SYSTEM_SLP_S4		1
-#define ESPI_VWIRE_SYSTEM_SLP_S3		0
-#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_3		3
-#define ESPI_VWIRE_SYSTEM_OOB_RST_WARN		2
-#define ESPI_VWIRE_SYSTEM_PLTRST		1
-#define ESPI_VWIRE_SYSTEM_SUS_STAT		0
-#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_4		4
-#define ESPI_VWIRE_SYSTEM_PME			3
-#define ESPI_VWIRE_SYSTEM_WAKE			2
-#define ESPI_VWIRE_SYSTEM_OOB_RST_ACK		0
-#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_5		5
-#define ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_STATUS	3
-#define ESPI_VWIRE_ERROR_NONFATAL		2
-#define ESPI_VWIRE_ERROR_FATAL			1
-#define ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE	0
-#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_6		6
-#define ESPI_VWIRE_SYSTEM_HOST_RST_ACK		3
-#define ESPI_VWIRE_SYSTEM_RCIN			2
-#define ESPI_VWIRE_SYSTEM_SMI			1
-#define ESPI_VWIRE_SYSTEM_SCI			0
-#define ESPI_VWIRE_INDEX_SYSTEM_EVENT_7		7
-#define ESPI_VWIRE_SYSTEM_NMIOUT		2
-#define ESPI_VWIRE_SYSTEM_SMIOUT		1
-#define ESPI_VWIRE_SYSTEM_HOST_RST_WARN		0
+#define ESPI_VWIRE_SYSTEM_EVENT_GROUP_OFFSET	4
+#define ESPI_VWIRE_SYSTEM_EVENT_GROUP_MASK	REG_7BIT_MASK
+#define espi_vwire_system_group(value)		_SET_FV(ESPI_VWIRE_SYSTEM_EVENT_GROUP, value)
+#define ESPI_VWIRE_SYSTEM_GROUP(value)		_GET_FV(ESPI_VWIRE_SYSTEM_EVENT_GROUP, value)
+#define ESPI_VWIRE_SYSTEM_EVENT_VWIRE_OFFSET	0
+#define ESPI_VWIRE_SYSTEM_EVENT_VWIRE_MASK	REG_4BIT_MASK
+#define espi_vwire_system_vwire(value)		_SET_FV(ESPI_VWIRE_SYSTEM_EVENT_VWIRE, value)
+#define ESPI_VWIRE_SYSTEM_VWIRE(value)		_GET_FV(ESPI_VWIRE_SYSTEM_EVENT_VWIRE, value)
+#define ESPI_VWIRE_SYSTEM_EVENT(group, vwire)	\
+	(espi_vwire_type(ESPI_VWIRE_SYSTEM) |	\
+	 espi_vwire_system_group(group) |	\
+	 espi_vwire_system_vwire(vwire))
+#define ESPI_VWIRE_SYSTEM_SLP_S5		ESPI_VWIRE_SYSTEM_EVENT(2, 2)
+#define ESPI_VWIRE_SYSTEM_SLP_S4		ESPI_VWIRE_SYSTEM_EVENT(1, 2)
+#define ESPI_VWIRE_SYSTEM_SLP_S3		ESPI_VWIRE_SYSTEM_EVENT(0, 2)
+#define ESPI_VWIRE_SYSTEM_OOB_RST_WARN		ESPI_VWIRE_SYSTEM_EVENT(2, 3)
+#define ESPI_VWIRE_SYSTEM_PLTRST		ESPI_VWIRE_SYSTEM_EVENT(1, 3)
+#define ESPI_VWIRE_SYSTEM_SUS_STAT		ESPI_VWIRE_SYSTEM_EVENT(0, 3)
+#define ESPI_VWIRE_SYSTEM_PME			ESPI_VWIRE_SYSTEM_EVENT(3, 4)
+#define ESPI_VWIRE_SYSTEM_WAKE			ESPI_VWIRE_SYSTEM_EVENT(2, 4)
+#define ESPI_VWIRE_SYSTEM_OOB_RST_ACK		ESPI_VWIRE_SYSTEM_EVENT(0, 4)
+#define ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_STATUS	ESPI_VWIRE_SYSTEM_EVENT(3, 5)
+#define ESPI_VWIRE_ERROR_NONFATAL		ESPI_VWIRE_SYSTEM_EVENT(2, 5)
+#define ESPI_VWIRE_ERROR_FATAL			ESPI_VWIRE_SYSTEM_EVENT(1, 5)
+#define ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE	ESPI_VWIRE_SYSTEM_EVENT(0, 5)
+#define ESPI_VWIRE_SYSTEM_HOST_RST_ACK		ESPI_VWIRE_SYSTEM_EVENT(3, 6)
+#define ESPI_VWIRE_SYSTEM_RCIN			ESPI_VWIRE_SYSTEM_EVENT(2, 6)
+#define ESPI_VWIRE_SYSTEM_SMI			ESPI_VWIRE_SYSTEM_EVENT(1, 6)
+#define ESPI_VWIRE_SYSTEM_SCI			ESPI_VWIRE_SYSTEM_EVENT(0, 6)
+#define ESPI_VWIRE_SYSTEM_NMIOUT		ESPI_VWIRE_SYSTEM_EVENT(2, 7)
+#define ESPI_VWIRE_SYSTEM_SMIOUT		ESPI_VWIRE_SYSTEM_EVENT(1, 7)
+#define ESPI_VWIRE_SYSTEM_HOST_RST_WARN		ESPI_VWIRE_SYSTEM_EVENT(0, 7)
+#define ESPI_VWIRE_IS_SYSTEM_EVENT(group)	\
+	(((group) < 8) & !ESPI_VWIRE_IS_INTERRUPT_EVENT(group))
+
+/* GPIO expander */
+#define ESPI_VWIRE_GPIO_EXPANDER_GROUP_OFFSET	4
+#define ESPI_VWIRE_GPIO_EXPANDER_GROUP_MASK	REG_7BIT_MASK
+#define espi_vwire_gpio_group(value)		_SET_FV(ESPI_VWIRE_GPIO_EXPANDER_GROUP, (value) - 128)
+#define ESPI_VWIRE_GPIO_GROPU(value)		(_GET_FV(ESPI_VWIRE_GPIO_EXPANDER_GROUP, value) + 128)
+#define ESPI_VWIRE_GPIO_EXPANDER_VWIRE_OFFSET	0
+#define ESPI_VWIRE_GPIO_EXPANDER_VWIRE_MASK	REG_4BIT_MASK
+#define espi_vwire_gpio_vwire(value)		_SET_FV(ESPI_VWIRE_GPIO_EXPANDER_VWIRE, value)
+#define ESPI_VWIRE_GPIO_VWIRE(value)		_GET_FV(ESPI_VWIRE_GPIO_EXPANDER_VWIRE, value)
+#define ESPI_VWIRE_GPIO_EXPANDER(group, vwire)	\
+	(espi_vwire_type(ESPI_VWIRE_GPIO) |	\
+	 espi_vwire_gpio_group(group) |	\
+	 espi_vwire_gpio_vwire(vwire))
 
 #ifdef CONFIG_ESPI_DEBUG
 void espi_show_slave_general_configuration(uint32_t config);
@@ -376,57 +411,6 @@ static inline void espi_show_slave_peripheral_channel_configuration(uint32_t con
 	(!!((caps) & ESPI_GEN_OOB_CHAN_SUP))
 #define espi_slave_flash_chan_sup(caps)			\
 	(!!((caps) & ESPI_GEN_FLASH_CHAN_SUP))
-
-#define espi_slave_channel_ready(cfg)			\
-	(!!((cfg) & ESPI_SLAVE_CHANNEL_READY))
-#define espi_slave_vwire_max_op_count_sup(caps)		ESPI_VWIRE_MAX_OP_COUNT_SUP(caps)
-
-#define ESPI_CMD_TIMEOUT_US			100
-#define ESPI_CH_READY_TIMEOUT_US		10000
-union espi_txhdr0 {
-	uint32_t val;
-	struct  {
-		uint32_t cmd_type:3;
-		uint32_t cmd_sts:1;
-		uint32_t slave_sel:2;
-		uint32_t rsvd:2;
-		uint32_t hdata0:8;
-		uint32_t hdata2:8;
-		uint32_t hdata1:8;
-	};
-} __packed;
-union espi_txhdr1 {
-	uint32_t val;
-	struct {
-		uint32_t hdata3:8;
-		uint32_t hdata4:8;
-		uint32_t hdata5:8;
-		uint32_t hdata6:8;
-	};
-} __packed;
-union espi_txhdr2 {
-	uint32_t val;
-	struct {
-		uint32_t hdata7:8;
-		uint32_t rsvd:24;
-	};
-} __packed;
-union espi_txdata {
-	uint32_t val;
-	struct {
-		uint32_t byte0:8;
-		uint32_t byte1:8;
-		uint32_t byte2:8;
-		uint32_t byte3:8;
-	};
-} __packed;
-struct espi_cmd {
-	union espi_txhdr0 hdr0;
-	union espi_txhdr1 hdr1;
-	union espi_txhdr2 hdr2;
-	union espi_txdata data;
-	uint32_t expected_status_codes;
-} __packed;
 
 #ifdef CONFIG_ESPI_CRC
 #define ESPI_CRC_CHECKING		ESPI_GEN_CRC_ENABLE
@@ -557,8 +541,8 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define espi_set_oob()			espi_set_config(ESPI_SLAVE_OOB_CFG)
 #define espi_set_flash()		espi_set_config(ESPI_SLAVE_FLASH_CFG)
 
-#define espi_assert_vwire(vwire)	espi_config_vwire(vwire, false)
-#define espi_deassert_vwire(vwire)	espi_config_vwire(vwire, true)
+#define espi_assert_vwire(vwire)	espi_put_vwire(vwire, false)
+#define espi_deassert_vwire(vwire)	espi_put_vwire(vwire, true)
 
 #include <driver/espi.h>
 
@@ -582,6 +566,9 @@ void espi_seq_handler(void);
 void espi_inband_reset(void);
 void espi_get_configuration(uint16_t address);
 void espi_set_configuration(uint16_t address, uint32_t config);
+//void espi_get_vwire(void);
+void espi_put_vwire(uint16_t vwire, bool state);
+void espi_put_vwires(uint8_t count, uint16_t *vwire, bool *state);
 
 void espi_write_cmd_async(uint8_t opcode,
 			  uint8_t hlen, uint8_t *hbuf,
@@ -594,6 +581,5 @@ int espi_write_cmd(uint8_t opcode,
 		   uint8_t dlen, uint8_t *dbuf);
 void espi_get_config(uint16_t address);
 void espi_set_config(uint16_t address);
-void espi_config_vwire(uint8_t vwire, bool state);
 
 #endif /* __ESPI_H_INCLUDE__ */
