@@ -26,6 +26,11 @@
 #include <driver/spacemit_espi.h>
 #endif
 
+#define ESPI_HW_PERI_SIZE			SPACEMIT_ESPI_PR_SIZE
+#define ESPI_HW_VWIRE_COUNT			SPACEMIT_ESPI_VW_COUNT
+#define ESPI_HW_OOB_SIZE			SPACEMIT_ESPI_OOB_SIZE
+#define ESPI_HW_FLASH_SIZE			SPACEMIT_ESPI_FLASH_SIZE
+
 #define espi_hw_ctrl_init()			k1matrix_espi_init()
 #define espi_hw_irq_init()			spacemit_espi_irq_init()
 #define espi_hw_handle_irq()			spacemit_espi_handle_irq()

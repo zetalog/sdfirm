@@ -94,6 +94,7 @@ endif
 
 menuconfig ESPI
 	bool "Enhanced Serial Peripheral Interface (eSPI) support"
+	select BIT_FLS32
 
 if ESPI
 

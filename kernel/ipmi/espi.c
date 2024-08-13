@@ -20,15 +20,19 @@ uint16_t espi_cmd;
 uint16_t espi_rsp;
 uint16_t espi_addr;
 uint32_t espi_gen_cfg;
-uint32_t espi_peri_cfg;
-uint32_t espi_vwire_cfg;
-uint32_t espi_oob_cfg;
-uint32_t espi_flash_cfg;
+uint32_t espi_chan_cfgs[4];
+uint8_t espi_chans;
+
+#define espi_channel_configured(ch)	(!!(espi_chans & ESPI_CHANNEL(ch)))
+#define espi_enable_channel(ch)		(espi_chans |= ESPI_CHANNEL(ch))
+#define espi_channel_ready(ch)		(!!(espi_chan_cfgs[ch] & ESPI_SLAVE_CHANNEL_READY))
+#define espi_channel_enabled(ch)	(!!(espi_chan_cfgs[ch] & ESPI_SLAVE_CHANNEL_ENABLE))
 
 #ifdef CONFIG_ESPI_DEBUG
 const char *espi_op_names[] = {
 	"NONE",
 	"PROBE",
+	"RESET",
 };
 
 const char *espi_op_name(uint32_t val)
@@ -45,19 +49,18 @@ const char *espi_state_names[] = {
 	"SET_GEN",
 	"GET_VWIRE",
 	"SET_VWIRE",
-	"INIT_VWIRE",
+	"VWIRE_READY",
 	"GET_OOB",
 	"SET_OOB",
-	"INIT_OOB",
+	"OOB_READY",
 	"GET_FLASH",
 	"SET_FLASH",
-	"INIT_FLASH",
+	"FLASH_READY",
 	"ASSERT_PLTRST",
 	"DEASSERT_PLTRST",
 	"GET_PERI",
 	"SET_PERI",
-	"INIT_PERI",
-	"VALID",
+	"PERI_READY",
 	"INVALID",
 };
 
@@ -77,7 +80,6 @@ const char *espi_event_names[] = {
 	"RESPONSE",
 	"NO_RESPONSE",
 	"PROBE",
-	"CHANNEL_READY",
 };
 
 const char *espi_event_name(espi_event_t event)
@@ -257,12 +259,30 @@ uint32_t espi_config_vwire_count(uint32_t cfgs)
 {
 	uint32_t max_vws = ESPI_VWIRE_MAX_COUNT_SUP(cfgs);
 
-	return ESPI_VWIRE_MAX_COUNT_SEL(min(max_vws, SPACEMIT_ESPI_VWIRE_GROUPS));
+	return ESPI_VWIRE_MAX_COUNT_SEL(min(max_vws, ESPI_HW_VWIRE_COUNT));
+}
+
+uint32_t espi_config_oob_payload(uint32_t cfgs)
+{
+	uint32_t max_pld = 64 << ESPI_OOB_MAX_PAYLOAD_SIZE_SUP(cfgs);
+	uint32_t cfg;
+
+	cfg = __ilog2_u32(min(max_pld, ESPI_HW_OOB_SIZE) / 64);
+	printf("cfg = %d max=%d\n", cfg, max_pld);
+	return ESPI_OOB_MAX_PAYLOAD_SIZE_SEL(cfg);
+}
+
+uint32_t espi_config_flash_payload(uint32_t cfgs)
+{
+	uint32_t max_pld = ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP(cfgs);
+
+	return ESPI_FLASH_MAX_PAYLOAD_SIZE_SEL(min(max_pld, ESPI_HW_FLASH_SIZE));
 }
 
 uint32_t espi_nego_config(uint16_t address, uint32_t cfgs)
 {
 	uint32_t hwcfgs = 0;
+	uint8_t chan;
 
 	switch (address) {
 	case ESPI_SLAVE_GEN_CFG:
@@ -272,20 +292,31 @@ uint32_t espi_nego_config(uint16_t address, uint32_t cfgs)
 		hwcfgs |= espi_config_op_freq(cfgs);
 		hwcfgs |= espi_config_io_mode(cfgs);
 		espi_gen_cfg = hwcfgs;
-		break;
-	case ESPI_SLAVE_PERI_CFG:
-		break;
+		return hwcfgs;
 	case ESPI_SLAVE_VWIRE_CFG:
+		chan = ESPI_CHANNEL_VWIRE;
 		hwcfgs = cfgs & ESPI_VWIRE_CAP_MASK;
 		hwcfgs |= espi_config_vwire_count(cfgs);
 		hwcfgs |= ESPI_SLAVE_CHANNEL_ENABLE;
-		espi_vwire_cfg = hwcfgs;
 		break;
 	case ESPI_SLAVE_OOB_CFG:
+		chan = ESPI_CHANNEL_OOB;
+		hwcfgs = cfgs & ESPI_OOB_CAP_MASK;
+		hwcfgs |= espi_config_oob_payload(cfgs);
+		hwcfgs |= ESPI_SLAVE_CHANNEL_ENABLE;
 		break;
 	case ESPI_SLAVE_FLASH_CFG:
+		chan = ESPI_CHANNEL_FLASH;
+		hwcfgs = cfgs & ESPI_FLASH_CAP_MASK;
+		hwcfgs |= espi_config_flash_payload(cfgs);
+		hwcfgs |= ESPI_SLAVE_CHANNEL_ENABLE;
+		break;
+	case ESPI_SLAVE_PERI_CFG:
+	default:
+		chan = ESPI_CHANNEL_PERI;
 		break;
 	}
+	espi_chan_cfgs[chan] = hwcfgs;
 	return hwcfgs;
 }
 
@@ -312,16 +343,24 @@ void espi_set_configuration(uint16_t address, uint32_t config)
 	uint8_t hbuf[7];
 
 	espi_addr = address;
+
+	/* Length/Address: MSB to LSB */
 	hbuf[0] = 0x00;
 	hbuf[1] = HIBYTE(address);
 	hbuf[2] = LOBYTE(address);
-	hbuf[3] = HIBYTE(HIWORD(config));
-	hbuf[4] = LOBYTE(HIWORD(config));
-	hbuf[5] = HIBYTE(LOWORD(config));
-	hbuf[6] = LOBYTE(LOWORD(config));
+
+	/* Data/Status: LSB to MSB */
+	hbuf[3] = LOBYTE(LOWORD(config));
+	hbuf[4] = HIBYTE(LOWORD(config));
+	hbuf[5] = LOBYTE(HIWORD(config));
+	hbuf[6] = HIBYTE(HIWORD(config));
 
 	espi_write_cmd_async(ESPI_CMD_SET_CONFIGURATION, 
 			     7, hbuf, 0, NULL);
+}
+
+void espi_config_vwire(uint8_t vwire, bool state)
+{
 }
 
 int espi_write_cmd(uint8_t opcode,
@@ -386,23 +425,28 @@ void espi_get_config(uint16_t address)
 
 void espi_set_config(uint16_t address)
 {
+	uint8_t chan;
+
 	switch (address) {
 	case ESPI_SLAVE_GEN_CFG:
 		espi_hw_set_cfg(address, espi_gen_cfg);
-		break;
-	case ESPI_SLAVE_PERI_CFG:
-		espi_hw_set_cfg(address, espi_peri_cfg);
-		break;
+		return;
 	case ESPI_SLAVE_VWIRE_CFG:
-		espi_hw_set_cfg(address, espi_vwire_cfg);
+		chan = ESPI_CHANNEL_VWIRE;
 		break;
 	case ESPI_SLAVE_OOB_CFG:
-		espi_hw_set_cfg(address, espi_oob_cfg);
+		chan = ESPI_CHANNEL_OOB;
 		break;
 	case ESPI_SLAVE_FLASH_CFG:
-		espi_hw_set_cfg(address, espi_flash_cfg);
+		chan = ESPI_CHANNEL_FLASH;
+		break;
+	case ESPI_SLAVE_PERI_CFG:
+	default:
+		chan = ESPI_CHANNEL_PERI;
 		break;
 	}
+	espi_enable_channel(chan);
+	espi_hw_set_cfg(address, espi_chan_cfgs[chan]);
 }
 
 void espi_rsp_available(void)
@@ -411,29 +455,21 @@ void espi_rsp_available(void)
 		espi_get_gen();
 	else if (espi_cmd_is_set(ESPI_SLAVE_GEN_CFG))
 		espi_set_gen();
-	else if (espi_cmd_is_get(ESPI_SLAVE_PERI_CFG)) {
+	else if (espi_cmd_is_get(ESPI_SLAVE_PERI_CFG))
 		espi_get_peri();
-		if (espi_peri_cfg & ESPI_SLAVE_CHANNEL_READY)
-			espi_raise_event(ESPI_EVENT_CHANNEL_READY);
-	} else if (espi_cmd_is_set(ESPI_SLAVE_PERI_CFG))
+	else if (espi_cmd_is_set(ESPI_SLAVE_PERI_CFG))
 		espi_set_peri();
-	else if (espi_cmd_is_get(ESPI_SLAVE_VWIRE_CFG)) {
+	else if (espi_cmd_is_get(ESPI_SLAVE_VWIRE_CFG))
 		espi_get_vwire();
-		if (espi_vwire_cfg & ESPI_SLAVE_CHANNEL_READY)
-			espi_raise_event(ESPI_EVENT_CHANNEL_READY);
-	} else if (espi_cmd_is_set(ESPI_SLAVE_VWIRE_CFG))
+	else if (espi_cmd_is_set(ESPI_SLAVE_VWIRE_CFG))
 		espi_set_vwire();
-	else if (espi_cmd_is_get(ESPI_SLAVE_OOB_CFG)) {
+	else if (espi_cmd_is_get(ESPI_SLAVE_OOB_CFG))
 		espi_get_oob();
-		if (espi_oob_cfg & ESPI_SLAVE_CHANNEL_READY)
-			espi_raise_event(ESPI_EVENT_CHANNEL_READY);
-	} else if (espi_cmd_is_set(ESPI_SLAVE_OOB_CFG))
+	else if (espi_cmd_is_set(ESPI_SLAVE_OOB_CFG))
 		espi_set_oob();
-	else if (espi_cmd_is_get(ESPI_SLAVE_FLASH_CFG)) {
+	else if (espi_cmd_is_get(ESPI_SLAVE_FLASH_CFG))
 		espi_get_flash();
-		if (espi_flash_cfg & ESPI_SLAVE_CHANNEL_READY)
-			espi_raise_event(ESPI_EVENT_CHANNEL_READY);
-	} else if (espi_cmd_is_set(ESPI_SLAVE_FLASH_CFG))
+	else if (espi_cmd_is_set(ESPI_SLAVE_FLASH_CFG))
 		espi_set_flash();
 }
 
@@ -483,10 +519,6 @@ void espi_cmd_complete(uint8_t rsp)
 	}
 }
 
-void espi_config_vwire(uint8_t vwire, bool state)
-{
-}
-
 void espi_handle_probe(bool is_op)
 {
 	if (espi_cmd_is(ESPI_CMD_NONE)) {
@@ -498,28 +530,37 @@ void espi_handle_probe(bool is_op)
 	} else if (espi_state == ESPI_STATE_SET_GEN) {
 		espi_get_configuration(ESPI_SLAVE_VWIRE_CFG);
 	} else if (espi_state == ESPI_STATE_GET_VWIRE) {
-		espi_set_configuration(ESPI_SLAVE_VWIRE_CFG, espi_vwire_cfg);
+		espi_set_configuration(ESPI_SLAVE_VWIRE_CFG,
+				       espi_chan_cfgs[ESPI_CHANNEL_VWIRE]);
 	} else if (espi_state == ESPI_STATE_SET_VWIRE) {
 		espi_get_configuration(ESPI_SLAVE_VWIRE_CFG);
-	} else if (espi_state == ESPI_STATE_INIT_VWIRE) {
+	} else if (espi_state == ESPI_STATE_VWIRE_READY) {
 		espi_get_configuration(ESPI_SLAVE_OOB_CFG);
 	} else if (espi_state == ESPI_STATE_GET_OOB) {
-		espi_set_configuration(ESPI_SLAVE_OOB_CFG, espi_oob_cfg);
+		espi_set_configuration(ESPI_SLAVE_OOB_CFG,
+				       espi_chan_cfgs[ESPI_CHANNEL_OOB]);
 	} else if (espi_state == ESPI_STATE_SET_OOB) {
+		espi_get_configuration(ESPI_SLAVE_OOB_CFG);
+	} else if (espi_state == ESPI_STATE_OOB_READY) {
 		espi_get_configuration(ESPI_SLAVE_FLASH_CFG);
 	} else if (espi_state == ESPI_STATE_GET_FLASH) {
-		espi_set_configuration(ESPI_SLAVE_FLASH_CFG, espi_flash_cfg);
+		espi_set_configuration(ESPI_SLAVE_FLASH_CFG,
+				       espi_chan_cfgs[ESPI_CHANNEL_FLASH]);
 	} else if (espi_state == ESPI_STATE_SET_FLASH) {
-		espi_assert_vwire(ESPI_VWIRE_SYSTEM_PLTRST);
-	} else if (espi_state == ESPI_STATE_ASSERT_PLTRST) {
-		espi_deassert_vwire(ESPI_VWIRE_SYSTEM_PLTRST);
-	} else if (espi_state == ESPI_STATE_DEASSERT_PLTRST) {
-		espi_get_configuration(ESPI_SLAVE_PERI_CFG);
-	} else if (espi_state == ESPI_STATE_GET_PERI) {
-		espi_set_configuration(ESPI_SLAVE_PERI_CFG, espi_peri_cfg);
-	} else if (espi_state == ESPI_STATE_SET_PERI) {
-		espi_raise_event(ESPI_EVENT_PROBE);
-	} else if (espi_state == ESPI_STATE_VALID) {
+		espi_get_configuration(ESPI_SLAVE_FLASH_CFG);
+	} else if (espi_state == ESPI_STATE_FLASH_READY) {
+		if (is_op)
+			espi_op_success();
+	} else if (espi_state == ESPI_STATE_INVALID) {
+		if (is_op)
+			espi_op_failure();
+	}
+}
+
+void espi_handle_reset(bool is_op)
+{
+	if (espi_state == ESPI_STATE_EARLY_INIT) {
+	} else if (espi_state == ESPI_STATE_EARLY_INIT) {
 		if (is_op)
 			espi_op_success();
 	} else if (espi_state == ESPI_STATE_INVALID) {
@@ -532,6 +573,8 @@ void espi_seq_handler(void)
 {
 	if (espi_op_is(ESPI_OP_PROBE))
 		espi_handle_probe(true);
+	if (espi_op_is(ESPI_OP_RESET))
+		espi_handle_reset(true);
 }
 
 static void espi_async_handler(void)
@@ -542,16 +585,6 @@ static void espi_async_handler(void)
 	if (flags & ESPI_EVENT_INIT) {
 		unraise_bits(flags, ESPI_EVENT_INIT);
 		espi_auto_probe();
-	} else if (flags & ESPI_EVENT_CHANNEL_READY) {
-		unraise_bits(flags, ESPI_EVENT_CHANNEL_READY);
-		if (espi_cmd_is_get(ESPI_SLAVE_VWIRE_CFG))
-			espi_enter_state(ESPI_STATE_INIT_VWIRE);
-		else if (espi_cmd_is_get(ESPI_SLAVE_OOB_CFG))
-			espi_enter_state(ESPI_STATE_INIT_OOB);
-		else if (espi_cmd_is_get(ESPI_SLAVE_FLASH_CFG))
-			espi_enter_state(ESPI_STATE_INIT_FLASH);
-		else if (espi_cmd_is_get(ESPI_SLAVE_PERI_CFG))
-			espi_enter_state(ESPI_STATE_INIT_PERI);
 	} else if (flags & ESPI_EVENT_ACCEPT) {
 		unraise_bits(flags, ESPI_EVENT_ACCEPT);
 		if (espi_cmd_is(ESPI_CMD_RESET))
@@ -560,21 +593,41 @@ static void espi_async_handler(void)
 			espi_enter_state(ESPI_STATE_GET_GEN);
 		else if (espi_cmd_is_set(ESPI_SLAVE_GEN_CFG))
 			espi_enter_state(ESPI_STATE_SET_GEN);
-		else if (espi_cmd_is_get(ESPI_SLAVE_VWIRE_CFG))
-			espi_enter_state(ESPI_STATE_GET_VWIRE);
-		else if (espi_cmd_is_set(ESPI_SLAVE_VWIRE_CFG))
+		else if (espi_cmd_is_get(ESPI_SLAVE_VWIRE_CFG)) {
+			if (!espi_channel_configured(ESPI_CHANNEL_VWIRE))
+				espi_enter_state(ESPI_STATE_GET_VWIRE);
+			else if (!espi_channel_ready(ESPI_CHANNEL_VWIRE))
+				espi_enter_state(ESPI_STATE_SET_VWIRE);
+			else
+				espi_enter_state(ESPI_STATE_VWIRE_READY);
+		} else if (espi_cmd_is_set(ESPI_SLAVE_VWIRE_CFG))
 			espi_enter_state(ESPI_STATE_SET_VWIRE);
-		else if (espi_cmd_is_get(ESPI_SLAVE_OOB_CFG))
-			espi_enter_state(ESPI_STATE_GET_OOB);
-		else if (espi_cmd_is_set(ESPI_SLAVE_OOB_CFG))
+		else if (espi_cmd_is_get(ESPI_SLAVE_OOB_CFG)) {
+			if (!espi_channel_configured(ESPI_CHANNEL_OOB))
+				espi_enter_state(ESPI_STATE_GET_OOB);
+			else if (!espi_channel_ready(ESPI_CHANNEL_OOB))
+				espi_enter_state(ESPI_STATE_SET_OOB);
+			else
+				espi_enter_state(ESPI_STATE_OOB_READY);
+		} else if (espi_cmd_is_set(ESPI_SLAVE_OOB_CFG))
 			espi_enter_state(ESPI_STATE_SET_OOB);
-		else if (espi_cmd_is_get(ESPI_SLAVE_FLASH_CFG))
-			espi_enter_state(ESPI_STATE_GET_FLASH);
-		else if (espi_cmd_is_set(ESPI_SLAVE_FLASH_CFG))
+		else if (espi_cmd_is_get(ESPI_SLAVE_FLASH_CFG)) {
+			if (!espi_channel_configured(ESPI_CHANNEL_FLASH))
+				espi_enter_state(ESPI_STATE_GET_FLASH);
+			else if (!espi_channel_ready(ESPI_CHANNEL_FLASH))
+				espi_enter_state(ESPI_STATE_SET_FLASH);
+			else
+				espi_enter_state(ESPI_STATE_FLASH_READY);
+		} else if (espi_cmd_is_set(ESPI_SLAVE_FLASH_CFG))
 			espi_enter_state(ESPI_STATE_SET_FLASH);
-		else if (espi_cmd_is_get(ESPI_SLAVE_PERI_CFG))
-			espi_enter_state(ESPI_STATE_GET_PERI);
-		else if (espi_cmd_is_set(ESPI_SLAVE_PERI_CFG))
+		else if (espi_cmd_is_get(ESPI_SLAVE_PERI_CFG)) {
+			if (!espi_channel_configured(ESPI_CHANNEL_PERI))
+				espi_enter_state(ESPI_STATE_GET_PERI);
+			else if (!espi_channel_ready(ESPI_CHANNEL_PERI))
+				espi_enter_state(ESPI_STATE_SET_PERI);
+			else
+				espi_enter_state(ESPI_STATE_LATE_INIT);
+		} else if (espi_cmd_is_set(ESPI_SLAVE_PERI_CFG))
 			espi_enter_state(ESPI_STATE_SET_PERI);
 	} else if (flags & ESPI_EVENT_REJECT) {
 		unraise_bits(flags, ESPI_EVENT_REJECT);
@@ -635,6 +688,7 @@ void espi_init(void)
 	espi_op = ESPI_OP_NONE;
 	espi_cmd = ESPI_CMD_NONE;
 	espi_rsp = ESPI_RSP_NONE;
+	espi_chans = 0;
 
 	espi_hw_ctrl_init();
 	espi_raise_event(ESPI_EVENT_INIT);
@@ -745,7 +799,7 @@ static int do_espi(int argc, char *argv[])
 	return -EINVAL;
 }
 
-DEFINE_COMMAND(espi, do_espi, "SpacemiT enhanced SPI commands",
+DEFINE_COMMAND(espi, do_espi, "enhanced SPI (eSPI) commands",
 	"espi read io [1|2|4] <addr>\n"
 	"espi read mem [1|2|4] <addr>\n"
 	"    -eSPI read sequence\n"
@@ -753,5 +807,4 @@ DEFINE_COMMAND(espi, do_espi, "SpacemiT enhanced SPI commands",
 	"espi write mem [1|2|4] <value> <addr>\n"
 	"    -eSPI write sequence\n"
 );
-
 #endif
