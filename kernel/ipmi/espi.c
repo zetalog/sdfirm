@@ -359,9 +359,56 @@ void espi_set_configuration(uint16_t address, uint32_t config)
 			     7, hbuf, 0, NULL);
 }
 
-void espi_config_vwire(uint8_t vwire, bool state)
+void espi_put_vwire(uint16_t vwire, bool state)
 {
+	uint8_t type = ESPI_VWIRE_TYPE(vwire);
+	uint8_t group, line;
+	uint8_t hbuf[1] = { 0x00 };
+	uint8_t dbuf[2];
+
+	if (type == ESPI_VWIRE_SYSTEM) {
+		group = ESPI_VWIRE_SYSTEM_GROUP(vwire);
+		line = ESPI_VWIRE_SYSTEM_VWIRE(vwire);
+
+		dbuf[0] = group;
+		if (state)
+			dbuf[1] = ESPI_VWIRE_SYSTEM_EVENT_HIGH(line);
+		else
+			dbuf[1] = ESPI_VWIRE_SYSTEM_EVENT_LOW(line);
+	}
+
+	espi_write_cmd_async(ESPI_CMD_PUT_VWIRE,
+			     1, hbuf, 2, dbuf);
 }
+
+void espi_put_vwires(uint8_t count, uint16_t *vwire, bool *state)
+{
+	uint8_t hbuf[1] = { count - 1 };
+	uint8_t dbuf[2 * count];
+	uint8_t i;
+	uint8_t group, line;
+
+	for (i = 0; i < count; i++) {
+		group = ESPI_VWIRE_SYSTEM_GROUP(vwire[i]);
+		line = ESPI_VWIRE_SYSTEM_VWIRE(vwire[i]);
+
+		dbuf[2 * i] = group;
+		if (state[i])
+			dbuf[2 * i + 1] = ESPI_VWIRE_SYSTEM_EVENT_HIGH(line);
+		else
+			dbuf[2 * i + 1] = ESPI_VWIRE_SYSTEM_EVENT_LOW(line);
+	}
+	espi_write_cmd_async(ESPI_CMD_PUT_VWIRE,
+			     1, hbuf, 2 * count, dbuf);
+}
+
+#if 0
+void espi_get_vwire(void)
+{
+	espi_write_cmd_async(ESPI_CMD_GET_VWIRE,
+			     0, NULL, 0, NULL);
+}
+#endif
 
 int espi_write_cmd(uint8_t opcode,
 		   uint8_t hlen, uint8_t *hbuf,
