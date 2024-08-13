@@ -13,6 +13,8 @@
 
 #define LPC_IRQ					IRQ_LPC
 
+#define LPC_FREQ				33000000
+
 /* Register offset */
 #define LPC_CFG 				SPACEMIT_LPC_REG(0x00)
 #define LPC_CMD_OP				SPACEMIT_LPC_REG(0x04)
@@ -27,11 +29,12 @@
 #define LPC_RDATA				SPACEMIT_LPC_REG(0x28)
 #define LPC_DEBUG				SPACEMIT_LPC_REG(0x2c)
 #define SERIRQ_CFG				SPACEMIT_LPC_REG(0x30)
-#define SERIRQ_OP				SPACEMIT_LPC_REG(0x34)
+#define SERIRQ_EN				SPACEMIT_LPC_REG(0x34)
 #define SERIRQ_SLOT_MASK			SPACEMIT_LPC_REG(0x38)
 #define SERIRQ_SLOT_IRQ				SPACEMIT_LPC_REG(0x3c)
 #define SERIRQ_SLOT_CLR				SPACEMIT_LPC_REG(0x40)
 #define SERIRQ_DEBUG				SPACEMIT_LPC_REG(0x44)
+#define SERIRQ_INTERVAL				SPACEMIT_LPC_REG(0x48)
 #define LPC_MEM_CFG				SPACEMIT_LPC_REG(0x50)
 #define LPC_ERR_ADDR				SPACEMIT_LPC_REG(0x54)
 #define LPC_AXI_DEBUG				SPACEMIT_LPC_REG(0x58)
@@ -170,6 +173,8 @@
 #define LPC_AXI_DEBUG_CURR_START_OFFSET		0
 #define LPC_AXI_DEBUG_CURR_START_MASK		REG_8BIT_MASK
 #define LPC_AXI_DEBUG_CURR_START(value)		_SET_FV(LPC_AXI_DEBUG_CURR_START, value)
+
+#define LPC_US2INTV(intv)			(intv * LPC_FREQ / 1000000 - 1)
 
 #define lpc_get_serirq_status()			(!!(__raw_readl(LPC_STATUS) & LPC_STATUS_SERIRQ_BUSY))
 #define lpc_get_lpc_status()			(!!(__raw_readl(LPC_STATUS) & LPC_STATUS_LPC_BUSY))
@@ -342,7 +347,8 @@ uint32_t lpc_mem_read32(uint32_t a);
 		else								\
 			__raw_clearl(SERIRQ_MODE_QUIET, SERIRQ_CFG);		\
 	} while (0)
-#define lpc_serirq_start()			__raw_writel(1, SERIRQ_OP)
+#define lpc_serirq_start()			__raw_writel(1, SERIRQ_EN)
+#define lpc_serirq_interval(intv)		__raw_writel(intv, SERIRQ_INTERVAL)
 #define lpc_mask_serirq(slot)			__raw_setl(_BV(slot), SERIRQ_SLOT_MASK)
 #define lpc_mask_all_serirqs()			__raw_setl(0xffffffff, SERIRQ_SLOT_MASK)
 #define lpc_unmask_serirq(slot)			__raw_clearl(_BV(slot), SERIRQ_SLOT_MASK)
