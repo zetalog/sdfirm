@@ -2,6 +2,7 @@
 #include <target/cmdline.h>
 #include <target/irq.h>
 #include <target/panic.h>
+#include <target/clk.h>
 
 #ifdef SYS_REALTIME
 #define lpc_poll_init()		spacemit_lpc_poll_init()
@@ -408,7 +409,7 @@ static int do_lpc_irq(int argc, char *argv[])
 }
 
 #ifdef CONFIG_SPACEMIT_LPC_SERIRQ
-static void lpc_start_serirq(void)
+static void lpc_enable_serirq(void)
 {
 	lpc_serirq_start();
 	lpc_raise_event(LPC_SERIRQ_EVENT);
@@ -418,9 +419,10 @@ static int do_lpc_serirq(int argc, char *argv[])
 {
 	uint8_t slot;
 	uint8_t mode;
+	uint16_t intv;
 
-	if (strcmp(argv[2], "start") == 0) {
-		lpc_start_serirq();
+	if (strcmp(argv[2], "enable") == 0) {
+		lpc_enable_serirq();
 		return 0;
 	}
 
@@ -430,6 +432,13 @@ static int do_lpc_serirq(int argc, char *argv[])
 		mode = (uint8_t)strtoull(argv[3], 0, 0);
 		printf("Enter %s mode.\n", mode ? "quiet" : "continuous");
 		lpc_serirq_config(mode);
+		if (mode == 0) {
+			if (argc > 3) {
+				intv = (uint16_t)strtoull(argv[4], 0, 0);
+				lpc_serirq_interval(LPC_US2INTV(intv));
+				lpc_enable_serirq();
+			}
+		}
 		return 0;
 	}
 
@@ -494,10 +503,10 @@ DEFINE_COMMAND(lpc, do_lpc, "SpacemiT low pin count commands",
 	"lpc serirq clear <slot>\n"
 	"lpc serirq get <slot>\n"
 	"    -LPC control SERIRQs\n"
-	"lpc serirq config <mode>\n"
-	"    -LPC configure SERIRQ mode\n"
-	"lpc serirq start\n"
-	"    -LPC start SERIRQ operation\n"
+	"lpc serirq config <mode> [interval]\n"
+	"    -LPC configure SERIRQ mode and polling interval(μs)\n"
+	"lpc serirq enable\n"
+	"    -LPC enable SERIRQ operation\n"
 	"lpc stress [all|io|mem]\n"
 	"    -start lpc stress test\n"
 );

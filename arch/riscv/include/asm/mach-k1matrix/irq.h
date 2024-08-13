@@ -146,6 +146,7 @@
 #define IRQ_GPIOA		EXT_IRQ(114)
 #define IRQ_GPIOB		EXT_IRQ(115)
 #define IRQ_GPIOC		EXT_IRQ(116)
+#define IRQ_LPC			EXT_IRQ(119)
 #define IRQ_ESPI_CON		EXT_IRQ(120)
 #define IRQ_ESPI_VW		EXT_IRQ(121)
 #define IRQ_QSPI		EXT_IRQ(123)
@@ -197,9 +198,6 @@
 #define IRQ_SMMU_PRIQ		EXT_IRQ(49)
 #define IRQ_SMMU_CMDQ		EXT_IRQ(50)
 #define IRQ_SMMU_GERR		EXT_IRQ(51)
-#define IRQ_LPC			EXT_IRQ(56)
-#define IRQ_KCS			EXT_IRQ(57)
-#define IRQ_BMU			EXT_IRQ(58)
 
 #define NR_EXT_IRQS		256
 #define NR_IRQS			(NR_INT_IRQS + NR_EXT_IRQS)
