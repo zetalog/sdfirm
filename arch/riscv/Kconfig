@@ -267,7 +267,6 @@ config ARCH_K1MAX
 	select CLINT
 	select PLIC if !SYS_NOIRQ
 	select ARCH_HAS_NOC if K1M_SOC || K1M_K1X
-	select K1MATRIX_CRU
 	select K1M_UART if CONSOLE || DEBUG_PRINT
 	help
 	  This enables support for spacemit k1max IoT platform.
@@ -331,46 +330,7 @@ config ARCH_K1MXLITE
 	help
 	  This enables support for SpacemiT K1MXLite server platforms.
 
-config ARCH_K1MATRIX
-	bool "SpacemiT K1Matrix Family"
-	select ARCH_IS_MMIO_32BIT
-	select ARCH_IS_TICKLESS
-	select ARCH_HAS_NOVEC
-	select ARCH_HAS_TSC
-	select ARCH_HAS_TSC_CONST
-	select ARCH_HAS_GPT
-	select ARCH_HAS_IRQC
-	select ARCH_HAS_ACLINT
-	select ARCH_HAS_PLIC if K1MATRIX_RMU
-	select ARCH_HAS_AIA_IMSIC if K1MATRIX_APU
-	select ARCH_HAS_AIA_APLIC if K1MATRIX_APU
-	select ARCH_HAS_FDT
-	select ARCH_HAS_UART
-	select ARCH_HAS_NOC
-	select ARCH_HAS_PCI
-	select ARCH_HAS_CLK
-	select ARCH_HAS_LPC
-	select ARCH_HAS_KCS
-	select ARCH_HAS_ESPI
-	select ARCH_HAS_CLK
-	select ARCH_HAS_CLK_GENERIC
-	select ARCH_HAS_BOOT0
-	select ARCH_HAS_BOOT1
-	select ARCH_HAS_BOOT2
-	select ARCH_HAS_I2C
-	select ARCH_HAS_DDR_SPD
-	select ARCH_HAS_PMU if K1MATRIX
-	select ACLINT
-	select PLIC if !SYS_NOIRQ && K1MATRIX_RMU
-	select AIA_APLIC if !SYS_NOIRQ && K1MATRIX_APU
-	select K1MATRIX_UART if CONSOLE || DEBUG_PRINT
-	select K1MATRIX_CRU if CLK
-	select K1MATRIX_LPC if LPC
-	select K1MATRIX_ESPI if ESPI
-	select K1MATRIX_KCS if KCS_BMC
-	select K1MATRIX_I2C if I2C
-	help
-	  This enables support for SpacemiT K1Matrix server platforms.
+source "arch/riscv/Kconfig-spa36xx"
 
 config ARCH_COREV
 	bool "OpenHW Group Core-V Family"
