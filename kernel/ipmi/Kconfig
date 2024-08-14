@@ -170,6 +170,7 @@ config ESPI_FLASH
 	bool "Enable flash access channel support"
 	depends ARCH_HAS_ESPI_FLASH
 	default y if ARCH_HAS_ESPI_FLASH
+	select ESPI_FLASH_ERASE_4K if !ESPI_FLASH_ERASE_64K && !ESPI_FLASH_ERASE_128K && !ESPI_FLASH_ERASE_256K
 
 choice
 	prompt "Alert type"
@@ -200,6 +201,56 @@ config ESPI_RSP_MOD
 	bool "Enable response modifier support"
 	depends ARCH_HAS_ESPI_RSP_MOD
 	default y if ARCH_HAS_ESPI_RSP_MOD
+
+if ESPI_FLASH
+
+menu "eSPI flash configurations"
+
+choice
+	prompt "Flash read size"
+
+config ESPI_FLASH_READ_64
+	bool "64"
+
+config ESPI_FLASH_READ_128
+	bool "128"
+
+config ESPI_FLASH_READ_256
+	bool "256"
+
+config ESPI_FLASH_READ_512
+	bool "512"
+
+config ESPI_FLASH_READ_1024
+	bool "1024"
+
+config ESPI_FLASH_READ_2048
+	bool "2048"
+
+config ESPI_FLASH_READ_4096
+	bool "4096"
+
+endchoice
+
+config ESPI_FLASH_ERASE_4K
+	bool "Enable 4Kbytes block erase size"
+	depends !ESPI_FLASH_ERASE_128K && !ESPI_FLASH_ERASE_256K
+	default y
+
+config ESPI_FLASH_ERASE_64K
+	bool "Enable 64Kbytes block erase size"
+	depends !ESPI_FLASH_ERASE_128K && !ESPI_FLASH_ERASE_256K
+
+config ESPI_FLASH_ERASE_128K
+	bool "Enable 128Kbytes block erase size"
+	depends !ESPI_FLASH_ERASE_256K
+
+config ESPI_FLASH_ERASE_256K
+	bool "Enable 256Kbytes block erase size"
+
+endmenu
+
+endif
 
 config ESPI_DEBUG
 	bool "Enabling debugging messages"
