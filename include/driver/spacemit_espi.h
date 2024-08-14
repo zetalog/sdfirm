@@ -494,7 +494,7 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg);
 #define spacemit_espi_enable_all_irqs()	\
 	spacemit_espi_write32(ESPI_ALL_INT, ESPI_SLAVE0_INT_EN)
 
-#define spacemit_espi_reset()					\
+#define spacemit_espi_hard_reset()				\
 	do {							\
 		spacemit_espi_clear32(ESPI_ESPI_RSTN,		\
 				      ESPI_GLOBAL_CONTROL_1);	\
