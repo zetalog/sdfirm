@@ -616,6 +616,18 @@ void espi_handle_reset(bool is_op)
 {
 	if (espi_state == ESPI_STATE_EARLY_INIT) {
 		espi_deassert_vwire(ESPI_VWIRE_SYSTEM_HOST_RST_WARN);
+	} else if (espi_state == ESPI_STATE_HOST_RST_WARN) {
+	} else if (espi_state == ESPI_STATE_HOST_RST_ACK) {
+		espi_assert_vwire(ESPI_VWIRE_SYSTEM_PLTRST);
+	} else if (espi_state == ESPI_STATE_ASSERT_PLTRST) {
+		espi_deassert_vwire(ESPI_VWIRE_SYSTEM_PLTRST);
+	} else if (espi_state == ESPI_STATE_DEASSERT_PLTRST) {
+		espi_get_configuration(ESPI_SLAVE_PERI_CFG);
+	} else if (espi_state == ESPI_STATE_GET_PERI) {
+		espi_set_configuration(ESPI_SLAVE_PERI_CFG,
+				       espi_chan_cfgs[ESPI_CHANNEL_PERI]);
+	} else if (espi_state == ESPI_STATE_SET_PERI) {
+		espi_get_configuration(ESPI_SLAVE_PERI_CFG);
 	} else if (espi_state == ESPI_STATE_PERI_READY) {
 		if (is_op)
 			espi_op_success();
