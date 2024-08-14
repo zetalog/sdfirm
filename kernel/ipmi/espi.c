@@ -56,6 +56,8 @@ const char *espi_state_names[] = {
 	"GET_FLASH",
 	"SET_FLASH",
 	"FLASH_READY",
+	"HOST_RST_WARN",
+	"HOST_RST_ACK",
 	"ASSERT_PLTRST",
 	"DEASSERT_PLTRST",
 	"GET_PERI",
@@ -80,6 +82,7 @@ const char *espi_event_names[] = {
 	"RESPONSE",
 	"NO_RESPONSE",
 	"PROBE",
+	"BOOT",
 };
 
 const char *espi_event_name(espi_event_t event)
@@ -277,7 +280,7 @@ uint32_t espi_config_flash_payload(uint32_t cfgs)
 	uint32_t cfg;
 
 	cfg = __ilog2_u32(min(max_pld, ESPI_HW_OOB_SIZE) / 64);
-	return ESPI_FLASH_MAX_PAYLOAD_SIZE_SEL(min(max_pld, ESPI_HW_FLASH_SIZE));
+	return ESPI_FLASH_MAX_PAYLOAD_SIZE_SEL(cfg);
 }
 
 uint32_t espi_nego_config(uint16_t address, uint32_t cfgs)
@@ -373,6 +376,8 @@ void espi_put_vwire(uint16_t vwire, bool state)
 		group = ESPI_VWIRE_SYSTEM_GROUP(vwire);
 		line = ESPI_VWIRE_SYSTEM_VWIRE(vwire);
 
+		con_dbg("espi: system event group=%d line=%d state=%s\n",
+			group, line, state ? "HIGH" : "LOW");
 		dbuf[0] = group;
 		if (state)
 			dbuf[1] = ESPI_VWIRE_SYSTEM_EVENT_HIGH(line);
@@ -610,7 +615,8 @@ void espi_handle_probe(bool is_op)
 void espi_handle_reset(bool is_op)
 {
 	if (espi_state == ESPI_STATE_EARLY_INIT) {
-	} else if (espi_state == ESPI_STATE_EARLY_INIT) {
+		espi_deassert_vwire(ESPI_VWIRE_SYSTEM_HOST_RST_WARN);
+	} else if (espi_state == ESPI_STATE_PERI_READY) {
 		if (is_op)
 			espi_op_success();
 	} else if (espi_state == ESPI_STATE_INVALID) {
@@ -666,8 +672,10 @@ static void espi_async_handler(void)
 				espi_enter_state(ESPI_STATE_GET_FLASH);
 			else if (!espi_channel_ready(ESPI_CHANNEL_FLASH))
 				espi_enter_state(ESPI_STATE_SET_FLASH);
-			else
+			else {
 				espi_enter_state(ESPI_STATE_FLASH_READY);
+				espi_auto_reset();
+			}
 		} else if (espi_cmd_is_set(ESPI_SLAVE_FLASH_CFG))
 			espi_enter_state(ESPI_STATE_SET_FLASH);
 		else if (espi_cmd_is_get(ESPI_SLAVE_PERI_CFG)) {
@@ -741,6 +749,7 @@ void espi_init(void)
 	espi_chans = 0;
 
 	espi_hw_ctrl_init();
+	espi_hw_hard_reset();
 	espi_raise_event(ESPI_EVENT_INIT);
 }
 

@@ -667,9 +667,20 @@ uint8_t spacemit_espi_cmd2dncmd(uint8_t opcode)
 	case ESPI_CMD_GET_CONFIGURATION:
 		dncmd = ESPI_DNCMD_GET_CONFIGURATION;
 		break;
+	case ESPI_CMD_PUT_VWIRE:
+		dncmd = ESPI_DNCMD_PUT_VW;
+		break;
+	case ESPI_CMD_PUT_OOB:
+		dncmd = ESPI_DNCMD_PUT_OOB;
+		break;
+	case ESPI_CMD_PUT_FLASH_C:
+		dncmd = ESPI_DNCMD_PUT_FLASH_C;
+		break;
 	case ESPI_CMD_RESET:
-	default:
 		dncmd = ESPI_DNCMD_IN_BAND_RESET;
+		break;
+	default:
+		dncmd = ESPI_DNCMD_PR_MESSAGE;
 		break;
 	}
 	return dncmd;
@@ -723,8 +734,8 @@ void spacemit_espi_write_cmd(uint8_t opcode,
 			db3 = dbuf[ilen + 3];
 		else
 			db3 = 0x00;
-		txdata = MAKELONG(MAKEWORD(db1, db0),
-				  MAKEWORD(db3, db2));
+		txdata = MAKELONG(MAKEWORD(db0, db1),
+				  MAKEWORD(db2, db3));
 		spacemit_espi_write32(txdata, ESPI_DN_TXDATA_PORT);
 	}
 	spacemit_espi_write_dncmd(dncmd, 0);
@@ -770,6 +781,14 @@ void spacemit_espi_set_cfg(uint32_t address, uint32_t config)
 		spacemit_espi_config_clk_freq(ESPI_GEN_OP_FREQ_SEL(config));
 		if (config & ESPI_GEN_ALERT_MODE_PIN)
 			spacemit_espi_set32(ESPI_ALERT_MODE_SEL, ESPI_SLAVE0_CONFIG);
+		if (config & ESPI_GEN_PERI_CHAN_SUP)
+			spacemit_espi_set32(ESPI_PR_EN, ESPI_SLAVE0_CONFIG);
+		if (config & ESPI_GEN_VWIRE_CHAN_SUP)
+			spacemit_espi_set32(ESPI_VW_EN, ESPI_SLAVE0_CONFIG);
+		if (config & ESPI_GEN_OOB_CHAN_SUP)
+			spacemit_espi_set32(ESPI_OOB_EN, ESPI_SLAVE0_CONFIG);
+		if (config & ESPI_GEN_FLASH_CHAN_SUP)
+			spacemit_espi_set32(ESPI_FLASH_EN, ESPI_SLAVE0_CONFIG);
 		break;
 	}
 }
@@ -786,5 +805,4 @@ void spacemit_espi_config_gating(void)
 void spacemit_espi_init(void)
 {
 	spacemit_espi_config_gating();
-	spacemit_espi_reset();
 }
