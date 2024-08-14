@@ -268,14 +268,15 @@ uint32_t espi_config_oob_payload(uint32_t cfgs)
 	uint32_t cfg;
 
 	cfg = __ilog2_u32(min(max_pld, ESPI_HW_OOB_SIZE) / 64);
-	printf("cfg = %d max=%d\n", cfg, max_pld);
 	return ESPI_OOB_MAX_PAYLOAD_SIZE_SEL(cfg);
 }
 
 uint32_t espi_config_flash_payload(uint32_t cfgs)
 {
-	uint32_t max_pld = ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP(cfgs);
+	uint32_t max_pld = 64 << ESPI_FLASH_MAX_PAYLOAD_SIZE_SUP(cfgs);
+	uint32_t cfg;
 
+	cfg = __ilog2_u32(min(max_pld, ESPI_HW_OOB_SIZE) / 64);
 	return ESPI_FLASH_MAX_PAYLOAD_SIZE_SEL(min(max_pld, ESPI_HW_FLASH_SIZE));
 }
 
@@ -309,6 +310,8 @@ uint32_t espi_nego_config(uint16_t address, uint32_t cfgs)
 		chan = ESPI_CHANNEL_FLASH;
 		hwcfgs = cfgs & ESPI_FLASH_CAP_MASK;
 		hwcfgs |= espi_config_flash_payload(cfgs);
+		hwcfgs |= ESPI_FLASH_MAX_READ_REQ_SIZE(ESPI_FLASH_READ_SIZE);
+		hwcfgs |= ESPI_FLASH_BLOCK_ERASE_SIZE(ESPI_FLASH_ERASE_SIZE);
 		hwcfgs |= ESPI_SLAVE_CHANNEL_ENABLE;
 		break;
 	case ESPI_SLAVE_PERI_CFG:
