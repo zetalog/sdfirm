@@ -46,7 +46,7 @@
 #define DDR1_PLL_FREQ           781250000
 #define CPU0_PLL_FREQ           2500000000
 #define CPU1_PLL_FREQ           1250000000
-#define COM_FOUT1PH0_FREQ	625000000
+#define COM_FOUT1PH0_FREQ	45000000
 #define PERI_FOUT1PH0_FREQ	500000000
 
 #define PERI_SUB_MCLK_FREQ	500000000
@@ -60,7 +60,7 @@
 #define GMAC_25M		GMAC_50M/2
 #define GMAC_2_5M		GMAC_25M/10
 #endif
-
+/*
 #ifdef CONFIG_K1MATRIX_64C
 #define OSC_CLK_FREQ            25000000
 #define COM_PLL_FREQ            1200000000
@@ -73,7 +73,7 @@
 #define COM_FOUT1PH0_FREQ	600000000
 #define PERI_FOUT1PH0_FREQ	500000000
 #endif
-
+*/
 #define CLK_INPUT		0
 #define CLK_PLL			1
 #define CLK_SEL			2
@@ -117,6 +117,7 @@
 #define CPU_CLK			1
 #define NR_DYN_CLKS		2
 
+#ifdef CONFIG_K1MATRIX_32C
 /* CLKSEL */
 #define CPU_NIC_CLKSEL		0
 #define PCIE_TOP_CFG_CLKSEL	1
@@ -129,8 +130,10 @@
 #define PERI_GMAC_TXCLK_SEL	8
 #define RMU_CLKSEL		9
 #define NR_SEL_CLKS		10
+#endif
 
 #ifdef CONFIG_K1MATRIX_64C
+/*top*/
 #define LTOP_CFG_CLKSEL		0
 #define LTOP_PCIE_CFG_CLKSEL	1
 #define LTOP_PCIE_AUX_CLKSEL	2
@@ -152,9 +155,16 @@
 #define TPERI_SUB_MCLKSEL	18
 #define TPERI_SUB_SCLKSEL	19
 #define HNI_PERI_CFG_SCLKSEL	20
-#define NR_SEL_CLKS		21
+#define RMU_CLK_SEL		21
+#define RMU_EFUSE_S_CLK_SEL	22
+#define RMU_EFUSE_NS_CLK_SEL	23
+#define RMU_LPC_IO_CLK_SEL	24
+#define RMU_PVTC_CLK_SEL	25
+/*rmu*/
+#define NR_SEL_CLKS		26
 #endif
 
+#ifdef CONFIG_K1MATRIX_32C
 /* CLKDIV */
 #define CPU_NIC_CLKDIV		0
 #define CPU_HAP_CLKDIV		1
@@ -196,8 +206,10 @@
 #define C0_CLK_CFG_EN		38
 #define RMU_LPC_CLK_DIV		39
 #define NR_DIV_CLKS		40
+#endif
 
 #ifdef CONFIG_K1MATRIX_64C
+/*top*/
 #define LTOP_CFG_CLKDIV		0
 #define LTOP_PCIE_CFG_CLKDIV	1
 #define LTOP_PCIE_AUX_CLKDIV	2
@@ -213,9 +225,17 @@
 #define DDR_CFG_CLKDIV		12
 #define TPERI_SUB_SCLK_DIV	13
 #define HNI_PERI_CFG_CLKDIV	14
-#define NR_DIV_CLKS		15
-#endif
-
+/*rmu*/
+#define RMU_AXI_CLK_DIV		15
+#define RMU_LPC_LCLK_DIV	16
+#define RMU_AHB_CLK_DIV		17
+#define RMU_APB_CLK_DIV		18
+/*pcie*/
+#define C0_CLK_EN		19
+#define RMU_UART0_CLKEN		20
+#define NR_DIV_CLKS		21
+#endif/*CONFIG_K1MATRIX_64C*/
+#ifdef CONFIG_K1MATRIX_32C
 /*CLKRSTN*/
 #define CPU_SUB_RSTN		0
 #define PCIE_TOP_RSTN		1
@@ -240,6 +260,18 @@
 #define C0_CFG_SRST_N		20
 #define C1_CFG_SRST_N		21
 #define NR_RSTN_CLKS		22
+#endif/*CONFIG_K1MATRIX_32C*/
+
+#ifdef CONFIG_K1MATRIX_64C
+#define MESH_SUB_RSTN		0
+#define TPERI_SUB_RSTN		1
+#define CLUSTER0_RST_N		2
+#define C0_RST_N		3
+#define CPU_SUB_RSTN		4
+#define CPU_SUB_SRST_N		5
+#define RMU_UART0_SW_RSTN	6
+#define NR_RSTN_CLKS		7
+#endif/*CONFIG_K1MATRIX_64C*/
 
 #define SYS_CLK_FREQ		20000000
 #define CFG_CLK_FREQ		10000000
@@ -247,9 +279,10 @@
 
 #define CPU_CLK_FREQ		SYS_CLK_FREQ
 #ifdef CONFIG_K1MATRIX_S2C
-#define APB_CLK_FREQ COM_FOUT1PH0_FREQ/2
+#define APB_CLK_FREQ		(COM_FOUT1PH0_FREQ/2)
 #else
-#define APB_CLK_FREQ (COM_FOUT1PH0_FREQ/2/4)
+#define APB_CLK_FREQ		(COM_FOUT1PH0_FREQ/2/4)
+
 #endif
 #define PIC_CLK_FREQ		CFG_CLK_FREQ
 
