@@ -303,10 +303,10 @@
 #define SLAVE0_RXVW_RCIN			_BV(18)
 #define SLAVE0_RXVW_SMI				_BV(17)
 #define SLAVE0_RXVW_SCI				_BV(16)
-#define SLAVE0_RXVW_SLAVE0_BOOT_LOAD_STS	_BV(15)
-#define SLAVE0_RXVW_SLAVE0_ERROR_NONFATAL	_BV(14)
-#define SLAVE0_RXVW_SLAVE0_ERROR_FATAL		_BV(13)
-#define SLAVE0_RXVW_SLAVE0_BOOT_LOAD_DONE	_BV(12)
+#define SLAVE0_RXVW_SLAVE_BOOT_LOAD_STS		_BV(15)
+#define SLAVE0_RXVW_SLAVE_ERROR_NONFATAL	_BV(14)
+#define SLAVE0_RXVW_SLAVE_ERROR_FATAL		_BV(13)
+#define SLAVE0_RXVW_SLAVE_BOOT_LOAD_DONE	_BV(12)
 #define SLAVE0_RXVW_PME				_BV(11)
 #define SLAVE0_RXVW_WAKE			_BV(10)
 #define SLAVE0_RXVW_OOB_RST_ACK			_BV(8)
@@ -510,6 +510,14 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg);
 	ESPI_VW_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP))
 #define spacemit_espi_pr_max_size()				\
 	ESPI_PR_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP))
+
+#define spacemit_espi_mask_vwirq(irq)
+#define spacemit_espi_unmask_vwirq(irq)
+#define spacemit_espi_config_vwirq(irq, polarity)
+#define spacemit_espi_enable_vwgpio(group)
+#define spacemit_espi_disable_vwgpio(group)
+#define spacemit_espi_config_vwgpio_index(group, vmindex)
+#define spacemit_espi_read_vwgpio_data(group)
 
 void spacemit_espi_irq_init(void);
 void spacemit_espi_handle_irq(void);

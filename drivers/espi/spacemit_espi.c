@@ -550,12 +550,17 @@ int spacemit_espi_rx_oob(uint8_t *buf)
 void spacemit_espi_irq_init(void)
 {
 	irqc_configure_irq(ESPI_IRQ, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(ESPI_IRQ, espi_handle_irq);
+	irq_register_vector(ESPI_IRQ, espi_handle_conirq);
 	irqc_enable_irq(ESPI_IRQ);
 	spacemit_espi_enable_all_irqs();
+
+	irqc_configure_irq(VWIRE_IRQ, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(VWIRE_IRQ, espi_handle_vwirq);
+	irqc_enable_irq(VWIRE_IRQ);
+	//spacemit_espi_enable_all_vwirqs();
 }
 
-void spacemit_espi_handle_irq(void)
+void spacemit_espi_handle_conirq(void)
 {
 	int int_sts;
 	int len;
@@ -640,9 +645,51 @@ void spacemit_espi_handle_irq(void)
 	}
 }
 
-void espi_handle_irq(irq_t irq)
+void spacemit_espi_handle_vwirq(void)
 {
-	spacemit_espi_handle_irq();
+	uint32_t sts, sys;
+	uint8_t irq;
+
+	sts = __raw_readl(ESPI_SLAVE0_RXVW_STS);
+	if (sts & SLAVE0_RXVW_STS_SYS_EVT_STS) {
+		sys = __raw_readl(ESPI_SLAVE0_RXVW);
+		if (sys & SLAVE0_RXVW_HOST_RST_ACK) {
+		} else {
+		}
+		if (sys & SLAVE0_RXVW_SLAVE_BOOT_LOAD_STS) {
+		} else {
+		}
+		if (sys & SLAVE0_RXVW_SLAVE_BOOT_LOAD_DONE) {
+			if (!espi_sys_event_is_set(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE)) {
+				espi_set_sys_event(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE);
+				con_log("spacemit_espi: VW_SYS: SLAVE_BOOT_LOAD_DONE set\n");
+			}
+		} else if (espi_sys_event_is_set(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE)) {
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE);
+			con_log("spacemit_espi: VW_SYS: SLAVE_BOOT_LOAD_DONE cleared\n");
+		}
+	}
+	for (irq = 0; irq < 24; irq++) {
+		if (sts & SLAVE0_RXVW_STS_IRQ_STS(irq)) {
+			con_log("spacemit_espi: VW_IRQ: %d\n", irq);
+		}
+	}
+}
+
+void spacemit_espi_handle_irq(void)
+{
+	spacemit_espi_handle_conirq();
+	spacemit_espi_handle_vwirq();
+}
+
+void espi_handle_conirq(irq_t irq)
+{
+	spacemit_espi_handle_conirq();
+}
+
+void espi_handle_vwirq(irq_t irq)
+{
+	spacemit_espi_handle_vwirq();
 }
 
 void espi_register_rxvw_callback(void *callback)

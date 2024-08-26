@@ -22,6 +22,7 @@ uint16_t espi_addr;
 uint32_t espi_gen_cfg;
 uint32_t espi_chan_cfgs[4];
 uint8_t espi_chans;
+uint32_t espi_sys_evt;
 
 #define espi_channel_configured(ch)	(!!(espi_chans & ESPI_CHANNEL(ch)))
 #define espi_enable_channel(ch)		(espi_chans |= ESPI_CHANNEL(ch))
@@ -83,6 +84,7 @@ const char *espi_event_names[] = {
 	"NO_RESPONSE",
 	"PROBE",
 	"BOOT",
+	"VWIRE_SYSTEM_EVENT",
 };
 
 const char *espi_event_name(espi_event_t event)
@@ -617,6 +619,8 @@ void espi_handle_reset(bool is_op)
 	if (espi_state == ESPI_STATE_EARLY_INIT) {
 		espi_deassert_vwire(ESPI_VWIRE_SYSTEM_HOST_RST_WARN);
 	} else if (espi_state == ESPI_STATE_HOST_RST_WARN) {
+		if (espi_sys_event_is_set(ESPI_VWIRE_SYSTEM_HOST_RST_ACK))
+			espi_enter_state(ESPI_STATE_HOST_RST_ACK);
 	} else if (espi_state == ESPI_STATE_HOST_RST_ACK) {
 		espi_assert_vwire(ESPI_VWIRE_SYSTEM_PLTRST);
 	} else if (espi_state == ESPI_STATE_ASSERT_PLTRST) {
@@ -653,6 +657,8 @@ static void espi_async_handler(void)
 	if (flags & ESPI_EVENT_INIT) {
 		unraise_bits(flags, ESPI_EVENT_INIT);
 		espi_auto_probe();
+	} else if (flags & ESPI_EVENT_VWIRE_SYS) {
+		unraise_bits(flags, ESPI_EVENT_VWIRE_SYS);
 	} else if (flags & ESPI_EVENT_ACCEPT) {
 		unraise_bits(flags, ESPI_EVENT_ACCEPT);
 		if (espi_cmd_is(ESPI_CMD_RESET))
@@ -711,6 +717,34 @@ static void espi_async_handler(void)
 			espi_enter_state(ESPI_STATE_INVALID);
 	}
 	espi_event_restore(flags);
+}
+
+bool espi_sys_event_is_set(uint16_t event)
+{
+	uint8_t grp, evt;
+
+	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
+	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
+	return !!(espi_sys_evt & evt << (grp * 4));
+}
+
+void espi_set_sys_event(uint16_t event)
+{
+	uint8_t grp, evt;
+
+	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
+	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
+	espi_sys_evt |= evt << (grp * 4);
+	espi_raise_event(ESPI_EVENT_VWIRE_SYS);
+}
+
+void espi_clear_sys_event(uint16_t event)
+{
+	uint8_t grp, evt;
+
+	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
+	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
+	espi_sys_evt &= ~(evt << (grp * 4));
 }
 
 static void espi_bh_handler(uint8_t events)
