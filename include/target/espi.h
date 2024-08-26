@@ -543,6 +543,7 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define ESPI_EVENT_RESPONSE		_BV(0x06)
 #define ESPI_EVENT_PROBE		_BV(0x07)
 #define ESPI_EVENT_BOOT			_BV(0x08)
+#define ESPI_EVENT_VWIRE_SYS		_BV(0x09)
 
 #define ESPI_OP_NONE			0x00
 #define ESPI_OP_PROBE			0x01
@@ -616,5 +617,8 @@ int espi_write_cmd(uint8_t opcode,
 		   uint8_t dlen, uint8_t *dbuf);
 void espi_get_config(uint16_t address);
 void espi_set_config(uint16_t address);
+void espi_set_sys_event(uint16_t event);
+void espi_clear_sys_event(uint16_t event);
+bool espi_sys_event_is_set(uint16_t event);
 
 #endif /* __ESPI_H_INCLUDE__ */
