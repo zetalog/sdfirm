@@ -342,7 +342,9 @@
 #define SLAVE0_RXVW_INDEX_GRP0(n)		_SET_FV(SLAVE0_RXVW_INDEX_GRP0, n)
 
 /* SLAVE0_VW_CTL */
-#define SLAVE0_VW_CTL_IRQ_MASK(n)		_BV(n)
+#define SLAVE0_VW_CTL_IRQ_MASK(n)		_BV(n + 8)
+#define SLAVE0_VW_CTL_SUS_STAT_VMEN		_BV(4)
+#define SLAVE0_VW_CTL_GRP_EN(n)			_BV(n)
 
 /* SLAVE0_VW_POLARITY */
 #define SLAVE0_VW_POLARITY_IRQ_POLARITY(n)	_BV(n)
@@ -511,13 +513,31 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg);
 #define spacemit_espi_pr_max_size()				\
 	ESPI_PR_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP))
 
-#define spacemit_espi_mask_vwirq(irq)
-#define spacemit_espi_unmask_vwirq(irq)
-#define spacemit_espi_config_vwirq(irq, polarity)
-#define spacemit_espi_enable_vwgpio(group)
-#define spacemit_espi_disable_vwgpio(group)
-#define spacemit_espi_config_vwgpio_index(group, vmindex)
-#define spacemit_espi_read_vwgpio_data(group)
+#define spacemit_espi_mask_vwirq(irq)				__raw_setl(SLAVE0_VW_CTL_IRQ_MASK(irq), ESPI_SLAVE0_VW_CTL)
+#define spacemit_espi_unmask_vwirq(irq)				__raw_clearl(SLAVE0_VW_CTL_IRQ_MASK(irq), ESPI_SLAVE0_VW_CTL)
+#define spacemit_espi_config_vwirq(irq, polarity)		__raw_writel((polarity) | SLAVE0_VW_POLARITY_IRQ_POLARITY(irq), SLAVE0_VW_POLARITY)
+#define spacemit_espi_enable_vwgpio(group)			__raw_setl(SLAVE0_VW_CTL_GRP_EN(group), ESPI_SLAVE0_VW_CTL)
+#define spacemit_espi_disable_vwgpio(group)			__raw_clearl(SLAVE0_VW_CTL_GRP_EN(group), ESPI_SLAVE0_VW_CTL)
+#define spacemit_espi_config_vwgpio_index(group, vmindex)				\
+	do {										\
+		if (group == 0)								\
+			__raw_writel_mask(SLAVE0_RXVW_INDEX_GRP0(vmindex), 		\
+				SLAVE0_RXVW_INDEX_GRP0(SLAVE0_RXVW_INDEX_GRP0_MASK), 	\
+				ESPI_SLAVE0_RXVW_INDEX);				\
+		if (group == 1)								\
+			__raw_writel_mask(SLAVE0_RXVW_INDEX_GRP1(vmindex), 		\
+				SLAVE0_RXVW_INDEX_GRP1(SLAVE0_RXVW_INDEX_GRP1_MASK), 	\
+				ESPI_SLAVE0_RXVW_INDEX);				\
+		if (group == 2)								\
+			__raw_writel_mask(SLAVE0_RXVW_INDEX_GRP2(vmindex), 		\
+				SLAVE0_RXVW_INDEX_GRP2(SLAVE0_RXVW_INDEX_GRP2_MASK), 	\
+				ESPI_SLAVE0_RXVW_INDEX);				\
+		if (group == 3)								\
+			__raw_writel_mask(SLAVE0_RXVW_INDEX_GRP3(vmindex), 		\
+				SLAVE0_RXVW_INDEX_GRP3(SLAVE0_RXVW_INDEX_GRP3_MASK), 	\
+				ESPI_SLAVE0_RXVW_INDEX);				\
+	} while (0)
+#define spacemit_espi_read_vwgpio_data(group)			(__raw_readl(ESPI_SLAVE0_RXVW_DATA) && (REG_8BIT_MASK << (group << 3)))
 
 void spacemit_espi_irq_init(void);
 void spacemit_espi_handle_irq(void);
