@@ -641,38 +641,53 @@ void spacemit_espi_handle_vwirq(void)
 	if (sts & SLAVE0_RXVW_STS_SYS_EVT_STS) {
 		sys = __raw_readl(ESPI_SLAVE0_RXVW);
 		if (sys & SLAVE0_RXVW_HOST_RST_ACK)
-			con_log("spacemit_espi: VW_SYS: HOST_RST_ACK\n");
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_HOST_RST_ACK);
+		else
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_HOST_RST_ACK);
 		if (sys & SLAVE0_RXVW_RCIN)
-			con_log("spacemit_espi: VW_SYS: RCIN\n");
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_RCIN);
+		else
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_RCIN);
 		if (sys & SLAVE0_RXVW_SMI)
-			con_log("spacemit_espi: VW_SYS: SMI\n");
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_SMI);
+		else
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_SMI);
 		if (sys & SLAVE0_RXVW_SCI)
-			con_log("spacemit_espi: VW_SYS: SCI\n");
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_SCI);
+		else
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_SCI);
 		if (sys & SLAVE0_RXVW_SLAVE_BOOT_LOAD_STS)
-			con_log("spacemit_espi: VW_SYS: BOOT_LOAD_STS\n");
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_STATUS);
+		else
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_STATUS);
 		if (sys & SLAVE0_RXVW_SLAVE_ERROR_NONFATAL)
-			con_log("spacemit_espi: VW_SYS: ERROR_NONFATAL\n");
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_ERROR_NONFATAL);
+		else
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_ERROR_NONFATAL);
 		if (sys & SLAVE0_RXVW_SLAVE_ERROR_FATAL)
-			con_log("spacemit_espi: VW_SYS: ERROR_FATAL\n");
-		if (sys & SLAVE0_RXVW_SLAVE_BOOT_LOAD_DONE) {
-			if (!espi_sys_event_is_set(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE)) {
-				espi_set_sys_event(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE);
-				con_log("spacemit_espi: VW_SYS: SLAVE_BOOT_LOAD_DONE set\n");
-			}
-		} else if (espi_sys_event_is_set(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE)) {
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_ERROR_FATAL);
+		else
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_ERROR_FATAL);
+		if (sys & SLAVE0_RXVW_SLAVE_BOOT_LOAD_DONE)
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE);
+		else
 			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE);
-			con_log("spacemit_espi: VW_SYS: SLAVE_BOOT_LOAD_DONE cleared\n");
-		}
 		if (sys & SLAVE0_RXVW_PME)
-			con_log("spacemit_espi: VW_SYS: PME\n");
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_PME);
+		else
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_PME);
 		if (sys & SLAVE0_RXVW_WAKE)
-			con_log("spacemit_espi: VW_SYS: WAKE\n");
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_WAKE);
+		else
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_WAKE);
 		if (sys & SLAVE0_RXVW_OOB_RST_ACK)
-			con_log("spacemit_espi: VW_SYS: OOB_RST_ACK\n");
+			espi_set_sys_event(ESPI_VWIRE_SYSTEM_OOB_RST_ACK);
+		else
+			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_OOB_RST_ACK);
 		if (sys & SLAVE0_RXVW_DNX_ACK)
-			con_log("spacemit_espi: VW_SYS: DNX_ACK\n");
+			con_log("spacemit_espi: VW_SYS: PWRDN_ACK\n");
 		if (sys & SLAVE0_RXVW_SUS_ACK_B)
-			con_log("spacemit_espi: VW_SYS: SUS_ACK_B\n");
+			con_log("spacemit_espi: VW_SYS: SUS_ACK\n");
 	}
 	for (irq = 0; irq < 24; irq++) {
 		if (sts & SLAVE0_RXVW_STS_IRQ_STS(irq)) {
