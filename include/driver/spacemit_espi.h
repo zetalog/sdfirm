@@ -503,6 +503,12 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg);
 		spacemit_espi_set32(ESPI_ESPI_RSTN,		\
 			            ESPI_GLOBAL_CONTROL_1);	\
 	} while (0)
+#define spacemit_espi_soft_reset()					\
+	do {								\
+		spacemit_espi_set32(ESPI_SW_RST, ESPI_GLOBAL_CONTROL_1);\
+		while (spacemit_espi_read32(ESPI_GLOBAL_CONTROL_1) &	\
+		       ESPI_SW_RST);					\
+	} while (0);
 
 #define spacemit_espi_flash_max_size()				\
 	ESPI_FLASH_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP))

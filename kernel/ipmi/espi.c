@@ -654,11 +654,14 @@ static void espi_async_handler(void)
 	espi_event_t flags;
 
 	flags = espi_event_save();
+	if (espi_state >= ESPI_STATE_HOST_RST_WARN) {
+		if (flags & ESPI_EVENT_VWIRE_SYS) {
+			unraise_bits(flags, ESPI_EVENT_VWIRE_SYS);
+		}
+	}
 	if (flags & ESPI_EVENT_INIT) {
 		unraise_bits(flags, ESPI_EVENT_INIT);
 		espi_auto_probe();
-	} else if (flags & ESPI_EVENT_VWIRE_SYS) {
-		unraise_bits(flags, ESPI_EVENT_VWIRE_SYS);
 	} else if (flags & ESPI_EVENT_ACCEPT) {
 		unraise_bits(flags, ESPI_EVENT_ACCEPT);
 		if (espi_cmd_is(ESPI_CMD_RESET))
