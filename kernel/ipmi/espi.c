@@ -23,6 +23,7 @@ uint32_t espi_gen_cfg;
 uint32_t espi_chan_cfgs[4];
 uint8_t espi_chans;
 uint32_t espi_sys_evt;
+uint32_t espi_sys_evt_active_lows;
 
 #define espi_channel_configured(ch)	(!!(espi_chans & ESPI_CHANNEL(ch)))
 #define espi_enable_channel(ch)		(espi_chans |= ESPI_CHANNEL(ch))
@@ -728,26 +729,97 @@ bool espi_sys_event_is_set(uint16_t event)
 
 	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
 	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
-	return !!(espi_sys_evt & evt << (grp * 4));
+	return !!(espi_sys_evt & (_BV(evt) << (grp * 4)));
 }
 
-void espi_set_sys_event(uint16_t event)
+void __espi_set_sys_event(uint16_t event)
 {
 	uint8_t grp, evt;
 
 	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
 	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
-	espi_sys_evt |= evt << (grp * 4);
-	espi_raise_event(ESPI_EVENT_VWIRE_SYS);
+	espi_sys_evt |= _BV(evt) << (grp * 4);
+}
+
+void __espi_clear_sys_event(uint16_t event)
+{
+	uint8_t grp, evt;
+
+	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
+	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
+	espi_sys_evt &= ~(_BV(evt) << (grp * 4));
+}
+
+void espi_sys_event_active_low(uint16_t event)
+{
+	uint8_t grp, evt;
+
+	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
+	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
+	espi_sys_evt_active_lows |= _BV(evt) << (grp * 4);
+	__espi_set_sys_event(event);
+}
+
+bool espi_sys_event_is_active_low(uint16_t event)
+{
+	uint8_t grp, evt;
+
+	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
+	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
+	return !!(espi_sys_evt_active_lows & (_BV(evt) << (grp * 4)));
+}
+
+#define espi_sys_event_is_active_high(event)	(!espi_sys_event_is_active_low(event))
+
+#ifdef CONFIG_CONSOLE_VERBOSE
+typedef const char *espi_name_t;
+static espi_name_t espi_sys_event_names[6][4] = {
+	{ "SLP_S3", "SLP_S4", "SLP_S5", "RSV" },
+	{ "SUS_STAT", "PLTRST", "OOB_RST_WARN", "RSV" },
+	{ "OOB_RST_ACK", "RST", "WAKE", "PME" },
+	{ "SLAVE_BOOT_LOAD_DONE", "ERROR_FATAL", "ERROR_NONFATAL", "SLAVE_BOOT_LOAD_STATUS" },
+	{ "SCI", "SMI", "RCIN", "HOST_RST_ACK" },
+	{ "HOST_RST_WARN", "SMIOUT", "NMIOUT", "RSV" },
+};
+
+static const char *espi_sys_event_name(uint16_t event)
+{
+	uint8_t grp, evt;
+
+	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
+	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
+	if (grp < 2 || grp > 7)
+		return "UNK";
+	if (evt > 3)
+		return "UNK";
+	return espi_sys_event_names[grp-2][evt];
+}
+#else
+#define espi_sys_event_name(event)		NULL
+#endif
+
+void espi_set_sys_event(uint16_t event)
+{
+	if (!espi_sys_event_is_set(event)) {
+		__espi_set_sys_event(event);
+		if (espi_sys_event_is_active_high(event)) {
+			con_dbg("espi: system event: %s\n",
+				espi_sys_event_name(event));
+			espi_raise_event(ESPI_EVENT_VWIRE_SYS);
+		}
+	}
 }
 
 void espi_clear_sys_event(uint16_t event)
 {
-	uint8_t grp, evt;
-
-	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
-	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
-	espi_sys_evt &= ~(evt << (grp * 4));
+	if (espi_sys_event_is_set(event)) {
+		__espi_clear_sys_event(event);
+		if (espi_sys_event_is_active_low(event)) {
+			con_dbg("espi: system event: %s#\n",
+				espi_sys_event_name(event));
+			espi_raise_event(ESPI_EVENT_VWIRE_SYS);
+		}
+	}
 }
 
 static void espi_bh_handler(uint8_t events)
@@ -797,6 +869,18 @@ void espi_init(void)
 	espi_rsp = ESPI_RSP_NONE;
 	espi_chans = 0;
 
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SLP_S5);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SLP_S4);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SLP_S3);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_PLTRST);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SUS_STAT);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_PME);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_WAKE);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_RCIN);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SMI);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SCI);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_NMIOUT);
+	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SMIOUT);
 	espi_hw_ctrl_init();
 	espi_hw_hard_reset();
 	espi_raise_event(ESPI_EVENT_INIT);
