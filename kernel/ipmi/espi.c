@@ -152,6 +152,53 @@ void espi_debug(uint8_t tag, uint32_t val)
 }
 #endif
 
+#ifdef CONFIG_CONSOLE_VERBOSE
+typedef const char *espi_name_t;
+static espi_name_t espi_sys_event_names[6][4] = {
+	{ "SLP_S3", "SLP_S4", "SLP_S5", "RSV" },
+	{ "SUS_STAT", "PLTRST", "OOB_RST_WARN", "RSV" },
+	{ "OOB_RST_ACK", "RST", "WAKE", "PME" },
+	{ "SLAVE_BOOT_LOAD_DONE", "ERROR_FATAL", "ERROR_NONFATAL", "SLAVE_BOOT_LOAD_STATUS" },
+	{ "SCI", "SMI", "RCIN", "HOST_RST_ACK" },
+	{ "HOST_RST_WARN", "SMIOUT", "NMIOUT", "RSV" },
+};
+
+static const char *espi_sys_event_name(uint16_t event)
+{
+	uint8_t grp, evt;
+
+	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
+	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
+	if (grp < ESPI_VWIRE_SYSTEM_EVENT_GROUP_MIN ||
+	    grp > ESPI_VWIRE_SYSTEM_EVENT_GROUP_MAX)
+		return "UNK";
+	if (evt > 3)
+		return "UNK";
+	return espi_sys_event_names[grp-2][evt];
+}
+
+uint16_t espi_name_to_sys_event(const char *name)
+{
+	uint8_t grp, evt;
+	uint16_t event;
+
+	for (grp = ESPI_VWIRE_SYSTEM_EVENT_GROUP_MIN;
+	     grp <= ESPI_VWIRE_SYSTEM_EVENT_GROUP_MAX; grp++) {
+		for (evt = 0; evt < 4; evt++) {
+			const char *name;
+
+			event = ESPI_VWIRE_SYSTEM_EVENT(grp, evt);
+			if (strcmp(name, espi_sys_event_name(event)))
+				return event;
+		}
+	}
+	return ESPI_VWIRE_SYSTEM_UNKNOWN;
+}
+#else
+#define espi_sys_event_name(event)		NULL
+#define espi_name_to_sys_event(name)		ESPI_VWIRE_SYSTEM_UNKNOWN
+#endif
+
 uint8_t espi_state_get(void)
 {
 	return espi_state;
@@ -375,12 +422,15 @@ void espi_put_vwire(uint16_t vwire, bool state)
 	uint8_t hbuf[1] = { 0x00 };
 	uint8_t dbuf[2];
 
+	printf("%04x\n", vwire);
 	if (type == ESPI_VWIRE_SYSTEM) {
 		group = ESPI_VWIRE_SYSTEM_GROUP(vwire);
 		line = ESPI_VWIRE_SYSTEM_VWIRE(vwire);
 
-		con_dbg("espi: system event group=%d line=%d state=%s\n",
-			group, line, state ? "HIGH" : "LOW");
+		con_dbg("espi: system event (%d:%d) %s state=%s\n",
+			group, line,
+			espi_sys_event_name(vwire),
+			state ? "high" : "low");
 		dbuf[0] = group;
 		if (state)
 			dbuf[1] = ESPI_VWIRE_SYSTEM_EVENT_HIGH(line);
@@ -771,33 +821,6 @@ bool espi_sys_event_is_active_low(uint16_t event)
 
 #define espi_sys_event_is_active_high(event)	(!espi_sys_event_is_active_low(event))
 
-#ifdef CONFIG_CONSOLE_VERBOSE
-typedef const char *espi_name_t;
-static espi_name_t espi_sys_event_names[6][4] = {
-	{ "SLP_S3", "SLP_S4", "SLP_S5", "RSV" },
-	{ "SUS_STAT", "PLTRST", "OOB_RST_WARN", "RSV" },
-	{ "OOB_RST_ACK", "RST", "WAKE", "PME" },
-	{ "SLAVE_BOOT_LOAD_DONE", "ERROR_FATAL", "ERROR_NONFATAL", "SLAVE_BOOT_LOAD_STATUS" },
-	{ "SCI", "SMI", "RCIN", "HOST_RST_ACK" },
-	{ "HOST_RST_WARN", "SMIOUT", "NMIOUT", "RSV" },
-};
-
-static const char *espi_sys_event_name(uint16_t event)
-{
-	uint8_t grp, evt;
-
-	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
-	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
-	if (grp < 2 || grp > 7)
-		return "UNK";
-	if (evt > 3)
-		return "UNK";
-	return espi_sys_event_names[grp-2][evt];
-}
-#else
-#define espi_sys_event_name(event)		NULL
-#endif
-
 void espi_set_sys_event(uint16_t event)
 {
 	if (!espi_sys_event_is_set(event)) {
@@ -886,8 +909,7 @@ void espi_init(void)
 	espi_raise_event(ESPI_EVENT_INIT);
 }
 
-#if 0
-static int do_espi_read(int argc, char *argv[])
+static int do_espi_peri_get(int argc, char *argv[])
 {
 #if 0
 	caddr_t addr;
@@ -933,7 +955,7 @@ static int do_espi_read(int argc, char *argv[])
 	return -EINVAL;
 }
 
-static int do_espi_write(int argc, char *argv[])
+static int do_espi_peri_put(int argc, char *argv[])
 {
 #if 0
 	caddr_t addr;
@@ -980,23 +1002,95 @@ static int do_espi_write(int argc, char *argv[])
 	return -EINVAL;
 }
 
+static int do_espi_peri(int argc, char *argv[])
+{
+	if (argc < 3)
+		return -EINVAL;
+	if (strcmp(argv[2], "get") == 0)
+		return do_espi_peri_get(argc, argv);
+	if (strcmp(argv[2], "put") == 0)
+		return do_espi_peri_put(argc, argv);
+	return -EINVAL;
+}
+
+static int do_espi_vwire_dump(int argc, char *argv[])
+{
+	uint8_t grp, evt;
+	uint16_t event;
+
+	for (grp = ESPI_VWIRE_SYSTEM_EVENT_GROUP_MIN;
+	     grp <= ESPI_VWIRE_SYSTEM_EVENT_GROUP_MAX; grp++) {
+		for (evt = 0; evt < 4; evt++) {
+			const char *name;
+
+			event = ESPI_VWIRE_SYSTEM_EVENT(grp, evt);
+			name = espi_sys_event_name(event);
+			if (strcmp(name, "RSV") == 0)
+				continue;
+			printf("system event: (%d:%d) %s%c - %s\n", grp, evt, name,
+			       espi_sys_event_is_active_low(event) ? '#' : '\0',
+			       espi_sys_event_is_set(event) ? "high" : "low");
+		}
+	}
+	return 0;
+}
+
+static int do_espi_vwire_put(int argc, char *argv[])
+{
+	uint16_t event;
+
+	if (argc < 5)
+		return -EINVAL;
+
+	event = espi_name_to_sys_event(argv[3]);
+	if (event == ESPI_VWIRE_SYSTEM_UNKNOWN) {
+		printf("Invalid event: %s\n", argv[3]);
+		return -EINVAL;
+	}
+	if (!strcmp(argv[4], "high")) {
+		espi_deassert_vwire(event);
+		return 0;
+	}
+	if (!strcmp(argv[4], "low")) {
+		espi_assert_vwire(event);
+		return 0;
+	}
+	printf("Invalid level: %s\n", argv[4]);
+	return -EINVAL;
+}
+
+static int do_espi_vwire_get(int argc, char *argv[])
+{
+	return -EINVAL;
+}
+
+static int do_espi_vwire(int argc, char *argv[])
+{
+	if (argc < 3)
+		return -EINVAL;
+	if (strcmp(argv[2], "dump") == 0)
+		return do_espi_vwire_dump(argc, argv);
+	if (strcmp(argv[2], "put") == 0)
+		return do_espi_vwire_put(argc, argv);
+	if (strcmp(argv[2], "get") == 0)
+		return do_espi_vwire_get(argc, argv);
+	return -EINVAL;
+}
+
 static int do_espi(int argc, char *argv[])
 {
 	if (argc < 2)
 		return -EINVAL;
-	if (strcmp(argv[1], "read") == 0)
-		return do_espi_read(argc, argv);
-	if (strcmp(argv[1], "write") == 0)
-		return do_espi_write(argc, argv);
+	if (strcmp(argv[1], "vwire") == 0)
+		return do_espi_vwire(argc, argv);
+	if (strcmp(argv[1], "peri") == 0)
+		return do_espi_peri(argc, argv);
 	return -EINVAL;
 }
 
 DEFINE_COMMAND(espi, do_espi, "enhanced SPI (eSPI) commands",
-	"espi read io [1|2|4] <addr>\n"
-	"espi read mem [1|2|4] <addr>\n"
-	"    -eSPI read sequence\n"
-	"espi write io [1|2|4] <value> <addr>\n"
-	"espi write mem [1|2|4] <value> <addr>\n"
-	"    -eSPI write sequence\n"
+	"espi vwire dump\n"
+	"    -dump all vwire status\n"
+	"espi vwire put <vwire> <high|low>\n"
+	"    -put vwire level\n"
 );
-#endif
