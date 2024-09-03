@@ -466,41 +466,6 @@ static int espi_poll_status(uint32_t *status)
 	return -1;
 }
 
-int spacemit_espi_tx_vw(uint8_t *ids, uint8_t *data, int num)
-{
-	int i;
-	uint32_t status;
-	uint32_t val = 0;
-
-	if (num > 64 || num < 1)
-		return -EINVAL;
-
-	for (i = 0; i < num; i++) {
-		val |= ids[i] << ((i % 4) << 1) | data[i] << (((i % 4) << 1) + 1);
-		if ((i % 2) == 1) {
-			spacemit_espi_write32(val, ESPI_DN_TXDATA_PORT);
-			val = 0;
-		}
-	}
-
-	if ((i % 2) == 0) {
-		spacemit_espi_write32(val, ESPI_DN_TXDATA_PORT);
-	}
-
-	spacemit_espi_write_dncmd(ESPI_DNCMD_PUT_VW, 0);
-	spacemit_espi_write_txhdr(0, num);
-
-	if (espi_wait_ready() != 0)
-		return -EBUSY;
-	if (espi_poll_status(&status) != 0)
-		return -EBUSY;
-
-	/* If command did not complete downstream, return error. */
-	if (!(status & ESPI_DNCMD_INT))
-		return -EIO;
-	return 0;
-}
-
 int spacemit_espi_tx_oob(uint8_t *buf, int len)
 {
 	int i;

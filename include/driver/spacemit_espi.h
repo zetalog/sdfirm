@@ -545,6 +545,15 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg);
 	} while (0)
 #define spacemit_espi_read_vwgpio_data(group)			(__raw_readl(ESPI_SLAVE0_RXVW_DATA) && (REG_8BIT_MASK << (group << 3)))
 
+#define lpc_io_read8(a)				__raw_readb(SPACEMIT_ESPI_IO_BASE + (a))
+#define lpc_io_write8(v, a)			__raw_writeb(v, SPACEMIT_ESPI_IO_BASE + (a))
+#define lpc_mem_read8(a)			__raw_readb(SPACEMIT_ESPI_MEM_BASE + (a))
+#define lpc_mem_write8(v, a)			__raw_writeb(v, SPACEMIT_ESPI_MEM_BASE + (a))
+#define lpc_mem_read16(a)			__raw_readw(SPACEMIT_ESPI_MEM_BASE + (a))
+#define lpc_mem_write16(v, a)			__raw_writew(v, SPACEMIT_ESPI_MEM_BASE + (a))
+#define lpc_mem_read32(a)			__raw_readw(SPACEMIT_ESPI_MEM_BASE + (a))
+#define lpc_mem_write32(v, a)			__raw_writew(v, SPACEMIT_ESPI_MEM_BASE + (a))
+
 void spacemit_espi_irq_init(void);
 void spacemit_espi_handle_irq(void);
 void spacemit_espi_write_cmd(uint8_t opcode,
