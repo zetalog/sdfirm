@@ -797,14 +797,22 @@ void __espi_clear_sys_event(uint16_t event)
 	espi_sys_evt &= ~(_BV(evt) << (grp * 4));
 }
 
-void espi_sys_event_active_low(uint16_t event)
+void espi_set_sys_event_active(uint16_t event, bool active_low, bool reset_active)
 {
 	uint8_t grp, evt;
 
 	grp = ESPI_VWIRE_SYSTEM_GROUP(event);
 	evt = ESPI_VWIRE_SYSTEM_VWIRE(event);
-	espi_sys_evt_active_lows |= _BV(evt) << (grp * 4);
-	__espi_set_sys_event(event);
+	if (active_low)
+		espi_sys_evt_active_lows |= _BV(evt) << (grp * 4);
+	else
+		espi_sys_evt_active_lows &= ~(_BV(evt) << (grp * 4));
+	if (reset_active && !active_low)
+		__espi_set_sys_event(event);
+	else if (!reset_active && active_low)
+		__espi_set_sys_event(event);
+	else
+		__espi_clear_sys_event(event);
 }
 
 bool espi_sys_event_is_active_low(uint16_t event)
@@ -822,11 +830,11 @@ void espi_set_sys_event(uint16_t event)
 {
 	if (!espi_sys_event_is_set(event)) {
 		__espi_set_sys_event(event);
-		if (espi_sys_event_is_active_high(event)) {
-			con_dbg("espi: system event: %s\n",
-				espi_sys_event_name(event));
+		con_dbg("espi: system event: %s%c=high\n",
+			espi_sys_event_name(event),
+			espi_sys_event_is_active_low(event) ? '#' : '\0');
+		if (espi_sys_event_is_active_high(event))
 			espi_raise_event(ESPI_EVENT_VWIRE_SYS);
-		}
 	}
 }
 
@@ -834,11 +842,11 @@ void espi_clear_sys_event(uint16_t event)
 {
 	if (espi_sys_event_is_set(event)) {
 		__espi_clear_sys_event(event);
-		if (espi_sys_event_is_active_low(event)) {
-			con_dbg("espi: system event: %s#\n",
-				espi_sys_event_name(event));
+		con_dbg("espi: system event: %s%c=low\n",
+			espi_sys_event_name(event),
+			espi_sys_event_is_active_low(event) ? '#' : '\0');
+		if (espi_sys_event_is_active_low(event))
 			espi_raise_event(ESPI_EVENT_VWIRE_SYS);
-		}
 	}
 }
 
@@ -889,18 +897,25 @@ void espi_init(void)
 	espi_rsp = ESPI_RSP_NONE;
 	espi_chans = 0;
 
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SLP_S5);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SLP_S4);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SLP_S3);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_PLTRST);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SUS_STAT);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_PME);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_WAKE);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_RCIN);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SMI);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SCI);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_NMIOUT);
-	espi_sys_event_active_low(ESPI_VWIRE_SYSTEM_SMIOUT);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_SLP_S5, true, true);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_SLP_S4, true, true);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_SLP_S3, true, true);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_OOB_RST_WARN, false, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_PLTRST, true, true);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_SUS_STAT, true, true);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_PME, true, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_WAKE, true, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_STATUS, false, true);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_ERROR_NONFATAL, false, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_ERROR_FATAL, false, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_SLV_BOOT_LOAD_DONE, false, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_HOST_RST_ACK, false, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_RCIN, true, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_SMI, true, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_SCI, true, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_NMIOUT, true, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_SMIOUT, true, false);
+	espi_set_sys_event_active(ESPI_VWIRE_SYSTEM_HOST_RST_WARN, false, false);
 	espi_hw_ctrl_init();
 	espi_hw_hard_reset();
 	espi_raise_event(ESPI_EVENT_INIT);
