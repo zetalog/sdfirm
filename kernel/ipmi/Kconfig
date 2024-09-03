@@ -46,6 +46,15 @@ config ARCH_IS_ESPI_FREQ_25MHZ
 config ARCH_IS_ESPI_FREQ_20MHZ
 	bool
 
+config ARCH_HAS_ESPI_PERI_READ_64
+	bool
+
+config ARCH_HAS_ESPI_PERI_READ_128
+	bool
+
+config ARCH_HAS_ESPI_PERI_READ_256
+	bool
+
 config ARCH_HAS_ESPI_CRC
 	bool
 
@@ -72,23 +81,7 @@ if KCS
 
 config KCS_HIF
 	bool "Enable KCS host interface support"
-
-if KCS_HIF
-
-choice
-	prompt "Protocol"
-
-config KCS_LPC
-	bool "LPC"
 	select LPC
-
-config KCS_ESPI
-	bool "eSPI"
-	select ESPI
-
-endchoice
-
-endif
 
 config KCS_BMC
 	bool "Enable KCS BMC slave demo support"
@@ -222,12 +215,15 @@ choice
 
 config ESPI_PERI_READ_64
 	bool "64"
+	depends ARCH_HAS_ESPI_PERI_READ_64
 
 config ESPI_PERI_READ_128
 	bool "128"
+	depends ARCH_HAS_ESPI_PERI_READ_128
 
 config ESPI_PERI_READ_256
 	bool "256"
+	depends ARCH_HAS_ESPI_PERI_READ_256
 
 endchoice
 
