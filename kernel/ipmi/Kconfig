@@ -202,12 +202,26 @@ config ESPI_RSP_MOD
 	depends ARCH_HAS_ESPI_RSP_MOD
 	default y if ARCH_HAS_ESPI_RSP_MOD
 
+choice
+	prompt "Peripheral read request size"
+
+config ESPI_PERI_READ_64
+	bool "64"
+
+config ESPI_PERI_READ_128
+	bool "128"
+
+config ESPI_PERI_READ_256
+	bool "256"
+
+endchoice
+
 if ESPI_FLASH
 
 menu "eSPI flash configurations"
 
 choice
-	prompt "Flash read size"
+	prompt "Flash read request size"
 
 config ESPI_FLASH_READ_64
 	bool "64"

@@ -24,6 +24,10 @@ uint32_t espi_chan_cfgs[4];
 uint8_t espi_chans;
 uint32_t espi_sys_evt;
 uint32_t espi_sys_evt_active_lows;
+uint16_t espi_vwire;
+bool espi_vwire_assert;
+/* Allow eSPI slave to generate master enabling */
+bool espi_peri_master = true;
 
 #define espi_channel_configured(ch)	(!!(espi_chans & ESPI_CHANNEL(ch)))
 #define espi_enable_channel(ch)		(espi_chans |= ESPI_CHANNEL(ch))
@@ -58,6 +62,8 @@ const char *espi_state_names[] = {
 	"GET_FLASH",
 	"SET_FLASH",
 	"FLASH_READY",
+	"DEASSERT_SUS_STAT",
+	"G3_EXIT",
 	"HOST_RST_WARN",
 	"HOST_RST_ACK",
 	"ASSERT_PLTRST",
@@ -313,6 +319,15 @@ uint32_t espi_config_vwire_count(uint32_t cfgs)
 	return ESPI_VWIRE_MAX_COUNT_SEL(min(max_vws, ESPI_HW_VWIRE_COUNT));
 }
 
+uint32_t espi_config_peri_payload(uint32_t cfgs)
+{
+	uint32_t max_pld = 64 << ESPI_PERI_MAX_PAYLOAD_SIZE_SUP(cfgs);
+	uint32_t cfg;
+
+	cfg = __ilog2_u32(min(max_pld, ESPI_HW_PERI_SIZE) / 64);
+	return ESPI_PERI_MAX_PAYLOAD_SIZE_SEL(cfg);
+}
+
 uint32_t espi_config_oob_payload(uint32_t cfgs)
 {
 	uint32_t max_pld = 64 << ESPI_OOB_MAX_PAYLOAD_SIZE_SUP(cfgs);
@@ -368,6 +383,11 @@ uint32_t espi_nego_config(uint16_t address, uint32_t cfgs)
 	case ESPI_SLAVE_PERI_CFG:
 	default:
 		chan = ESPI_CHANNEL_PERI;
+		hwcfgs = cfgs & ESPI_PERI_CAP_MASK;
+		hwcfgs |= espi_config_peri_payload(cfgs);
+		hwcfgs |= ESPI_PERI_MAX_READ_REQ_SIZE(ESPI_PERI_READ_SIZE);
+		hwcfgs |= espi_peri_master ? ESPI_PERI_BUS_MASTER_ENABLE : 0;
+		hwcfgs |= ESPI_SLAVE_CHANNEL_ENABLE;
 		break;
 	}
 	espi_chan_cfgs[chan] = hwcfgs;
@@ -413,6 +433,20 @@ void espi_set_configuration(uint16_t address, uint32_t config)
 			     7, hbuf, 0, NULL);
 }
 
+bool espi_vwire_is_asserting(uint16_t vwire)
+{
+	if (espi_vwire != vwire)
+		return false;
+	return espi_vwire_assert;
+}
+
+bool espi_vwire_is_deasserting(uint16_t vwire)
+{
+	if (espi_vwire != vwire)
+		return false;
+	return !espi_vwire_assert;
+}
+
 void espi_put_vwire(uint16_t vwire, bool state)
 {
 	uint8_t type = ESPI_VWIRE_TYPE(vwire);
@@ -435,6 +469,11 @@ void espi_put_vwire(uint16_t vwire, bool state)
 			dbuf[1] = ESPI_VWIRE_SYSTEM_EVENT_LOW(line);
 	}
 
+	espi_vwire = vwire;
+	if (espi_sys_event_is_active_low(vwire))
+		espi_vwire_assert = !state;
+	else
+		espi_vwire_assert = state;
 	espi_write_cmd_async(ESPI_CMD_PUT_VWIRE,
 			     1, hbuf, 2, dbuf);
 }
@@ -624,7 +663,8 @@ void espi_cmd_complete(uint8_t rsp)
 	}
 }
 
-void espi_handle_probe(bool is_op)
+/* 9.5.1 Exit from G3 */
+void espi_handle_G3_exit(bool is_op)
 {
 	if (espi_cmd_is(ESPI_CMD_NONE)) {
 		espi_inband_reset();
@@ -654,6 +694,10 @@ void espi_handle_probe(bool is_op)
 	} else if (espi_state == ESPI_STATE_SET_FLASH) {
 		espi_get_configuration(ESPI_SLAVE_FLASH_CFG);
 	} else if (espi_state == ESPI_STATE_FLASH_READY) {
+		espi_deassert_vwire(ESPI_VWIRE_SYSTEM_SUS_STAT);
+	} else if (espi_state == ESPI_STATE_DEASSERT_SUS_STAT) {
+		espi_deassert_vwire(ESPI_VWIRE_SYSTEM_PLTRST);
+	} else if (espi_state == ESPI_STATE_G3_EXIT) {
 		if (is_op)
 			espi_op_success();
 	} else if (espi_state == ESPI_STATE_INVALID) {
@@ -665,7 +709,7 @@ void espi_handle_probe(bool is_op)
 void espi_handle_reset(bool is_op)
 {
 	if (espi_state == ESPI_STATE_EARLY_INIT) {
-		espi_deassert_vwire(ESPI_VWIRE_SYSTEM_HOST_RST_WARN);
+		espi_assert_vwire(ESPI_VWIRE_SYSTEM_HOST_RST_WARN);
 	} else if (espi_state == ESPI_STATE_HOST_RST_WARN) {
 		if (espi_sys_event_is_set(ESPI_VWIRE_SYSTEM_HOST_RST_ACK))
 			espi_enter_state(ESPI_STATE_HOST_RST_ACK);
@@ -692,7 +736,7 @@ void espi_handle_reset(bool is_op)
 void espi_seq_handler(void)
 {
 	if (espi_op_is(ESPI_OP_PROBE))
-		espi_handle_probe(true);
+		espi_handle_G3_exit(true);
 	if (espi_op_is(ESPI_OP_RESET))
 		espi_handle_reset(true);
 }
@@ -705,11 +749,13 @@ static void espi_async_handler(void)
 	if (espi_state >= ESPI_STATE_HOST_RST_WARN) {
 		if (flags & ESPI_EVENT_VWIRE_SYS) {
 			unraise_bits(flags, ESPI_EVENT_VWIRE_SYS);
+			if (espi_state == ESPI_STATE_HOST_RST_WARN)
+				espi_enter_state(ESPI_STATE_HOST_RST_ACK);
 		}
 	}
 	if (flags & ESPI_EVENT_INIT) {
 		unraise_bits(flags, ESPI_EVENT_INIT);
-		espi_auto_probe();
+		espi_auto_G3_exit();
 	} else if (flags & ESPI_EVENT_ACCEPT) {
 		unraise_bits(flags, ESPI_EVENT_ACCEPT);
 		if (espi_cmd_is(ESPI_CMD_RESET))
@@ -741,10 +787,8 @@ static void espi_async_handler(void)
 				espi_enter_state(ESPI_STATE_GET_FLASH);
 			else if (!espi_channel_ready(ESPI_CHANNEL_FLASH))
 				espi_enter_state(ESPI_STATE_SET_FLASH);
-			else {
+			else
 				espi_enter_state(ESPI_STATE_FLASH_READY);
-				espi_auto_reset();
-			}
 		} else if (espi_cmd_is_set(ESPI_SLAVE_FLASH_CFG))
 			espi_enter_state(ESPI_STATE_SET_FLASH);
 		else if (espi_cmd_is_get(ESPI_SLAVE_PERI_CFG)) {
@@ -756,6 +800,25 @@ static void espi_async_handler(void)
 				espi_enter_state(ESPI_STATE_LATE_INIT);
 		} else if (espi_cmd_is_set(ESPI_SLAVE_PERI_CFG))
 			espi_enter_state(ESPI_STATE_SET_PERI);
+		else if (espi_cmd_is(ESPI_CMD_PUT_VWIRE)) {
+			if (espi_cmd_is_deassert(ESPI_VWIRE_SYSTEM_SUS_STAT)) {
+				espi_set_sys_event(ESPI_VWIRE_SYSTEM_SUS_STAT);
+				espi_enter_state(ESPI_STATE_DEASSERT_SUS_STAT);
+			} else if (espi_cmd_is_deassert(ESPI_VWIRE_SYSTEM_PLTRST)) {
+				espi_set_sys_event(ESPI_VWIRE_SYSTEM_PLTRST);
+				if (espi_state == ESPI_STATE_DEASSERT_SUS_STAT) {
+					espi_enter_state(ESPI_STATE_G3_EXIT);
+					espi_auto_reset();
+				} else if (espi_state == ESPI_STATE_ASSERT_PLTRST)
+					espi_enter_state(ESPI_STATE_DEASSERT_PLTRST);
+			} else if (espi_cmd_is_assert(ESPI_VWIRE_SYSTEM_HOST_RST_WARN)) {
+				espi_set_sys_event(ESPI_VWIRE_SYSTEM_HOST_RST_WARN);
+				espi_enter_state(ESPI_STATE_HOST_RST_WARN);
+			} else if (espi_cmd_is_assert(ESPI_VWIRE_SYSTEM_PLTRST)) {
+				espi_clear_sys_event(ESPI_VWIRE_SYSTEM_PLTRST);
+				espi_enter_state(ESPI_STATE_ASSERT_PLTRST);
+			}
+		}
 	} else if (flags & ESPI_EVENT_REJECT) {
 		unraise_bits(flags, ESPI_EVENT_REJECT);
 		espi_enter_state(ESPI_STATE_INVALID);
@@ -1060,11 +1123,11 @@ static int do_espi_vwire_put(int argc, char *argv[])
 		return -EINVAL;
 	}
 	if (!strcmp(argv[4], "high")) {
-		espi_deassert_vwire(event);
+		espi_put_vwire(event, true);
 		return 0;
 	}
 	if (!strcmp(argv[4], "low")) {
-		espi_assert_vwire(event);
+		espi_put_vwire(event, false);
 		return 0;
 	}
 	printf("Invalid level: %s\n", argv[4]);

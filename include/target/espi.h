@@ -236,7 +236,11 @@
 #define ESPI_PERI_MAX_PAYLOAD_SIZE_SUP_OFFSET	4
 #define ESPI_PERI_MAX_PAYLOAD_SIZE_SUP_MASK	REG_3BIT_MASK
 #define ESPI_PERI_MAX_PAYLOAD_SIZE_SUP(value)	_GET_FV(ESPI_PERI_MAX_PAYLOAD_SIZE_SUP, value)
+#define espi_peri_max_payload_size_sup(value)	_SET_FV(ESPI_PERI_MAX_PAYLOAD_SIZE_SUP, value)
 #define ESPI_PERI_BUS_MASTER_ENABLE		_BV(2)
+#define ESPI_PERI_CAP_MASK			\
+	(ESPI_SLAVE_CHANNEL_READY |		\
+	 espi_peri_max_payload_size_sup(ESPI_PERI_MAX_PAYLOAD_SIZE_SUP_MASK))
 
 /* 7.2.1.5 Offset 20h: Channel 1 Capabilities and Configurations */
 #define ESPI_SLAVE_VWIRE_CFG			0x20
@@ -475,6 +479,15 @@ static inline void espi_show_slave_peripheral_channel_configuration(uint32_t con
 #define ESPI_ALL_CHAN			\
 	(ESPI_PERI_CHAN | ESPI_VW_CHAN | ESPI_OOB_CHAN | ESPI_FLASH_CHAN)
 
+#ifdef CONFIG_ESPI_PERI_READ_64
+#define ESPI_PERI_READ_SIZE		64
+#endif
+#ifdef CONFIG_ESPI_PERI_READ_128
+#define ESPI_PERI_READ_SIZE		128
+#endif
+#ifdef CONFIG_ESPI_PERI_READ_256
+#define ESPI_PERI_READ_SIZE		256
+#endif
 #ifdef CONFIG_ESPI_FLASH_READ_64
 #define ESPI_FLASH_READ_SIZE		64
 #endif
@@ -526,14 +539,16 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define ESPI_STATE_GET_FLASH		0x0A
 #define ESPI_STATE_SET_FLASH		0x0B
 #define ESPI_STATE_FLASH_READY		0x0C
-#define ESPI_STATE_EARLY_INIT		ESPI_STATE_FLASH_READY
-#define ESPI_STATE_HOST_RST_WARN	0x0D
-#define ESPI_STATE_HOST_RST_ACK		0x0E
-#define ESPI_STATE_ASSERT_PLTRST	0x0F
-#define ESPI_STATE_DEASSERT_PLTRST	0x10
-#define ESPI_STATE_GET_PERI		0x11
-#define ESPI_STATE_SET_PERI		0x12
-#define ESPI_STATE_PERI_READY		0x13
+#define ESPI_STATE_DEASSERT_SUS_STAT	0x0D
+#define ESPI_STATE_G3_EXIT		0x0E
+#define ESPI_STATE_EARLY_INIT		ESPI_STATE_G3_EXIT
+#define ESPI_STATE_HOST_RST_WARN	0x0F
+#define ESPI_STATE_HOST_RST_ACK		0x10
+#define ESPI_STATE_ASSERT_PLTRST	0x11
+#define ESPI_STATE_DEASSERT_PLTRST	0x12
+#define ESPI_STATE_GET_PERI		0x13
+#define ESPI_STATE_SET_PERI		0x14
+#define ESPI_STATE_PERI_READY		0x15
 #define ESPI_STATE_LATE_INIT		ESPI_STATE_PERI_READY
 #define ESPI_STATE_INVALID		0xFF
 
@@ -563,11 +578,17 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define espi_cmd_is_set(addr)				\
 	(espi_cmd_is(ESPI_CMD_SET_CONFIGURATION) &&	\
 	 espi_addr == (addr))
+#define espi_cmd_is_assert(vwire)			\
+	(espi_cmd_is(ESPI_CMD_PUT_VWIRE) &&		\
+	 espi_vwire_is_asserting(vwire))
+#define espi_cmd_is_deassert(vwire)			\
+	(espi_cmd_is(ESPI_CMD_PUT_VWIRE) &&		\
+	 espi_vwire_is_deasserting(vwire))
 
 #define espi_op_success()		espi_op_complete(true)
 #define espi_op_failure()		espi_op_complete(false)
 
-#define espi_auto_probe()		espi_start_op(ESPI_OP_PROBE, NULL)
+#define espi_auto_G3_exit()		espi_start_op(ESPI_OP_PROBE, NULL)
 #define espi_auto_reset()		espi_start_op(ESPI_OP_RESET, NULL)
 
 #define espi_get_gen()			espi_get_config(ESPI_SLAVE_GEN_CFG)
@@ -581,8 +602,20 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define espi_set_oob()			espi_set_config(ESPI_SLAVE_OOB_CFG)
 #define espi_set_flash()		espi_set_config(ESPI_SLAVE_FLASH_CFG)
 
-#define espi_assert_vwire(vwire)	espi_put_vwire(vwire, false)
-#define espi_deassert_vwire(vwire)	espi_put_vwire(vwire, true)
+#define espi_assert_vwire(vwire)				\
+	do {							\
+		if (espi_sys_event_is_active_low(vwire))	\
+			espi_put_vwire(vwire, false);		\
+		else						\
+			espi_put_vwire(vwire, true);		\
+	} while (0)
+#define espi_deassert_vwire(vwire)				\
+	do {							\
+		if (espi_sys_event_is_active_low(vwire))	\
+			espi_put_vwire(vwire, true);		\
+		else						\
+			espi_put_vwire(vwire, false);		\
+	} while (0)
 
 #include <driver/espi.h>
 
@@ -624,5 +657,8 @@ void espi_set_config(uint16_t address);
 void espi_set_sys_event(uint16_t event);
 void espi_clear_sys_event(uint16_t event);
 bool espi_sys_event_is_set(uint16_t event);
+bool espi_sys_event_is_active_low(uint16_t event);
+bool espi_vwire_is_asserting(uint16_t vwire);
+bool espi_vwire_is_deasserting(uint16_t vwire);
 
 #endif /* __ESPI_H_INCLUDE__ */
