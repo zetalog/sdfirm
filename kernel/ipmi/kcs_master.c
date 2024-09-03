@@ -1,12 +1,7 @@
 #include <target/kcs.h>
 #include <target/cmdline.h>
 #include <target/barrier.h>
-#ifdef CONFIG_KCS_LPC
 #include <target/lpc.h>
-#endif
-#ifdef CONFIG_KCS_ESPI
-#include <target/espi.h>
-#endif
 #include <target/console.h>
 
 uint8_t kcs_phase;
