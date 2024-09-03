@@ -185,10 +185,8 @@ uint16_t espi_name_to_sys_event(const char *name)
 	for (grp = ESPI_VWIRE_SYSTEM_EVENT_GROUP_MIN;
 	     grp <= ESPI_VWIRE_SYSTEM_EVENT_GROUP_MAX; grp++) {
 		for (evt = 0; evt < 4; evt++) {
-			const char *name;
-
 			event = ESPI_VWIRE_SYSTEM_EVENT(grp, evt);
-			if (strcmp(name, espi_sys_event_name(event)))
+			if (!strcmp(name, espi_sys_event_name(event)))
 				return event;
 		}
 	}
@@ -422,12 +420,11 @@ void espi_put_vwire(uint16_t vwire, bool state)
 	uint8_t hbuf[1] = { 0x00 };
 	uint8_t dbuf[2];
 
-	printf("%04x\n", vwire);
 	if (type == ESPI_VWIRE_SYSTEM) {
 		group = ESPI_VWIRE_SYSTEM_GROUP(vwire);
 		line = ESPI_VWIRE_SYSTEM_VWIRE(vwire);
 
-		con_dbg("espi: system event (%d:%d) %s state=%s\n",
+		con_dbg("espi: system event (%d:%d) %s level=%s\n",
 			group, line,
 			espi_sys_event_name(vwire),
 			state ? "high" : "low");
