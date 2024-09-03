@@ -67,13 +67,28 @@ if IPMI
 
 config KCS
 	bool "Keyboard Control Service (KCS) support"
-	select LPC
 
 if KCS
 
 config KCS_HIF
 	bool "Enable KCS host interface support"
+
+if KCS_HIF
+
+choice
+	prompt "Protocol"
+
+config KCS_LPC
+	bool "LPC"
 	select LPC
+
+config KCS_ESPI
+	bool "eSPI"
+	select ESPI
+
+endchoice
+
+endif
 
 config KCS_BMC
 	bool "Enable KCS BMC slave demo support"
