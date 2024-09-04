@@ -4,4 +4,18 @@
 #include <target/generic.h>
 #include <driver/lpc.h>
 
+#define lpc_io_read8(a)		lpc_hw_io_read8(a)
+#define lpc_io_write8(v, a)	lpc_hw_io_write8(v, a)
+#define lpc_mem_read8(a)	lpc_hw_mem_read8(a)
+#define lpc_mem_write8(v, a)	lpc_hw_mem_write8(v, a)
+#define lpc_mem_read16(a)	lpc_hw_mem_read16(a)
+#define lpc_mem_write16(v, a)	lpc_hw_mem_write16(v, a)
+#define lpc_mem_read32(a)	lpc_hw_mem_read32(a)
+#define lpc_mem_write32(v, a)	lpc_hw_mem_write32(v, a)
+
+#define lpc_clear_irq(irq)	lpc_hw_irq_clear(irq)
+#define lpc_mask_irq(irq)	lpc_hw_irq_mask(irq)
+#define lpc_unmask_irq(irq)	lpc_hw_irq_unmask(irq)
+#define lpc_get_irq(irq)	lpc_hw_irq_status(irq)
+
 #endif /* __LPC_H_INCLUDE__ */

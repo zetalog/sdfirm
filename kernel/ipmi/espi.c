@@ -797,7 +797,7 @@ static void espi_async_handler(void)
 			else if (!espi_channel_ready(ESPI_CHANNEL_PERI))
 				espi_enter_state(ESPI_STATE_SET_PERI);
 			else
-				espi_enter_state(ESPI_STATE_LATE_INIT);
+				espi_enter_state(ESPI_STATE_PERI_READY);
 		} else if (espi_cmd_is_set(ESPI_SLAVE_PERI_CFG))
 			espi_enter_state(ESPI_STATE_SET_PERI);
 		else if (espi_cmd_is(ESPI_CMD_PUT_VWIRE)) {

@@ -189,14 +189,14 @@
 #define lpc_serirq_disable()			__raw_clearl(LPC_CFG_SERIRQ_EN, LPC_CFG)
 
 #ifdef CONFIG_SPACEMIT_LPC_BRIDGE
-#define lpc_io_read8(a)				__raw_readb(SPACEMIT_LPC_IO_BASE + (a))
-#define lpc_io_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_IO_BASE + (a))
-#define lpc_mem_read8(a)			__raw_readb(SPACEMIT_LPC_MEM_BASE + (a))
-#define lpc_mem_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_MEM_BASE + (a))
-#define lpc_mem_read16(a)			__raw_readw(SPACEMIT_LPC_MEM_BASE + (a))
-#define lpc_mem_write16(v, a)			__raw_writew(v, SPACEMIT_LPC_MEM_BASE + (a))
-#define lpc_mem_read32(a)			__raw_readw(SPACEMIT_LPC_MEM_BASE + (a))
-#define lpc_mem_write32(v, a)			__raw_writew(v, SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_hw_io_read8(a)			__raw_readb(SPACEMIT_LPC_IO_BASE + (a))
+#define lpc_hw_io_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_IO_BASE + (a))
+#define lpc_hw_mem_read8(a)			__raw_readb(SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_hw_mem_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_hw_mem_read16(a)			__raw_readw(SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_hw_mem_write16(v, a)		__raw_writew(v, SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_hw_mem_read32(a)			__raw_readw(SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_hw_mem_write32(v, a)		__raw_writew(v, SPACEMIT_LPC_MEM_BASE + (a))
 #define lpc_mem_init()				__raw_setl(LPC_MEM_CYCLE, LPC_MEM_CFG)
 #else
 #define __lpc_io_read8(a)							\
@@ -217,8 +217,8 @@
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);			\
 	} while (0)
 
-void lpc_io_write8(uint8_t v, uint16_t a);
-uint8_t lpc_io_read8(uint16_t a);
+void lpc_hw_io_write8(uint8_t v, uint16_t a);
+uint8_t lpc_hw_io_read8(uint16_t a);
 
 #define ____lpc_mem_read8(a)							\
 	do {									\
@@ -322,19 +322,19 @@ uint8_t lpc_io_read8(uint16_t a);
 		__raw_writel(LPC_CMD_OP_WRITE, LPC_CMD_OP);			\
 	} while (0)
 
-void lpc_mem_write8(uint8_t v, uint32_t a);
-uint8_t lpc_mem_read8(uint32_t a);
-void lpc_mem_write16(uint16_t v, uint32_t a);
-uint16_t lpc_mem_read16(uint32_t a);
-void lpc_mem_write32(uint32_t v, uint32_t a);
-uint32_t lpc_mem_read32(uint32_t a);
+void lpc_hw_mem_write8(uint8_t v, uint32_t a);
+uint8_t lpc_hw_mem_read8(uint32_t a);
+void lpc_hw_mem_write16(uint16_t v, uint32_t a);
+uint16_t lpc_hw_mem_read16(uint32_t a);
+void lpc_hw_mem_write32(uint32_t v, uint32_t a);
+uint32_t lpc_hw_mem_read32(uint32_t a);
 #define lpc_mem_init()				do {} while (0)
 #endif /* CONFIG_SPACEMIT_LPC_BRIDGE */
 
-#define lpc_clear_int(irq)			__raw_setl(irq, LPC_INT_CLR)
-#define lpc_get_irq(irq)			(!!(__raw_readl(LPC_INT_STATUS) & irq))
-#define lpc_mask_irq(irq)			__raw_setl(irq, LPC_INT_MASK)
-#define lpc_unmask_irq(irq)			__raw_clearl(irq, LPC_INT_MASK)
+#define lpc_hw_irq_clear(irq)			__raw_setl(irq, LPC_INT_CLR)
+#define lpc_hw_irq_status(irq)			(!!(__raw_readl(LPC_INT_STATUS) & irq))
+#define lpc_hw_irq_mask(irq)			__raw_setl(irq, LPC_INT_MASK)
+#define lpc_hw_irq_unmask(irq)			__raw_clearl(irq, LPC_INT_MASK)
 #define lpc_mask_all_irqs()			__raw_writel(0xffffffff, LPC_INT_MASK)
 #define lpc_get_raw_irq(irq)			(!!(__raw_readl(LPC_INT_RAW_STATUS) & _BV(irq)))
 #define lpc_count_init()							\
