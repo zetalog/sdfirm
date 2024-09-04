@@ -447,6 +447,9 @@ bool espi_vwire_is_deasserting(uint16_t vwire)
 	return !espi_vwire_assert;
 }
 
+//void espi_put_oob(...)
+//void espi_put_flash(...)
+
 void espi_put_vwire(uint16_t vwire, bool state)
 {
 	uint8_t type = ESPI_VWIRE_TYPE(vwire);
