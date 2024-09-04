@@ -1134,11 +1134,6 @@ static int do_espi_vwire_put(int argc, char *argv[])
 	return -EINVAL;
 }
 
-static int do_espi_vwire_get(int argc, char *argv[])
-{
-	return -EINVAL;
-}
-
 static int do_espi_vwire(int argc, char *argv[])
 {
 	if (argc < 3)
@@ -1147,8 +1142,6 @@ static int do_espi_vwire(int argc, char *argv[])
 		return do_espi_vwire_dump(argc, argv);
 	if (strcmp(argv[2], "put") == 0)
 		return do_espi_vwire_put(argc, argv);
-	if (strcmp(argv[2], "get") == 0)
-		return do_espi_vwire_get(argc, argv);
 	return -EINVAL;
 }
 
@@ -1156,16 +1149,14 @@ static int do_espi(int argc, char *argv[])
 {
 	if (argc < 2)
 		return -EINVAL;
-	if (strcmp(argv[1], "vwire") == 0)
+	if (strcmp(argv[1], "sys") == 0)
 		return do_espi_vwire(argc, argv);
-	if (strcmp(argv[1], "peri") == 0)
-		return do_espi_peri(argc, argv);
 	return -EINVAL;
 }
 
 DEFINE_COMMAND(espi, do_espi, "enhanced SPI (eSPI) commands",
-	"espi vwire dump\n"
-	"    -dump all vwire status\n"
-	"espi vwire put <vwire> <high|low>\n"
-	"    -put vwire level\n"
+	"espi sys dump\n"
+	"    -dump all vwire system event status\n"
+	"espi sys put <vwire> <high|low>\n"
+	"    -put vwire system event level\n"
 );
