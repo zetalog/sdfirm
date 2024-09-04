@@ -2,6 +2,10 @@
 #include <target/cmdline.h>
 #include <target/console.h>
 
+#ifndef CONFIG_DDR
+struct ddr_slot ddr_slot_ctrl;
+#endif
+
 const char rdimm_test_spd[512] = {
 	0x23, 0x12, 0x0c, 0x01, 0x85, 0x21, 0x00, 0x08,
 	0x00, 0x60, 0x00, 0x03, 0x01, 0x0b, 0x80, 0x00,
@@ -440,7 +444,7 @@ static void ddr_spd_dump(const uint8_t *buf)
 static int do_spd_dump(int argc, char *argv[])
 {
 	ddr_sid_t slot, sslot;
-	uint8_t smbus;
+	uint8_t smbus = 0;
 
 	if (argc < 3)
 		return -EINVAL;

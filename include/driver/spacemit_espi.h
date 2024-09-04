@@ -152,6 +152,7 @@
 #define ESPI_WAIT_CNT(n)			_SET_FV(ESPI_WAIT_CNT, n)
 #define ESPI_WDG_CNT_OFFSET			8
 #define ESPI_WDG_CNT_MASK			REG_16BIT_MASK
+#define ESPI_WDG_CNT_MAX			REG_16BIT_MASK
 #define ESPI_WDG_CNT(n)				_SET_FV(ESPI_WDG_CNT, n)
 #define ESPI_MST_IDLE_CNT_OFFSET		4
 #define ESPI_MST_IDLE_CNT_MASK			REG_3BIT_MASK
@@ -159,6 +160,23 @@
 #define ESPI_MST_STOP_EN			_BV(3)
 #define ESPI_WAIT_CHK_EN			_BV(1)
 #define ESPI_WDG_EN				_BV(0)
+
+#define spacemit_espi_config_wait(cnt)			\
+	spacemit_espi_write32_mask(ESPI_WAIT_CNT(cnt),	\
+		ESPI_WAIT_CNT(ESPI_WAIT_CNT_MASK),	\
+		ESPI_GLOBAL_CONTROL_0)
+#define spacemit_espi_enable_wait()			\
+	spacemit_espi_set32(ESPI_WAIT_CHK_EN, ESPI_GLOBAL_CONTROL_0)
+#define spacemit_espi_disable_wait()			\
+	spacemit_espi_clear32(ESPI_WAIT_CHK_EN, ESPI_GLOBAL_CONTROL_0)
+#define spacemit_espi_config_wdg(cnt)			\
+	spacemit_espi_write32_mask(ESPI_WDG_CNT(cnt),	\
+		ESPI_WDG_CNT(ESPI_WDG_CNT_MASK),	\
+		ESPI_GLOBAL_CONTROL_0)
+#define spacemit_espi_enable_wdg()			\
+	spacemit_espi_set32(ESPI_WDG_EN, ESPI_GLOBAL_CONTROL_0)
+#define spacemit_espi_disable_wdg()			\
+	spacemit_espi_clear32(ESPI_WDG_EN, ESPI_GLOBAL_CONTROL_0)
 
 /* GLOBAL_CONTROL_1 */
 #define ESPI_NP_FORCE_EN			_BV(7)

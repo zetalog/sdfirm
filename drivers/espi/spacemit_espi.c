@@ -851,6 +851,8 @@ void spacemit_espi_config_gating(void)
 
 void spacemit_espi_init(void)
 {
+	spacemit_espi_config_wdg(ESPI_WDG_CNT_MAX);
+	spacemit_espi_enable_wdg();
 	spacemit_espi_soft_reset();
 	spacemit_espi_config_gating();
 }
@@ -870,6 +872,32 @@ static int do_espi_mem(int argc, char *argv[])
 		address = address0 + ESPI_MEM_SIZE;
 	address1 = HIBYTE(HIWORD(address));
 	spacemit_espi_mem_cfg(address0, address1);
+	return 0;
+}
+
+static int do_espi_wait(int argc, char *argv[])
+{
+	if (argc < 3)
+		return -EINVAL;
+	if (!strcmp(argv[2], "on"))
+		spacemit_espi_enable_wait();
+	else if (!strcmp(argv[2], "off"))
+		spacemit_espi_disable_wait();
+	else
+		return -EINVAL;
+	return 0;
+}
+
+static int do_espi_wdg(int argc, char *argv[])
+{
+	if (argc < 3)
+		return -EINVAL;
+	if (!strcmp(argv[2], "on"))
+		spacemit_espi_enable_wdg();
+	else if (!strcmp(argv[2], "off"))
+		spacemit_espi_disable_wdg();
+	else
+		return -EINVAL;
 	return 0;
 }
 
@@ -921,6 +949,10 @@ static int do_espi(int argc, char *argv[])
 		return -EINVAL;
 	if (strcmp(argv[1], "mem") == 0)
 		return do_espi_mem(argc, argv);
+	else if (strcmp(argv[1], "wdg") == 0)
+		return do_espi_wdg(argc, argv);
+	else if (strcmp(argv[1], "wait") == 0)
+		return do_espi_wait(argc, argv);
 	else if (strcmp(argv[1], "send") == 0)
 		return do_espi_send(argc, argv);
 	else if (strcmp(argv[1], "recv") == 0)
@@ -931,6 +963,10 @@ static int do_espi(int argc, char *argv[])
 DEFINE_COMMAND(spacemit_espi, do_espi, "SpacemiT enhanced SPI commands",
 	"spacemit_espi mem <address0> [address1]\n"
 	"    -config eSPI memory translation\n"
+	"spacemit_espi wdg on|off\n"
+	"    -enable/disable watchdog counter\n"
+	"spacemit_espi wait on|off\n"
+	"    -enable/disable wait counter\n"
 	"spacemit_espi send oob <val> <len>\n"
 	"spacemit_espi recv vw\n"
 	"spacemit_espi recv oob\n"

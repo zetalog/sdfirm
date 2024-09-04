@@ -46,7 +46,7 @@ obj-$(CONFIG_NET) += net/
 obj-$(CONFIG_VIDEO) += video/
 obj-y += mmc/
 obj-$(CONFIG_IOMMU) += iommu/
-obj-$(CONFIG_DDR) += ddr/
+obj-y += ddr/
 
 obj-$(CONFIG_PERF) += perf.rel
 obj-$(CONFIG_FDT) += fdt/
