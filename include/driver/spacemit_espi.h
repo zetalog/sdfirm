@@ -606,21 +606,6 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcod,
 			       uint8_t hlen, uint8_t *hbuf,
 			       uint8_t dlen, uint8_t *dbuf);
 void spacemit_espi_set_cfg(uint32_t address, uint32_t config);
-
-int espi_open_io_window(uint16_t base, size_t size);
-int espi_open_mmio_window(uint32_t base, size_t size);
-
-/*
- * In cases where eSPI BAR is statically provided by SoC, use that BAR instead of reading
- * SPIBASE. This is required for cases where verstage runs on PSP.
- */
-void espi_update_static_bar(uintptr_t bar);
-
-int spacemit_espi_tx_vw(uint8_t *ids, uint8_t *data, int num);
-int spacemit_espi_tx_oob(uint8_t *buf, int len);
-int spacemit_espi_rx_oob(uint8_t *buf);
-int espi_send_oob_mctp(uint8_t *buf, int len);
-
 void spacemit_espi_init(void);
 
 #endif /* __SPACEMIT_EPSI_H_INCLUDE__ */
