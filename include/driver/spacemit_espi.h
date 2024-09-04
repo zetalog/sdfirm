@@ -452,6 +452,8 @@ struct espi_config {
 
 uint32_t spacemit_espi_read32(caddr_t reg);
 void spacemit_espi_write32(uint32_t val, caddr_t reg);
+uint8_t spacemit_espi_read8(caddr_t reg);
+void spacemit_espi_write8(uint8_t val, caddr_t reg);
 #define spacemit_espi_set32(v,a)				\
 	do {							\
 		uint32_t __v = spacemit_espi_read32(a);		\
@@ -538,36 +540,51 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg);
 	ESPI_PR_MAX_SIZE(spacemit_espi_read32(ESPI_MASTER_CAP))
 
 #define spacemit_espi_get_vwirq(irq)				(__raw_readl(ESPI_SLAVE0_RXVW_STS) & _BV(irq))
-#define spacemit_espi_ack_vwirq(irq)				__raw_setl(_BV(irq), ESPI_SLAVE0_RXVW_STS)
-#define spacemit_espi_mask_vwirq(irq)				__raw_setl(SLAVE0_VW_CTL_IRQ_MASK(irq), ESPI_SLAVE0_VW_CTL)
-#define spacemit_espi_unmask_vwirq(irq)				__raw_clearl(SLAVE0_VW_CTL_IRQ_MASK(irq), ESPI_SLAVE0_VW_CTL)
-#define spacemit_espi_config_vwirq(irq, polarity)		__raw_writel((polarity) | SLAVE0_VW_POLARITY_IRQ_POLARITY(irq), SLAVE0_VW_POLARITY)
-#define spacemit_espi_enable_vwgpio(group)			__raw_setl(SLAVE0_VW_CTL_GRP_EN(group), ESPI_SLAVE0_VW_CTL)
-#define spacemit_espi_disable_vwgpio(group)			__raw_clearl(SLAVE0_VW_CTL_GRP_EN(group), ESPI_SLAVE0_VW_CTL)
+#define spacemit_espi_ack_vwirq(irq)				__raw_writel(_BV(irq), ESPI_SLAVE0_RXVW_STS)
+#define spacemit_espi_mask_vwirq(irq)				spacemit_espi_set32(SLAVE0_VW_CTL_IRQ_MASK(irq), ESPI_SLAVE0_VW_CTL)
+#define spacemit_espi_unmask_vwirq(irq)				spacemit_espi_clear32(SLAVE0_VW_CTL_IRQ_MASK(irq), ESPI_SLAVE0_VW_CTL)
+/* polarity = 1 means HIGH */
+#define spacemit_espi_vwirq_polarity(irq, polarity)		\
+	do {							\
+		if (polarity)					\
+			spacemit_espi_set32(_BV(irq),		\
+				ESPI_SLAVE0_VW_POLARITY);	\
+		else						\
+			spacemit_espi_clear32(_BV(irq),		\
+				ESPI_SLAVE0_VW_POLARITY);	\
+	} while (0)
+#define spacemit_espi_enable_vwgpio(group)			spacemit_espi_set32(SLAVE0_VW_CTL_GRP_EN(group), ESPI_SLAVE0_VW_CTL)
+#define spacemit_espi_disable_vwgpio(group)			spacemit_espi_clear32(SLAVE0_VW_CTL_GRP_EN(group), ESPI_SLAVE0_VW_CTL)
 #define spacemit_espi_config_vwgpio_index(group, vmindex)				\
 	do {										\
 		if (group == 0)								\
-			__raw_writel_mask(SLAVE0_RXVW_INDEX_GRP0(vmindex), 		\
+			spacemit_espi_write32_mask(SLAVE0_RXVW_INDEX_GRP0(vmindex), 	\
 				SLAVE0_RXVW_INDEX_GRP0(SLAVE0_RXVW_INDEX_GRP0_MASK), 	\
 				ESPI_SLAVE0_RXVW_INDEX);				\
 		if (group == 1)								\
-			__raw_writel_mask(SLAVE0_RXVW_INDEX_GRP1(vmindex), 		\
+			spacemit_espi_write32_mask(SLAVE0_RXVW_INDEX_GRP1(vmindex), 	\
 				SLAVE0_RXVW_INDEX_GRP1(SLAVE0_RXVW_INDEX_GRP1_MASK), 	\
 				ESPI_SLAVE0_RXVW_INDEX);				\
 		if (group == 2)								\
-			__raw_writel_mask(SLAVE0_RXVW_INDEX_GRP2(vmindex), 		\
+			spacemit_espi_write32_mask(SLAVE0_RXVW_INDEX_GRP2(vmindex), 	\
 				SLAVE0_RXVW_INDEX_GRP2(SLAVE0_RXVW_INDEX_GRP2_MASK), 	\
 				ESPI_SLAVE0_RXVW_INDEX);				\
 		if (group == 3)								\
-			__raw_writel_mask(SLAVE0_RXVW_INDEX_GRP3(vmindex), 		\
+			spacemit_espi_write32_mask(SLAVE0_RXVW_INDEX_GRP3(vmindex), 	\
 				SLAVE0_RXVW_INDEX_GRP3(SLAVE0_RXVW_INDEX_GRP3_MASK), 	\
 				ESPI_SLAVE0_RXVW_INDEX);				\
 	} while (0)
-#define spacemit_espi_read_vwgpio_data(group)			(__raw_readl(ESPI_SLAVE0_RXVW_DATA) && (REG_8BIT_MASK << (group << 3)))
+#define spacemit_espi_read_vwgpio_data(group)			\
+	(spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) && (REG_8BIT_MASK << (group << 3)))
 
 #define ESPI_MEM_SIZE				SZ_16M
+#ifdef CONFIG_SPACEMIT_ESPI_DEBUG_IO
+#define spacemit_espi_io_read8(a)		spacemit_espi_read8(SPACEMIT_ESPI_IO_BASE + (a))
+#define spacemit_espi_io_write8(v, a)		spacemit_espi_write8(v, SPACEMIT_ESPI_IO_BASE + (a))
+#else
 #define spacemit_espi_io_read8(a)		__raw_readb(SPACEMIT_ESPI_IO_BASE + (a))
 #define spacemit_espi_io_write8(v, a)		__raw_writeb(v, SPACEMIT_ESPI_IO_BASE + (a))
+#endif
 #define spacemit_espi_mem_read8(a)		__raw_readb(SPACEMIT_ESPI_MEM_BASE + (a))
 #define spacemit_espi_mem_write8(v, a)		__raw_writeb(v, SPACEMIT_ESPI_MEM_BASE + (a))
 #define spacemit_espi_mem_read16(a)		__raw_readw(SPACEMIT_ESPI_MEM_BASE + (a))
@@ -603,9 +620,6 @@ int spacemit_espi_tx_vw(uint8_t *ids, uint8_t *data, int num);
 int spacemit_espi_tx_oob(uint8_t *buf, int len);
 int spacemit_espi_rx_oob(uint8_t *buf);
 int espi_send_oob_mctp(uint8_t *buf, int len);
-
-void espi_register_rxvw_callback(void *callback);
-void espi_register_rxoob_callback(void *callback, void *buffer);
 
 void spacemit_espi_init(void);
 
