@@ -23,6 +23,10 @@ menuconfig SPACEMIT_ESPI
 
 if SPACEMIT_ESPI
 
+config SPACEMIT_ESPI_DEBUG_IO
+	bool "Enable IO register debugging"
+	depends CONSOLE_DEBUG
+
 endif
 
 endmenu

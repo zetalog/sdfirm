@@ -61,6 +61,21 @@ void spacemit_espi_write32(uint32_t val, caddr_t reg)
 	__raw_writel(val, reg);
 }
 
+uint8_t spacemit_espi_read8(caddr_t reg)
+{
+	uint8_t val;
+
+	val = __raw_readb(reg);
+	con_dbg("spacemit_espi: R %016lx=%02x\n", reg, val);
+	return val;
+}
+
+void spacemit_espi_write8(uint8_t val, caddr_t reg)
+{
+	con_dbg("spacemit_espi: W %016lx=%02x\n", reg, val);
+	__raw_writeb(val, reg);
+}
+
 static inline void espi_wdg_enable(void)
 {
 	spacemit_espi_set32(ESPI_WDG_EN, ESPI_GLOBAL_CONTROL_0);
@@ -666,9 +681,9 @@ void spacemit_espi_handle_vwirq(void)
 			con_log("spacemit_espi: VW_SYS: SUS_ACK\n");
 	}
 	for (irq = 0; irq < 24; irq++) {
-		if (sts & SLAVE0_RXVW_STS_IRQ_STS(irq)) {
+		if (spacemit_espi_get_vwirq(irq)) {
 			con_log("spacemit_espi: VW_IRQ: %d\n", irq);
-			__raw_setl(SLAVE0_RXVW_STS_IRQ_STS(irq), ESPI_SLAVE0_RXVW_STS);
+			spacemit_espi_ack_vwirq(irq);
 		}
 	}
 }
@@ -900,6 +915,22 @@ static int do_espi_wdg(int argc, char *argv[])
 	return 0;
 }
 
+static int do_espi_irq(int argc, char *argv[])
+{
+	uint8_t irq;
+
+	if (argc < 4)
+		return -EINVAL;
+	irq = (uint8_t)strtoull(argv[2], 0, 0);
+	if (!strcmp(argv[3], "high"))
+		spacemit_espi_vwirq_polarity(irq, 1);
+	else if (!strcmp(argv[3], "low"))
+		spacemit_espi_vwirq_polarity(irq, 0);
+	else
+		return -EINVAL;
+	return 0;
+}
+
 static int do_espi_send(int argc, char *argv[])
 {
 	if (argc < 5)
@@ -926,6 +957,8 @@ static int do_espi(int argc, char *argv[])
 		return do_espi_wdg(argc, argv);
 	else if (strcmp(argv[1], "wait") == 0)
 		return do_espi_wait(argc, argv);
+	else if (strcmp(argv[1], "irq") == 0)
+		return do_espi_irq(argc, argv);
 	else if (strcmp(argv[1], "send") == 0)
 		return do_espi_send(argc, argv);
 	return -EINVAL;
@@ -934,9 +967,11 @@ static int do_espi(int argc, char *argv[])
 DEFINE_COMMAND(spacemit_espi, do_espi, "SpacemiT enhanced SPI commands",
 	"spacemit_espi mem <address0> [address1]\n"
 	"    -config eSPI memory translation\n"
-	"spacemit_espi wdg on|off\n"
+	"spacemit_espi wdg <on|off>\n"
 	"    -enable/disable watchdog counter\n"
-	"spacemit_espi wait on|off\n"
+	"spacemit_espi wait <on|off>\n"
 	"    -enable/disable wait counter\n"
+	"spacemit_espi irq <irq> <high|low>\n"
+	"    -config irq polarity\n"
 	"spacemit_espi oob send <val> <len>\n"
 );
