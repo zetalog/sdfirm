@@ -288,6 +288,7 @@ uint8_t spacemit_espi_cmd2dncmd(uint8_t opcode)
 		dncmd = ESPI_DNCMD_PUT_OOB;
 		break;
 	case ESPI_CMD_PUT_FLASH_C:
+	case ESPI_CMD_GET_FLASH_NP:
 		dncmd = ESPI_DNCMD_PUT_FLASH_C;
 		break;
 	case ESPI_CMD_RESET:
@@ -383,6 +384,20 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		len = ESPI_RXHDR_LENGTH(hbuf);
 		if (len > dlen)
 			con_err("spacemit_espi: OOB oversized %d < %d\n",
+				dlen, len);
+		break;
+	case ESPI_CMD_PUT_FLASH_C:
+		BUG_ON(hlen < ESPI_FLASH_ACCESS_REQUEST_HDR_LEN);
+		hbuf[0] = spacemit_espi_read_rxhdr(0);
+		hbuf[1] = spacemit_espi_read_rxhdr(1);
+		hbuf[2] = spacemit_espi_read_rxhdr(2);
+		hbuf[3] = spacemit_espi_read_rxhdr(3);
+		hbuf[4] = spacemit_espi_read_rxhdr(4);
+		hbuf[5] = spacemit_espi_read_rxhdr(5);
+		hbuf[6] = spacemit_espi_read_rxhdr(6);
+		len = ESPI_RXHDR_LENGTH(hbuf);
+		if (len > dlen)
+			con_err("spacemit_espi: flash access oversized %d < %d\n",
 				dlen, len);
 		break;
 	}
@@ -532,6 +547,33 @@ static int do_espi_oob(int argc, char *argv[])
 	return 0;
 }
 
+static int do_espi_flash(int argc, char *argv[])
+{
+	uint16_t len, i;
+	bool type;
+	uint8_t code;
+
+	if (argc < 5)
+		return -EINVAL;
+
+	type = (bool)strtoull(argv[2], 0, 0);
+	code = (uint8_t)strtoull(argv[3], 0, 0);
+	len = (uint16_t)strtoull(argv[4], 0, 0);
+	if (len > ESPI_HW_FLASH_SIZE) {
+		printf("put length too long!\n");
+		return -EINVAL;
+	}
+	if (len > argc - 5) {
+		printf("put length not match!\n");
+		return -EINVAL;
+	}
+	for (i = 0; i < len; i++) {
+		spacemit_espi_oob_buffer[i] = (uint8_t)strtoull(argv[i + 6], 0, 0);
+	}
+	espi_put_flash(type, code, len, spacemit_espi_oob_buffer);
+	return 0;
+}
+
 static int do_espi(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -546,6 +588,8 @@ static int do_espi(int argc, char *argv[])
 		return do_espi_irq(argc, argv);
 	else if (strcmp(argv[1], "oob") == 0)
 		return do_espi_oob(argc, argv);
+	else if (strcmp(argv[1], "flash") == 0)
+		return do_espi_flash(argc, argv);
 	return -EINVAL;
 }
 
@@ -560,4 +604,8 @@ DEFINE_COMMAND(spacemit_espi, do_espi, "SpacemiT enhanced SPI commands",
 	"    -config irq polarity\n"
 	"spacemit_espi oob <len> [byte1] [byte2] ...\n"
 	"    -put OOB message\n"
+	"spacemit_espi flash <type> <code> <len> [byte1] [byte2] ...\n"
+	"    -put flash message\n"
+	"    -type: 0 - successful, 1 - unsuccessful\n"
+	"    -code: 0 - middle, 1 - first, 2 - last, 3 - only\n"
 );

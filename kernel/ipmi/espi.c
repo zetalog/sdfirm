@@ -28,7 +28,8 @@ uint16_t espi_vwire;
 bool espi_vwire_assert;
 /* Allow eSPI slave to generate master enabling */
 bool espi_peri_master = true;
-static uint8_t espi_oob_request[ESPI_HW_OOB_SIZE];
+uint8_t espi_oob_request[ESPI_HW_OOB_SIZE];
+uint8_t espi_flash_request[ESPI_HW_FLASH_SIZE];
 
 #define espi_channel_configured(ch)	(!!(espi_chans & ESPI_CHANNEL(ch)))
 #define espi_enable_channel(ch)		(espi_chans |= ESPI_CHANNEL(ch))
@@ -484,10 +485,45 @@ void espi_get_oob(void)
 	con_dbg("\n");
 }
 
-//void espi_put_flash(...)
+void espi_put_flash(bool s, uint8_t p, uint32_t len, uint8_t *buf)
+{
+	uint16_t i;
+	uint8_t hbuf[ESPI_FLASH_ACCESS_COMPLETION_HDR_LEN] = {
+		ESPI_CYCLE_SUCCESS,
+		HIBYTE(len), LOBYTE(len)
+	};
+
+	if (!s)
+		hbuf[0] = ESPI_CYCLE_UNSUCCESS(p);
+	else if (len)
+		hbuf[0] = ESPI_CYCLE_SUCCESS_DATA(p);
+
+	con_dbg("espi: put_flash(%02x) %d - ", hbuf[0], len);
+	for (i = 0; i < len; i++)
+		con_dbg(" %02x", buf[i]);
+	con_dbg("\n");
+
+	espi_write_cmd_async(ESPI_CMD_GET_FLASH_NP,
+			     ESPI_FLASH_ACCESS_COMPLETION_HDR_LEN,
+			     hbuf, len, buf);
+}
 
 void espi_get_flash(void)
 {
+	uint8_t hbuf[ESPI_FLASH_ACCESS_REQUEST_HDR_LEN];
+	uint16_t len, i;
+	uint8_t *buf = espi_flash_request;
+
+	espi_read_rsp(ESPI_CMD_GET_FLASH_NP,
+		      ESPI_FLASH_ACCESS_REQUEST_HDR_LEN,
+		      hbuf, ESPI_HW_FLASH_SIZE,
+		      espi_flash_request);
+	len = ESPI_RXHDR_LENGTH(hbuf);
+
+	con_dbg("espi: get_flash %d - ", len);
+	for (i = 0; i < len; i++)
+		con_dbg(" %02x", buf[i]);
+	con_dbg("\n");
 }
 
 void espi_put_vwire(uint16_t vwire, bool state)

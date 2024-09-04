@@ -113,20 +113,22 @@
 #define ESPI_CYCLE_MESSAGE(r)			(0x10 | ((r) << 1))
 #define ESPI_CYCLE_MESSAGE_DATA(r)		(0x11 | ((r) << 1))
 #define ESPI_CYCLE_SUCCESS			0x06
-#define ESPI_CYCLE_SUCCESS_DATA			(0x09 | ((r) << 1))
-#define ESPI_CYCLE_UNSECCESS_DATA		(0x08 | ((r) << 1))
+#define ESPI_CYCLE_SUCCESS_DATA(p)		(0x09 | ((p) << 1))
+#define ESPI_CYCLE_UNSUCCESS(p)			(0x08 | ((p) << 1))
 #define ESPI_CYCLE_OOB				0x21
 #define ESPI_CYCLE_FLASH_READ			0x00
 #define ESPI_CYCLE_FLASH_WRITE			0x01
 #define ESPI_CYCLE_FLASH_ERASE			0x02
 
-#define ESPI_PERI_SHORT_MEM32_rDR_LEN		4
+#define ESPI_PERI_SHORT_MEM32_HDR_LEN		4
 #define ESPI_PERI_SHORT_IO32_HDR_LEN		2
 #define ESPI_PERI_MEM32_HDR_LEN			7
 #define ESPI_PERI_MEM64_HDR_LEN			11
 #define ESPI_PERI_MESSAGE_HDR_LEN		8
 #define ESPI_PERI_COMPLETION_HDR_LEN		3
 #define ESPI_OOB_MESSAGE_HDR_LEN		3
+#define ESPI_FLASH_ACCESS_REQUEST_HDR_LEN	7
+#define ESPI_FLASH_ACCESS_COMPLETION_HDR_LEN	3
 
 #define ESPI_TAG_OFFSET				4
 #define ESPI_TAG_MASK				REG_4BIT_MASK
@@ -657,6 +659,7 @@ void espi_set_configuration(uint16_t address, uint32_t config);
 void espi_put_vwire(uint16_t vwire, bool state);
 void espi_put_vwires(uint8_t count, uint16_t *vwire, bool *state);
 void espi_put_oob(uint16_t len, uint8_t *buf);
+void espi_put_flash(bool s, uint8_t p, uint32_t len, uint8_t *buf);
 void espi_get_oob(void);
 void espi_get_flash(void);
 
