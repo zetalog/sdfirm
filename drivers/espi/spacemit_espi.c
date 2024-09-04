@@ -76,25 +76,6 @@ void spacemit_espi_write8(uint8_t val, caddr_t reg)
 	__raw_writeb(val, reg);
 }
 
-static inline void espi_wdg_enable(void)
-{
-	spacemit_espi_set32(ESPI_WDG_EN, ESPI_GLOBAL_CONTROL_0);
-}
-
-static inline void espi_set_wdt_count(uint32_t count)
-{
-	spacemit_espi_write32_mask(ESPI_WDG_CNT(count),
-				   ESPI_WDG_CNT(ESPI_WDG_CNT_MASK),
-				   ESPI_GLOBAL_CONTROL_0);
-}
-
-static inline void espi_set_master_wait_count(uint32_t count)
-{
-	spacemit_espi_write32_mask(ESPI_WAIT_CNT(count),
-				   ESPI_WAIT_CNT(ESPI_WAIT_CNT_MASK),
-				   ESPI_GLOBAL_CONTROL_0);
-}
-
 static inline void espi_soft_reset(void)
 {
 	spacemit_espi_set32(ESPI_SW_RST, ESPI_GLOBAL_CONTROL_1);
@@ -110,437 +91,9 @@ static inline void espi_vw_channel_slave_suspend_exit(void)
 	spacemit_espi_clear32(ESPI_SUS_STAT, ESPI_GLOBAL_CONTROL_1);
 }
 
-#if 0
-static void espi_enable_decode(uint32_t decode_en)
-{
-	spacemit_espi_set32(decode_en, ESPI_DECODE);
-}
-
-static bool espi_is_decode_enabled(uint32_t decode)
-{
-	uint32_t val;
-
-	val = spacemit_espi_read32(ESPI_DECODE);
-	return !!(val & decode);
-}
-
-static inline uint32_t espi_decode_io_range_en_bit(unsigned int idx)
-{
-	if (ESPI_DECODE_RANGE_TO_REG_GROUP(idx) == 0)
-		return ESPI_DECODE_IO_RANGE_EN(idx);
-	else
-		return ESPI_DECODE_IO_RANGE_EXT_EN(idx - ESPI_DECODE_RANGES_PER_REG_GROUP);
-}
-
-static inline uint32_t espi_decode_mmio_range_en_bit(unsigned int idx)
-{
-	if (ESPI_DECODE_RANGE_TO_REG_GROUP(idx) == 0)
-		return ESPI_DECODE_MMIO_RANGE_EN(idx);
-	else
-		return ESPI_DECODE_MMIO_RANGE_EXT_EN(idx - ESPI_DECODE_RANGES_PER_REG_GROUP);
-}
-
-static inline unsigned int espi_mmio_range_base_reg(unsigned int idx)
-{
-	unsigned int reg_base;
-
-	if (ESPI_DECODE_RANGE_TO_REG_GROUP(idx) == 0)
-		reg_base = ESPI_MMIO_BASE_REG0;
-	else
-		reg_base = ESPI_MMIO_BASE_REG4;
-
-	return ESPI_MMIO_RANGE_BASE_REG(reg_base, ESPI_DECODE_RANGE_TO_REG_OFFSET(idx));
-}
-
-static inline unsigned int espi_mmio_range_size_reg(unsigned int idx)
-{
-	unsigned int reg_base;
-	if (ESPI_DECODE_RANGE_TO_REG_GROUP(idx) == 0)
-		reg_base = ESPI_MMIO_SIZE_REG0;
-	else
-		reg_base = ESPI_MMIO_SIZE_REG2;
-
-	return ESPI_MMIO_RANGE_SIZE_REG(reg_base, ESPI_DECODE_RANGE_TO_REG_OFFSET(idx));
-}
-
-static inline unsigned int espi_io_range_base_reg(unsigned int idx)
-{
-	unsigned int reg_base;
-
-	switch (ESPI_DECODE_RANGE_TO_REG_GROUP(idx)) {
-	case 0:
-		reg_base = ESPI_IO_BASE_REG0;
-		break;
-	case 1:
-		reg_base = ESPI_IO_BASE_REG2;
-		break;
-	case 2:
-		reg_base = ESPI_IO_BASE_REG4;
-		break;
-	default: /* case 3 */
-		reg_base = ESPI_IO_BASE_REG6;
-		break;
-	}
-	return ESPI_IO_RANGE_BASE_REG(reg_base, ESPI_DECODE_RANGE_TO_REG_OFFSET(idx));
-}
-
-static inline unsigned int espi_io_range_size_reg(unsigned int idx)
-{
-	unsigned int reg_base;
-
-	switch (ESPI_DECODE_RANGE_TO_REG_GROUP(idx)) {
-	case 0:
-		reg_base = ESPI_IO_SIZE0;
-		break;
-	case 1:
-		reg_base = ESPI_IO_SIZE1;
-		break;
-	case 2:
-		reg_base = ESPI_IO_SIZE2;
-		break;
-	default: /* case 3 */
-		reg_base = ESPI_IO_SIZE3;
-		break;
-	}
-	return ESPI_IO_RANGE_SIZE_REG(reg_base, ESPI_DECODE_RANGE_TO_REG_OFFSET(idx));
-}
-
-static int espi_find_io_window(uint16_t win_base)
-{
-	int i;
-
-	for (i = 0; i < ESPI_GENERIC_IO_WIN_COUNT; i++) {
-		if (!espi_is_decode_enabled(espi_decode_io_range_en_bit(i)))
-			continue;
-
-		if (spacemit_espi_read32(espi_io_range_base_reg(i)) == win_base)
-			return i;
-	}
-	return -1;
-}
-
-static int espi_get_unused_io_window(void)
-{
-	int i;
-
-	for (i = 0; i < ESPI_GENERIC_IO_WIN_COUNT; i++) {
-		if (!espi_is_decode_enabled(espi_decode_io_range_en_bit(i)))
-			return i;
-	}
-
-	return -1;
-}
-
-static void espi_clear_decodes(void)
-{
-	unsigned int idx;
-
-	/* First turn off all enable bits, then zero base, range, and size registers */
-	spacemit_espi_write16((spacemit_espi_read16(ESPI_DECODE) & ESPI_DECODE_IO_0x80_EN), ESPI_DECODE);
-
-	for (idx = 0; idx < ESPI_GENERIC_IO_WIN_COUNT; idx++) {
-		spacemit_espi_write16(0, espi_io_range_base_reg(idx));
-		spacemit_espi_write8(0, espi_io_range_size_reg(idx));
-	}
-	for (idx = 0; idx < ESPI_GENERIC_MMIO_WIN_COUNT; idx++) {
-		spacemit_espi_write32(0, espi_mmio_range_base_reg(idx));
-		spacemit_espi_write16(0, espi_mmio_range_size_reg(idx));
-	}
-}
-
-/*
- * Returns decode enable bits for standard IO port addresses. If port address is not supported
- * by standard decode or if the size of window is not 1, then it returns -1.
- */
-static int espi_std_io_decode(uint16_t base, size_t size)
-{
-	if (size == 2 && base == 0x2e)
-		return ESPI_DECODE_IO_0X2E_0X2F_EN;
-
-	if (size != 1)
-		return -1;
-
-	switch (base) {
-	case 0x80:
-		return ESPI_DECODE_IO_0x80_EN;
-	case 0x60:
-	case 0x64:
-		return ESPI_DECODE_IO_0X60_0X64_EN;
-	case 0x2e:
-	case 0x2f:
-		return ESPI_DECODE_IO_0X2E_0X2F_EN;
-	default:
-		return -1;
-	}
-}
-
-static size_t espi_get_io_window_size(int idx)
-{
-	return spacemit_espi_read32(espi_io_range_size_reg(idx)) + 1;
-}
-
-static void espi_write_io_window(int idx, uint16_t base, size_t size)
-{
-	spacemit_espi_write32(base, espi_io_range_base_reg(idx));
-	spacemit_espi_write32(size - 1, espi_io_range_size_reg(idx));
-}
-
-static int espi_open_generic_io_window(uint16_t base, size_t size)
-{
-	size_t win_size;
-	int idx;
-
-	for (; size; size -= win_size, base += win_size) {
-		win_size = min(size, ESPI_GENERIC_IO_MAX_WIN_SIZE);
-
-		idx = espi_find_io_window(base);
-		if (idx != -1) {
-			size_t curr_size = espi_get_io_window_size(idx);
-
-			if (curr_size > win_size) {
-				con_err("eSPI: window too large: Base=0x%x, Req=0x%zx, Win=0x%zx\n",
-				        base, win_size, curr_size);
-			} else if (curr_size < win_size) {
-				espi_write_io_window(idx, base, win_size);
-				con_log("eSPI window at base: 0x%x resized from 0x%zx to 0x%zx\n",
-				       base, curr_size, win_size);
-			}
-
-			continue;
-		}
-
-		idx = espi_get_unused_io_window();
-		if (idx == -1) {
-			con_err("Cannot open IO window base %x size %zx\n", base,
-			       size);
-			con_err("No more available IO windows!\n");
-			return -1;
-		}
-
-		espi_write_io_window(idx, base, win_size);
-		espi_enable_decode(espi_decode_io_range_en_bit(idx));
-	}
-
-	return 0;
-}
-
-int espi_open_io_window(uint16_t base, size_t size)
-{
-	int std_io;
-
-	std_io = espi_std_io_decode(base, size);
-	if (std_io != -1) {
-		espi_enable_decode(std_io);
-		return 0;
-	} else {
-		return espi_open_generic_io_window(base, size);
-	}
-}
-
-static int espi_find_mmio_window(uint32_t win_base)
-{
-	int i;
-
-	for (i = 0; i < ESPI_GENERIC_MMIO_WIN_COUNT; i++) {
-		if (!espi_is_decode_enabled(espi_decode_mmio_range_en_bit(i)))
-			continue;
-
-		if (spacemit_espi_read32(espi_mmio_range_base_reg(i)) == win_base)
-			return i;
-	}
-
-	return -1;
-}
-
-static int espi_get_unused_mmio_window(void)
-{
-	int i;
-
-	for (i = 0; i < ESPI_GENERIC_MMIO_WIN_COUNT; i++) {
-		if (!espi_is_decode_enabled(espi_decode_mmio_range_en_bit(i)))
-			return i;
-	}
-
-	return -1;
-
-}
-
-static size_t espi_get_mmio_window_size(int idx)
-{
-	return spacemit_espi_read32(espi_mmio_range_size_reg(idx)) + 1;
-}
-
-static void espi_write_mmio_window(int idx, uint32_t base, size_t size)
-{
-	spacemit_espi_write32(base, espi_mmio_range_base_reg(idx));
-	spacemit_espi_write32(size - 1, espi_mmio_range_size_reg(idx));
-}
-
-int espi_open_mmio_window(uint32_t base, size_t size)
-{
-	size_t win_size;
-	int idx;
-
-	for (; size; size -= win_size, base += win_size) {
-		win_size = min(size, ESPI_GENERIC_MMIO_MAX_WIN_SIZE);
-
-		idx = espi_find_mmio_window(base);
-		if (idx != -1) {
-			size_t curr_size = espi_get_mmio_window_size(idx);
-
-			if (curr_size > win_size) {
-				con_err("eSPI window already configured to be larger than requested! ");
-				con_log("Base: 0x%x, Requested size: 0x%zx, Actual size: 0x%zx\n",
-				       base, win_size, curr_size);
-			} else if (curr_size < win_size) {
-				espi_write_mmio_window(idx, base, win_size);
-				con_log("eSPI window at base: 0x%x resized from 0x%zx to 0x%zx\n",
-				       base, curr_size, win_size);
-			}
-
-			continue;
-		}
-
-		idx = espi_get_unused_mmio_window();
-		if (idx == -1) {
-			con_err("Cannot open IO window base %x size %zx\n", base,
-			       size);
-			con_err("No more available MMIO windows!\n");
-			return -1;
-		}
-
-		espi_write_mmio_window(idx, base, win_size);
-		espi_enable_decode(espi_decode_mmio_range_en_bit(idx));
-	}
-
-	return 0;
-}
-
-static int espi_configure_decodes(const struct espi_config *cfg)
-{
-	int i;
-
-	espi_enable_decode(cfg->std_io_decode_bitmap);
-
-	for (i = 0; i < ESPI_GENERIC_IO_WIN_COUNT; i++) {
-		if (cfg->generic_io_range[i].size == 0)
-			continue;
-		if (espi_open_generic_io_window(cfg->generic_io_range[i].base,
-						cfg->generic_io_range[i].size) != 0)
-			return -1;
-	}
-
-	return 0;
-}
-
-static void espi_setup_subtractive_decode(uint32_t std_io_decode_bitmap)
-{
-	uint32_t global_ctrl_reg;
-
-	global_ctrl_reg = spacemit_espi_read32(ESPI_GLOBAL_CONTROL_1);
-
-	if (mb_cfg->subtractive_decode) {
-		global_ctrl_reg &= ~ESPI_SUB_DECODE_SLV_MASK;
-		global_ctrl_reg |= ESPI_SUB_DECODE_EN;
-	} else {
-		global_ctrl_reg &= ~ESPI_SUB_DECODE_EN;
-	}
-	spacemit_espi_write32(ESPI_GLOBAL_CONTROL_1, global_ctrl_reg);
-}
-#endif
-
-/* Wait up to ESPI_CMD_TIMEOUT_US for hardware to clear DNCMD_STATUS bit. */
-static int espi_wait_ready(void)
-{
-	int count = 1000;
-
-	do {
-		if (spacemit_espi_write_done())
-			return 0;
-	} while (count--);
-	return -EAGAIN;
-}
-
-/*
- * Wait up to ESPI_CMD_TIMEOUT_US for interrupt status register to update after sending a
- * command.
- */
-static int espi_poll_status(uint32_t *status)
-{
-	int count = 1000;
-
-	do {
-		*status = spacemit_espi_read32(ESPI_SLAVE0_INT_STS);
-		if (*status)
-			return 0;
-	} while (count--);
-
-	con_err("eSPI timed out waiting for status update.\n");
-
-	return -1;
-}
-
-int spacemit_espi_tx_oob(uint8_t *buf, int len)
-{
-	int i;
-	uint32_t status;
-	uint32_t data[16];
-
-	memset(&data, 0, 64);
-	memcpy(&data, &buf[3], len - 3);
-
-	for (i = 0; i < (len - 3 + 3) / 4; i++) {
-		spacemit_espi_write32(data[i], ESPI_DN_TXDATA_PORT);
-	}
-
-	spacemit_espi_write_dncmd(ESPI_DNCMD_PUT_OOB, 0);
-	spacemit_espi_write_txhdr(0, ESPI_CYCLE_TYPE_OOB_MESSAGE);
-	spacemit_espi_write_txhdr(1, ESPI_TXHDR_TAG(0) | ESPI_TXHDR_LEN(HIBYTE(len)));
-	spacemit_espi_write_txhdr(2, LOBYTE(len));
-
-	if (espi_wait_ready() != 0)
-		return -EBUSY;
-	if (espi_poll_status(&status) != 0)
-		return -EBUSY;
-
-	/* If command did not complete downstream, return error. */
-	if (!(status & ESPI_DNCMD_INT))
-		return -EIO;
-	return 0;
-}
-
-int spacemit_espi_rx_oob(uint8_t *buf)
-{
-	int i;
-	int len = 0;
-	uint32_t data[16];
-
-	for (i = 0; i < ESPI_OOB_MESSAGE_HDR_LEN; i++) {
-		buf[i] = spacemit_espi_read_rxhdr(i);
-	}
-	len = ESPI_RXHDR_LENGTH(buf);
-	for (i = 0; i < (len - 3) / 4; i++) {
-		data[i] = spacemit_espi_read32(ESPI_UP_RXDATA_PORT);
-	}
-	memcpy(&buf[3], &data, len - 3);
-	return len;
-}
-
-static void spacemit_espi_oob_dump(void *buffer, int len)
-{
-	uint8_t *buf = (uint8_t *)buffer;
-
-	printf("spacemit_espi: OOB recv:\n");
-	for (int i = 0; i < len; i++) {
-		printf("\t%02x ", buf[i]);
-	}
-	printf("\n");
-}
-
 void spacemit_espi_handle_conirq(void)
 {
 	int int_sts;
-	int len;
 	uint8_t rsp = ESPI_RSP_ACCEPT(0);
 
 	int_sts = __raw_readl(ESPI_SLAVE0_INT_STS);
@@ -548,12 +101,11 @@ void spacemit_espi_handle_conirq(void)
 
 	if (int_sts & ESPI_FLASH_REQ_INT) {
 		con_log("spacemit_espi: ESPI_FLASH_REQ_INT\n");
-		//spacemit_espi_flash_dump
+		espi_get_flash();
 	}
 	if (int_sts & ESPI_RXOOB_INT) {
 		con_log("spacemit_espi: ESPI_RXOOB_INT\n");
-		len = spacemit_espi_rx_oob((uint8_t *)spacemit_espi_oob_buffer);
-		spacemit_espi_oob_dump(spacemit_espi_oob_buffer, len);
+		espi_get_oob();
 	}
 	if (int_sts & ESPI_RXMSG_INT)
 		con_log("spacemit_espi: ESPI_RXMSG_INT\n");
@@ -732,6 +284,7 @@ uint8_t spacemit_espi_cmd2dncmd(uint8_t opcode)
 		dncmd = ESPI_DNCMD_PUT_VW;
 		break;
 	case ESPI_CMD_PUT_OOB:
+	case ESPI_CMD_GET_OOB:
 		dncmd = ESPI_DNCMD_PUT_OOB;
 		break;
 	case ESPI_CMD_PUT_FLASH_C:
@@ -807,7 +360,8 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 			       uint8_t dlen, uint8_t *dbuf)
 {
 	uint8_t dncmd;
-	uint8_t i;
+	uint32_t i;
+	uint32_t len = 0;
 
 	dncmd = spacemit_espi_cmd2dncmd(opcode);
 
@@ -821,6 +375,16 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		hbuf[2] = spacemit_espi_read_txhdr(5);
 		hbuf[3] = spacemit_espi_read_txhdr(6);
 		break;
+	case ESPI_DNCMD_PUT_OOB:
+		BUG_ON(hlen < ESPI_OOB_MESSAGE_HDR_LEN);
+		hbuf[0] = spacemit_espi_read_rxhdr(0);
+		hbuf[1] = spacemit_espi_read_rxhdr(1);
+		hbuf[2] = spacemit_espi_read_rxhdr(2);
+		len = ESPI_RXHDR_LENGTH(hbuf);
+		if (len > dlen)
+			con_err("spacemit_espi: OOB oversized %d < %d\n",
+				dlen, len);
+		break;
 	}
 	con_dbg("spacemit_espi: hdr=%d", hlen);
 	for (i = 0; i < hlen; i++) {
@@ -829,6 +393,20 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		con_dbg("%02x ", ((uint8_t *)hbuf)[i]);
 	}
 	con_dbg("\n");
+	for (i = 0; i < ((dlen + 3) / 4); i++) {
+		uint8_t ilen = i * 4;
+		uint32_t rxdata;
+
+		rxdata = spacemit_espi_read32(ESPI_UP_RXDATA_PORT);
+		if (ilen < dlen)
+			dbuf[ilen] = LOBYTE(LOWORD(rxdata));
+		if ((ilen + 1) < dlen)
+			dbuf[ilen + 1] = HIBYTE(LOWORD(rxdata));
+		if ((ilen + 2) < dlen)
+			dbuf[ilen + 2] = LOBYTE(HIWORD(rxdata));
+		if ((ilen + 3) < dlen)
+			dbuf[ilen + 3] = HIBYTE(HIWORD(rxdata));
+	}
 	return spacemit_espi_rsp;
 }
 
@@ -931,19 +509,26 @@ static int do_espi_irq(int argc, char *argv[])
 	return 0;
 }
 
-static int do_espi_send(int argc, char *argv[])
+static int do_espi_oob(int argc, char *argv[])
 {
-	if (argc < 5)
+	uint16_t len, i;
+
+	if (argc < 3)
 		return -EINVAL;
 
-	if (strcmp(argv[2], "oob") == 0) {
-		long val = (uint32_t)strtoull(argv[3], 0, 0);
-		int len = (uint32_t)strtoull(argv[4], 0, 0);
-		if (len > 8)
-			return -EINVAL;
-		spacemit_espi_tx_oob((uint8_t *)&val, len);
+	len = (uint16_t)strtoull(argv[2], 0, 0);
+	if (len > ESPI_HW_OOB_SIZE) {
+		printf("put length too long!\n");
+		return -EINVAL;
 	}
-
+	if (len > argc - 3) {
+		printf("put length not match!\n");
+		return -EINVAL;
+	}
+	for (i = 0; i < len; i++) {
+		spacemit_espi_oob_buffer[i] = (uint8_t)strtoull(argv[i + 4], 0, 0);
+	}
+	espi_put_oob(len, spacemit_espi_oob_buffer);
 	return 0;
 }
 
@@ -959,8 +544,8 @@ static int do_espi(int argc, char *argv[])
 		return do_espi_wait(argc, argv);
 	else if (strcmp(argv[1], "irq") == 0)
 		return do_espi_irq(argc, argv);
-	else if (strcmp(argv[1], "send") == 0)
-		return do_espi_send(argc, argv);
+	else if (strcmp(argv[1], "oob") == 0)
+		return do_espi_oob(argc, argv);
 	return -EINVAL;
 }
 
@@ -973,5 +558,6 @@ DEFINE_COMMAND(spacemit_espi, do_espi, "SpacemiT enhanced SPI commands",
 	"    -enable/disable wait counter\n"
 	"spacemit_espi irq <irq> <high|low>\n"
 	"    -config irq polarity\n"
-	"spacemit_espi oob send <val> <len>\n"
+	"spacemit_espi oob <len> [byte1] [byte2] ...\n"
+	"    -put OOB message\n"
 );

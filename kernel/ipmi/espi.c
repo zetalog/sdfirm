@@ -28,6 +28,7 @@ uint16_t espi_vwire;
 bool espi_vwire_assert;
 /* Allow eSPI slave to generate master enabling */
 bool espi_peri_master = true;
+static uint8_t espi_oob_request[ESPI_HW_OOB_SIZE];
 
 #define espi_channel_configured(ch)	(!!(espi_chans & ESPI_CHANNEL(ch)))
 #define espi_enable_channel(ch)		(espi_chans |= ESPI_CHANNEL(ch))
@@ -447,8 +448,47 @@ bool espi_vwire_is_deasserting(uint16_t vwire)
 	return !espi_vwire_assert;
 }
 
-//void espi_put_oob(...)
+void espi_put_oob(uint16_t len, uint8_t *buf)
+{
+	uint16_t i;
+	uint8_t hbuf[ESPI_OOB_MESSAGE_HDR_LEN] = {
+		ESPI_CYCLE_OOB,
+		HIBYTE(len), LOBYTE(len)
+	};
+
+	con_dbg("espi: put_oob %d - ", len);
+	for (i = 0; i < len; i++)
+		con_dbg(" %02x", buf[i]);
+	con_dbg("\n");
+
+	espi_write_cmd_async(ESPI_CMD_PUT_OOB,
+			     ESPI_OOB_MESSAGE_HDR_LEN,
+			     hbuf, len, buf);
+}
+
+void espi_get_oob(void)
+{
+	uint8_t hbuf[ESPI_OOB_MESSAGE_HDR_LEN];
+	uint16_t len, i;
+	uint8_t *buf = espi_oob_request;
+
+	espi_read_rsp(ESPI_CMD_GET_OOB,
+		      ESPI_OOB_MESSAGE_HDR_LEN,
+		      hbuf, ESPI_HW_OOB_SIZE,
+		      espi_oob_request);
+	len = ESPI_RXHDR_LENGTH(hbuf);
+
+	con_dbg("espi: get_oob %d - ", len);
+	for (i = 0; i < len; i++)
+		con_dbg(" %02x", buf[i]);
+	con_dbg("\n");
+}
+
 //void espi_put_flash(...)
+
+void espi_get_flash(void)
+{
+}
 
 void espi_put_vwire(uint16_t vwire, bool state)
 {
@@ -599,25 +639,25 @@ void espi_set_config(uint16_t address)
 void espi_rsp_available(void)
 {
 	if (espi_cmd_is_get(ESPI_SLAVE_GEN_CFG))
-		espi_get_gen();
+		espi_get_gen_cfg();
 	else if (espi_cmd_is_set(ESPI_SLAVE_GEN_CFG))
-		espi_set_gen();
+		espi_set_gen_cfg();
 	else if (espi_cmd_is_get(ESPI_SLAVE_PERI_CFG))
-		espi_get_peri();
+		espi_get_peri_cfg();
 	else if (espi_cmd_is_set(ESPI_SLAVE_PERI_CFG))
-		espi_set_peri();
+		espi_set_peri_cfg();
 	else if (espi_cmd_is_get(ESPI_SLAVE_VWIRE_CFG))
-		espi_get_vwire();
+		espi_get_vwire_cfg();
 	else if (espi_cmd_is_set(ESPI_SLAVE_VWIRE_CFG))
-		espi_set_vwire();
+		espi_set_vwire_cfg();
 	else if (espi_cmd_is_get(ESPI_SLAVE_OOB_CFG))
-		espi_get_oob();
+		espi_get_oob_cfg();
 	else if (espi_cmd_is_set(ESPI_SLAVE_OOB_CFG))
-		espi_set_oob();
+		espi_set_oob_cfg();
 	else if (espi_cmd_is_get(ESPI_SLAVE_FLASH_CFG))
-		espi_get_flash();
+		espi_get_flash_cfg();
 	else if (espi_cmd_is_set(ESPI_SLAVE_FLASH_CFG))
-		espi_set_flash();
+		espi_set_flash_cfg();
 }
 
 void espi_cmd_complete(uint8_t rsp)

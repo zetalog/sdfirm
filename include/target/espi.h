@@ -120,7 +120,7 @@
 #define ESPI_CYCLE_FLASH_WRITE			0x01
 #define ESPI_CYCLE_FLASH_ERASE			0x02
 
-#define ESPI_PERI_SHORT_MEM32_HDR_LEN		4
+#define ESPI_PERI_SHORT_MEM32_rDR_LEN		4
 #define ESPI_PERI_SHORT_IO32_HDR_LEN		2
 #define ESPI_PERI_MEM32_HDR_LEN			7
 #define ESPI_PERI_MEM64_HDR_LEN			11
@@ -591,16 +591,16 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 #define espi_auto_G3_exit()		espi_start_op(ESPI_OP_PROBE, NULL)
 #define espi_auto_reset()		espi_start_op(ESPI_OP_RESET, NULL)
 
-#define espi_get_gen()			espi_get_config(ESPI_SLAVE_GEN_CFG)
-#define espi_get_peri()			espi_get_config(ESPI_SLAVE_PERI_CFG)
-#define espi_get_vwire()		espi_get_config(ESPI_SLAVE_VWIRE_CFG)
-#define espi_get_oob()			espi_get_config(ESPI_SLAVE_OOB_CFG)
-#define espi_get_flash()		espi_get_config(ESPI_SLAVE_FLASH_CFG)
-#define espi_set_gen()			espi_set_config(ESPI_SLAVE_GEN_CFG)
-#define espi_set_peri()			espi_set_config(ESPI_SLAVE_PERI_CFG)
-#define espi_set_vwire()		espi_set_config(ESPI_SLAVE_VWIRE_CFG)
-#define espi_set_oob()			espi_set_config(ESPI_SLAVE_OOB_CFG)
-#define espi_set_flash()		espi_set_config(ESPI_SLAVE_FLASH_CFG)
+#define espi_get_gen_cfg()		espi_get_config(ESPI_SLAVE_GEN_CFG)
+#define espi_get_peri_cfg()		espi_get_config(ESPI_SLAVE_PERI_CFG)
+#define espi_get_vwire_cfg()		espi_get_config(ESPI_SLAVE_VWIRE_CFG)
+#define espi_get_oob_cfg()		espi_get_config(ESPI_SLAVE_OOB_CFG)
+#define espi_get_flash_cfg()		espi_get_config(ESPI_SLAVE_FLASH_CFG)
+#define espi_set_gen_cfg()		espi_set_config(ESPI_SLAVE_GEN_CFG)
+#define espi_set_peri_cfg()		espi_set_config(ESPI_SLAVE_PERI_CFG)
+#define espi_set_vwire_cfg()		espi_set_config(ESPI_SLAVE_VWIRE_CFG)
+#define espi_set_oob_cfg()		espi_set_config(ESPI_SLAVE_OOB_CFG)
+#define espi_set_flash_cfg()		espi_set_config(ESPI_SLAVE_FLASH_CFG)
 
 #define espi_assert_vwire(vwire)				\
 	do {							\
@@ -656,6 +656,9 @@ void espi_set_configuration(uint16_t address, uint32_t config);
 //void espi_get_vwire(void);
 void espi_put_vwire(uint16_t vwire, bool state);
 void espi_put_vwires(uint8_t count, uint16_t *vwire, bool *state);
+void espi_put_oob(uint16_t len, uint8_t *buf);
+void espi_get_oob(void);
+void espi_get_flash(void);
 
 void espi_write_cmd_async(uint8_t opcode,
 			  uint8_t hlen, uint8_t *hbuf,
