@@ -883,6 +883,6 @@ static int do_espi(int argc, char *argv[])
 }
 
 DEFINE_COMMAND(spacemit_espi, do_espi, "SpacemiT enhanced SPI commands",
-	" spacemit_espi mem <address0> [address1]"
+	" spacemit_espi mem <address0> [address1]\n"
 	"    -config eSPI memory translation\n"
 );
