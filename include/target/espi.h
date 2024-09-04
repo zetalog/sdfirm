@@ -619,6 +619,20 @@ typedef void (*espi_cmpl_cb)(espi_slave_t slave, uint8_t op, bool result);
 
 #include <driver/espi.h>
 
+#define lpc_hw_io_read8(a)		espi_hw_io_read8(a)
+#define lpc_hw_io_write8(v, a)		espi_hw_io_write8(v, a)
+#define lpc_hw_mem_read8(a)		espi_hw_mem_read8(a)
+#define lpc_hw_mem_write8(v, a)		espi_hw_mem_write8(v, a)
+#define lpc_hw_mem_read16(a)		espi_hw_mem_read16(a)
+#define lpc_hw_mem_write16(v, a)	espi_hw_mem_write16(v, a)
+#define lpc_hw_mem_read32(a)		espi_hw_mem_read32(a)
+#define lpc_hw_mem_write32(v, a)	espi_hw_mem_write32(v, a)
+
+#define lpc_hw_irq_clear(irq)		espi_hw_vwire_clear(irq)
+#define lpc_hw_irq_status(irq)		espi_hw_vwire_status(irq)
+#define lpc_hw_irq_mask(irq)		espi_hw_vwire_mask(irq)
+#define lpc_hw_irq_unmask(irq)		espi_hw_vwire_unmask(irq)
+
 extern uint16_t espi_cmd;
 extern uint16_t espi_rsp;
 extern uint8_t espi_op;
