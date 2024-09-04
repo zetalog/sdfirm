@@ -873,16 +873,65 @@ static int do_espi_mem(int argc, char *argv[])
 	return 0;
 }
 
+static int do_espi_send(int argc, char *argv[])
+{
+	if (argc < 5)
+		return -EINVAL;
+
+	if (strcmp(argv[2], "oob") == 0) {
+		long val = (uint32_t)strtoull(argv[3], 0, 0);
+		int len = (uint32_t)strtoull(argv[4], 0, 0);
+		if (len > 8)
+			return -EINVAL;
+		spacemit_espi_tx_oob((uint8_t *)&val, len);
+	}
+
+	return 0;
+}
+
+static void rxvw_cb(int group, uint8_t rxvw_data)
+{
+	printf("group = %d, rxvw_data=0x%02x\n", group, rxvw_data);
+}
+
+static void rxoob_cb(void *buffer, int len)
+{
+	uint8_t *buf = (uint8_t *)buffer;
+
+	printf("buffer:\n");
+	for (int i = 0; i < len; i++) {
+		printf("%02x ", buf[i]);
+	}
+	printf("\n");
+}
+
+static int do_espi_recv(int argc, char *argv[])
+{
+	if (strcmp(argv[2], "vw") == 0) {
+		espi_register_rxvw_callback(rxvw_cb);
+	} else if (strcmp(argv[2], "oob") == 0) {
+		espi_register_rxvw_callback(rxoob_cb);
+	}
+	return 0;
+}
+
 static int do_espi(int argc, char *argv[])
 {
 	if (argc < 2)
 		return -EINVAL;
 	if (strcmp(argv[1], "mem") == 0)
 		return do_espi_mem(argc, argv);
+	else if (strcmp(argv[1], "send") == 0)
+		return do_espi_send(argc, argv);
+	else if (strcmp(argv[1], "recv") == 0)
+		return do_espi_recv(argc, argv);
 	return -EINVAL;
 }
 
 DEFINE_COMMAND(spacemit_espi, do_espi, "SpacemiT enhanced SPI commands",
-	" spacemit_espi mem <address0> [address1]\n"
+	"spacemit_espi mem <address0> [address1]\n"
 	"    -config eSPI memory translation\n"
+	"spacemit_espi send oob <val> <len>\n"
+	"spacemit_espi recv vw\n"
+	"spacemit_espi recv oob\n"
 );
