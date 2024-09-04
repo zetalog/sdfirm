@@ -41,6 +41,7 @@
 #include <target/espi.h>
 #include <target/irq.h>
 #include <target/panic.h>
+#include <target/cmdline.h>
 
 static void (*rxvw_callback)(int group, uint8_t rxvw_data);
 static void (*rxoob_callback)(void *buffer, int len);
@@ -853,3 +854,35 @@ void spacemit_espi_init(void)
 	spacemit_espi_soft_reset();
 	spacemit_espi_config_gating();
 }
+
+static int do_espi_mem(int argc, char *argv[])
+{
+	uint32_t address;
+	uint8_t address0, address1;
+
+	if (argc < 3)
+		return -EINVAL;
+	address = (uint32_t)strtoull(argv[2], 0, 0);
+	address0 = HIBYTE(HIWORD(address));
+	if (argc > 3)
+		address = (uint32_t)strtoull(argv[3], 0, 0);
+	else
+		address = address0 + ESPI_MEM_SIZE;
+	address1 = HIBYTE(HIWORD(address));
+	spacemit_espi_mem_cfg(address0, address1);
+	return 0;
+}
+
+static int do_espi(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+	if (strcmp(argv[1], "mem") == 0)
+		return do_espi_mem(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(spacemit_espi, do_espi, "SpacemiT enhanced SPI commands",
+	" spacemit_espi mem <address0> [address1]"
+	"    -config eSPI memory translation\n"
+);
