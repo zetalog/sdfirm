@@ -43,9 +43,7 @@
 #include <target/panic.h>
 #include <target/cmdline.h>
 
-static void (*rxvw_callback)(int group, uint8_t rxvw_data);
-static void (*rxoob_callback)(void *buffer, int len);
-static void *rxoob_buffer;
+static uint8_t spacemit_espi_oob_buffer[128];
 static uint8_t spacemit_espi_rsp;
 
 uint32_t spacemit_espi_read32(caddr_t reg)
@@ -513,44 +511,56 @@ int spacemit_espi_rx_oob(uint8_t *buf)
 	return len;
 }
 
+static void spacemit_espi_oob_dump(void *buffer, int len)
+{
+	uint8_t *buf = (uint8_t *)buffer;
+
+	printf("spacemit_espi: OOB recv:\n");
+	for (int i = 0; i < len; i++) {
+		printf("\t%02x ", buf[i]);
+	}
+	printf("\n");
+}
+
 void spacemit_espi_handle_conirq(void)
 {
 	int int_sts;
 	int len;
-	uint8_t rxvw_data;
 	uint8_t rsp = ESPI_RSP_ACCEPT(0);
 
 	int_sts = __raw_readl(ESPI_SLAVE0_INT_STS);
 	__raw_writel(int_sts, ESPI_SLAVE0_INT_STS);
 
-	if (int_sts & ESPI_FLASH_REQ_INT)
+	if (int_sts & ESPI_FLASH_REQ_INT) {
 		con_log("spacemit_espi: ESPI_FLASH_REQ_INT\n");
+		//spacemit_espi_flash_dump
+	}
 	if (int_sts & ESPI_RXOOB_INT) {
 		con_log("spacemit_espi: ESPI_RXOOB_INT\n");
-		len = spacemit_espi_rx_oob((uint8_t *)rxoob_buffer);
-		rxoob_callback(rxoob_buffer, len);
+		len = spacemit_espi_rx_oob((uint8_t *)spacemit_espi_oob_buffer);
+		spacemit_espi_oob_dump(spacemit_espi_oob_buffer, len);
 	}
 	if (int_sts & ESPI_RXMSG_INT)
 		con_log("spacemit_espi: ESPI_RXMSG_INT\n");
 	if (int_sts & ESPI_RXVW_GRP3_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP3_INT\n");
-		rxvw_data = (spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF000000U) >> 8;
-		rxvw_callback(131, rxvw_data);
+		printf("spacemit_espi: GPIO group131=0x%02x\n",
+		       spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF000000U) >> 8;
 	}
 	if (int_sts & ESPI_RXVW_GRP2_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP2_INT\n");
-		rxvw_data = (spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF0000U) >> 8;
-		rxvw_callback(130, rxvw_data);
+		printf("spacemit_espi: GPIO group130=0x%02x\n",
+		       spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF0000U) >> 8;
 	}
 	if (int_sts & ESPI_RXVW_GRP1_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP1_INT\n");
-		rxvw_data = (spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF00U) >> 8;
-		rxvw_callback(129, rxvw_data);
+		printf("spacemit_espi: GPIO group129=0x%02x\n",
+		       spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF00U) >> 8;
 	}
 	if (int_sts & ESPI_RXVW_GRP0_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP0_INT\n");
-		rxvw_data = spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFFU;
-		rxvw_callback(128, rxvw_data);
+		printf("spacemit_espi: GPIO group128=0x%02x\n",
+		       spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFFU) >> 8;
 	}
 	if (int_sts & ESPI_PROTOCOL_INT) {
 		if (int_sts & ESPI_PROTOCOL_ERR_INT)
@@ -690,17 +700,6 @@ void espi_handle_conirq(irq_t irq)
 void espi_handle_vwirq(irq_t irq)
 {
 	spacemit_espi_handle_vwirq();
-}
-
-void espi_register_rxvw_callback(void *callback)
-{
-	rxvw_callback = callback;
-}
-
-void espi_register_rxoob_callbcak(void *callback, void *buffer)
-{
-	rxoob_callback = callback;
-	rxoob_buffer = buffer;
 }
 
 uint8_t spacemit_espi_cmd2dncmd(uint8_t opcode)
@@ -917,32 +916,6 @@ static int do_espi_send(int argc, char *argv[])
 	return 0;
 }
 
-static void rxvw_cb(int group, uint8_t rxvw_data)
-{
-	printf("group = %d, rxvw_data=0x%02x\n", group, rxvw_data);
-}
-
-static void rxoob_cb(void *buffer, int len)
-{
-	uint8_t *buf = (uint8_t *)buffer;
-
-	printf("buffer:\n");
-	for (int i = 0; i < len; i++) {
-		printf("%02x ", buf[i]);
-	}
-	printf("\n");
-}
-
-static int do_espi_recv(int argc, char *argv[])
-{
-	if (strcmp(argv[2], "vw") == 0) {
-		espi_register_rxvw_callback(rxvw_cb);
-	} else if (strcmp(argv[2], "oob") == 0) {
-		espi_register_rxvw_callback(rxoob_cb);
-	}
-	return 0;
-}
-
 static int do_espi(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -955,8 +928,6 @@ static int do_espi(int argc, char *argv[])
 		return do_espi_wait(argc, argv);
 	else if (strcmp(argv[1], "send") == 0)
 		return do_espi_send(argc, argv);
-	else if (strcmp(argv[1], "recv") == 0)
-		return do_espi_recv(argc, argv);
 	return -EINVAL;
 }
 
@@ -967,7 +938,5 @@ DEFINE_COMMAND(spacemit_espi, do_espi, "SpacemiT enhanced SPI commands",
 	"    -enable/disable watchdog counter\n"
 	"spacemit_espi wait on|off\n"
 	"    -enable/disable wait counter\n"
-	"spacemit_espi send oob <val> <len>\n"
-	"spacemit_espi recv vw\n"
-	"spacemit_espi recv oob\n"
+	"spacemit_espi oob send <val> <len>\n"
 );

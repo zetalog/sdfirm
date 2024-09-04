@@ -98,6 +98,9 @@ if LPC
 config SIO
 	bool "Super IO (SIO) chip support"
 
+config SERIRQ
+	bool "Serial IRQ (SERIRQ) chip support"
+
 endif
 
 menuconfig ESPI

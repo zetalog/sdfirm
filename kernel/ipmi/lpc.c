@@ -79,27 +79,6 @@ static int do_lpc_write(int argc, char *argv[])
 	return -EINVAL;
 }
 
-static int do_lpc_irq(int argc, char *argv[])
-{
-	uint8_t irq;
-
-	if (argc < 4)
-		return -EINVAL;
-	lpc_mask_irq(1);
-	irq = (uint8_t)strtoull(argv[3], 0, 0);
-	if (strcmp(argv[2], "mask") == 0)
-		lpc_mask_irq(irq);
-	else if (strcmp(argv[2], "unmask") == 0)
-		lpc_unmask_irq(irq);
-	else if (strcmp(argv[2], "clear") == 0)
-		lpc_clear_irq(_BV(irq));
-	else if (strcmp(argv[2], "get") == 0)
-		return lpc_get_irq(irq);
-	else
-		return -EINVAL;
-	return 0;
-}
-
 static int do_lpc(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -108,8 +87,6 @@ static int do_lpc(int argc, char *argv[])
 		return do_lpc_read(argc, argv);
 	if (strcmp(argv[1], "write") == 0)
 		return do_lpc_write(argc, argv);
-	if (strcmp(argv[1], "irq") == 0)
-		return do_lpc_irq(argc, argv);
 	return -EINVAL;
 }
 
@@ -120,9 +97,4 @@ DEFINE_COMMAND(lpc, do_lpc, "Low Pin Count (LPC) commands",
 	"lpc write io <value> <addr>\n"
 	"lpc write mem [1|2|4] <value> <addr>\n"
 	"    -LPC write sequence\n"
-	"lpc irq mask <irq>\n"
-	"lpc irq unmask <irq>\n"
-	"lpc irq clear <irq>\n"
-	"lpc irq get <irq>\n"
-	"    -LPC control IRQs\n"
 );

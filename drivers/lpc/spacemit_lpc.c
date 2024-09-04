@@ -328,17 +328,15 @@ static void lpc_enable_serirq(void)
 
 static int do_lpc_serirq(int argc, char *argv[])
 {
-	uint8_t slot;
 	uint8_t mode;
 	uint16_t intv;
 
+	if (argc < 3)
+		return -EINVAL;
 	if (strcmp(argv[2], "enable") == 0) {
 		lpc_enable_serirq();
 		return 0;
 	}
-
-	if (argc < 3)
-		return -EINVAL;
 	if (strcmp(argv[2], "config") == 0) {
 		mode = (uint8_t)strtoull(argv[3], 0, 0);
 		printf("Enter %s mode.\n", mode ? "quiet" : "continuous");
@@ -352,21 +350,7 @@ static int do_lpc_serirq(int argc, char *argv[])
 		}
 		return 0;
 	}
-
-	if (argc < 4)
-		return -EINVAL;
-	slot = (uint8_t)strtoull(argv[3], 0, 0);
-	if (strcmp(argv[2], "mask") == 0)
-		lpc_mask_serirq(slot);
-	else if (strcmp(argv[2], "unmask") == 0)
-		lpc_unmask_serirq(slot);
-	else if (strcmp(argv[2], "clear") == 0)
-		lpc_clear_serirq(slot);
-	else if (strcmp(argv[2], "get") == 0)
-		return lpc_get_serirq(slot);
-	else
-		return -EINVAL;
-	return 0;
+	return -EINVAL;
 }
 #else
 static int do_lpc_serirq(int argc, char *argv[])
@@ -374,6 +358,27 @@ static int do_lpc_serirq(int argc, char *argv[])
 	return -EINVAL;
 }
 #endif
+
+static int do_lpc_irq(int argc, char *argv[])
+{
+	uint8_t irq;
+
+	if (argc < 4)
+		return -EINVAL;
+	lpc_mask_irq(1);
+	irq = (uint8_t)strtoull(argv[3], 0, 0);
+	if (strcmp(argv[2], "mask") == 0)
+		lpc_mask_irq(irq);
+	else if (strcmp(argv[2], "unmask") == 0)
+		lpc_unmask_irq(irq);
+	else if (strcmp(argv[2], "clear") == 0)
+		lpc_clear_irq(_BV(irq));
+	else if (strcmp(argv[2], "get") == 0)
+		return lpc_get_irq(irq);
+	else
+		return -EINVAL;
+	return 0;
+}
 
 static int do_lpc(int argc, char *argv[])
 {
@@ -383,6 +388,8 @@ static int do_lpc(int argc, char *argv[])
 		return do_lpc_serirq(argc, argv);
 	if (strcmp(argv[1], "mem") == 0)
 		return do_lpc_mem(argc, argv);
+	if (strcmp(argv[1], "irq") == 0)
+		return do_lpc_irq(argc, argv);
 	return -EINVAL;
 }
 
@@ -392,15 +399,13 @@ DEFINE_COMMAND(spacemit_lpc, do_lpc, "SpacemiT low pin count commands",
 	"        <cycle>:\n"
 	"            0 - firmware cycle\n"
 	"            1 - memory cycle\n"
-	"spacemit_lpc serirq mask <slot>\n"
-	"spacemit_lpc serirq unmask <slot>\n"
-	"spacemit_lpc serirq clear <slot>\n"
-	"spacemit_lpc serirq get <slot>\n"
-	"    -LPC control SERIRQs\n"
 	"spacemit_lpc serirq config <mode> [interval]\n"
 	"    -LPC configure SERIRQ mode and polling interval(us)\n"
 	"spacemit_lpc serirq enable\n"
 	"    -LPC enable SERIRQ operation\n"
-	"spacemit_lpc stress [all|io|mem]\n"
-	"    -start lpc stress test\n"
+	"spacemit_lpc irq mask <irq>\n"
+	"spacemit_lpc irq unmask <irq>\n"
+	"spacemit_lpc irq clear <irq>\n"
+	"spacemit_lpc irq get <irq>\n"
+	"    -LPC control IRQs\n"
 );
