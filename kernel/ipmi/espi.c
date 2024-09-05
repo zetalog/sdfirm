@@ -435,6 +435,38 @@ void espi_set_configuration(uint16_t address, uint32_t config)
 			     7, hbuf, 0, NULL);
 }
 
+void espi_put_message(uint8_t r, uint8_t code, uint32_t msg,
+		      uint16_t len, uint8_t *buf)
+{
+	uint16_t i;
+	uint8_t hbuf[ESPI_PERI_MESSAGE_HDR_LEN] = {
+		ESPI_CYCLE_MESSAGE(r),
+		HIBYTE(len), LOBYTE(len),
+		code,
+		HIBYTE(HIWORD(msg)), LOBYTE(HIWORD(msg)),
+		HIBYTE(LOWORD(msg)), LOBYTE(LOWORD(msg)),
+	};
+
+	if (len)
+		hbuf[0] = ESPI_CYCLE_MESSAGE_DATA(r);
+
+	con_dbg("espi: put_msg(%02x) %02x %08x %d -",
+		hbuf[0], code, msg, len);
+	for (i = 0; i < len; i++)
+		con_dbg(" %02x", buf[i]);
+	con_dbg("\n");
+
+	espi_write_cmd_async(ESPI_CMD_PUT_PC,
+			     ESPI_PERI_MESSAGE_HDR_LEN,
+			     hbuf, len, buf);
+}
+
+void espi_put_ltr(bool rq, uint8_t ls, uint16_t lv)
+{
+	espi_put_message(0, ESPI_MESSAGE_LTR,
+			 ESPI_LTR(rq, ls, lv), 0, NULL);
+}
+
 bool espi_vwire_is_asserting(uint16_t vwire)
 {
 	if (espi_vwire != vwire)
@@ -457,7 +489,7 @@ void espi_put_oob(uint16_t len, uint8_t *buf)
 		HIBYTE(len), LOBYTE(len)
 	};
 
-	con_dbg("espi: put_oob %d - ", len);
+	con_dbg("espi: put_oob %d -", len);
 	for (i = 0; i < len; i++)
 		con_dbg(" %02x", buf[i]);
 	con_dbg("\n");
@@ -498,7 +530,7 @@ void espi_put_flash(bool s, uint8_t p, uint32_t len, uint8_t *buf)
 	else if (len)
 		hbuf[0] = ESPI_CYCLE_SUCCESS_DATA(p);
 
-	con_dbg("espi: put_flash(%02x) %d - ", hbuf[0], len);
+	con_dbg("espi: put_flash(%02x) %d -", hbuf[0], len);
 	for (i = 0; i < len; i++)
 		con_dbg(" %02x", buf[i]);
 	con_dbg("\n");
