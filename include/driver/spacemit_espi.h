@@ -310,33 +310,13 @@
 #define SLAVE0_RXVW_DNX_ACK			_BV(1)
 #define SLAVE0_RXVW_SUS_ACK_B			_BV(0)
 
-/* SLAVE0_RXVW_DATA */
-#define SLAVE0_RXVW_DATA_GRP3_OFFSET		24
-#define SLAVE0_RXVW_DATA_GRP3_MASK		REG_8BIT_MASK
-#define SLAVE0_RXVW_DATA_GRP3(n)		_SET_FV(SLAVE0_RXVW_DATA_GRP3, n)
-#define SLAVE0_RXVW_DATA_GRP2_OFFSET		16
-#define SLAVE0_RXVW_DATA_GRP2_MASK		REG_8BIT_MASK
-#define SLAVE0_RXVW_DATA_GRP2(n)		_SET_FV(SLAVE0_RXVW_DATA_GRP2, n)
-#define SLAVE0_RXVW_DATA_GRP1_OFFSET		8
-#define SLAVE0_RXVW_DATA_GRP1_MASK		REG_8BIT_MASK
-#define SLAVE0_RXVW_DATA_GRP1(n)		_SET_FV(SLAVE0_RXVW_DATA_GRP1, n)
-#define SLAVE0_RXVW_DATA_GRP0_OFFSET		0
-#define SLAVE0_RXVW_DATA_GRP0_MASK		REG_8BIT_MASK
-#define SLAVE0_RXVW_DATA_GRP0(n)		_SET_FV(SLAVE0_RXVW_DATA_GRP0, n)
-
-/* SLAVE0_RXVW_INDEX */
-#define SLAVE0_RXVW_INDEX_GRP3_OFFSET		24
-#define SLAVE0_RXVW_INDEX_GRP3_MASK		REG_8BIT_MASK
-#define SLAVE0_RXVW_INDEX_GRP3(n)		_SET_FV(SLAVE0_RXVW_INDEX_GRP3, n)
-#define SLAVE0_RXVW_INDEX_GRP2_OFFSET		16
-#define SLAVE0_RXVW_INDEX_GRP2_MASK		REG_8BIT_MASK
-#define SLAVE0_RXVW_INDEX_GRP2(n)		_SET_FV(SLAVE0_RXVW_INDEX_GRP2, n)
-#define SLAVE0_RXVW_INDEX_GRP1_OFFSET		8
-#define SLAVE0_RXVW_INDEX_GRP1_MASK		REG_8BIT_MASK
-#define SLAVE0_RXVW_INDEX_GRP1(n)		_SET_FV(SLAVE0_RXVW_INDEX_GRP1, n)
-#define SLAVE0_RXVW_INDEX_GRP0_OFFSET		0
-#define SLAVE0_RXVW_INDEX_GRP0_MASK		REG_8BIT_MASK
-#define SLAVE0_RXVW_INDEX_GRP0(n)		_SET_FV(SLAVE0_RXVW_INDEX_GRP0, n)
+/* SLAVE0_RXVW_INDEX
+ * SLAVE0_RXVW_DATA
+ */
+#define SLAVE0_RXVW_GRP_OFFSET(n)		REG32_8BIT_OFFSET(n)
+#define SLAVE0_RXVW_GRP_MASK			REG_8BIT_MASK
+#define SLAVE0_RXVW_GRP(n, value)		_SET_FVn(n, SLAVE0_RXVW_GRP, value)
+#define slave0_rxvw_grp(n, value)		_GET_FVn(n, SLAVE0_RXVW_GRP, value)
 
 /* SLAVE0_VW_CTL */
 #define SLAVE0_VW_CTL_IRQ_MASK(n)		_BV(n + 8)
@@ -537,27 +517,17 @@ void spacemit_espi_write8(uint8_t val, caddr_t reg);
 	} while (0)
 #define spacemit_espi_enable_vwgpio(group)			spacemit_espi_set32(SLAVE0_VW_CTL_GRP_EN(group), ESPI_SLAVE0_VW_CTL)
 #define spacemit_espi_disable_vwgpio(group)			spacemit_espi_clear32(SLAVE0_VW_CTL_GRP_EN(group), ESPI_SLAVE0_VW_CTL)
-#define spacemit_espi_config_vwgpio_index(group, vmindex)				\
-	do {										\
-		if (group == 0)								\
-			spacemit_espi_write32_mask(SLAVE0_RXVW_INDEX_GRP0(vmindex), 	\
-				SLAVE0_RXVW_INDEX_GRP0(SLAVE0_RXVW_INDEX_GRP0_MASK), 	\
-				ESPI_SLAVE0_RXVW_INDEX);				\
-		if (group == 1)								\
-			spacemit_espi_write32_mask(SLAVE0_RXVW_INDEX_GRP1(vmindex), 	\
-				SLAVE0_RXVW_INDEX_GRP1(SLAVE0_RXVW_INDEX_GRP1_MASK), 	\
-				ESPI_SLAVE0_RXVW_INDEX);				\
-		if (group == 2)								\
-			spacemit_espi_write32_mask(SLAVE0_RXVW_INDEX_GRP2(vmindex), 	\
-				SLAVE0_RXVW_INDEX_GRP2(SLAVE0_RXVW_INDEX_GRP2_MASK), 	\
-				ESPI_SLAVE0_RXVW_INDEX);				\
-		if (group == 3)								\
-			spacemit_espi_write32_mask(SLAVE0_RXVW_INDEX_GRP3(vmindex), 	\
-				SLAVE0_RXVW_INDEX_GRP3(SLAVE0_RXVW_INDEX_GRP3_MASK), 	\
-				ESPI_SLAVE0_RXVW_INDEX);				\
+#define spacemit_espi_config_vwgpio(group, index)				\
+	do {									\
+		spacemit_espi_write32_mask(SLAVE0_RXVW_GRP(group, index),	\
+			SLAVE0_RXVW_GRP(group, SLAVE0_RXVW_GRP_MASK), 		\
+			ESPI_SLAVE0_RXVW_INDEX);				\
+		spacemit_espi_enable_vwgpio(group);				\
 	} while (0)
-#define spacemit_espi_read_vwgpio_data(group)			\
-	(spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) && (REG_8BIT_MASK << (group << 3)))
+#define spacemit_espi_vwgpio_index(group)			\
+	(slave0_rxvw_grp(group, spacemit_espi_read32(ESPI_SLAVE0_RXVW_INDEX)))
+#define spacemit_espi_vwgpio_data(group)			\
+	(slave0_rxvw_grp(group, spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA)))
 
 #define ESPI_MEM_SIZE				SZ_16M
 #ifdef CONFIG_SPACEMIT_ESPI_DEBUG_IO
