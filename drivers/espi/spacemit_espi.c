@@ -113,23 +113,27 @@ void spacemit_espi_handle_conirq(void)
 	}
 	if (int_sts & ESPI_RXVW_GRP3_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP3_INT\n");
-		printf("spacemit_espi: GPIO group131=0x%02x\n",
-		       spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF000000U) >> 8;
+		printf("spacemit_espi: GPIO%d=0x%02x\n",
+		       spacemit_espi_vwgpio_index(3),
+		       spacemit_espi_vwgpio_data(3));
 	}
 	if (int_sts & ESPI_RXVW_GRP2_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP2_INT\n");
-		printf("spacemit_espi: GPIO group130=0x%02x\n",
-		       spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF0000U) >> 8;
+		printf("spacemit_espi: GPIO%d=0x%02x\n",
+		       spacemit_espi_vwgpio_index(2),
+		       spacemit_espi_vwgpio_data(2));
 	}
 	if (int_sts & ESPI_RXVW_GRP1_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP1_INT\n");
-		printf("spacemit_espi: GPIO group129=0x%02x\n",
-		       spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFF00U) >> 8;
+		printf("spacemit_espi: GPIO%d=0x%02x\n",
+		       spacemit_espi_vwgpio_index(1),
+		       spacemit_espi_vwgpio_data(1));
 	}
 	if (int_sts & ESPI_RXVW_GRP0_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP0_INT\n");
-		printf("spacemit_espi: GPIO group128=0x%02x\n",
-		       spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA) & 0xFFU) >> 8;
+		printf("spacemit_espi: GPIO%d=0x%02x\n",
+		       spacemit_espi_vwgpio_index(0),
+		       spacemit_espi_vwgpio_data(0));
 	}
 	if (int_sts & ESPI_PROTOCOL_INT) {
 		if (int_sts & ESPI_PROTOCOL_ERR_INT)
@@ -531,6 +535,10 @@ void spacemit_espi_init(void)
 	spacemit_espi_enable_wdg();
 	spacemit_espi_soft_reset();
 	spacemit_espi_config_gating();
+	spacemit_espi_config_vwgpio(0, 128);
+	spacemit_espi_config_vwgpio(1, 129);
+	spacemit_espi_config_vwgpio(2, 130);
+	spacemit_espi_config_vwgpio(3, 131);
 }
 
 static int do_espi_mem(int argc, char *argv[])
