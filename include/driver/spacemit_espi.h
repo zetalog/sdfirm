@@ -583,10 +583,10 @@ void spacemit_espi_irq_init(void);
 void spacemit_espi_handle_irq(void);
 void spacemit_espi_write_cmd(uint8_t opcode,
 			     uint8_t hlen, uint8_t *hbuf,
-			     uint8_t dlen, uint8_t *dbuf);
+			     uint16_t dlen, uint8_t *dbuf);
 uint8_t spacemit_espi_read_rsp(uint8_t opcod,
 			       uint8_t hlen, uint8_t *hbuf,
-			       uint8_t dlen, uint8_t *dbuf);
+			       uint16_t dlen, uint8_t *dbuf);
 void spacemit_espi_set_cfg(uint32_t address, uint32_t config);
 void spacemit_espi_init(void);
 

@@ -681,10 +681,10 @@ void espi_get_flash(void);
 
 void espi_write_cmd_async(uint8_t opcode,
 			  uint8_t hlen, uint8_t *hbuf,
-			  uint8_t dlen, uint8_t *dbuf);
+			  uint16_t dlen, uint8_t *dbuf);
 uint8_t espi_read_rsp(uint8_t opcode,
 		      uint8_t hlen, uint8_t *hbuf,
-		      uint8_t dlen, uint8_t *dbuf);
+		      uint16_t dlen, uint8_t *dbuf);
 int espi_write_cmd(uint8_t opcode,
 		   uint8_t hlen, uint8_t *hbuf,
 		   uint8_t dlen, uint8_t *dbuf);
