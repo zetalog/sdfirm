@@ -107,8 +107,10 @@ void spacemit_espi_handle_conirq(void)
 		con_log("spacemit_espi: ESPI_RXOOB_INT\n");
 		espi_get_oob();
 	}
-	if (int_sts & ESPI_RXMSG_INT)
+	if (int_sts & ESPI_RXMSG_INT) {
 		con_log("spacemit_espi: ESPI_RXMSG_INT\n");
+		espi_get_msg();
+	}
 	if (int_sts & ESPI_RXVW_GRP3_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP3_INT\n");
 		printf("spacemit_espi: GPIO group131=0x%02x\n",
@@ -280,6 +282,9 @@ uint8_t spacemit_espi_cmd2dncmd(uint8_t opcode)
 	case ESPI_CMD_GET_CONFIGURATION:
 		dncmd = ESPI_DNCMD_GET_CONFIGURATION;
 		break;
+	case ESPI_CMD_PUT_PC:
+		dncmd = ESPI_DNCMD_PR_MESSAGE;
+		break;
 	case ESPI_CMD_PUT_VWIRE:
 		dncmd = ESPI_DNCMD_PUT_VW;
 		break;
@@ -375,7 +380,24 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		hbuf[1] = spacemit_espi_read_txhdr(4);
 		hbuf[2] = spacemit_espi_read_txhdr(5);
 		hbuf[3] = spacemit_espi_read_txhdr(6);
+		return spacemit_espi_rsp;
+
+	case ESPI_DNCMD_PR_MESSAGE:
+		BUG_ON(hlen < ESPI_PERI_MESSAGE_HDR_LEN);
+		hbuf[0] = spacemit_espi_read_rxmsg(0);
+		hbuf[1] = spacemit_espi_read_rxmsg(1);
+		hbuf[2] = spacemit_espi_read_rxmsg(2);
+		hbuf[3] = spacemit_espi_read_rxmsg(3);
+		hbuf[4] = spacemit_espi_read_rxmsg(4);
+		hbuf[5] = spacemit_espi_read_rxmsg(5);
+		hbuf[6] = spacemit_espi_read_rxmsg(6);
+		hbuf[7] = spacemit_espi_read_rxmsg(7);
+		len = ESPI_RXHDR_LENGTH(hbuf);
+		if (len > dlen)
+			con_err("spacemit_espi: PR oversized %d < %d\n",
+				dlen, len);
 		break;
+
 	case ESPI_DNCMD_PUT_OOB:
 		BUG_ON(hlen < ESPI_OOB_MESSAGE_HDR_LEN);
 		hbuf[0] = spacemit_espi_read_rxhdr(0);
@@ -412,7 +434,10 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		uint8_t ilen = i * 4;
 		uint32_t rxdata;
 
-		rxdata = spacemit_espi_read32(ESPI_UP_RXDATA_PORT);
+		if (dncmd == ESPI_DNCMD_PR_MESSAGE)
+			rxdata = spacemit_espi_read32(ESPI_SLAVE0_RXMSG_DATA_PORT);
+		else
+			rxdata = spacemit_espi_read32(ESPI_UP_RXDATA_PORT);
 		if (ilen < dlen)
 			dbuf[ilen] = LOBYTE(LOWORD(rxdata));
 		if ((ilen + 1) < dlen)
@@ -565,7 +590,7 @@ static int do_espi_oob(int argc, char *argv[])
 		return -EINVAL;
 	}
 	for (i = 0; i < len; i++) {
-		spacemit_espi_oob_buffer[i] = (uint8_t)strtoull(argv[i + 4], 0, 0);
+		spacemit_espi_oob_buffer[i] = (uint8_t)strtoull(argv[i + 3], 0, 0);
 	}
 	espi_put_oob(len, spacemit_espi_oob_buffer);
 	return 0;
@@ -592,7 +617,7 @@ static int do_espi_flash(int argc, char *argv[])
 		return -EINVAL;
 	}
 	for (i = 0; i < len; i++) {
-		spacemit_espi_oob_buffer[i] = (uint8_t)strtoull(argv[i + 6], 0, 0);
+		spacemit_espi_oob_buffer[i] = (uint8_t)strtoull(argv[i + 5], 0, 0);
 	}
 	espi_put_flash(type, code, len, spacemit_espi_oob_buffer);
 	return 0;

@@ -674,6 +674,8 @@ void espi_put_vwire(uint16_t vwire, bool state);
 void espi_put_vwires(uint8_t count, uint16_t *vwire, bool *state);
 void espi_put_oob(uint16_t len, uint8_t *buf);
 void espi_put_flash(bool s, uint8_t p, uint32_t len, uint8_t *buf);
+
+void espi_get_msg(void);
 void espi_get_oob(void);
 void espi_get_flash(void);
 
