@@ -649,7 +649,7 @@ int espi_write_cmd(uint8_t opcode,
 
 uint8_t espi_read_rsp(uint8_t opcode,
 		      uint8_t hlen, uint8_t *hbuf,
-		      uint8_t dlen, uint8_t *dbuf)
+		      uint16_t dlen, uint8_t *dbuf)
 {
 	espi_hw_read_rsp(opcode, hlen, hbuf, dlen, dbuf);
 	return espi_rsp;
@@ -1071,7 +1071,7 @@ void __espi_irq_init(void)
 
 void espi_write_cmd_async(uint8_t opcode,
 			  uint8_t hlen, uint8_t *hbuf,
-			  uint8_t dlen, uint8_t *dbuf)
+			  uint16_t dlen, uint8_t *dbuf)
 {
 	espi_cmd = opcode;
 	espi_hw_write_cmd(opcode, hlen, hbuf, dlen, dbuf);

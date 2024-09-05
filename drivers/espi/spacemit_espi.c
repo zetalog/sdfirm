@@ -308,12 +308,14 @@ uint8_t spacemit_espi_cmd2dncmd(uint8_t opcode)
 
 void spacemit_espi_write_cmd(uint8_t opcode,
 			     uint8_t hlen, uint8_t *hbuf,
-			     uint8_t dlen, uint8_t *dbuf)
+			     uint16_t dlen, uint8_t *dbuf)
 {
 	uint8_t i;
 	uint8_t dncmd;
 	uint32_t txdata;
 	uint8_t db0, db1, db2, db3;
+	uint16_t len = dlen;
+	uint8_t *buf = dbuf;
 
 	dncmd = spacemit_espi_cmd2dncmd(opcode);
 
@@ -328,6 +330,20 @@ void spacemit_espi_write_cmd(uint8_t opcode,
 	for (i = 0; i < hlen; i++)
 		spacemit_espi_write_txhdr(i, hbuf[i]);
 
+	switch (dncmd) {
+	case ESPI_DNCMD_PUT_OOB:
+		if (dlen < 3) {
+			con_err("spacemit_espi: OOB illegal %d\n", dlen);
+			return;
+		}
+		spacemit_espi_write_txhdr(3, dbuf[0]);
+		spacemit_espi_write_txhdr(4, dbuf[1]);
+		spacemit_espi_write_txhdr(5, dbuf[2]);
+		buf = dbuf + 3;
+		len = dlen - 3;
+		break;
+	}
+
 	con_dbg("spacemit_espi: dat=%d", dlen);
 	for (i = 0; i < dlen; i++) {
 		if (i == 0)
@@ -335,23 +351,23 @@ void spacemit_espi_write_cmd(uint8_t opcode,
 		con_dbg("%02x ", ((uint8_t *)dbuf)[i]);
 	}
 	con_dbg("\n");
-	for (i = 0; i < ((dlen + 3) / 4); i++) {
+	for (i = 0; i < ((len + 3) / 4); i++) {
 		uint8_t ilen = i * 4;
 
-		if (ilen < dlen)
-			db0 = dbuf[ilen];
+		if (ilen < len)
+			db0 = buf[ilen];
 		else
 			db0 = 0x00;
-		if ((ilen + 1) < dlen)
-			db1 = dbuf[ilen + 1];
+		if ((ilen + 1) < len)
+			db1 = buf[ilen + 1];
 		else
 			db1 = 0x00;
-		if ((ilen + 2) < dlen)
-			db2 = dbuf[ilen + 2];
+		if ((ilen + 2) < len)
+			db2 = buf[ilen + 2];
 		else
 			db2 = 0x00;
-		if ((ilen + 3) < dlen)
-			db3 = dbuf[ilen + 3];
+		if ((ilen + 3) < len)
+			db3 = buf[ilen + 3];
 		else
 			db3 = 0x00;
 		txdata = MAKELONG(MAKEWORD(db0, db1),
@@ -363,11 +379,12 @@ void spacemit_espi_write_cmd(uint8_t opcode,
 
 uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 			       uint8_t hlen, uint8_t *hbuf,
-			       uint8_t dlen, uint8_t *dbuf)
+			       uint16_t dlen, uint8_t *dbuf)
 {
 	uint8_t dncmd;
 	uint32_t i;
 	uint32_t len = 0;
+	uint8_t *buf = dbuf;
 
 	dncmd = spacemit_espi_cmd2dncmd(opcode);
 
@@ -393,9 +410,13 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		hbuf[6] = spacemit_espi_read_rxmsg(6);
 		hbuf[7] = spacemit_espi_read_rxmsg(7);
 		len = ESPI_RXHDR_LENGTH(hbuf);
-		if (len > dlen)
-			con_err("spacemit_espi: PR oversized %d < %d\n",
-				dlen, len);
+		if (len > dlen) {
+			con_err("spacemit_espi: PR oversized %d > %d\n",
+				len, dlen);
+			spacemit_espi_rsp = ESPI_RSP_NON_FATAL_ERROR;
+			goto err_exit;
+		}
+		dlen = len;
 		break;
 
 	case ESPI_DNCMD_PUT_OOB:
@@ -404,10 +425,26 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		hbuf[1] = spacemit_espi_read_rxhdr(1);
 		hbuf[2] = spacemit_espi_read_rxhdr(2);
 		len = ESPI_RXHDR_LENGTH(hbuf);
-		if (len > dlen)
-			con_err("spacemit_espi: OOB oversized %d < %d\n",
-				dlen, len);
+		if (len > dlen) {
+			con_err("spacemit_espi: OOB oversized %d > %d\n",
+				len, dlen);
+			spacemit_espi_rsp = ESPI_RSP_NON_FATAL_ERROR;
+			goto err_exit;
+		}
+		if (len < 3) {
+			con_err("spacemit_espi: OOB illegal %d < 3\n",
+				len);
+			spacemit_espi_rsp = ESPI_RSP_NON_FATAL_ERROR;
+			goto err_exit;
+		}
+		dlen = len;
+		dbuf[0] = spacemit_espi_read_rxhdr(3);
+		dbuf[1] = spacemit_espi_read_rxhdr(4);
+		dbuf[2] = spacemit_espi_read_rxhdr(5);
+		len = dlen - 3;
+		buf = dbuf + 3;
 		break;
+
 	case ESPI_CMD_PUT_FLASH_C:
 		BUG_ON(hlen < ESPI_FLASH_ACCESS_REQUEST_HDR_LEN);
 		hbuf[0] = spacemit_espi_read_rxhdr(0);
@@ -418,9 +455,13 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		hbuf[5] = spacemit_espi_read_rxhdr(5);
 		hbuf[6] = spacemit_espi_read_rxhdr(6);
 		len = ESPI_RXHDR_LENGTH(hbuf);
-		if (len > dlen)
-			con_err("spacemit_espi: flash access oversized %d < %d\n",
-				dlen, len);
+		if (len > dlen) {
+			con_err("spacemit_espi: flash access oversized %d > %d\n",
+				len, dlen);
+			spacemit_espi_rsp = ESPI_RSP_NON_FATAL_ERROR;
+			goto err_exit;
+		}
+		dlen = len;
 		break;
 	}
 	con_dbg("spacemit_espi: hdr=%d", hlen);
@@ -430,7 +471,8 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		con_dbg("%02x ", ((uint8_t *)hbuf)[i]);
 	}
 	con_dbg("\n");
-	for (i = 0; i < ((dlen + 3) / 4); i++) {
+	con_dbg("spacemit_espi: dat=%d\n", dlen);
+	for (i = 0; i < ((len + 3) / 4); i++) {
 		uint8_t ilen = i * 4;
 		uint32_t rxdata;
 
@@ -439,14 +481,16 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		else
 			rxdata = spacemit_espi_read32(ESPI_UP_RXDATA_PORT);
 		if (ilen < dlen)
-			dbuf[ilen] = LOBYTE(LOWORD(rxdata));
+			buf[ilen] = LOBYTE(LOWORD(rxdata));
 		if ((ilen + 1) < dlen)
-			dbuf[ilen + 1] = HIBYTE(LOWORD(rxdata));
+			buf[ilen + 1] = HIBYTE(LOWORD(rxdata));
 		if ((ilen + 2) < dlen)
-			dbuf[ilen + 2] = LOBYTE(HIWORD(rxdata));
+			buf[ilen + 2] = LOBYTE(HIWORD(rxdata));
 		if ((ilen + 3) < dlen)
-			dbuf[ilen + 3] = HIBYTE(HIWORD(rxdata));
+			buf[ilen + 3] = HIBYTE(HIWORD(rxdata));
 	}
+
+err_exit:
 	return spacemit_espi_rsp;
 }
 
