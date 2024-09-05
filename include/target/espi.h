@@ -147,6 +147,17 @@
 #define ESPI_RXHDR_LENGTH(hdr)					\
 	MAKEWORD(hdr[2], ESPI_RXHDR_LEN(hdr[1]))
 
+#define ESPI_MESSAGE_LTR			0x01
+#define ESPI_LTR_RQ				_BV(31)
+#define ESPI_LTR_LS_OFFSET			26
+#define ESPI_LTR_LS_MASK			REG_3BIT_MASK
+#define ESPI_LTR_LS(value)			_SET_FV(ESPI_LTR_LS, value)
+#define ESPI_LTR_LV_OFFSET			16
+#define ESPI_LTR_LV_MASK			REG_10BIT_MASK
+#define ESPI_LTR_LV(value)			_SET_FV(ESPI_LTR_LV, value)
+#define ESPI_LTR(rq, ls, lv)			\
+	(((rq) ? ESPI_LTR_RQ : 0) | ESPI_LTR_LS(ls) | ESPI_LTR_LV(lv))
+
 /* 7.2 Capabilities and Configuration Registers */
 /* 7.2.1.2 Offset 04h: Device Identification */
 #define ESPI_SLAVE_DEV_ID			0x04
@@ -655,6 +666,9 @@ void espi_seq_handler(void);
 void espi_inband_reset(void);
 void espi_get_configuration(uint16_t address);
 void espi_set_configuration(uint16_t address, uint32_t config);
+void espi_put_message(uint8_t r, uint8_t code, uint32_t msg,
+		      uint16_t len, uint8_t *buf);
+void espi_put_ltr(bool rq, uint8_t ls, uint16_t lv);
 //void espi_get_vwire(void);
 void espi_put_vwire(uint16_t vwire, bool state);
 void espi_put_vwires(uint8_t count, uint16_t *vwire, bool *state);

@@ -524,6 +524,30 @@ static int do_espi_irq(int argc, char *argv[])
 	return 0;
 }
 
+static int do_espi_ltr(int argc, char *argv[])
+{
+	bool rq;
+	uint8_t ls;
+	uint16_t lv;
+
+	if (argc < 6)
+		return -EINVAL;
+	rq = (bool)strtoull(argv[3], 0, 0);
+	ls = (uint8_t)strtoull(argv[4], 0, 0);
+	lv = (uint16_t)strtoull(argv[5], 0, 0);
+	espi_put_ltr(rq, ls, lv);
+	return 0;
+}
+
+static int do_espi_msg(int argc, char *argv[])
+{
+	if (argc < 3)
+		return -EINVAL;
+	if (!strcmp(argv[2], "ltr"))
+		return do_espi_ltr(argc, argv);
+	return -EINVAL;
+}
+
 static int do_espi_oob(int argc, char *argv[])
 {
 	uint16_t len, i;
@@ -586,6 +610,8 @@ static int do_espi(int argc, char *argv[])
 		return do_espi_wait(argc, argv);
 	else if (strcmp(argv[1], "irq") == 0)
 		return do_espi_irq(argc, argv);
+	else if (strcmp(argv[1], "msg") == 0)
+		return do_espi_msg(argc, argv);
 	else if (strcmp(argv[1], "oob") == 0)
 		return do_espi_oob(argc, argv);
 	else if (strcmp(argv[1], "flash") == 0)
@@ -602,6 +628,19 @@ DEFINE_COMMAND(spacemit_espi, do_espi, "SpacemiT enhanced SPI commands",
 	"    -enable/disable wait counter\n"
 	"spacemit_espi irq <irq> <high|low>\n"
 	"    -config irq polarity\n"
+	"spacemit_espi msg ltr <rq> <ls> <lv>...\n"
+	"    -put LTR message\n"
+	"    -rq: service requirment:\n"
+	"         0 - not required\n"
+	"         1 - required\n"
+	"    -ls: latency scale:\n"
+	"         0 - 1ns\n"
+	"         1 - 32ns\n"
+	"         2 - 1024ns\n"
+	"         3 - 32768ns\n"
+	"         4 - 1048576ns\n"
+	"         5 - 33554432ns\n"
+	"    -lv: latency value\n"
 	"spacemit_espi oob <len> [byte1] [byte2] ...\n"
 	"    -put OOB message\n"
 	"spacemit_espi flash <type> <code> <len> [byte1] [byte2] ...\n"
