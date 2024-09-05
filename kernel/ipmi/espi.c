@@ -30,6 +30,7 @@ bool espi_vwire_assert;
 bool espi_peri_master = true;
 uint8_t espi_oob_request[ESPI_HW_OOB_SIZE];
 uint8_t espi_flash_request[ESPI_HW_FLASH_SIZE];
+uint8_t espi_peri_message[ESPI_HW_PERI_SIZE];
 
 #define espi_channel_configured(ch)	(!!(espi_chans & ESPI_CHANNEL(ch)))
 #define espi_enable_channel(ch)		(espi_chans |= ESPI_CHANNEL(ch))
@@ -465,6 +466,24 @@ void espi_put_ltr(bool rq, uint8_t ls, uint16_t lv)
 {
 	espi_put_message(0, ESPI_MESSAGE_LTR,
 			 ESPI_LTR(rq, ls, lv), 0, NULL);
+}
+
+void espi_get_msg(void)
+{
+	uint8_t hbuf[ESPI_PERI_MESSAGE_HDR_LEN];
+	uint16_t len, i;
+	uint8_t *buf = espi_oob_request;
+
+	espi_read_rsp(ESPI_CMD_GET_OOB,
+		      ESPI_PERI_MESSAGE_HDR_LEN,
+		      hbuf, ESPI_HW_PERI_SIZE,
+		      espi_peri_message);
+	len = ESPI_RXHDR_LENGTH(hbuf);
+
+	con_dbg("espi: get_msg %d - ", len);
+	for (i = 0; i < len; i++)
+		con_dbg(" %02x", buf[i]);
+	con_dbg("\n");
 }
 
 bool espi_vwire_is_asserting(uint16_t vwire)
