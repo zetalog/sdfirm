@@ -315,6 +315,31 @@ typedef uint32_t cmn_id_t;
 #define CMN_rnsam_sys_cache_grp_cal_mode(base)		\
 					CMN_REG(base, 0x0F10)
 
+/* RAS register */
+#define CMN_cfgm_errgsr(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x3000, (n))
+#define CMN_cfgm_errgsr_NS(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x3100, (n))
+
+/* HN-F, HN-I, XP, SBSX, CXG  */
+#define CMN_errfr(base)			CMN_REG(base, 0x3000)
+#define CMN_errctlr(base)		CMN_REG(base, 0x3008)
+#define CMN_errstatus(base)		CMN_REG(base, 0x3010)
+#define CMN_errmisc(base)		CMN_REG(base, 0x3020)
+#define CMN_errfr_NS(base)		CMN_REG(base, 0x3100)
+#define CMN_errctlr_NS(base)		CMN_REG(base, 0x3108)
+#define CMN_errstatus_NS(base)		CMN_REG(base, 0x3110)
+#define CMN_errmisc_NS(base)		CMN_REG(base, 0x3120)
+
+/* HN-F, HN-I, SBSX, CXG */
+#define CMN_erraddr(base)		CMN_REG(base, 0x3018)
+#define CMN_erraddr_NS(base)		CMN_REG(base, 0x3118)
+
+/* HN-F */
+#define CMN_hnf_err_inj(base)		CMN_REG(base, 0x3030)
+
+/* HN-F, XP */
+#define CMN_hnf_byte_par_err_inj(base)		CMN_REG(base, 0x3038)
+#define CMN_mxp_byte_par_err_inj(base, p)	CMN_REG(base, 0x3030 + (p) << 3)
+
 /* CXG link register summary: common to CXHA and CXRA */
 #define CMN_cxg_cxprtcl_link_ctl(base, n)			\
 					CMN_REG(base, 0x1000 + ((n) << 4))
@@ -868,6 +893,39 @@ typedef uint8_t cmn_did_t;
 
 #define CCIX_VENDOR_ID					0x1E2C
 
+#define CMN_errfr_ED_OFFSET				0
+#define CMN_errfr_ED_MASK				REG_2BIT_MASK
+#define CMN_errfr_ED(value)				_SET_FV_ULL(CMN_errfr_ED, value)
+#define CMN_errfr_DE_OFFSET				2
+#define CMN_errfr_DE_MASK				REG_2BIT_MASK
+#define CMN_errfr_DE(value)				_SET_FV_ULL(CMN_errfr_DE, value)
+#define CMN_errfr_UI_OFFSET				4
+#define CMN_errfr_UI_MASK				REG_2BIT_MASK
+#define CMN_errfr_UI(value)				_SET_FV_ULL(CMN_errfr_UI, value)
+#define CMN_errfr_FI_OFFSET				6
+#define CMN_errfr_FI_MASK				REG_2BIT_MASK
+#define CMN_errfr_FI(value)				_SET_FV_ULL(CMN_errfr_FI, value)
+#define CMN_errfr_CFI_OFFSET				10
+#define CMN_errfr_CFI_MASK				REG_2BIT_MASK
+#define CMN_errfr_CFI(value)				_SET_FV_ULL(CMN_errfr_CFI, value)
+#define CMN_errfr_CEC_OFFSET				12
+#define CMN_errfr_CEC_MASK				REG_3BIT_MASK
+#define CMN_errfr_CEC(value)				_SET_FV_ULL(CMN_errfr_CEC, value)
+
+#define CMN_errctlr_ED					_BV(0)
+#define CMN_errctlr_DE					_BV(1)
+#define CMN_errctlr_UI					_BV(2)
+#define CMN_errctlr_FI					_BV(3)
+#define CMN_errctlr_CFI					_BV(8)
+
+#define CMN_errstatus_DE				_BV(23)
+#define CMN_errstatus_CE				_BV(24)
+#define CMN_errstatus_MV				_BV(26)
+#define CMN_errstatus_OF				_BV(27)
+#define CMN_errstatus_UE				_BV(29)
+#define CMN_errstatus_V					_BV(30)
+#define CMN_errstatus_AV				_BV(31)
+
 /* CMN macros and APIs */
 #define cmn_node_type(base)			\
 	CMN_node_type(__raw_readq(CMN_node_info(base)))
@@ -918,6 +976,65 @@ typedef uint8_t cmn_did_t;
 	CMN_LA_MAXPACKETSIZE(__raw_readq(CMN_cxla_ccix_prop_capabilities(CMN_CXLA_BASE)))
 #define cmn_ccix_no_message_pack()		\
 	(!!(__raw_readq(CMN_cxla_ccix_prop_capabilities(CMN_CXLA_BASE)) & CMN_la_nomessagepack))
+
+#define cmn_ras_support_ed(id)			\
+	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_ED))
+#define cmn_ras_enable_ed(id)			\
+	__raw_setq(CMN_errctlr_ED, CMN_errctlr(cmn_child_node(id)))
+#define cmn_ras_disable_ed(id)			\
+	__raw_clearq(CMN_errctlr_ED, CMN_errctlr(cmn_child_node(id)))
+#ifdef CONFIG_CMN600_RAS_DE
+#define cmn_ras_support_de(id)			\
+	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_DE))
+#define cmn_ras_enable_de(id)			\
+	__raw_setq(CMN_errctlr_DE, CMN_errctlr(cmn_child_node(id)))
+#define cmn_ras_disable_de(id)			\
+	__raw_clearq(CMN_errctlr_DE, CMN_errctlr(cmn_child_node(id)))
+#else
+#define cmn_ras_support_de(id)			false
+#define cmn_ras_enable_de(id)			do { } while (0)
+#define cmn_ras_disable_de(id)			do { } while (0)
+#endif
+#ifdef CONFIG_CMN600_RAS_UI
+#define cmn_ras_support_ui(id)			\
+	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_UI))
+#define cmn_ras_enable_ui(id)			\
+	__raw_setq(CMN_errctlr_UI, CMN_errctlr(cmn_child_node(id)))
+#define cmn_ras_disable_ui(id)			\
+	__raw_clearq(CMN_errctlr_UI, CMN_errctlr(cmn_child_node(id)))
+#else
+#define cmn_ras_support_ui(id)			false
+#define cmn_ras_enable_ui(id)			do { } while (0)
+#define cmn_ras_disable_ui(id)			do { } while (0)
+#endif
+#ifdef CONFIG_CMN600_RAS_FI
+#define cmn_ras_support_fi(id)			\
+	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_FI))
+#define cmn_ras_enable_fi(id)			\
+	__raw_setq(CMN_errctlr_FI, CMN_errctlr(cmn_child_node(id)))
+#define cmn_ras_disable_fi(id)			\
+	__raw_clearq(CMN_errctlr_FI, CMN_errctlr(cmn_child_node(id)))
+#else
+#define cmn_ras_support_fi(id)			false
+#define cmn_ras_enable_fi(id)			do { } while (0)
+#define cmn_ras_disable_fi(id)			do { } while (0)
+#endif
+#define cmn_ras_support_cfi(id)			\
+	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_CFI))
+#define cmn_ras_enable_cfi(id)			\
+	__raw_setq(CMN_errctlr_CFI, CMN_errctlr(cmn_child_node(id)))
+#define cmn_ras_disable_cfi(id)			\
+	__raw_clearq(CMN_errctlr_CFI, CMN_errctlr(cmn_child_node(id)))
+
+#define CMN_ras_err_inj(id, srcid, lpid)
+#define CMN_ras_hnf_par_err_inj(id, lane)
+#define CMN_ras_mxp_par_err_inj(id, port, lane)
+
+#define CMN_ERRG_XP				0
+#define CMN_ERRG_HNI				1
+#define CMN_ERRG_HNF				2
+#define CMN_ERRG_SBSX				3
+#define CMN_ERRG_CXHA				4
 
 /* Configuration interfaces */
 #define CMN600_MEMORY_REGION_TYPE_IO			0
@@ -1009,6 +1126,14 @@ void cmn600_cml_init(void);
 #define cmn600_cml_enable_dvm()		do { } while (0)
 #define cmn600_cml_base()		0
 #define cmn600_cml_init()		do { } while (0)
+#endif
+
+#define CONFIG_CMN600_RAS
+void cmn600_ras_config(cmn_nid_t nid);
+void cmn600_ras_report(cmn_nid_t nid);
+#else
+#define cmn600_ras_config(nid)		do { } while (0)
+#define cmn600_ras_report(nid)		do { } while (0)
 #endif
 
 #endif /* __CMN600_H_INCLUDE__ */
