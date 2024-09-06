@@ -384,6 +384,8 @@
 /* GPIO expander */
 #define ESPI_VWIRE_GPIO_EXPANDER_GROUP_OFFSET	4
 #define ESPI_VWIRE_GPIO_EXPANDER_GROUP_MASK	REG_7BIT_MASK
+#define ESPI_VWIRE_GPIO_EXPANDER_GROUP_MIN	128
+#define ESPI_VWIRE_GPIO_EXPANDER_GROUP_MAX	(ESPI_VWIRE_GPIO_EXPANDER_GROUP_MIN + ESPI_HW_GPIO_GROUPS)
 #define espi_vwire_gpio_group(value)		_SET_FV(ESPI_VWIRE_GPIO_EXPANDER_GROUP, (value) - 128)
 #define ESPI_VWIRE_GPIO_GROPU(value)		(_GET_FV(ESPI_VWIRE_GPIO_EXPANDER_GROUP, value) + 128)
 #define ESPI_VWIRE_GPIO_EXPANDER_VWIRE_OFFSET	0
@@ -394,14 +396,6 @@
 	(espi_vwire_type(ESPI_VWIRE_GPIO) |	\
 	 espi_vwire_gpio_group(group) |	\
 	 espi_vwire_gpio_vwire(vwire))
-
-#ifdef CONFIG_ESPI_DEBUG
-void espi_show_slave_general_configuration(uint32_t config);
-void espi_show_slave_peripheral_channel_configuration(uint32_t config);
-#else
-static inline void espi_show_slave_general_configuration(uint32_t config) {}
-static inline void espi_show_slave_peripheral_channel_configuration(uint32_t config) {}
-#endif
 
 #define espi_slave_io_mode_sup_quad(caps)		\
 	(ESPI_GEN_IO_MODE_SUP(caps) == ESPI_GEN_IO_MODE_QUAD)
@@ -696,5 +690,6 @@ bool espi_sys_event_is_set(uint16_t event);
 bool espi_sys_event_is_active_low(uint16_t event);
 bool espi_vwire_is_asserting(uint16_t vwire);
 bool espi_vwire_is_deasserting(uint16_t vwire);
+void espi_set_gpio_expander(uint16_t gpio, bool level);
 
 #endif /* __ESPI_H_INCLUDE__ */
