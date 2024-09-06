@@ -31,6 +31,7 @@ bool espi_peri_master = true;
 uint8_t espi_oob_request[ESPI_HW_OOB_SIZE];
 uint8_t espi_flash_request[ESPI_HW_FLASH_SIZE];
 uint8_t espi_peri_message[ESPI_HW_PERI_SIZE];
+DECLARE_BITMAP(espi_gpios, ESPI_HW_GPIO_GROUPS * 4);
 
 #define espi_channel_configured(ch)	(!!(espi_chans & ESPI_CHANNEL(ch)))
 #define espi_enable_channel(ch)		(espi_chans |= ESPI_CHANNEL(ch))
@@ -1043,6 +1044,25 @@ void espi_clear_sys_event(uint16_t event)
 	}
 }
 
+void espi_set_gpio_expander(uint16_t gpio, bool level)
+{
+	uint8_t group, vwire;
+
+	group = ESPI_VWIRE_GPIO_GROPU(gpio);
+	vwire = ESPI_VWIRE_GPIO_VWIRE(gpio);
+
+	if (gpio > (ESPI_HW_GPIO_GROUPS * 4))
+		con_err("espi: invalid gpio %d-%d\n", group, vwire);
+
+	if (level) {
+		con_dbg("espi: gpio expander: %d-%d=high\n", group, vwire);
+		set_bit(gpio, espi_gpios);
+	} else {
+		con_dbg("espi: gpio expander: %d-%d=low\n", group, vwire);
+		clear_bit(gpio, espi_gpios);
+	}
+}
+
 static void espi_bh_handler(uint8_t events)
 {
 	if (events == BH_POLLIRQ) {
@@ -1114,7 +1134,7 @@ void espi_init(void)
 	espi_raise_event(ESPI_EVENT_INIT);
 }
 
-static int do_espi_vwire_dump(int argc, char *argv[])
+static int do_espi_sys_dump(int argc, char *argv[])
 {
 	uint8_t grp, evt;
 	uint16_t event;
@@ -1136,7 +1156,7 @@ static int do_espi_vwire_dump(int argc, char *argv[])
 	return 0;
 }
 
-static int do_espi_vwire_put(int argc, char *argv[])
+static int do_espi_sys_put(int argc, char *argv[])
 {
 	uint16_t event;
 
@@ -1160,14 +1180,72 @@ static int do_espi_vwire_put(int argc, char *argv[])
 	return -EINVAL;
 }
 
-static int do_espi_vwire(int argc, char *argv[])
+static int do_espi_gpio_dump(int argc, char *argv[])
+{
+	uint8_t group, vwire;
+	uint16_t gpio;
+
+	for (group = ESPI_VWIRE_GPIO_EXPANDER_GROUP_MIN;
+	     group <= ESPI_VWIRE_GPIO_EXPANDER_GROUP_MAX; group++) {
+		for (vwire = 0; vwire < 4; vwire++) {
+			gpio = ESPI_VWIRE_GPIO_EXPANDER(group, vwire);
+			printf("gpio expander: (%d:%d) - %s\n", group, vwire,
+			       test_bit(gpio, espi_gpios) ? "high" : "low");
+		}
+	}
+	return 0;
+}
+
+static int do_espi_gpio_put(int argc, char *argv[])
+{
+	uint16_t gpio;
+	uint8_t group, vwire;
+
+	if (argc < 6)
+		return -EINVAL;
+
+	group = (uint8_t)strtoull(argv[3], 0, 0);
+	vwire = (uint8_t)strtoull(argv[4], 0, 0);
+	if (group >= ESPI_HW_GPIO_GROUPS) {
+		printf("Invalid group: %d\n", group);
+		return -EINVAL;
+	}
+	if (group >= 4) {
+		printf("Invalid vwire: %d\n", vwire);
+		return -EINVAL;
+	}
+	gpio = ESPI_VWIRE_GPIO_EXPANDER(group, vwire);
+	if (!strcmp(argv[5], "high")) {
+		espi_put_vwire(gpio, true);
+		return 0;
+	}
+	if (!strcmp(argv[5], "low")) {
+		espi_put_vwire(gpio, false);
+		return 0;
+	}
+	printf("Invalid level: %s\n", argv[4]);
+	return -EINVAL;
+}
+
+static int do_espi_sys(int argc, char *argv[])
 {
 	if (argc < 3)
 		return -EINVAL;
 	if (strcmp(argv[2], "dump") == 0)
-		return do_espi_vwire_dump(argc, argv);
+		return do_espi_sys_dump(argc, argv);
 	if (strcmp(argv[2], "put") == 0)
-		return do_espi_vwire_put(argc, argv);
+		return do_espi_sys_put(argc, argv);
+	return -EINVAL;
+}
+
+static int do_espi_gpio(int argc, char *argv[])
+{
+	if (argc < 3)
+		return -EINVAL;
+	if (strcmp(argv[2], "dump") == 0)
+		return do_espi_gpio_dump(argc, argv);
+	if (strcmp(argv[2], "put") == 0)
+		return do_espi_gpio_put(argc, argv);
 	return -EINVAL;
 }
 
@@ -1176,7 +1254,9 @@ static int do_espi(int argc, char *argv[])
 	if (argc < 2)
 		return -EINVAL;
 	if (strcmp(argv[1], "sys") == 0)
-		return do_espi_vwire(argc, argv);
+		return do_espi_sys(argc, argv);
+	if (strcmp(argv[1], "gpio") == 0)
+		return do_espi_gpio(argc, argv);
 	return -EINVAL;
 }
 
@@ -1185,4 +1265,8 @@ DEFINE_COMMAND(espi, do_espi, "enhanced SPI (eSPI) commands",
 	"    -dump all vwire system event status\n"
 	"espi sys put <vwire> <high|low>\n"
 	"    -put vwire system event level\n"
+	"espi gpio dump\n"
+	"    -dump all vwire GPIO expander level\n"
+	"espi gpio put <group> <wire> <high|low>\n"
+	"    -put vwire gpio wire level\n"
 );

@@ -106,7 +106,7 @@ static int do_lpc_mem(int argc, char *argv[])
 	if (argc > 4)
 		address = (uint32_t)strtoull(argv[4], 0, 0);
 	else
-		address = address0 + LPC_MEM_SIZE;
+		address += LPC_MEM_SIZE;
 	address1 = HIBYTE(HIWORD(address));
 	lpc_mem_cfg((uint8_t)strtoull(argv[2], 0, 0), 
 		address0, address1);

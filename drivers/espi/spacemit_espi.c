@@ -91,6 +91,26 @@ static inline void espi_vw_channel_slave_suspend_exit(void)
 	spacemit_espi_clear32(ESPI_SUS_STAT, ESPI_GLOBAL_CONTROL_1);
 }
 
+static void spacemit_espi_handle_gpio(uint8_t index)
+{
+	uint8_t vwire;
+	uint8_t grp, dat;
+	uint8_t valid, level;
+	uint16_t gpio;
+
+	grp = spacemit_espi_vwgpio_index(index);
+	dat = spacemit_espi_vwgpio_data(index);
+	printf("spacemit_espi: GPIO%d=0x%02x\n", grp, dat);
+
+	valid = HIHALF(dat);
+	level = LOHALF(dat);
+	for (vwire = 0; vwire < 4; vwire++) {
+		gpio = ESPI_VWIRE_GPIO_EXPANDER(grp, vwire);
+		if (valid & _BV(vwire))
+			espi_set_gpio_expander(gpio, !!(level >> vwire));
+	}
+}
+
 void spacemit_espi_handle_conirq(void)
 {
 	int int_sts;
@@ -113,27 +133,19 @@ void spacemit_espi_handle_conirq(void)
 	}
 	if (int_sts & ESPI_RXVW_GRP3_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP3_INT\n");
-		printf("spacemit_espi: GPIO%d=0x%02x\n",
-		       spacemit_espi_vwgpio_index(3),
-		       spacemit_espi_vwgpio_data(3));
+		spacemit_espi_handle_gpio(3);
 	}
 	if (int_sts & ESPI_RXVW_GRP2_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP2_INT\n");
-		printf("spacemit_espi: GPIO%d=0x%02x\n",
-		       spacemit_espi_vwgpio_index(2),
-		       spacemit_espi_vwgpio_data(2));
+		spacemit_espi_handle_gpio(2);
 	}
 	if (int_sts & ESPI_RXVW_GRP1_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP1_INT\n");
-		printf("spacemit_espi: GPIO%d=0x%02x\n",
-		       spacemit_espi_vwgpio_index(1),
-		       spacemit_espi_vwgpio_data(1));
+		spacemit_espi_handle_gpio(1);
 	}
 	if (int_sts & ESPI_RXVW_GRP0_INT) {
 		con_log("spacemit_espi: ESPI_RXVW_GRP0_INT\n");
-		printf("spacemit_espi: GPIO%d=0x%02x\n",
-		       spacemit_espi_vwgpio_index(0),
-		       spacemit_espi_vwgpio_data(0));
+		spacemit_espi_handle_gpio(0);
 	}
 	if (int_sts & ESPI_PROTOCOL_INT) {
 		if (int_sts & ESPI_PROTOCOL_ERR_INT)
@@ -543,18 +555,15 @@ void spacemit_espi_init(void)
 
 static int do_espi_mem(int argc, char *argv[])
 {
-	uint32_t address;
-	uint8_t address0, address1;
+	uint32_t address0, address1;
 
 	if (argc < 3)
 		return -EINVAL;
-	address = (uint32_t)strtoull(argv[2], 0, 0);
-	address0 = HIBYTE(HIWORD(address));
+	address0 = (uint32_t)strtoull(argv[2], 0, 0);
 	if (argc > 3)
-		address = (uint32_t)strtoull(argv[3], 0, 0);
+		address1 = (uint32_t)strtoull(argv[3], 0, 0);
 	else
-		address = address0 + ESPI_MEM_SIZE;
-	address1 = HIBYTE(HIWORD(address));
+		address1 = address0 + ESPI_MEM_SIZE;
 	spacemit_espi_mem_cfg(address0, address1);
 	return 0;
 }
