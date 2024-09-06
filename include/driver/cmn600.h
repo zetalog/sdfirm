@@ -1128,7 +1128,7 @@ void cmn600_cml_init(void);
 #define cmn600_cml_init()		do { } while (0)
 #endif
 
-#define CONFIG_CMN600_RAS
+#ifdef CONFIG_CMN600_RAS
 void cmn600_ras_config(cmn_nid_t nid);
 void cmn600_ras_report(cmn_nid_t nid);
 #else
