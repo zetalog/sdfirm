@@ -335,7 +335,9 @@ void spacemit_espi_write_cmd(uint8_t opcode,
 
 	dncmd = spacemit_espi_cmd2dncmd(opcode);
 
-	con_dbg("spacemit_espi: cmd: %02x\n", dncmd);
+	con_dbg("spacemit_espi: opcode=%02x, dncmd=%02x, hdr=%d, dat=%d\n",
+		opcode, dncmd, hlen, dlen);
+
 	con_dbg("spacemit_espi: hdr=%d", hlen);
 	for (i = 0; i < hlen; i++) {
 		if (i == 0)
@@ -390,6 +392,7 @@ void spacemit_espi_write_cmd(uint8_t opcode,
 				  MAKEWORD(db2, db3));
 		spacemit_espi_write32(txdata, ESPI_DN_TXDATA_PORT);
 	}
+
 	spacemit_espi_write_dncmd(dncmd, 0);
 }
 
@@ -404,7 +407,8 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 
 	dncmd = spacemit_espi_cmd2dncmd(opcode);
 
-	con_dbg("spacemit_espi: cmd: %02x, hdr=%d, dat=%d\n", dncmd, hlen, dlen);
+	con_dbg("spacemit_espi: opcode=%02x, dncmd=%02x, hdr=%d, dat=%d\n",
+		opcode, dncmd, hlen, dlen);
 
 	switch (dncmd) {
 	case ESPI_DNCMD_GET_CONFIGURATION:
@@ -487,7 +491,7 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		con_dbg("%02x ", ((uint8_t *)hbuf)[i]);
 	}
 	con_dbg("\n");
-	con_dbg("spacemit_espi: dat=%d\n", dlen);
+
 	for (i = 0; i < ((len + 3) / 4); i++) {
 		uint8_t ilen = i * 4;
 		uint32_t rxdata;
@@ -505,6 +509,13 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		if ((ilen + 3) < dlen)
 			buf[ilen + 3] = HIBYTE(HIWORD(rxdata));
 	}
+	con_dbg("spacemit_espi: dat=%d", len);
+	for (i = 0; i < len; i++) {
+		if (i == 0)
+			con_dbg(",");
+		con_dbg("%02x ", ((uint8_t *)buf)[i]);
+	}
+	con_dbg("\n");
 
 err_exit:
 	return spacemit_espi_rsp;
