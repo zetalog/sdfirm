@@ -460,7 +460,7 @@ void spacemit_espi_write8(uint8_t val, caddr_t reg);
 	((uint8_t)ESPI_UPCMD_HDATA(n,				\
 	       spacemit_espi_read32(ESPI_UP_RXHDRn(n))))
 #define spacemit_espi_read_rxmsg(n)				\
-	((uint8_t)ESPI_RXMSG_HDATA(n,				\
+	((uint8_t)espi_rxmsg_hdata(n,				\
 	       spacemit_espi_read32(ESPI_SLAVE0_RXMSG_HDRn(n))))
 
 #define spacemit_espi_config_io_mode(mode)			\
