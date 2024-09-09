@@ -1206,11 +1206,12 @@ static int do_espi_gpio_put(int argc, char *argv[])
 
 	group = (uint8_t)strtoull(argv[3], 0, 0);
 	vwire = (uint8_t)strtoull(argv[4], 0, 0);
-	if (group >= ESPI_HW_GPIO_GROUPS) {
+	if (group < 128 ||
+	    group >= 128 + ESPI_HW_GPIO_GROUPS) {
 		printf("Invalid group: %d\n", group);
 		return -EINVAL;
 	}
-	if (group >= 4) {
+	if (vwire >= 4) {
 		printf("Invalid vwire: %d\n", vwire);
 		return -EINVAL;
 	}
