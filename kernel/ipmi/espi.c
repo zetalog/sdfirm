@@ -475,7 +475,7 @@ void espi_get_msg(void)
 	uint16_t len, i;
 	uint8_t *buf = espi_oob_request;
 
-	espi_read_rsp(ESPI_CMD_GET_OOB,
+	espi_read_rsp(ESPI_CMD_PUT_PC,
 		      ESPI_PERI_MESSAGE_HDR_LEN,
 		      hbuf, ESPI_HW_PERI_SIZE,
 		      espi_peri_message);
