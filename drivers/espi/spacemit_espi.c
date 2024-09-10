@@ -470,7 +470,7 @@ uint8_t spacemit_espi_read_rsp(uint8_t opcode,
 		buf = dbuf + 3;
 		break;
 
-	case ESPI_CMD_PUT_FLASH_C:
+	case ESPI_DNCMD_PUT_FLASH_C:
 		BUG_ON(hlen < ESPI_FLASH_ACCESS_REQUEST_HDR_LEN);
 		hbuf[0] = spacemit_espi_read_rxhdr(0);
 		hbuf[1] = spacemit_espi_read_rxhdr(1);
