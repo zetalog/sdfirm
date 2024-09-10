@@ -1,5 +1,7 @@
 #include <target/generic.h>
 #include <target/perf.h>
+#include <target/bh.h>
+#include <target/irq.h>
 #include <target/cmdline.h>
 
 #define bmu_irq2unit(irq)	0

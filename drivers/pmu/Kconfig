@@ -1,0 +1,16 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "PMU drivers"
+
+config ARCH_HAS_SMMU_PMCG
+	bool
+	depends ARM_SMMUv3
+
+config SMMU_PMCG
+	bool "SMMUv3 performance monitor counter groups (PMCG) support"
+	depends ARCH_HAS_SMMU_PMCG
+
+endmenu
