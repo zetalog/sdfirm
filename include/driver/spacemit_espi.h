@@ -525,10 +525,17 @@ void spacemit_espi_write8(uint8_t val, caddr_t reg);
 			ESPI_SLAVE0_RXVW_INDEX);				\
 		spacemit_espi_enable_vwgpio(group);				\
 	} while (0)
+#ifdef CONFIG_SPACEMIT_ESPI_DEBUG_GPIO
 #define spacemit_espi_vwgpio_index(group)			\
 	(slave0_rxvw_grp(group, spacemit_espi_read32(ESPI_SLAVE0_RXVW_INDEX)))
 #define spacemit_espi_vwgpio_data(group)			\
 	(slave0_rxvw_grp(group, spacemit_espi_read32(ESPI_SLAVE0_RXVW_DATA)))
+#else
+#define spacemit_espi_vwgpio_index(group)			\
+	(slave0_rxvw_grp(group, __raw_readl(ESPI_SLAVE0_RXVW_INDEX)))
+#define spacemit_espi_vwgpio_data(group)			\
+	(slave0_rxvw_grp(group, __raw_readl(ESPI_SLAVE0_RXVW_DATA)))
+#endif
 
 #define ESPI_MEM_SIZE				SZ_16M
 #ifdef CONFIG_SPACEMIT_ESPI_DEBUG_IO
