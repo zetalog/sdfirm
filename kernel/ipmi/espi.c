@@ -1051,15 +1051,19 @@ void espi_set_gpio_expander(uint16_t gpio, bool level)
 	group = ESPI_VWIRE_GPIO_GROPU(gpio);
 	vwire = ESPI_VWIRE_GPIO_VWIRE(gpio);
 
-	if (gpio > (ESPI_HW_GPIO_GROUPS * 4))
+	if (gpio > ((128 + ESPI_HW_GPIO_GROUPS) * 4))
 		con_err("espi: invalid gpio %d-%d\n", group, vwire);
 
 	if (level) {
-		con_dbg("espi: gpio expander: %d-%d=high\n", group, vwire);
-		set_bit(gpio, espi_gpios);
+		if (!test_bit(gpio, espi_gpios)) {
+			con_dbg("espi: gpio expander: %d-%d=high\n", group, vwire);
+			set_bit(gpio, espi_gpios);
+		}
 	} else {
-		con_dbg("espi: gpio expander: %d-%d=low\n", group, vwire);
-		clear_bit(gpio, espi_gpios);
+		if (test_bit(gpio, espi_gpios)) {
+			con_dbg("espi: gpio expander: %d-%d=low\n", group, vwire);
+			clear_bit(gpio, espi_gpios);
+		}
 	}
 }
 
