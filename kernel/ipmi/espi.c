@@ -1069,7 +1069,7 @@ void espi_set_gpio_expander(uint16_t gpio, bool level)
 	group = ESPI_VWIRE_GPIO_GROUP(gpio);
 	vwire = ESPI_VWIRE_GPIO_VWIRE(gpio);
 
-	if (gpio > ((128 + ESPI_HW_GPIO_GROUPS) * 4))
+	if (group > (128 + ESPI_HW_GPIO_GROUPS))
 		con_err("espi: invalid gpio %d-%d\n", group, vwire);
 
 	if (level) {
