@@ -330,8 +330,6 @@ config ARCH_K1MXLITE
 	help
 	  This enables support for SpacemiT K1MXLite server platforms.
 
-source "arch/riscv/Kconfig-spa36xx"
-
 config ARCH_COREV
 	bool "OpenHW Group Core-V Family"
 	select RISCV_VIRQ
@@ -385,6 +383,8 @@ config ARCH_VIRT
 	help
 	  This enables support for RISC-V VIRT platform.
 
+source "arch/riscv/Kconfig-arch-spa36xx"
+
 endchoice
 
 source "arch/riscv/common/Kconfig"
@@ -403,10 +403,10 @@ source "arch/riscv/mach-vega/Kconfig"
 source "arch/riscv/mach-k1max/Kconfig"
 source "arch/riscv/mach-k1x/Kconfig"
 source "arch/riscv/mach-k1mxlite/Kconfig"
-source "arch/riscv/mach-k1matrix/Kconfig"
 source "arch/riscv/mach-corev/Kconfig"
 source "arch/riscv/mach-spike/Kconfig"
 source "arch/riscv/mach-virt/Kconfig"
+source "arch/riscv/Kconfig-mach-spa36xx"
 
 source "kernel/Kconfig"
 source "drivers/Kconfig"
