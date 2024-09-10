@@ -43,6 +43,11 @@
 #include <target/panic.h>
 #include <target/cmdline.h>
 
+#ifdef CONFIG_SPACEMIT_ESPI_DEBUG_GPIO
+#define spacemit_espi_debug_gpio(...)	con_dbg(__VA_ARGS__)
+#else
+#define spacemit_espi_debug_gpio(...)	do { } while (0)
+#endif
 static uint8_t spacemit_espi_oob_buffer[128];
 static uint8_t spacemit_espi_rsp;
 
@@ -100,7 +105,7 @@ static void spacemit_espi_handle_gpio(uint8_t index)
 
 	grp = spacemit_espi_vwgpio_index(index);
 	dat = spacemit_espi_vwgpio_data(index);
-	printf("spacemit_espi: GPIO%d=0x%02x\n", grp, dat);
+	spacemit_espi_debug_gpio("spacemit_espi: GPIO%d=0x%02x\n", grp, dat);
 
 	valid = HIHALF(dat);
 	level = LOHALF(dat);
@@ -120,74 +125,74 @@ void spacemit_espi_handle_conirq(void)
 	__raw_writel(int_sts, ESPI_SLAVE0_INT_STS);
 
 	if (int_sts & ESPI_FLASH_REQ_INT) {
-		con_log("spacemit_espi: ESPI_FLASH_REQ_INT\n");
+		con_dbg("spacemit_espi: ESPI_FLASH_REQ_INT\n");
 		espi_get_flash();
 	}
 	if (int_sts & ESPI_RXOOB_INT) {
-		con_log("spacemit_espi: ESPI_RXOOB_INT\n");
+		con_dbg("spacemit_espi: ESPI_RXOOB_INT\n");
 		espi_get_oob();
 	}
 	if (int_sts & ESPI_RXMSG_INT) {
-		con_log("spacemit_espi: ESPI_RXMSG_INT\n");
+		con_dbg("spacemit_espi: ESPI_RXMSG_INT\n");
 		espi_get_msg();
 	}
 	if (int_sts & ESPI_RXVW_GRP3_INT) {
-		con_log("spacemit_espi: ESPI_RXVW_GRP3_INT\n");
+		spacemit_espi_debug_gpio("spacemit_espi: ESPI_RXVW_GRP3_INT\n");
 		spacemit_espi_handle_gpio(3);
 	}
 	if (int_sts & ESPI_RXVW_GRP2_INT) {
-		con_log("spacemit_espi: ESPI_RXVW_GRP2_INT\n");
+		spacemit_espi_debug_gpio("spacemit_espi: ESPI_RXVW_GRP2_INT\n");
 		spacemit_espi_handle_gpio(2);
 	}
 	if (int_sts & ESPI_RXVW_GRP1_INT) {
-		con_log("spacemit_espi: ESPI_RXVW_GRP1_INT\n");
+		spacemit_espi_debug_gpio("spacemit_espi: ESPI_RXVW_GRP1_INT\n");
 		spacemit_espi_handle_gpio(1);
 	}
 	if (int_sts & ESPI_RXVW_GRP0_INT) {
-		con_log("spacemit_espi: ESPI_RXVW_GRP0_INT\n");
+		spacemit_espi_debug_gpio("spacemit_espi: ESPI_RXVW_GRP0_INT\n");
 		spacemit_espi_handle_gpio(0);
 	}
 	if (int_sts & ESPI_PROTOCOL_INT) {
 		if (int_sts & ESPI_PROTOCOL_ERR_INT)
-			con_log("spacemit_espi: ESPI_PROTOCOL_ERR_INT\n");
+			con_dbg("spacemit_espi: ESPI_PROTOCOL_ERR_INT\n");
 		if (int_sts & ESPI_RXFLASH_OFLOW_INT)
-			con_log("spacemit_espi: ESPI_RXFLASH_OFLOW_INT\n");
+			con_dbg("spacemit_espi: ESPI_RXFLASH_OFLOW_INT\n");
 		if (int_sts & ESPI_RXMSG_OFLOW_INT)
-			con_log("spacemit_espi: ESPI_RXMSG_OFLOW_INT\n");
+			con_dbg("spacemit_espi: ESPI_RXMSG_OFLOW_INT\n");
 		if (int_sts & ESPI_RXOOB_OFLOW_INT)
-			con_log("spacemit_espi: ESPI_RXOOB_OFLOW_INT\n");
+			con_dbg("spacemit_espi: ESPI_RXOOB_OFLOW_INT\n");
 		if (int_sts & ESPI_ILLEGAL_LEN_INT)
-			con_log("spacemit_espi: ESPI_ILLEGAL_LEN_INT\n");
+			con_dbg("spacemit_espi: ESPI_ILLEGAL_LEN_INT\n");
 		if (int_sts & ESPI_ILLEGAL_TAG_INT)
-			con_log("spacemit_espi: ESPI_ILLEGAL_TAG_INT\n");
+			con_dbg("spacemit_espi: ESPI_ILLEGAL_TAG_INT\n");
 		if (int_sts & ESPI_UNSUCSS_CPL_INT)
-			con_log("spacemit_espi: ESPI_UNSUCSS_CPL_INT\n");
+			con_dbg("spacemit_espi: ESPI_UNSUCSS_CPL_INT\n");
 		if (int_sts & ESPI_INVALID_CT_RSP_INT)
-			con_log("spacemit_espi: ESPI_INVALID_CP_RSP_INT\n");
+			con_dbg("spacemit_espi: ESPI_INVALID_CP_RSP_INT\n");
 		if (int_sts & ESPI_UNKNOWN_RSP_INT)
-			con_log("spacemit_espi: ESPI_UNKNOWN_RSP_INT\n");
+			con_dbg("spacemit_espi: ESPI_UNKNOWN_RSP_INT\n");
 		if (int_sts & ESPI_CRC_ERR_INT)
-			con_log("spacemit_espi: ESPI_CRC_ERR_INT\n");
+			con_dbg("spacemit_espi: ESPI_CRC_ERR_INT\n");
 		if (int_sts & ESPI_WAIT_TIMEOUT_INT)
-			con_log("spacemit_espi: ESPI_WAIT_TIMEOUT_INT\n");
+			con_dbg("spacemit_espi: ESPI_WAIT_TIMEOUT_INT\n");
 		if (int_sts & ESPI_BUS_ERR_INT)
-			con_log("spacemit_espi: ESPI_BUS_ERR_INT\n");
+			con_dbg("spacemit_espi: ESPI_BUS_ERR_INT\n");
 		rsp = ESPI_RSP_FATAL_ERROR;
 	}
 	if (int_sts & ESPI_NON_FATAL_INT) {
-		con_log("spacemit_espi: ESPI_NON_FATAL_INT\n");
+		con_dbg("spacemit_espi: ESPI_NON_FATAL_INT\n");
 		rsp = ESPI_RSP_NON_FATAL_ERROR;
 	}
 	if (int_sts & ESPI_FATAL_ERR_INT) {
-		con_log("spacemit_espi: ESPI_FATAL_ERR_INT\n");
+		con_dbg("spacemit_espi: ESPI_FATAL_ERR_INT\n");
 		rsp = ESPI_RSP_FATAL_ERROR;
 	}
 	if (int_sts & ESPI_NO_RSP_INT) {
-		con_log("spacemit_espi: ESPI_NO_RSP_INT\n");
+		con_dbg("spacemit_espi: ESPI_NO_RSP_INT\n");
 		rsp = ESPI_RSP_NO_RESPONSE;
 	}
 	if (int_sts & ESPI_DNCMD_INT) {
-		con_log("spacemit_espi: ESPI_DNCMD_INT\n");
+		con_dbg("spacemit_espi: ESPI_DNCMD_INT\n");
 		spacemit_espi_rsp = rsp;
 		espi_cmd_complete(rsp);
 	}
@@ -246,13 +251,13 @@ void spacemit_espi_handle_vwirq(void)
 		else
 			espi_clear_sys_event(ESPI_VWIRE_SYSTEM_OOB_RST_ACK);
 		if (sys & SLAVE0_RXVW_DNX_ACK)
-			con_log("spacemit_espi: VW_SYS: PWRDN_ACK\n");
+			con_dbg("spacemit_espi: VW_SYS: PWRDN_ACK\n");
 		if (sys & SLAVE0_RXVW_SUS_ACK_B)
-			con_log("spacemit_espi: VW_SYS: SUS_ACK\n");
+			con_dbg("spacemit_espi: VW_SYS: SUS_ACK\n");
 	}
 	for (irq = 0; irq < 24; irq++) {
 		if (spacemit_espi_get_vwirq(irq)) {
-			con_log("spacemit_espi: VW_IRQ: %d\n", irq);
+			con_dbg("spacemit_espi: VW_IRQ: %d\n", irq);
 			spacemit_espi_ack_vwirq(irq);
 		}
 	}

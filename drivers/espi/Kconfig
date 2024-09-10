@@ -27,6 +27,10 @@ config SPACEMIT_ESPI_DEBUG_IO
 	bool "Enable IO register debugging"
 	depends CONSOLE_DEBUG
 
+config CONFIG_SPACEMIT_ESPI_DEBUG_GPIO
+	bool "Enable GPIO debugging"
+	depends CONSOLE_DEBUG
+
 endif
 
 endmenu
