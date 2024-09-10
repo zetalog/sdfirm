@@ -3,8 +3,23 @@
 // SPDX-License-Identifier: Apache-2.0
 // Author: ved@rivosinc.com
 
+typedef struct {
+    uint64_t iova;
+    uint64_t iopa;
+    uint32_t ddi;
+    uint32_t pdi;
+} iommu_data_t;
+
+typedef struct {
+    iommu_data_t *data;
+    uint32_t ddi_max;
+    uint32_t pdi_max;
+    ddtp_t ddtp;
+    int inited;
+} iommu_case_t;
+
 // Global functions
-extern int8_t reset_system(uint8_t mem_gb, uint16_t num_vms);
+extern int config_ddtp(ddtp_t ddtp);
 extern int8_t enable_cq(uint32_t nppn);
 extern int8_t enable_fq(uint32_t nppn);
 extern int8_t enable_disable_pq(uint32_t nppn, uint8_t enable_disable);
@@ -32,35 +47,15 @@ extern uint64_t add_device(uint32_t device_id, uint32_t gscid, uint8_t en_ats, u
            uint8_t msiptp_mode, uint8_t msiptp_pages, uint64_t msi_addr_mask, 
            uint64_t msi_addr_pattern);
 
-// Global variables
-extern ats_msg_t exp_msg;
-extern ats_msg_t rcvd_msg;
-extern uint8_t exp_msg_received;
-extern uint8_t message_received;
-extern int8_t *memory;
-extern uint64_t access_viol_addr;
-extern uint64_t data_corruption_addr;
-extern uint8_t pr_go_requested;
-extern uint8_t pw_go_requested;
-extern uint64_t next_free_page;
-extern uint64_t next_free_gpage[65536];
+extern int trl_s1_s2_case(void);
+extern int trl_s1_case(void);
+extern int dma_msg_send(void *src, void *dst, size_t size);
+extern int iommu_get_fq(void);
+extern int add_dc_pc_s1_s2(int ddi, int pdi, uint64_t *iova, uint64_t *iopa);
+extern int add_dc_pc_s1(int ddi, int pdi, uint64_t *iova, uint64_t *spa);
 
-// Macros
-#define FOR_ALL_TRANSACTION_TYPES(at, pid_valid, exec_req, priv_req, no_write, code)\
-    for ( at = 0; at < 3; at++ ) {\
-        for ( pid_valid = 0; pid_valid < 2; pid_valid++ ) {\
-            for ( exec_req = 0; exec_req < 2; exec_req++ ) {\
-                for ( priv_req = 0; priv_req < 2; priv_req++ ) {\
-                    for ( no_write = 0; no_write < 2; no_write++ )  {\
-                        code\
-                    }\
-                }\
-            }\
-        }\
-    }
 
 #define START_TEST(__STR__)\
-    test_num++;\
-    printf("Test %02d : %-40s : ", test_num, __STR__);
-#define fail_if(__COND__) if __COND__ {printf("\x1B[31mFAIL. Line %d\x1B[0m\n", __LINE__); return -1;}
+    printf("%-40s : ", __STR__);
+#define fail_if(__COND__) if (__COND__) {printf("\n\x1B[31mFAIL. FILE: %s:%d\x1B[0m\n", __FILE__, __LINE__); return -1;}
 #define END_TEST() {printf("\x1B[32mPASS\x1B[0m\n");}
