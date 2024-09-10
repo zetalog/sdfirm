@@ -8,7 +8,7 @@ uint64_t
 add_g_stage_pte (
     iohgatp_t iohgatp, uint64_t gpa, gpte_t gpte, uint8_t add_level) {
 
-    uint16_t vpn[5];
+    uint16_t vpn[5] = {0};
     uint64_t a;
     uint8_t i, PTESIZE, LEVELS;
     gpte_t nl_gpte;

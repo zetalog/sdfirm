@@ -7,7 +7,7 @@ uint64_t
 translate_gpa (
     iohgatp_t iohgatp, uint64_t gpa, uint64_t *spa) {
 
-    uint16_t vpn[5];
+    uint16_t vpn[5] = {0};
     uint64_t a;
     uint8_t i, PTESIZE, LEVELS;
     gpte_t nl_gpte;
@@ -16,7 +16,8 @@ translate_gpa (
     PTESIZE = 8;
     if ( iohgatp.MODE == IOHGATP_Bare ) {
         *spa = gpa;
-        return -1;
+        // return -1;
+        return iohgatp.PPN == 0 ? 0 : -1;
     }
     if ( iohgatp.MODE == IOHGATP_Sv32x4 ) {
         vpn[0] = get_bits(21, 12, gpa);
