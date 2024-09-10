@@ -585,6 +585,11 @@ void espi_put_vwire(uint16_t vwire, bool state)
 	uint8_t hbuf[1] = { 0x00 };
 	uint8_t dbuf[2];
 
+	espi_vwire = vwire;
+	if (espi_sys_event_is_active_low(vwire))
+		espi_vwire_assert = !state;
+	else
+		espi_vwire_assert = state;
 	if (type == ESPI_VWIRE_SYSTEM) {
 		group = ESPI_VWIRE_SYSTEM_GROUP(vwire);
 		line = ESPI_VWIRE_SYSTEM_VWIRE(vwire);
@@ -597,14 +602,27 @@ void espi_put_vwire(uint16_t vwire, bool state)
 		if (state)
 			dbuf[1] = ESPI_VWIRE_SYSTEM_EVENT_HIGH(line);
 		else
-			dbuf[1] = ESPI_VWIRE_SYSTEM_EVENT_LOW(line);
+			dbuf[1] = ESPI_VWIRE_SYSTEM_EVENT_LOW(line);		
+	}
+	if (type == ESPI_VWIRE_GPIO) {
+		group = ESPI_VWIRE_GPIO_GROUP(vwire);
+		line = ESPI_VWIRE_GPIO_VWIRE(vwire);
+
+		con_dbg("espi: gpio expander (%d:%d) level=%s\n",
+			group, line,
+			state ? "high" : "low");
+		dbuf[0] = group;
+		if (state) {
+			dbuf[1] = ESPI_VWIRE_GPIO_EXPANDER_HIGH(line);
+			if (!test_bit(vwire, espi_gpios))
+				set_bit(vwire, espi_gpios);
+		} else {
+			dbuf[1] = ESPI_VWIRE_GPIO_EXPANDER_LOW(line);
+			if (test_bit(vwire, espi_gpios))
+				clear_bit(vwire, espi_gpios);
+		}
 	}
 
-	espi_vwire = vwire;
-	if (espi_sys_event_is_active_low(vwire))
-		espi_vwire_assert = !state;
-	else
-		espi_vwire_assert = state;
 	espi_write_cmd_async(ESPI_CMD_PUT_VWIRE,
 			     1, hbuf, 2, dbuf);
 }
@@ -1048,7 +1066,7 @@ void espi_set_gpio_expander(uint16_t gpio, bool level)
 {
 	uint8_t group, vwire;
 
-	group = ESPI_VWIRE_GPIO_GROPU(gpio);
+	group = ESPI_VWIRE_GPIO_GROUP(gpio);
 	vwire = ESPI_VWIRE_GPIO_VWIRE(gpio);
 
 	if (gpio > ((128 + ESPI_HW_GPIO_GROUPS) * 4))
