@@ -27,7 +27,6 @@ source drivers/i2c/Kconfig
 source drivers/spi/Kconfig
 source drivers/dma/Kconfig
 source drivers/iommu/Kconfig
-source drivers/espi/Kconfig
 source drivers/stm/Kconfig
 
 source drivers/lcd/Kconfig
@@ -47,5 +46,8 @@ source drivers/phy/Kconfig
 
 source drivers/lpc/Kconfig
 source drivers/kcs/Kconfig
+source drivers/espi/Kconfig
+
+source drivers/pmu/Kconfig
 
 endmenu

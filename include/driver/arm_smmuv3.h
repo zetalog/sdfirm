@@ -55,9 +55,31 @@
 #define SMMU_PAGE0_BASE(smmu)		SMMU_BASE(smmu)
 /* SMMU registers, Page 1 */
 #define SMMU_PAGE1_BASE(smmu)		(SMMU_PAGE0_BASE(smmu) + SMMU_PAGESIZE)
+/* SMMU registers, Page 2 */
+#define SMMU_PAGE2_BASE(smmu)		(SMMU_PAGE1_BASE(smmu) + SMMU_PAGESIZE)
+/* SMMU registers, Page 3 */
+#define SMMU_PAGE3_BASE(smmu)		(SMMU_PAGE2_BASE(smmu) + SMMU_PAGESIZE)
 
 #define SMMU_PAGE0_REG(smmu, offset)	(SMMU_PAGE0_BASE(smmu) + (offset))
 #define SMMU_PAGE1_REG(smmu, offset)	(SMMU_PAGE1_BASE(smmu) + (offset))
+#define SMMU_PAGE2_REG(smmu, offset)	(SMMU_PAGE2_BASE(smmu) + (offset))
+#define SMMU_PAGE3_REG(smmu, offset)	(SMMU_PAGE3_BASE(smmu) + (offset))
+
+/* TCU style definitions */
+#define TCU_PAGE0_BASE(smmu, tbu)		SMMU_PAGE0_BASE(smmu)
+#define TCU_PAGE1_BASE(smmu, tbu)		SMMU_PAGE1_BASE(smmu)
+#define TCU_PAGE2_BASE(smmu, tbu)		SMMU_PAGE2_BASE(smmu)
+#define TCU_PAGE3_BASE(smmu, tbu)		SMMU_PAGE3_BASE(smmu)
+#define TCU_PAGE0_REG(smmu, offset)		SMMU_PAGE0_REG(smmu, offset)
+#define TCU_PAGE1_REG(smmu, offset)		SMMU_PAGE1_REG(smmu, offset)
+#define TCU_PAGE2_REG(smmu, offset)		SMMU_PAGE2_REG(smmu, offset)
+#define TCU_PAGE3_REG(smmu, offset)		SMMU_PAGE3_REG(smmu, offset)
+
+/* TBU style definitions */
+#define TBU_PAGE0_BASE(smmu, tbu)		(SMMU_PAGE3_BASE(smmu) + SMMU_PAGESIZE + ((tbu) * 2 * SMMU_PAGESIZE))
+#define TBU_PAGE1_BASE(smmu, tbu)		(TBU_PAGE0_BASE(smmu, tbu) + SMMU_PAGESIZE)
+#define TBU_PAGE0_REG(smmu, tbu, offset)	(TBU_PAGE0_BASE(smmu, tbu) + (offset))
+#define TBU_PAGE1_REG(smmu, tbu, offset)	(TBU_PAGE1_BASE(smmu, tbu) + (offset))
 
 /* MMIO registers */
 #define SMMU_IDR0(smmu)			SMMU_PAGE0_REG(smmu, 0x0)

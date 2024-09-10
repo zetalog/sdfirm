@@ -42,7 +42,25 @@
 #ifndef __PMU_K1MXLITE_H_INCLUDE__
 #define __PMU_K1MXLITE_H_INCLUDE__
 
+#ifdef CONFIG_HPM
+#define PMU_HPM_COUNTERS	32
+#else
+#define PMU_HPM_COUNTERS	0
+#endif
+#ifdef CONFIG_SMMU_PMCG
+#define PMU_PMCG_COUNTERS	32
+#else
+#define PMU_PMCG_COUNTERS	0
+#endif
+#ifdef CONFIG_K1MXLITE_BMU
+#define PMU_BMU_COUNTERS	8
+#endif
+
+#define PMU_HW_MAX_COUNTERS	\
+	(PMU_HPM_COUNTERS + PMU_PMCG_COUNTERS + PMU_BMU_COUNTERS)
+
 #include <asm/hpm.h>
+#include <driver/smmu_pmcg.h>
 #include <asm/mach/bmu.h>
 
 #endif /* __PMU_K1MXLITE_H_INCLUDE__ */

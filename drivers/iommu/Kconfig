@@ -220,6 +220,7 @@ menuconfig ARM_SMMUv3
 	select BIT_FIND_CLEAR
 	select BIT_FLS64
 	select SMMU_COMMON
+	select ARCH_HAS_SMMU_PMCG
 
 if ARM_SMMUv3
 
