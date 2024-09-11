@@ -130,17 +130,6 @@ __printf_chk(1) void con_err(const char *fmt, ...);
 #define hexdump(addr, data, width, count)	do { } while (0)
 #endif
 
-#ifdef CONFIG_CONSOLE_VERBOSE
-__printf_chk(1) void con_log(const char *fmt, ...);
-#else
-#define con_log(...)			do { } while (0)
-#endif
-#ifdef CONFIG_CONSOLE_DEBUG
-__printf_chk(1) void con_dbg(const char *fmt, ...);
-#else
-#define con_dbg(...)			do { } while (0)
-#endif
-
 #ifdef CONFIG_MMU_IDMAP_DEVICE
 #define idmap_early_con_init()		console_init()
 #define fixmap_late_con_init()		do { } while (0)

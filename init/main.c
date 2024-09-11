@@ -18,6 +18,7 @@
 #include <target/bench.h>
 #include <target/bulk.h>
 #include <target/gpio.h>
+#include <target/perf.h>
 
 __near__ uint32_t system_device_id = 0;
 text_char_t system_vendor_name[] = CONFIG_VENDOR_NAME;
@@ -64,6 +65,7 @@ void system_init(void)
 	heap_init();
 	bulk_init();
 	percpu_init();
+	perf_init();
 
 #ifdef CONFIG_GEM5
 	con_log("Simpoint: Start simpoint_entry\n");

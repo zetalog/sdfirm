@@ -664,6 +664,14 @@ endchoice
 
 endif
 
+menu "Debugging options"
+
+config RISCV_DEBUG_CSR
+	bool "Enable CSR debugging"
+	depends CONSOLE_DEBUG
+
+endmenu
+
 endmenu
 
 menu "Compiler options"
