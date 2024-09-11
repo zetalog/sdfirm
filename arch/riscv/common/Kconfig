@@ -9,7 +9,6 @@ config CPU_VAISRA
 	select CPU_COUNTERS
 	select CPU_WMO
 	select ARCH_IS_ATOMIC_UNFAIR
-	select ARCH_HAS_HPM_EVENT if HPM
 	help
 	  Vaisra is a code name for SmarCo CPU that implements RV64G with
 	  ACE bus interface.
@@ -25,7 +24,6 @@ config CPU_VIRAPA
 	select CPU_COUNTERS
 	select CPU_WMO
 	select ARCH_IS_ATOMIC_UNFAIR
-	select ARCH_HAS_HPM_EVENT if HPM
 	help
 	  Varapa is a code name for SmarCo CPU that has VAISRA bus
 	  interface replaced with CHI. Generally it is same as VAISRA, but
@@ -983,18 +981,11 @@ if AIA_APLIC
 
 endif
 
-config ARCH_HAS_HPM_EVENT
-	bool
-
 menuconfig HPM
 	bool "Hardware performance monotor support"
 	select ARCH_HAS_PMU
 
 if HPM
-
-config HPM_EVENT
-	bool "Enable hpmevent register support"
-	depends ARCH_HAS_HPM_EVENT
 
 endif
 

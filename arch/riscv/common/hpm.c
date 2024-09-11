@@ -1,17 +1,65 @@
 #include <target/perf.h>
+#include <target/cmdline.h>
+#include <target/console.h>
 
-#ifdef CONFIG_HPM_EVENT
-uint8_t hpm_event2count(uint8_t event)
+struct hpm_cpu {
+	DECLARE_BITMAP(configured, HPM_MAX_COUNTERS);
+	uint64_t events[HPM_MAX_COUNTERS];
+	perf_evt_t perf_eids[HPM_MAX_COUNTERS];
+	perf_cnt_t perf_snaps[HPM_MAX_COUNTERS];
+	perf_cnt_t perf_inits[HPM_MAX_COUNTERS];
+	uint32_t overflows[HPM_MAX_COUNTERS];
+};
+
+#ifdef CONFIG_SMP
+DEFINE_PERCPU(struct hpm_cpu, hpm_ctx);
+#define get_hpm			this_cpu_ptr(&hpm_ctx)
+#define get_hpm_cpu(cpu)	per_cpu_ptr(&hpm_ctx, cpu)
+#else
+struct hpm_cpu hpm_ctx;
+#define get_hpm			(&hpm_ctx)
+#define get_cpu_hpm(cpu)	(&hpm_ctx)
+#endif
+#define hpm_configured		get_hpm->configured
+#define hpm_events		get_hpm->events
+#define hpm_perf_eids		get_hpm->perf_eids
+#define hpm_perf_snaps		get_hpm->perf_snaps
+#define hpm_perf_inits		get_hpm->perf_inits
+
+#ifdef CONFIG_RISCV_SSCOFPMF
+#else
+#endif
+
+uint8_t hpm_event2count(perf_evt_t evt)
 {
-	if (event < 3)
-		return event;
-	else
-		return perf_event_id(event) + 3;
+	uint8_t cnt;
+
+	cnt = find_first_set_bit(hpm_configured, HPM_MAX_COUNTERS);
+	while (cnt < HPM_MAX_COUNTERS) {
+		if (evt == hpm_perf_eids[cnt])
+			return cnt;
+		cnt = find_next_set_bit(hpm_configured, HPM_MAX_COUNTERS, cnt);
+	}
+	return 0;
 }
 
-void pmu_hw_configure_event(uint8_t event)
+uint64_t hpm_event2event(perf_evt_t evt)
 {
-	uint8_t id = hpm_event2count(event);
+	uint8_t cnt;
+
+	cnt = find_first_set_bit(hpm_configured, HPM_MAX_COUNTERS);
+	while (cnt < HPM_MAX_COUNTERS) {
+		if (evt == hpm_perf_eids[cnt])
+			return hpm_events[cnt];
+		cnt = find_next_set_bit(hpm_configured, HPM_MAX_COUNTERS, cnt);
+	}
+	return HPM_NO_EVENT;
+}
+
+void hpm_configure_event(perf_evt_t evt)
+{
+	uint8_t id = hpm_event2count(evt);
+	uint64_t event = hpm_event2event(evt);
 
 	switch (id) {
 	case HPM_CYCLE:
@@ -111,14 +159,12 @@ void pmu_hw_configure_event(uint8_t event)
 		csr_write(CSR_MHPMEVENT(31), event);
 		break;
 	}
+	hpm_perf_inits[id] = hpm_get_event_count(evt);
 }
-#else
-#define hpm_event2count(event)		(event)
-#endif
 
-uint32_t pmu_hw_get_event_count(uint8_t event)
+perf_cnt_t hpm_get_event_count(perf_evt_t evt)
 {
-	uint8_t id = hpm_event2count(event);
+	uint8_t id = hpm_event2count(evt);
 
 	switch (id) {
 	case HPM_CYCLE:
@@ -189,9 +235,9 @@ uint32_t pmu_hw_get_event_count(uint8_t event)
 	return 0;
 }
 
-void pmu_hw_set_event_count(uint8_t event, uint32_t count)
+void hpm_set_event_count(perf_evt_t evt, perf_cnt_t count)
 {
-	uint8_t id = hpm_event2count(event);
+	uint8_t id = hpm_event2count(evt);
 
 	switch (id) {
 	case HPM_CYCLE:
@@ -292,3 +338,148 @@ void pmu_hw_set_event_count(uint8_t event, uint32_t count)
 		break;
 	}
 }
+
+void hpm_start(void)
+{
+	uint8_t cnt;
+
+	for (cnt = 0; cnt < HPM_MAX_COUNTERS; cnt++) {
+		if (test_bit(cnt, hpm_configured))
+			perf_add_event(hpm_perf_eids[cnt]);
+	}
+}
+
+void hpm_init(void)
+{
+}
+
+void hpm_stop(void)
+{
+	uint8_t cnt;
+
+	cnt = find_first_set_bit(hpm_configured, HPM_MAX_COUNTERS);
+	while (cnt < HPM_MAX_COUNTERS) {
+		hpm_perf_snaps[cnt] = hpm_get_event_count(cnt);
+		cnt = find_next_set_bit(hpm_configured, HPM_MAX_COUNTERS, cnt);
+	}
+}
+
+void hpm_add_event(cpu_t cpu, uint64_t event)
+{
+	uint8_t cnt;
+
+	cnt = find_first_clear_bit(get_cpu_hpm(cpu)->configured,
+				   HPM_MAX_COUNTERS);
+	if (cnt >= HPM_MAX_COUNTERS)
+		con_err("hpm: failed to register %016llx on cpu%d\n",
+			event, cpu);
+	else {
+		set_bit(cnt, get_cpu_hpm(cpu)->configured);
+		get_cpu_hpm(cpu)->events[cnt] = event;
+		get_cpu_hpm(cpu)->perf_eids[cnt] = perf_add_event(HPM_EVENT_ID(cnt));
+	}
+}
+
+void hpm_remove_event(cpu_t cpu, uint64_t event)
+{
+	uint8_t cnt;
+
+	cnt = find_first_set_bit(get_cpu_hpm(cpu)->configured,
+				 HPM_MAX_COUNTERS);
+	while (cnt < HPM_MAX_COUNTERS) {
+		if (get_cpu_hpm(cpu)->events[cnt] == event)
+			clear_bit(cnt, get_cpu_hpm(cpu)->configured);
+		cnt = find_next_set_bit(get_cpu_hpm(cpu)->configured,
+					HPM_MAX_COUNTERS, cnt);
+	}
+}
+
+void hpm_dump_events(cpu_t cpu)
+{
+	uint8_t cnt;
+
+	cnt = find_first_set_bit(get_cpu_hpm(cpu)->configured,
+				 HPM_MAX_COUNTERS);
+	while (cnt < HPM_MAX_COUNTERS) {
+		printf("%016llx: %016llx - %d -> %016llx\n",
+		       get_cpu_hpm(cpu)->events[cnt],
+		       get_cpu_hpm(cpu)->perf_inits[cnt],
+		       get_cpu_hpm(cpu)->overflows[cnt],
+		       get_cpu_hpm(cpu)->perf_snaps[cnt]);
+		cnt = find_next_set_bit(get_cpu_hpm(cpu)->configured,
+					HPM_MAX_COUNTERS, cnt);
+	}
+}
+
+static int do_hpm_dump(int argc, char *argv[])
+{
+	cpu_t cpu;
+
+	if (argc > 2) {
+		cpu = (cpu_t)strtoull(argv[2], 0, 0);
+		hpm_dump_events(cpu);
+	} else {
+		for_each_cpu(cpu, smp_online_cpus) {
+			hpm_dump_events(cpu);
+		}
+	}
+	return 0;
+}
+
+static int do_hpm_remove(int argc, char *argv[])
+{
+	cpu_t cpu;
+	uint64_t event;
+
+	if (argc < 3)
+		return -EINVAL;
+	event = (uint64_t)strtoull(argv[2], 0, 0);
+	if (argc > 3) {
+		cpu = (cpu_t)strtoull(argv[3], 0, 0);
+		hpm_remove_event(cpu, event);
+	} else {
+		for_each_cpu(cpu, smp_online_cpus)
+			hpm_remove_event(cpu, event);
+	}
+	return 0;
+}
+
+static int do_hpm_add(int argc, char *argv[])
+{
+	cpu_t cpu;
+	uint64_t event;
+
+	if (argc < 3)
+		return -EINVAL;
+	event = (uint64_t)strtoull(argv[2], 0, 0);
+	if (argc > 3) {
+		cpu = (cpu_t)strtoull(argv[3], 0, 0);
+		hpm_add_event(cpu, event);
+	} else {
+		for_each_cpu(cpu, smp_online_cpus)
+			hpm_add_event(cpu, event);
+	}
+	return 0;
+}
+
+static int do_hpm(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+	if (strcmp(argv[1], "dump") == 0)
+		return do_hpm_dump(argc, argv);
+	if (strcmp(argv[1], "add") == 0)
+		return do_hpm_add(argc, argv);
+	if (strcmp(argv[1], "remove") == 0)
+		return do_hpm_remove(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(hpm, do_hpm, "Hardware performance monitor (HPM) commands",
+	"hpm dump [cpu]\n"
+	"    -dump all HPM events\n"
+	"hpm add event [cpu]\n"
+	"    -register HPM event\n"
+	"hpm remove event [cpu]\n"
+	"    -deregister HPM event\n"
+);

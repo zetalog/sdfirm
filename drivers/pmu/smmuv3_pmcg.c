@@ -1,6 +1,8 @@
 #include <target/perf.h>
 #include <target/console.h>
 
+cpu_t pmcg_cpu;
+
 struct smmu_pmu smmu_pmus[NR_IOMMU_DEVICES];
 #if 0
 #define SMMU_PMU_EVENT_ATTR_EXTRACTOR(_name, _config, _start, _end)        \
@@ -648,6 +650,14 @@ static void smmu_pmu_setup_irq(void)
 	irq_register_vector(SMMU_HW_IRQ_PMU(iommu_dev), smmu_pmu_handle_irq);
 }
 
+void smmu_pmcg_start(void)
+{
+}
+
+void smmu_pmcg_stop(void)
+{
+}
+
 void smmu_pmcg_init(void)
 {
 	uint32_t cfgr, reg_size;
@@ -666,6 +676,9 @@ void smmu_pmcg_init(void)
 		if (__raw_readq(TCU_PMCG_CEID(iommu_dev, i) & PMCG_CEID(i)))
 			set_bit(i, smmu_pmu_ctrl. supported_events);
 	}
+
+	/* Preferred CPU to handle PMU events */
+	pmcg_cpu = smp_processor_id();
 
 	smmu_pmu_ctrl.num_counters = FIELD_GET(SMMU_PMCG_CFGR_NCTR, cfgr) + 1;
 	smmu_pmu_ctrl.global_filter = !!(cfgr & SMMU_PMCG_CFGR_SID_FILTER_TYPE);

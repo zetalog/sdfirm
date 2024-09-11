@@ -2,6 +2,7 @@
 #include <target/readline.h>
 #include <target/cmdline.h>
 #include <target/console.h>
+#include <target/perf.h>
 #include <getopt.h>
 
 #define foreach_cmd(cmdp)		\
@@ -54,13 +55,45 @@ static cmd_tbl *find_cmd(const char *cmd)
 	return NULL;
 }
 
+bool cmd_set_flags(const char *cmd, uint8_t flags)
+{
+	cmd_tbl *cmdp;
+
+	cmdp = find_cmd(cmd);
+	if (!cmdp)
+		return false;
+	cmdp->flags |= flags;
+	return true;
+}
+
+bool cmd_clear_flags(const char *cmd, uint8_t flags)
+{
+	cmd_tbl *cmdp;
+
+	cmdp = find_cmd(cmd);
+	if (!cmdp)
+		return false;
+	cmdp->flags &= ~flags;
+	return true;
+}
+
+void cmd_clear_all_flags(uint8_t flags)
+{
+	cmd_tbl *cmdp;
+
+	foreach_cmd(cmdp) {
+		cmdp->flags &= ~flags;
+	}
+}
+
 int cmd_help(char *cmd)
 {
 	cmd_tbl *cmdp;
 
 	if (!cmd) {
 		foreach_cmd(cmdp) {
-			printf("%-*s- %s\n", 8,
+			printf("%c %-*s- %s\n", 8,
+			       (cmdp->flags & CMD_FLAG_PERF) ? '*' : ' ',
 			       cmdp->name, cmdp->help);
 		}
 	} else {
@@ -109,7 +142,9 @@ int cmd_execute(int argc, char * argv[])
 		return -1;
 	}
 	getopt_reset();
+	perf_start();
 	ret = cmdp->cmd(argc, argv);
+	perf_stop();
 	if (ret < 0)
 		printf("Command failure '%s - %d'\n\n", argv[0], ret);
 	else

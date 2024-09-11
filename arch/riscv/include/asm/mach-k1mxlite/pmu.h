@@ -43,24 +43,48 @@
 #define __PMU_K1MXLITE_H_INCLUDE__
 
 #ifdef CONFIG_HPM
-#define PMU_HPM_COUNTERS	32
+#define PMU_HPM_COUNTERS	HPM_MAX_COUNTERS
+#define HPM_EVENT_ID(evt)	((evt) % 32)
 #else
 #define PMU_HPM_COUNTERS	0
-#endif
-#ifdef CONFIG_SMMU_PMCG
-#define PMU_PMCG_COUNTERS	32
-#else
-#define PMU_PMCG_COUNTERS	0
 #endif
 #ifdef CONFIG_K1MXLITE_BMU
 #define PMU_BMU_COUNTERS	8
 #endif
+#ifdef CONFIG_SMMU_PMCG
+#define NR_SMMU_TCUS		1
+#define NR_SMMU_TBUS		2
+#define PMU_PMCG_COUNTERS	(32 * (NR_SMMU_TCUS + NR_SMMU_TBUS))
+#define PMCG_EVENT_ID(evt)	((evt) % 32)
+#define PMCG_EVENT_IS_TCU(evt)	(((evt) / 32) < NR_SMMU_TCUS)
+#define PMCG_EVENT_IS_TBU(evt)	(((evt) / 32) >= NR_SMMU_TCUS)
+#else
+#define PMU_PMCG_COUNTERS	0
+#endif
+
+#define PMU_IS_HPM_EVENT(evt)	((evt) < PMU_HPM_COUNTERS)
+#define PMU_IS_PMCG_EVENT(evt)	\
+	(!PMU_IS_HPM_EVENT(evt) && ((evt) < (PMU_HPM_COUNTERS + PMU_PMCG_COUNTERS)))
 
 #define PMU_HW_MAX_COUNTERS	\
 	(PMU_HPM_COUNTERS + PMU_PMCG_COUNTERS + PMU_BMU_COUNTERS)
 
+#if PMU_HW_MAX_COUNTERS > 0
+#define ARCH_HAVE_PMU 1
+
 #include <asm/hpm.h>
 #include <driver/smmu_pmcg.h>
 #include <asm/mach/bmu.h>
+
+#define pmu_hw_get_event_count(event)		hpm_get_event_count(event)
+#define pmu_hw_set_event_count(event, count)	hpm_set_event_count(event, count)
+
+void pmu_hw_configure_event(perf_evt_t evt);
+void pmu_hw_enable_event(perf_evt_t evt);
+void pmu_hw_disable_event(perf_evt_t evt);
+void pmu_hw_task_start(void);
+void pmu_hw_task_stop(void);
+void pmu_hw_ctrl_init(void);
+#endif
 
 #endif /* __PMU_K1MXLITE_H_INCLUDE__ */

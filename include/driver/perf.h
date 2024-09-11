@@ -48,6 +48,8 @@
 
 #ifndef ARCH_HAVE_PMU
 #define pmu_hw_ctrl_init()		do { } while (0)
+#define pmu_hw_task_start()		do { } while (0)
+#define pmu_hw_task_stop()		do { } while (0)
 #endif
 
 #endif /* __PERF_DRIVER_H_INCLUDE__ */
