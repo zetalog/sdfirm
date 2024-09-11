@@ -832,7 +832,7 @@ config RAS
 config ARCH_HAS_PMU
 	bool
 
-config PERF
+menuconfig PERF
 	bool "Performance counting (perf) support"
 
 if PERF

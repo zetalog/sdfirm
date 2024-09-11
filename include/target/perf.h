@@ -55,9 +55,7 @@ typedef uint64_t perf_cnt_t;
 #ifdef CONFIG_PERF
 #define perf_event_count(event)	\
 	perf_hw_get_event_count(event)
-
-int perf_event_id(perf_evt_t event);
-int perf_add_event(perf_evt_t event);
+perf_evt_t perf_add_event(const char *name);
 void perf_remove_all_events(void);
 void perf_init(void);
 void perf_start(void);

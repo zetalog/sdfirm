@@ -984,8 +984,13 @@ endif
 menuconfig HPM
 	bool "Hardware performance monotor support"
 	select ARCH_HAS_PMU
+	select BIT_FIND_CLEAR
 
 if HPM
+
+config HPM_MAX_EVENTS
+	int "Maximum HPM events"
+	default 32
 
 endif
 

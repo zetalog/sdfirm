@@ -62,8 +62,13 @@
 #endif
 
 #ifdef CONFIG_RISCV_EXIT_M
+#ifdef CONFIG_RISCV_SSCOFPMF
 void hpm_configure_filter(perf_evt_t evt, uint8_t inh);
 void hpm_count_init(void)
+#else
+#define hpm_configure_filter(inh)	do { } while (0)
+#define hpm_count_init()		do { } while (0)
+#endif
 #else
 #define hpm_configure_filter(inh)	do { } while (0)
 #define hpm_count_init()		do { } while (0)
