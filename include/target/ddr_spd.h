@@ -47,7 +47,7 @@
 
 #define DDR_SPD_FREQ		100 /* kHz */
 #ifndef DDR_SPD_SIZE
-#define DDR_SPD_SIZE		128
+#define DDR_SPD_SIZE		512
 #endif
 
 /* JEDEC Standard No. 21-C
