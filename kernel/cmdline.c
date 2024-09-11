@@ -135,6 +135,7 @@ int cmd_execute(int argc, char * argv[])
 {
 	cmd_tbl *cmdp;
 	int ret;
+	bool perf_started = false;
 
 	cmdp = find_cmd(argv[0]);
 	if (cmdp == NULL) {
@@ -142,9 +143,13 @@ int cmd_execute(int argc, char * argv[])
 		return -1;
 	}
 	getopt_reset();
-	perf_start();
+	if (cmdp->flags & CMD_FLAG_PERF) {
+		perf_start();
+		perf_started = true;
+	}
 	ret = cmdp->cmd(argc, argv);
-	perf_stop();
+	if (perf_started)
+		perf_stop();
 	if (ret < 0)
 		printf("Command failure '%s - %d'\n\n", argv[0], ret);
 	else

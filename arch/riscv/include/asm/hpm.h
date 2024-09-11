@@ -73,8 +73,6 @@ void hpm_count_init(void)
 #define hpm_configure_filter(inh)	do { } while (0)
 #define hpm_count_init()		do { } while (0)
 #endif
-#define hpm_enable_event(event)		csr_clear(CSR_MCOUNTINHIBIT, event)
-#define hpm_disable_event(event)	csr_clear(CSR_MCOUNTINHIBIT, event)
 
 void hpm_init(void);
 void hpm_start(void);
@@ -82,5 +80,7 @@ void hpm_stop(void);
 void hpm_configure_event(perf_evt_t event);
 perf_cnt_t hpm_get_event_count(perf_evt_t event);
 void hpm_set_event_count(perf_evt_t event, perf_cnt_t count);
+void hpm_enable_event(perf_evt_t event);
+void hpm_disable_event(perf_evt_t event);
 
 #endif /* __HPM_RISCV_H_INCLUDE__ */

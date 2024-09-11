@@ -62,7 +62,7 @@
 #define CSR_CYCLE		0xC00
 #define CSR_TIME		0xC01
 #define CSR_INSTRET		0xC02
-#define CSR_HPMCOUNTER(n)	(0xC00+(n)) /* n=3..31 */
+#define CSR_UHPMCOUNTER(n)	(0xC00+(n)) /* n=3..31 */
 #define CSR_CYCLEH		0xC80
 #define CSR_TIMEH		0xC81
 #define CSR_INSTRETH		0xC82
@@ -220,7 +220,7 @@
 #endif /* CONFIG_CPU_PMP */
 #define CSR_MCYCLE		0xB00
 #define CSR_MINSTRET		0xB02
-#define CSR_MHPMCOUNTER(n)	(0xB03+(n)) /* n=3..31 */
+#define CSR_MHPMCOUNTER(n)	(0xB00+(n)) /* n=3..31 */
 #define CSR_MHPMCOUNTER3	0xb03
 #define CSR_MHPMCOUNTER4	0xb04
 #define CSR_MHPMCOUNTER5	0xb05
@@ -721,32 +721,38 @@
 #define MASK_FUNCT3			0x7000
 
 #ifdef CONFIG_RISCV_EXIT_M
-#define CSR_STATUS	CSR_MSTATUS
-#define CSR_IE		CSR_MIE
-#define CSR_TVEC	CSR_MTVEC
-#define CSR_SCRATCH	CSR_MSCRATCH
-#define CSR_EPC		CSR_MEPC
-#define CSR_CAUSE	CSR_MCAUSE
-#define CSR_TVAL	CSR_MTVAL
-#define CSR_IP		CSR_MIP
+#define CSR_STATUS		CSR_MSTATUS
+#define CSR_IE			CSR_MIE
+#define CSR_TVEC		CSR_MTVEC
+#define CSR_SCRATCH		CSR_MSCRATCH
+#define CSR_EPC			CSR_MEPC
+#define CSR_CAUSE		CSR_MCAUSE
+#define CSR_TVAL		CSR_MTVAL
+#define CSR_IP			CSR_MIP
+#define CSR_COUNTINHIBIT	CSR_MCOUNTINHIBIT
+#define CSR_HPMEVENT(n)		CSR_MHPMEVENT(n)
+#define CSR_HPMCOUNTER(n)	CSR_MHPMCOUNTER(n)
 
-#define SR_IE		SR_MIE
-#define SR_PIE		SR_MPIE
-#define SR_PP		SR_MPP
+#define SR_IE			SR_MIE
+#define SR_PIE			SR_MPIE
+#define SR_PP			SR_MPP
 #endif
 #ifdef CONFIG_RISCV_EXIT_S
-#define CSR_STATUS	CSR_SSTATUS
-#define CSR_IE		CSR_SIE
-#define CSR_TVEC	CSR_STVEC
-#define CSR_SCRATCH	CSR_SSCRATCH
-#define CSR_EPC		CSR_SEPC
-#define CSR_CAUSE	CSR_SCAUSE
-#define CSR_TVAL	CSR_STVAL
-#define CSR_IP		CSR_SIP
+#define CSR_STATUS		CSR_SSTATUS
+#define CSR_IE			CSR_SIE
+#define CSR_TVEC		CSR_STVEC
+#define CSR_SCRATCH		CSR_SSCRATCH
+#define CSR_EPC			CSR_SEPC
+#define CSR_CAUSE		CSR_SCAUSE
+#define CSR_TVAL		CSR_STVAL
+#define CSR_IP			CSR_SIP
+#define CSR_COUNTINHIBIT	CSR_SCOUNTINHIBIT
+#define CSR_HPMEVENT(n)		CSR_SHPMEVENT(n)
+#define CSR_HPMCOUNTER(n)	CSR_SHPMCOUNTER(n)
 
-#define SR_IE		SR_SIE
-#define SR_PIE		SR_SPIE
-#define SR_PP		SR_SPP
+#define SR_IE			SR_SIE
+#define SR_PIE			SR_SPIE
+#define SR_PP			SR_SPP
 #endif
 
 #if __riscv_xlen == 64
@@ -775,6 +781,12 @@
 
 #define MHPMEVENT_SSCOF_MASK		_ULL(0xFFFF000000000000)
 
+#ifdef CONFIG_RISCV_DEBUG_CSR
+#define csr_dbg(...)			con_dbg(__VA_ARGS__)
+#else
+#define csr_dbg(...)			do { } while (0)
+#endif
+
 #ifndef __ASSEMBLY__
 #define csr_swap(csr, val)					\
 ({								\
@@ -788,11 +800,13 @@
 	register unsigned long __v;				\
 	asm volatile("csrr	%0, " __ASM_STR(csr)		\
 		     : "=r" (__v) : : "memory");		\
+	csr_dbg("csr: read %s %08lx\n", __ASM_STR(csr), __v);	\
 	__v;							\
 })
 #define csr_write(csr, val)					\
 ({								\
 	unsigned long __v = (unsigned long)(val);		\
+	csr_dbg("csr: write %s %08lx\n", __ASM_STR(csr), __v);	\
 	asm volatile("csrw	" __ASM_STR(csr) ", %0"		\
 		     : : "rK" (__v) : "memory");		\
 })
@@ -806,6 +820,7 @@
 #define csr_set(csr, val)					\
 ({								\
 	unsigned long __v = (unsigned long)(val);		\
+	csr_dbg("csr: set %s %08lx\n", __ASM_STR(csr), __v);	\
 	asm volatile("csrs	" __ASM_STR(csr) ", %0"		\
 		     : : "rK" (__v) : "memory");		\
 })
@@ -819,6 +834,7 @@
 #define csr_clear(csr, val)					\
 ({								\
 	unsigned long __v = (unsigned long)(val);		\
+	csr_dbg("csr: clr %s %08lx\n", __ASM_STR(csr), __v);	\
 	asm volatile("csrc	" __ASM_STR(csr) ", %0"		\
 		     : : "rK" (__v) : "memory");		\
 })

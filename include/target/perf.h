@@ -56,6 +56,9 @@ typedef uint64_t perf_cnt_t;
 #define perf_event_count(event)	\
 	perf_hw_get_event_count(event)
 perf_evt_t perf_add_event(const char *name);
+void perf_enable_event(perf_evt_t evt);
+void perf_disable_event(perf_evt_t evt);
+void perf_configure_event(perf_evt_t evt);
 void perf_remove_all_events(void);
 void perf_init(void);
 void perf_start(void);
@@ -64,6 +67,9 @@ void perf_stop(void);
 #define perf_event_count(event)		0
 #define perf_event_id(event)		-1
 #define perf_add_event(event)		-ENODEV
+#define perf_configure_event(event)	do { } while (0)
+#define perf_enable_event(event)	do { } while (0)
+#define perf_disable_event(event)	do { } while (0)
 #define perf_remove_all_events()	do { } while (0)
 #define perf_init()			do { } while (0)
 #define perf_start()			do { } while (0)

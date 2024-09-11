@@ -81,9 +81,22 @@ perf_evt_t perf_add_event(const char *name)
 	evt = perf_smp_descs[cpu].next_event;
 	perf_smp_descs[cpu].next_event++;
 	perf_smp_descs[cpu].events[evt].name = name;
-	pmu_hw_configure_event(evt);
-	pmu_hw_enable_event(evt);
 	return evt;
+}
+
+void perf_configure_event(perf_evt_t evt)
+{
+	pmu_hw_configure_event(evt);
+}
+
+void perf_enable_event(perf_evt_t evt)
+{
+	pmu_hw_enable_event(evt);
+}
+
+void perf_disable_event(perf_evt_t evt)
+{
+	pmu_hw_disable_event(evt);
 }
 
 void perf_start(void)
