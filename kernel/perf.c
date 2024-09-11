@@ -41,6 +41,7 @@
 
 #include <target/perf.h>
 #include <target/smp.h>
+#include <target/cmdline.h>
 
 struct perf_event {
 	perf_evt_t hw_event_id;
@@ -53,56 +54,125 @@ struct perf_desc {
 	perf_evt_t next_event;
 } __cache_aligned;
 
-struct perf_desc perf_descs[NR_CPUS];
+struct perf_desc perf_smp_descs[NR_CPUS];
 
 int perf_event_id(perf_evt_t event)
 {
 	uint8_t cpu = smp_processor_id();
 	int evt;
 
-	for (evt = 0; evt < perf_descs[cpu].next_event; evt++) {
-		if (perf_descs[cpu].events[evt].hw_event_id == event)
+	for (evt = 0; evt < perf_smp_descs[cpu].next_event; evt++) {
+		if (perf_smp_descs[cpu].events[evt].hw_event_id == event)
 			return evt;
 	}
 	return INVALID_PERF_EVT;
 }
 
-void perf_unregister_all_events(void)
+void perf_remove_all_events(void)
 {
 	uint8_t cpu = smp_processor_id();
 	perf_evt_t event;
 	int evt;
 
-	for (evt = 0; evt < perf_descs[cpu].next_event; evt++) {
-		event = perf_descs[cpu].events[evt].hw_event_id;
+	for (evt = 0; evt < perf_smp_descs[cpu].next_event; evt++) {
+		event = perf_smp_descs[cpu].events[evt].hw_event_id;
 		pmu_hw_disable_event(event);
 		pmu_hw_configure_event(PMU_HW_DEFAULT_EVENT);
-		perf_descs[cpu].events[evt].hw_event_id = INVALID_PERF_EVT;
-		perf_descs[cpu].events[evt].hw_counter = 0;
+		perf_smp_descs[cpu].events[evt].hw_event_id = INVALID_PERF_EVT;
+		perf_smp_descs[cpu].events[evt].hw_counter = 0;
 	}
+	perf_smp_descs[cpu].next_event = 0;
 }
 
-int perf_register_event(perf_evt_t event)
+int perf_add_event(perf_evt_t event)
 {
 	uint8_t cpu = smp_processor_id();
 	int evt;
 
-	if (perf_descs[cpu].next_event >= perf_descs[cpu].max_counters)
+	if (perf_smp_descs[cpu].next_event >= perf_smp_descs[cpu].max_counters)
 		return INVALID_PERF_EVT;
 
-	evt = perf_descs[cpu].next_event;
-	perf_descs[cpu].events[evt].hw_event_id = event;
-	perf_descs[cpu].next_event++;
+	evt = perf_smp_descs[cpu].next_event;
+	perf_smp_descs[cpu].events[evt].hw_event_id = event;
+	perf_smp_descs[cpu].next_event++;
 	pmu_hw_configure_event(event);
 	pmu_hw_enable_event(event);
 	return evt;
 }
 
-void perf_init(void)
+void perf_start(void)
 {
 	uint8_t cpu = smp_processor_id();
 
-	perf_unregister_all_events();
-	pmu_hw_ctrl_init();
-	perf_descs[cpu].max_counters = pmu_hw_get_counters();
+	perf_remove_all_events();
+	pmu_hw_task_start();
 }
+
+void perf_stop(void)
+{
+	pmu_hw_task_stop();
+	perf_remove_all_events();
+}
+
+void perf_init(void)
+{
+	uint8_t cpu;
+
+	for_each_cpu(cpu, smp_online_cpus) {
+		perf_smp_descs[cpu].max_counters = PMU_HW_MAX_COUNTERS;
+		perf_smp_descs[cpu].next_event = 0;
+	}
+	pmu_hw_ctrl_init();
+}
+
+static int do_perf_cmd(int argc, char *argv[])
+{
+	if (argc < 3)
+		return -EINVAL;
+
+	if (strcmp(argv[2], "off") == 0)
+		cmd_clear_all_flags(CMD_FLAG_PERF);
+	else if (!cmd_set_flags(argv[2], CMD_FLAG_PERF)) {
+		printf("Command not found: %s\n", argv[2]);
+		return -EINVAL;
+	}
+	return 0;
+}
+
+static int do_perf_bench(int argc, char *argv[])
+{
+	if (argc < 3)
+		return -EINVAL;
+
+#if 0
+	if (strcmp(argv[2], "off") == 0)
+		bench_clear_all_flags(BENCH_FLAG_PERF);
+	else if (!bench_set_flags(argv[2], BENCH_FLAG_PERF)) {
+		printf("Command not found: %s\n", argv[2]);
+		return -EINVAL;
+	}
+#endif
+	return 0;
+}
+
+static int do_perf(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+	if (strcmp(argv[1], "cmd") == 0)
+		return do_perf_cmd(argc, argv);
+	if (strcmp(argv[1], "benc") == 0)
+		return do_perf_bench(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(perf, do_perf, "Performance monitor commands",
+	"perf cmd <cmd>\n"
+	"    -turn on command execution monitor\n"
+	"perf cmd off\n"
+	"    -turn off command execution monitor\n"
+	"perf bench <test>\n"
+	"    -turn on bench test monitor\n"
+	"perf bench off\n"
+	"    -turn off bench test monitor\n"
+);

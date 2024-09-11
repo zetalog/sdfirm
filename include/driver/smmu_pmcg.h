@@ -161,4 +161,14 @@ struct smmu_pmu {
 extern struct smmu_pmu smmu_pmus[];
 #define smmu_pmu_ctrl		smmu_pmus[iommu_dev]
 
+#ifdef CONFIG_SMMU_PMCG
+void smmu_pmcg_init(void);
+void smmu_pmcg_start(void);
+void smmu_pmcg_stop(void);
+#else
+#define smmu_pmcg_init()	do { } while (0)
+#define smmu_pmcg_start()	do { } while (0)
+#define smmu_pmcg_stop()	do { } while (0)
+#endif
+
 #endif /* __SMMU_PMCG_H_INCLUDE__ */

@@ -125,9 +125,10 @@ static inline unsigned long sbi_regs_gva(const struct pt_regs *regs)
 #define IRQ_H_EXT		10
 #define IRQ_M_EXT		11
 #ifdef CONFIG_RISCV_AIA
-#ifdef CONFIG_HPM
-#define IRQ_M_HPM		13
-#endif /* CONFIG_HPM */
+#ifdef CONFIG_RISCV_SSCOFPMF
+#define IRQ_M_COUNT		13
+#define IRQ_S_COUNT		13
+#endif /* CONFIG_SSCOFPMF */
 #ifdef CONFIG_RAS
 #define IRQ_M_RAS_CE		35
 #define IRQ_M_RAS_UE		43
@@ -137,11 +138,13 @@ static inline unsigned long sbi_regs_gva(const struct pt_regs *regs)
 #define IRQ_SOFT		IRQ_M_SOFT
 #define IRQ_TIMER		IRQ_M_TIMER
 #define IRQ_EXT			IRQ_M_EXT
+#define IRQ_COUNT		IRQ_M_COUNT
 #endif
 #ifdef CONFIG_RISCV_EXIT_S
 #define IRQ_SOFT		IRQ_S_SOFT
 #define IRQ_TIMER		IRQ_S_TIMER
 #define IRQ_EXT			IRQ_S_EXT
+#define IRQ_COUNT		IRQ_S_COUNT
 #endif
 
 #ifndef ARCH_HAVE_INT_IRQS

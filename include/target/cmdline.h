@@ -20,7 +20,10 @@ typedef struct {
 	int (*cmd)(int, char *[]);
 	char *help;  /* short description */
 	char *usage; /* long description */
+	uint8_t flags;
 } cmd_tbl;
+
+#define CMD_FLAG_PERF		_BV(0)
 
 #define DEFINE_COMMAND(name, cmd, help, usage)			\
 	int cmd(int, char *[]);					\
@@ -39,6 +42,9 @@ void cmd_dump_sect(void);
 int cmd_parse(char *line, char *argv[]);
 int cmd_execute(int argc, char * argv[]);
 void cmd_batch(void);
+void cmd_clear_all_flags(uint8_t flags);
+bool cmd_set_flags(const char *cmd, uint8_t flags);
+bool cmd_clear_flags(const char *cmd, uint8_t flags);
 #else
 static inline void cmd_batch(void)
 {
@@ -64,6 +70,17 @@ static inline int cmd_init(void)
 	return -ENODEV;
 }
 static inline void cmd_dump_sect(void)
+{
+}
+static inline bool cmd_set_flags(const char *cmd, uint8_t flags)
+{
+	return false;
+}
+static inline bool cmd_clear_flags(const char *cmd, uint8_t flags)
+{
+	return false;
+}
+static inline void cmd_clear_all_flags(uint8_t flags)
 {
 }
 #endif

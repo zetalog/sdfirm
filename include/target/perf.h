@@ -43,30 +43,33 @@
 #define __PERF_H_INCLUDE__
 
 #include <target/generic.h>
+
+typedef uint16_t perf_evt_t;
+typedef uint64_t perf_cnt_t;
+
 #include <driver/perf.h>
 
 #define NR_PERF_EVTS		PMU_HW_MAX_COUNTERS
 #define INVALID_PERF_EVT	NR_PERF_EVTS
-
-#if NR_PERF_COUNTERS < 256
-typedef uint8_t perf_evt_t;
-#endif
-typedef uint64_t perf_cnt_t;
 
 #ifdef CONFIG_PERF
 #define perf_event_count(event)	\
 	perf_hw_get_event_count(event)
 
 int perf_event_id(perf_evt_t event);
-int perf_register_event(perf_evt_t event);
-void perf_unregister_all_events(void);
+int perf_add_event(perf_evt_t event);
+void perf_remove_all_events(void);
 void perf_init(void);
+void perf_start(void);
+void perf_stop(void);
 #else
 #define perf_event_count(event)		0
 #define perf_event_id(event)		-1
-#define perf_register_event(event)	-ENODEV
-#define perf_unregister_all_events()	do { } while (0)
+#define perf_add_event(event)		-ENODEV
+#define perf_remove_all_events()	do { } while (0)
 #define perf_init()			do { } while (0)
+#define perf_start()			do { } while (0)
+#define perf_stop()			do { } while (0)
 #endif
 
 #endif /* __PERF_H_INCLUDE__ */

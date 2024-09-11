@@ -44,9 +44,7 @@
 
 #include <target/arch.h>
 
-#ifndef PMU_HW_MAX_COUNTERS
-#define PMU_HW_MAX_COUNTERS		32
-#endif
+#define HPM_MAX_COUNTERS		32
 
 #define HPM_NO_EVENT			0
 #define HPM_CYCLE			0
@@ -54,17 +52,30 @@
 #define HPM_INSTRET			2
 #define PMU_HW_DEFAULT_EVENT		HPM_CYCLE
 
-#define pmu_hw_get_counters()		PMU_HW_MAX_COUNTERS
-#define pmu_hw_ctrl_init()		do { } while (0)
-#define pmu_hw_enable_event(event)	csr_clear(CSR_MCOUNTINHIBIT, event)
-#define pmu_hw_disable_event(event)	csr_clear(CSR_MCOUNTINHIBIT, event)
-
-#ifdef CONFIG_HPM_EVENT
-void pmu_hw_configure_event(uint8_t event);
-#else
-#define pmu_hw_configure_event(event)	do { } while (0)
+#ifdef CONFIG_RISCV_SSCOFPMF
+#define COFPMF_OF		_BV_ULL(63)
+#define COFPMF_MINH		_BV_ULL(62)
+#define COFPMF_SINH		_BV_ULL(61)
+#define COFPMF_UINH		_BV_ULL(60)
+#define COFPMF_VSINH		_BV_ULL(59)
+#define COFPMF_VUINH		_BV_ULL(58)
 #endif
-uint32_t pmu_hw_get_event_count(uint8_t event);
-void pmu_hw_set_event_count(uint8_t event, uint32_t count);
+
+#ifdef CONFIG_RISCV_EXIT_M
+void hpm_configure_filter(perf_evt_t evt, uint8_t inh);
+void hpm_count_init(void)
+#else
+#define hpm_configure_filter(inh)	do { } while (0)
+#define hpm_count_init()		do { } while (0)
+#endif
+#define hpm_enable_event(event)		csr_clear(CSR_MCOUNTINHIBIT, event)
+#define hpm_disable_event(event)	csr_clear(CSR_MCOUNTINHIBIT, event)
+
+void hpm_init(void);
+void hpm_start(void);
+void hpm_stop(void);
+void hpm_configure_event(perf_evt_t event);
+perf_cnt_t hpm_get_event_count(perf_evt_t event);
+void hpm_set_event_count(perf_evt_t event, perf_cnt_t count);
 
 #endif /* __HPM_RISCV_H_INCLUDE__ */

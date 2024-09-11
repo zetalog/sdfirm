@@ -835,4 +835,12 @@ config ARCH_HAS_PMU
 config PERF
 	bool "Performance counting (perf) support"
 
+if PERF
+
+config PERF_MAX_PMUS
+	int "Maximum performance counter units"
+	default 1
+
+endif
+
 endmenu

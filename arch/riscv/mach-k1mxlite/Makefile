@@ -11,3 +11,4 @@ obj-$(CONFIG_K1MXLITE_DMAR) += iommu.rel
 obj-$(CONFIG_K1MXLITE_DMAR) += dmar.rel
 obj-$(CONFIG_K1MXLITE_BMU) += bmu.rel
 obj-$(CONFIG_K1MXLITE_MBOX) += mbox.rel
+obj-$(CONFIG_PERF) += pmu.rel
