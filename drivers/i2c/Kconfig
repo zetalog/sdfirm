@@ -5,17 +5,44 @@
 
 menu "I2C host drivers"
 
+config ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_0
+	bool
+
+config ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_4
+	bool
+
+config ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_5
+	bool
+	select ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_4
+
+config ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_6
+	bool
+	select ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_5
+
+config ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_7
+	bool
+	select ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_6
+
+config ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_8
+	bool
+	select ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_7
+
+config ARCH_HAS_DW_I2C_HC_REG_TIMEOUT_VALUE
+	bool
+	depends !ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_0
+
 config ARCH_IS_DW_I2C_MAX_SPEED_STANDARD
 	bool
-	depends ARCH_IS_DW_I2C_ULTRA_FAST_MODE
 
 config ARCH_IS_DW_I2C_MAX_SPEED_FAST
 	bool
 	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+	select ARCH_IS_DW_I2C_MAX_SPEED_STANDARD
 
 config ARCH_IS_DW_I2C_MAX_SPEED_HIGH
 	bool
 	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+	select ARCH_IS_DW_I2C_MAX_SPEED_FAST
 
 config ARCH_HAS_DW_I2C_MASTER
 	bool
@@ -25,45 +52,57 @@ config ARCH_HAS_DW_I2C_HS_MASTER
 
 config ARCH_HAS_DW_I2C_10BITADDR_SLAVE
 	bool
+	select ARCH_HAS_I2C_10BIT_ADDR if I2C_SLAVE
 
 config ARCH_HAS_DW_I2C_10BITADDR_MASTER
 	bool
+	select ARCH_HAS_I2C_10BIT_ADDR if I2C_MASTER
 
 config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_8
 	bool
 
 config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_16
 	bool
+	select ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_8
 
 config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_32
 	bool
+	select ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_16
 
 config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_64
 	bool
+	select ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_32
 
 config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_128
 	bool
+	select ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_64
 
 config ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_256
 	bool
+	select ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_128
 
 config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_8
 	bool
 
 config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_16
 	bool
+	select ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_8
 
 config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_32
 	bool
+	select ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_16
 
 config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_64
 	bool
+	select ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_32
 
 config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_128
 	bool
+	select ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_64
 
 config ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_256
 	bool
+	select ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_128
 
 config ARCH_HAS_DW_I2C_RESTART
 	bool
@@ -72,6 +111,12 @@ config ARCH_HAS_DW_I2C_DMA
 	bool
 
 config ARCH_IS_DW_I2C_INTR_IO
+	bool
+
+config ARCH_IS_DW_I2C_INTR_POL
+	bool
+
+config ARCH_HAS_DW_I2C_ADD_ENCODED_PARAMS
 	bool
 
 config ARCH_HAS_DW_I2C_USE_COUNTS
@@ -108,6 +153,11 @@ config ARCH_HAS_DW_I2C_SLV_RESTART_DET
 
 config ARCH_HAS_DW_I2C_STOP_DET_IF_MASTER_ACTIVE
 	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+
+config ARCH_HAS_DW_I2C_STAT_FOR_CLK_STRETCH
+	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
 
 config ARCH_HAS_DW_I2C_TX_CMD_BLOCK
 	bool
@@ -117,21 +167,61 @@ config ARCH_HAS_DW_I2C_FIRST_DATA_BYTE_STATUS
 
 config ARCH_HAS_DW_I2C_AVOID_RX_FIFO_FLUSH_ON_TX_ABRT
 	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+	depends ARCH_HAS_DW_AMBA_ADVANCED
 
 config ARCH_HAS_DW_I2C_BUS_CLEAR
 	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
 
 config ARCH_HAS_DW_I2C_DEVICE_ID
 	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
 
 config ARCH_HAS_DW_I2C_SMBUS
 	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+
+config ARCH_HAS_DW_I2C_MULTI_SAR
+	bool
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+	depends ARCH_HAS_DW_I2C_SMBUS
+	select ARCH_HAS_DW_I2C_RX_FULL_HLD_BUS
+
+config ARCH_IS_DW_I2C_NUM_SARS_2
+	bool
+	depends ARCH_HAS_DW_I2C_MULTI_SAR
+
+config ARCH_IS_DW_I2C_NUM_SARS_3
+	bool
+	depends ARCH_HAS_DW_I2C_MULTI_SAR
+	select ARCH_IS_DW_I2C_NUM_SARS_2
+
+config ARCH_IS_DW_I2C_NUM_SARS_4
+	bool
+	depends ARCH_HAS_DW_I2C_MULTI_SAR
+	select ARCH_IS_DW_I2C_NUM_SARS_3
 
 config ARCH_HAS_DW_I2C_SMBUS_SUSPEND_ALERT
 	bool
+	depends ARCH_HAS_DW_I2C_SMBUS
+
+config ARCH_HAS_DW_I2C_OPTIONAL_SAR
+	bool
+	depends ARCH_HAS_DW_I2C_SMBUS && !ARCH_HAS_DW_I2C_MULTI_SAR
 
 config ARCH_HAS_DW_I2C_SMBUS_ARP
 	bool
+	depends ARCH_HAS_DW_I2C_SMBUS
+
+config ARCH_HAS_DW_I2C_SMBUS_UDID_HC
+	bool
+	depends ARCH_HAS_DW_I2C_SMBUS_ARP
+
+config ARCH_HAS_DW_I2C_MULTI_SAR_UDID_CTRL
+	bool
+	depends ARCH_HAS_DW_I2C_SMBUS_ARP && ARCH_HAS_DW_I2C_MULTI_SAR
 
 config ARCH_IS_DW_I2C_ULTRA_FAST_MODE
 	bool
@@ -144,37 +234,288 @@ menuconfig DW_I2C
 
 if DW_I2C
 
+menu "Top Level Parameters"
+
+config DW_I2C_REG_TIMEOUT
+	bool "Enable register timeout counter support"
+	depends !ARCH_HAS_DW_I2C_HC_REG_TIMEOUT_VALUE && !ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_0
+
+choice
+	prompt "Register timeout width"
+	depends DW_I2C_REG_TIMEOUT
+	default DW_I2C_REG_TIMEOUT_WIDTH_8 if ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_8
+	default DW_I2C_REG_TIMEOUT_WIDTH_7 if ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_7 && !ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_8
+	default DW_I2C_REG_TIMEOUT_WIDTH_6 if ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_6 && !ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_7
+	default DW_I2C_REG_TIMEOUT_WIDTH_5 if ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_5 && !ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_6
+	default DW_I2C_REG_TIMEOUT_WIDTH_4 if ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_4 && !ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_5
+
+config DW_I2C_REG_TIMEOUT_WIDTH_4
+	bool "4"
+	depends ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_4
+
+config DW_I2C_REG_TIMEOUT_WIDTH_5
+	bool "5"
+	depends ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_5
+
+config DW_I2C_REG_TIMEOUT_WIDTH_6
+	bool "6"
+	depends ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_6
+
+config DW_I2C_REG_TIMEOUT_WIDTH_7
+	bool "7"
+	depends ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_7
+
+config DW_I2C_REG_TIMEOUT_WIDTH_8
+	bool "8"
+	depends ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_8
+
+endchoice
+
+choice
+	prompt "Speed mode"
+	default DW_I2C_SPEED_HIGH if ARCH_IS_DW_I2C_MAX_SPEED_HIGH
+	default DW_I2C_SPEED_FAST if ARCH_IS_DW_I2C_MAX_SPEED_FAST && !ARCH_IS_DW_I2C_MAX_SPEED_HIGH
+	default DW_I2C_SPEED_STANDARD if ARCH_IS_DW_I2C_MAX_SPEED_STANDARD && !ARCH_IS_DW_I2C_MAX_SPEED_FAST
+
+config DW_I2C_SPEED_STANDARD
+	bool "Standard"
+	depends ARCH_IS_DW_I2C_MAX_SPEED_STANDARD
+	depends !DW_I2C_SMBUS
+
+config DW_I2C_SPEED_FAST
+	bool "Fast"
+	depends ARCH_IS_DW_I2C_MAX_SPEED_FAST
+
+config DW_I2C_SPEED_HIGH
+	bool "High"
+	depends ARCH_IS_DW_I2C_MAX_SPEED_HIGH
+
+endchoice
+
+choice
+	prompt "Transmit buffer depth"
+	default DW_I2C_TX_BUFFER_DEPTH_256 if ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_256
+	default DW_I2C_TX_BUFFER_DEPTH_128 if ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_128 && !ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_256
+	default DW_I2C_TX_BUFFER_DEPTH_64 if ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_64 && !ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_128
+	default DW_I2C_TX_BUFFER_DEPTH_32 if ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_32 && !ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_64
+	default DW_I2C_TX_BUFFER_DEPTH_16 if ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_16 && !ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_32
+	default DW_I2C_TX_BUFFER_DEPTH_8 if ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_8 && !ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_16
+
+config DW_I2C_TX_BUFFER_DEPTH_8
+	bool "8"
+	depends ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_8
+
+config DW_I2C_TX_BUFFER_DEPTH_16
+	bool "16"
+	depends ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_16
+
+config DW_I2C_TX_BUFFER_DEPTH_32
+	bool "32"
+	depends ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_32
+
+config DW_I2C_TX_BUFFER_DEPTH_64
+	bool "64"
+	depends ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_64
+
+config DW_I2C_TX_BUFFER_DEPTH_128
+	bool "128"
+	depends ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_128
+
+config DW_I2C_TX_BUFFER_DEPTH_256
+	bool "256"
+	depends ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_256
+
+endchoice
+
+choice
+	prompt "Receive buffer depth"
+	default DW_I2C_RX_BUFFER_DEPTH_256 if ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_256
+	default DW_I2C_RX_BUFFER_DEPTH_128 if ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_128 && !ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_256
+	default DW_I2C_RX_BUFFER_DEPTH_64 if ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_64 && !ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_128
+	default DW_I2C_RX_BUFFER_DEPTH_32 if ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_32 && !ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_64
+	default DW_I2C_RX_BUFFER_DEPTH_16 if ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_16 && !ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_32
+	default DW_I2C_RX_BUFFER_DEPTH_8 if ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_8 && !ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_16
+
+config DW_I2C_RX_BUFFER_DEPTH_8
+	bool "8"
+	depends ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_8
+
+config DW_I2C_RX_BUFFER_DEPTH_16
+	bool "16"
+	depends ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_16
+
+config DW_I2C_RX_BUFFER_DEPTH_32
+	bool "32"
+	depends ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_32
+
+config DW_I2C_RX_BUFFER_DEPTH_64
+	bool "64"
+	depends ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_64
+
+config DW_I2C_RX_BUFFER_DEPTH_128
+	bool "128"
+	depends ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_128
+
+config DW_I2C_RX_BUFFER_DEPTH_256
+	bool "256"
+	depends ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_256
+
+endchoice
+
 config DW_I2C_RESTART
 	bool "Enable RESTART condition support"
 	depends ARCH_HAS_DW_I2C_RESTART
+	default y
 
-config DW_I2C_EMPTYFIFO_HOLD_MASTER
-	bool "Enable master hold on empty FIFO support"
-	depends ARCH_HAS_DW_I2C_EMPTYFIFO_HOLD_MASTER
+config DW_I2C_DMA
+	bool "Enable DMA handshaking support"
+	depends ARCH_HAS_DW_I2C_DMA
 
-config DW_I2C_DYNAMIC_TAR_UPDATE
-	bool "Enable dynamic target address support"
-	depends ARCH_HAS_DW_I2C_DYNAMIC_TAR_UPDATE
+config DW_I2C_INTR_POL
+	bool "Enalbe polarity configuration of IRQ support"
+	depends ARCH_HAS_DW_I2C_POL
+	default y
+
+menu "Internal Configuration"
+
+config DW_I2C_ADD_ENCODED_PARAMS
+	bool "Enable encoded parameters support"
+	depends ARCH_HAS_DW_I2C_ADD_ENCODED_PARAMS
 
 config DW_I2C_USE_COUNTS
 	bool "Enable SCL frequency configuration with COUNT*"
 	depends ARCH_HAS_DW_I2C_USE_COUNTS
+	depends !ARCH_HAS_DW_I2C_HC_COUNTS
+
+endmenu
+
+menu "Additional Features"
+
+config DW_I2C_DYNAMIC_TAR_UPDATE
+	bool "Enable dynamic update of target address support"
+	depends ARCH_HAS_DW_I2C_DYNAMIC_TAR_UPDATE
+	depends I2C_MASTER
+
+config DW_I2C_SLV_DATA_NACK
+	bool "Enable slave NACK only after receiving a data byte support"
+	depends ARCH_HAS_DW_I2C_SLV_RX_DATA_NACK
+	depends I2C_SLAVE
+
+config DW_I2C_SLV_FULL_NACK
+	bool "Enable slave NACK on FIFO full support"
+	depends ARCH_HAS_DW_I2C_SLV_RX_FULL_NACK
+	depends I2C_SLAVE
+
+config DW_I2C_EMPTYFIFO_HOLD_MASTER
+	bool "Enable master hold on empty FIFO support"
+	depends ARCH_HAS_DW_I2C_EMPTYFIFO_HOLD_MASTER
+	default y if DW_I2C_SMBUS
+
+config DW_I2C_RX_FULL_HLD_BUS
+	bool "Enable bus hold on Rx FIFO full support"
+	depends ARCH_HAS_DW_I2C_RX_FULL_HLD_BUS
+	default y if DW_I2C_MULTI_SAR
+
+config DW_I2C_SLV_RESTART_DET
+	bool "Enable slave restart detection support"
+	depends ARCH_HAS_DW_I2C_SLV_RESTART_DET
+	depends I2C_SLAVE
+
+config DW_I2C_STOP_DET
+	bool "Enable master stop detection support"
+	depends ARCH_HAS_DW_I2C_STOP_DET_IF_MASTER_ACTIVE
+
+config DW_I2C_STAT_FOR_CLK_STRETCH
+	bool "Enable status of clock stretch support"
+	depends ARCH_HAS_DW_I2C_STAT_FOR_CLK_STRETCH
+
+config DW_I2C_TX_CMD_BLOCK
+	bool "Enable transmission hold of Tx FIFO data support"
+	depends ARCH_HAS_DW_I2C_TX_CMD_BLOCK
+
+config DW_I2C_FIRST_DATA_BYTE_STATUS
+	bool "Enable first data byte status support"
+	depends ARCH_HAS_DW_I2C_FIRST_DATA_BYTE_STATUS
+
+config DW_I2C_DW_I2C_AVOID_RX_FIFO_FLUSH_ON_TX_ABRT
+	bool "Enable Rx FIFO flush avoid on transmit abort support"
+	depends ARCH_HAS_DW_I2C_DW_I2C_AVOID_RX_FIFO_FLUSH_ON_TX_ABRT
+
+endmenu
+
+endmenu
+
+menu "I2C Version 3.0 Features Parameters"
 
 config DW_I2C_BUS_CLEAR
 	bool "Enable bus clear support"
 	depends ARCH_HAS_DW_I2C_BUS_CLEAR
 
-if I2C_SLAVE
-
-menu "Slave options"
-
-config DW_I2C_SLV_RESTART_DET
-	bool "Enable restart detection support"
-	depends ARCH_HAS_DW_I2C_SLV_RESTART_DET
+config DW_I2C_DEVICE_ID
+	bool "Enable device-id support"
+	depends ARCH_HAS_DW_I2C_DEVICE_ID
 
 endmenu
 
+menu "SMBus Features Parameters"
+
+config DW_I2C_SMBUS
+	bool "Enable SMBus support"
+	depends ARCH_HAS_DW_I2C_SMBUS
+
+if DW_I2C_SMBUS
+
+config DW_I2C_MULTI_SAR
+	bool "Enable multiple SAR support"
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+	select DW_I2C_MULTI_SAR_UDID if DW_I2C_SMBUS_UDID
+
+choice
+	prompt "Number of SARs"
+	depends DW_I2C_MULTI_SAR
+	default DW_I2C_NUM_SARS_4 if ARCH_IS_DW_I2C_NUM_SARS_4
+	default DW_I2C_NUM_SARS_3 if ARCH_IS_DW_I2C_NUM_SARS_3 && !ARCH_IS_DW_I2C_NUM_SARS_4
+	default DW_I2C_NUM_SARS_2 if ARCH_IS_DW_I2C_NUM_SARS_2 && !ARCH_IS_DW_I2C_NUM_SARS_3
+
+config DW_I2C_NUM_SARS_2
+	depends ARCH_IS_DW_I2C_NUM_SARS_2
+
+config DW_I2C_NUM_SARS_3
+	depends ARCH_IS_DW_I2C_NUM_SARS_3
+
+config DW_I2C_NUM_SARS_4
+	depends ARCH_IS_DW_I2C_NUM_SARS_4
+
+endchoice
+
+config DW_I2C_SMBUS_SUSPEND_ALERT
+	bool "Enable optional suspend/alert signals support"
+	depends ARCH_HAS_DW_I2C_SMBUS_SUSPEND_ALERT
+
+config DW_I2C_SMBUS_OPTIONAL_SAR
+	bool "Enable optional SAR support"
+	depends !DW_I2C_MULTI_SAR
+	depends ARCH_HAS_DW_I2C_SMBUS_OPTIONAL_SAR
+
+config DW_I2C_SMBUS_ARP
+	bool "Enable address resolution protocol (ARP) support"
+	depends ARCH_HAS_DW_I2C_SMBUS_ARP
+
+config DW_I2C_SMBUS_UDID
+	bool "Enable unique device identifier (UDID) support"
+	depends DW_I2C_SMBUS_ARP
+	select DW_I2C_SMBUS_UDID_32 if ARCH_HAS_DW_I2C_SMBUS_UDID_HC
+	select DW_I2C_SMBUS_UDID_128 if !ARCH_HAS_DW_I2C_SMBUS_UDID_HC
+
+config DW_I2C_MULTI_SAR_UDID
+	bool "Enable multi SAR UDID identifier process support"
+	depends DW_I2C_SMBUS_UDID && DW_I2C_MULTI_SAR
+	depends ARCH_HAS_DW_I2C_MULTI_SAR_UDID_CTRL
+	default y
+
 endif
+
+endmenu
 
 config DW_I2C_TEST_IRQ
 	bool "Test IRQ handler for DW I2C"
