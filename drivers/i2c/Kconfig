@@ -478,12 +478,15 @@ choice
 	default DW_I2C_NUM_SARS_2 if ARCH_IS_DW_I2C_NUM_SARS_2 && !ARCH_IS_DW_I2C_NUM_SARS_3
 
 config DW_I2C_NUM_SARS_2
+	bool "2"
 	depends ARCH_IS_DW_I2C_NUM_SARS_2
 
 config DW_I2C_NUM_SARS_3
+	bool "3"
 	depends ARCH_IS_DW_I2C_NUM_SARS_3
 
 config DW_I2C_NUM_SARS_4
+	bool "4"
 	depends ARCH_IS_DW_I2C_NUM_SARS_4
 
 endchoice
@@ -501,6 +504,12 @@ config DW_I2C_SMBUS_ARP
 	bool "Enable address resolution protocol (ARP) support"
 	depends ARCH_HAS_DW_I2C_SMBUS_ARP
 
+config DW_I2C_SMBUS_UDID_32
+	bool
+
+config DW_I2C_SMBUS_UDID_128
+	bool
+
 config DW_I2C_SMBUS_UDID
 	bool "Enable unique device identifier (UDID) support"
 	depends DW_I2C_SMBUS_ARP
@@ -514,6 +523,14 @@ config DW_I2C_MULTI_SAR_UDID
 	default y
 
 endif
+
+endmenu
+
+menu "I2C Version 6.0 Features Parameters"
+
+config DW_I2C_ULTRA_FAST_MODE
+	bool "Enable ultra-fast mode (UFM) support"
+	depends ARCH_HAS_DW_I2C_ULTRA_FAST_MODE
 
 endmenu
 
