@@ -361,34 +361,64 @@ void dw_i2c_handle_irq(void)
 	if (!enable || !(status & ~IC_INTR_ACTIVITY))
 		return;
 
-	if (status & IC_INTR_RX_UNDER)
+	if (status & IC_INTR_RX_UNDER) {
+		con_dbg("dw_i2c: INTR_RX_UNDER\n");
 		__raw_readl(IC_CLR_RX_UNDER(dw_i2cd));
-	if (status & IC_INTR_RX_OVER)
+	}
+	if (status & IC_INTR_RX_OVER) {
+		con_dbg("dw_i2c: INTR_RX_OVER\n");
 		__raw_readl(IC_CLR_RX_OVER(dw_i2cd));
-	if (status & IC_INTR_TX_OVER)
+	}
+	if (status & IC_INTR_TX_OVER) {
+		con_dbg("dw_i2c: INTR_TX_OVER\n");
 		__raw_readl(IC_CLR_TX_OVER(dw_i2cd));
-	if (status & IC_INTR_RD_REQ)
+	}
+	if (status & IC_INTR_TX_EMPTY) {
+		/* con_dbg("dw_i2c: INTR_TX_EMPTY\n"); */
+	}
+	if (status & IC_INTR_RD_REQ) {
+		con_dbg("dw_i2c: INTR_RD_REQ\n");
 		__raw_readl(IC_CLR_RD_REQ(dw_i2cd));
+	}
 	if (status & IC_INTR_TX_ABRT) {
+		con_dbg("dw_i2c: INTR_TX_ABRT\n");
 		abrt_src = (i2c_addr_t)__raw_readl(IC_TX_ABRT_SOURCE(dw_i2cd));
 		__raw_readl(IC_CLR_TX_ABRT(dw_i2cd));
 		i2c_master_abort(abrt_src);
 	}
-	if (status & IC_INTR_RX_DONE)
+	if (status & IC_INTR_RX_DONE) {
+		con_dbg("dw_i2c: INTR_RX_DONE\n");
 		__raw_readl(IC_CLR_RX_DONE(dw_i2cd));
-	if (status & IC_INTR_ACTIVITY)
+	}
+	if (status & IC_INTR_ACTIVITY) {
+		con_dbg("dw_i2c: INTR_ACTIVITY\n");
 		__raw_readl(IC_CLR_ACTIVITY(dw_i2cd));
-	if (status & IC_INTR_STOP_DET &&
-	    (i2c_last_byte() || (status & IC_INTR_RX_FULL))) {
-		__raw_readl(IC_CLR_STOP_DET(dw_i2cd));
-		i2c_master_stop();
+	}
+	if (status & IC_INTR_STOP_DET) {
+		con_dbg("dw_i2c: INTR_STOP_DET\n");
+		if (i2c_last_byte() || (status & IC_INTR_RX_FULL)) {
+			__raw_readl(IC_CLR_STOP_DET(dw_i2cd));
+			i2c_master_stop();
+		}
 	}
 	if (status & IC_INTR_START_DET) {
+		con_dbg("dw_i2c: INTR_START_DET\n");
 		__raw_readl(IC_CLR_START_DET(dw_i2cd));
 		i2c_master_start();
 	}
-	if (status & IC_INTR_GEN_CALL)
+	if (status & IC_INTR_GEN_CALL) {
+		con_dbg("dw_i2c: INTR_GEN_CALL\n");
 		__raw_readl(IC_CLR_GEN_CALL(dw_i2cd));
+	}
+	if (status & IC_INTR_RESTART_DET) {
+		con_dbg("dw_i2c: INTR_RESTART_DET\n");
+	}
+	if (status & IC_INTR_MASTER_ON_HOLD) {
+		con_dbg("dw_i2c: INTR_MASTER_ON_HOLD\n");
+	}
+	if (status & IC_INTR_SCL_STUCK_AT_LOW) {
+		con_dbg("dw_i2c: INTR_SCL_STU_AT_LOW\n");
+	}
 }
 
 #ifndef SYS_REALTIME

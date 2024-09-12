@@ -444,7 +444,7 @@ static void ddr_spd_dump(const uint8_t *buf)
 static int do_spd_dump(int argc, char *argv[])
 {
 	__unused ddr_sid_t slot, sslot;
-	uint8_t smbus = 0;
+	uint8_t smbus = 0x50;
 
 	if (argc < 3)
 		return -EINVAL;

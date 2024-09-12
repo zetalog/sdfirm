@@ -14,6 +14,9 @@ config ARCH_HAS_I2C_START
 config ARCH_HAS_I2C_STOP
 	bool
 
+config ARCH_HAS_I2C_10BIT_ADDR
+	bool
+
 menuconfig I2C
 	bool "Inter integrated circuit (I2C) support"
 
@@ -37,6 +40,7 @@ config I2C_GENERAL_CALL
 
 config I2C_10BIT_ADDRESS
 	bool "Enable 10-bit addressing support"
+	depends ARCH_HAS_I2C_10BIT_ADDR
 	help
 	  Disabling this will force the master driver to use 7-bit
 	  addressing.
