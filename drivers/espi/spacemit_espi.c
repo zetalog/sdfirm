@@ -263,19 +263,6 @@ void spacemit_espi_handle_vwirq(void)
 	}
 }
 
-void spacemit_espi_irq_init(void)
-{
-	irqc_configure_irq(ESPI_IRQ, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(ESPI_IRQ, spacemit_espi_handle_conirq);
-	irqc_enable_irq(ESPI_IRQ);
-	spacemit_espi_enable_all_irqs();
-
-	irqc_configure_irq(VWIRE_IRQ, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(VWIRE_IRQ, spacemit_espi_handle_vwirq);
-	irqc_enable_irq(VWIRE_IRQ);
-	//spacemit_espi_enable_all_vwirqs();
-}
-
 void spacemit_espi_handle_irq(void)
 {
 	spacemit_espi_handle_conirq();
@@ -290,6 +277,19 @@ void espi_handle_conirq(irq_t irq)
 void espi_handle_vwirq(irq_t irq)
 {
 	spacemit_espi_handle_vwirq();
+}
+
+void spacemit_espi_irq_init(void)
+{
+	irqc_configure_irq(ESPI_IRQ, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(ESPI_IRQ, espi_handle_conirq);
+	irqc_enable_irq(ESPI_IRQ);
+	spacemit_espi_enable_all_irqs();
+
+	irqc_configure_irq(VWIRE_IRQ, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(VWIRE_IRQ, espi_handle_vwirq);
+	irqc_enable_irq(VWIRE_IRQ);
+	spacemit_espi_enable_all_vwirqs();
 }
 
 uint8_t spacemit_espi_cmd2dncmd(uint8_t opcode)

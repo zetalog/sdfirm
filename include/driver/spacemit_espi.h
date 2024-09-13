@@ -320,8 +320,15 @@
 
 /* SLAVE0_VW_CTL */
 #define SLAVE0_VW_CTL_IRQ_MASK(n)		_BV(n + 8)
+#define SLAVE0_VW_CTRL_ALL_IRQS			(REG_24BIT_MASK << 8)
 #define SLAVE0_VW_CTL_SUS_STAT_VMEN		_BV(4)
 #define SLAVE0_VW_CTL_GRP_EN(n)			_BV(n)
+#define SLAVE0_VW_CTRL_ALL_GRPS			REG_4BIT_MASK
+#define VW_ALL_IRQS				\
+	(SLAVE0_VW_CTL_SUS_STAT_VMEN |		\
+	 SLAVE0_VW_CTRL_ALL_GRPS |		\
+	 SLAVE0_VW_CTRL_ALL_IRQS)
+
 
 /* SLAVE0_VW_POLARITY */
 #define SLAVE0_VW_POLARITY_IRQ_POLARITY(n)	_BV(n)
@@ -506,6 +513,8 @@ void spacemit_espi_write8(uint8_t val, caddr_t reg);
 #define spacemit_espi_ack_vwirq(irq)				__raw_writel(_BV(irq), ESPI_SLAVE0_RXVW_STS)
 #define spacemit_espi_mask_vwirq(irq)				spacemit_espi_set32(SLAVE0_VW_CTL_IRQ_MASK(irq), ESPI_SLAVE0_VW_CTL)
 #define spacemit_espi_unmask_vwirq(irq)				spacemit_espi_clear32(SLAVE0_VW_CTL_IRQ_MASK(irq), ESPI_SLAVE0_VW_CTL)
+#define spacemit_espi_enable_all_vwirqs()			\
+	spacemit_espi_write32((uint32_t)VW_ALL_IRQS, ESPI_SLAVE0_VW_CTL)
 /* polarity = 1 means HIGH */
 #define spacemit_espi_vwirq_polarity(irq, polarity)		\
 	do {							\
