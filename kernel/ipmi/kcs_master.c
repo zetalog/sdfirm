@@ -86,7 +86,7 @@ int do_kcs_read(int argc, char *argv[])
 		printf("length oversized!");
 		return -1;
 	}
-	ret = kcs_read(kcs_buf, len + 1);
+	ret = kcs_read(kcs_buf, len);
 	if (ret < 0) {
 		printf("KCS read error!");
 		return ret;
@@ -111,7 +111,7 @@ int do_kcs_write(int argc, char *argv[])
 	for (i = 0; i < len; i++) {
 		kcs_buf[i]  = (uint8_t)strtoull(argv[i + 3], 0, 0);
 	}
-	ret = kcs_write(kcs_buf, len + 1);
+	ret = kcs_write(kcs_buf, len);
 	if (ret < 0) {
 		printf("KCS write error!\n");
 		return -ret;
@@ -143,18 +143,18 @@ int do_kcs_xfer(int argc, char *argv[])
 	for (i = 0; i < wlen; i++) {
 		kcs_buf[i]  = (uint8_t)strtoull(argv[i + 4], 0, 0);
 	}
-	ret = kcs_write(kcs_buf, wlen + 1);
+	ret = kcs_write(kcs_buf, wlen);
 	if (ret < 0) {
 		printf("KCS write error!\n");
 		return -ret;
 	}
 	if (rlen) {
-		ret = kcs_read(kcs_buf, rlen + 1);
+		ret = kcs_read(kcs_buf, rlen);
 		if (ret < 0) {
 			printf("KCS read error!\n");
 			return ret;
 		}
-		hexdump(0, kcs_buf, 8, ret);
+		hexdump(0, kcs_buf, 1, ret);
 	}
 	return 0;
 }
