@@ -272,11 +272,13 @@ void spacemit_espi_handle_irq(void)
 void espi_handle_conirq(irq_t irq)
 {
 	spacemit_espi_handle_conirq();
+	irqc_ack_irq(ESPI_IRQ);
 }
 
 void espi_handle_vwirq(irq_t irq)
 {
 	spacemit_espi_handle_vwirq();
+	irqc_ack_irq(VWIRE_IRQ);
 }
 
 void spacemit_espi_irq_init(void)
