@@ -323,40 +323,40 @@ struct dw_i2c_ctx {
 	int state;
 };
 
-#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_8
+#ifdef CONFIG_DW_I2C_TX_BUFFER_DEPTH_8
 #define DW_I2C_TX_FIFO_SIZE		8
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_16
+#ifdef CONFIG_DW_I2C_TX_BUFFER_DEPTH_16
 #define DW_I2C_TX_FIFO_SIZE		16
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_32
+#ifdef CONFIG_DW_I2C_TX_BUFFER_DEPTH_32
 #define DW_I2C_TX_FIFO_SIZE		32
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_64
+#ifdef CONFIG_DW_I2C_TX_BUFFER_DEPTH_64
 #define DW_I2C_TX_FIFO_SIZE		64
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_128
+#ifdef CONFIG_DW_I2C_TX_BUFFER_DEPTH_128
 #define DW_I2C_TX_FIFO_SIZE		128
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_TX_BUFFER_DEPTH_256
+#ifdef CONFIG_DW_I2C_TX_BUFFER_DEPTH_256
 #define DW_I2C_TX_FIFO_SIZE		256
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_8
+#ifdef CONFIG_DW_I2C_RX_BUFFER_DEPTH_8
 #define DW_I2C_RX_FIFO_SIZE		8
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_16
+#ifdef CONFIG_DW_I2C_RX_BUFFER_DEPTH_16
 #define DW_I2C_RX_FIFO_SIZE		16
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_32
+#ifdef CONFIG_DW_I2C_RX_BUFFER_DEPTH_32
 #define DW_I2C_RX_FIFO_SIZE		32
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_64
+#ifdef CONFIG_DW_I2C_RX_BUFFER_DEPTH_64
 #define DW_I2C_RX_FIFO_SIZE		64
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_128
+#ifdef CONFIG_DW_I2C_RX_BUFFER_DEPTH_128
 #define DW_I2C_RX_FIFO_SIZE		128
 #endif
-#ifdef CONFIG_ARCH_IS_DW_I2C_RX_BUFFER_DEPTH_256
+#ifdef CONFIG_DW_I2C_RX_BUFFER_DEPTH_256
 #define DW_I2C_RX_FIFO_SIZE		256
 #endif
 
@@ -376,7 +376,7 @@ void dw_i2c_stop_condition(void);
 void dw_i2c_write_byte(uint8_t byte);
 uint8_t dw_i2c_read_byte(void);
 void dw_i2c_transfer_reset(void);
-#ifdef SYS_REALTIME
+#ifndef SYS_REALTIME
 void dw_i2c_irq_init(void);
 #endif
 void dw_i2c_handle_irq(void);
