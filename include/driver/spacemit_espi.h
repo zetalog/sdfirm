@@ -558,8 +558,8 @@ void spacemit_espi_write8(uint8_t val, caddr_t reg);
 #define spacemit_espi_mem_write8(v, a)		__raw_writeb(v, SPACEMIT_ESPI_MEM_BASE + (a))
 #define spacemit_espi_mem_read16(a)		__raw_readw(SPACEMIT_ESPI_MEM_BASE + (a))
 #define spacemit_espi_mem_write16(v, a)		__raw_writew(v, SPACEMIT_ESPI_MEM_BASE + (a))
-#define spacemit_espi_mem_read32(a)		__raw_readw(SPACEMIT_ESPI_MEM_BASE + (a))
-#define spacemit_espi_mem_write32(v, a)		__raw_writew(v, SPACEMIT_ESPI_MEM_BASE + (a))
+#define spacemit_espi_mem_read32(a)		__raw_readl(SPACEMIT_ESPI_MEM_BASE + (a))
+#define spacemit_espi_mem_write32(v, a)		__raw_writel(v, SPACEMIT_ESPI_MEM_BASE + (a))
 #define spacemit_espi_mem_cfg(addr0, addr1)	\
 	do {					\
 		espi_setup_pr_mem_base0(addr0);	\
