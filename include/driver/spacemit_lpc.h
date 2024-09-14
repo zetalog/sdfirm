@@ -195,8 +195,8 @@
 #define lpc_hw_mem_write8(v, a)			__raw_writeb(v, SPACEMIT_LPC_MEM_BASE + (a))
 #define lpc_hw_mem_read16(a)			__raw_readw(SPACEMIT_LPC_MEM_BASE + (a))
 #define lpc_hw_mem_write16(v, a)		__raw_writew(v, SPACEMIT_LPC_MEM_BASE + (a))
-#define lpc_hw_mem_read32(a)			__raw_readw(SPACEMIT_LPC_MEM_BASE + (a))
-#define lpc_hw_mem_write32(v, a)		__raw_writew(v, SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_hw_mem_read32(a)			__raw_readl(SPACEMIT_LPC_MEM_BASE + (a))
+#define lpc_hw_mem_write32(v, a)		__raw_writel(v, SPACEMIT_LPC_MEM_BASE + (a))
 #define lpc_mem_init()				__raw_setl(LPC_MEM_CYCLE, LPC_MEM_CFG)
 #else
 #define __lpc_io_read8(a)							\
