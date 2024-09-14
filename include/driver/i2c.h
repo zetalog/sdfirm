@@ -29,6 +29,11 @@ typedef void (*i2c_io_cb)(i2c_len_t len);
 #define i2c_hw_read_byte()			0
 #define i2c_hw_transfer_reset()			do { } while (0)
 #define i2c_hw_master_select(i2c)		do { } while (0)
+#define i2c_hw_irq_init()			do { } while (0)
+#else /* ARCH_HAVE_I2C */
+#ifdef SYS_REALTIME
+#define i2c_hw_irq_init()			do { } while (0)
+#endif
 #endif
 
 #endif /* __I2C_DRIVER_H_INCLUDE__ */
