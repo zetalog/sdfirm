@@ -40,24 +40,115 @@ uint8_t i2c_mode;
 i2c_len_t i2c_limit;
 i2c_len_t i2c_current;
 i2c_len_t i2c_commit;
+i2c_len_t i2c_rxsubmit;
+i2c_len_t i2c_txsubmit;
 uint8_t i2c_status;
 uint8_t i2c_state;
-uint8_t i2c_event;
+i2c_event_t i2c_event;
 i2c_device_t *i2c_device = NULL;
 #endif
 
-static void i2c_raise_event(uint8_t event)
+const char *i2c_status_names[] = {
+	"IDLE",
+	"START",
+	"ACK",
+	"NACK",
+	"ARBI",
+	"STOP",
+};
+
+const char *i2c_state_names[] = {
+	"IDLE",
+	"WAIT",
+	"READ",
+	"WRITE",
+};
+
+const char *i2c_event_names[] = {
+	"IDLE (RX_CMPL/TX_AVAL)",
+	"START",
+	"PAUSE (ACK - TX_CMPL/RX_AVAL)",
+	"ABORT (NACK)",
+	"ARBITRATION",
+	"STOP",
+	"RX AVAL",
+	"TX AVAL",
+	"RX CMPL",
+	"TX CMPL",
+};
+
+const char *i2c_status_name(uint8_t status)
 {
+	if (status >= ARRAY_SIZE(i2c_status_names))
+		return "UNKNOWN";
+	return i2c_status_names[status];
+}
+
+const char *i2c_state_name(uint8_t state)
+{
+	if (state >= ARRAY_SIZE(i2c_state_names))
+		return "UNKNOWN";
+	return i2c_state_names[state];
+}
+
+const char *i2c_event_name(uint8_t event)
+{
+	int i, nr_evts = 0;
+
+	for (i = 0; i < ARRAY_SIZE(i2c_event_names); i++) {
+		if (_BV(i) & event) {
+			nr_evts++;
+			return i2c_event_names[i];
+		}
+	}
+	return "NONE";
+}
+
+void i2c_raise_event(uint8_t event)
+{
+	con_dbg("i2c: event = %s\n", i2c_event_name(event));
 	i2c_event |= event;
 	bh_resume(i2c_bh);
 }
 
-static void i2c_enter_state(uint8_t state)
+#ifdef CONFIG_I2C_MASTER
+#define i2c_addr_mode(addr, mode)	((addr << 1) | mode)
+
+#ifdef CONFIG_I2C_10BIT_ADDRESS
+static void i2c_write_address(void)
 {
+}
+#else
+static void i2c_write_address(void)
+{
+	i2c_write_byte(i2c_addr_mode(i2c_target, i2c_dir_mode()));
+}
+#endif
+
+void i2c_enter_state(uint8_t state)
+{
+	con_dbg("i2c: state = %s\n", i2c_state_name(state));
 	i2c_state = state;
+	if (state == I2C_STATE_WAIT)
+		i2c_hw_start_condition(false);
+	else if (state == I2C_STATE_WRITE) {
+		if (i2c_current < I2C_ADDR_LEN) {
+			i2c_write_address();
+		} else {
+			printf("2\n");
+			i2c_device->iocb(i2c_limit);
+		}
+	} else if (state == I2C_STATE_READ) {
+		if (i2c_current == 0)
+			i2c_hw_start_condition(i2c_txsubmit != 0);
+		else if (i2c_current < (1 + I2C_ADDR_LEN))
+			i2c_write_address();
+		else
+			i2c_device->iocb(i2c_limit);
+	}
 }
 
-static void i2c_clear_event(uint8_t event)
+static void i2c_unraise_event(uint8_t event)
 {
 	i2c_event &= ~event;
 }
@@ -95,17 +186,15 @@ bool i2c_last_byte(void)
 
 void i2c_read_bytes(uint8_t *buf, i2c_len_t len)
 {
-	i2c_hw_read_bytes(buf, len);
 }
 
 void i2c_write_bytes(uint8_t *buf, i2c_len_t len)
 {
-	i2c_hw_write_bytes(buf, len);
 }
 #else
 static void i2c_handle_status(void)
 {
-	/* check i2c_handle_statusi2c_handle_statusI2C controller driver to avoid this */
+	/* check i2c_handle_status I2C controller driver to avoid this */
 	BUG_ON(i2c_status == I2C_STATUS_START);
 
 	switch (i2c_status) {
@@ -141,7 +230,7 @@ uint8_t i2c_read_byte(void)
 	uint8_t byte;
 
 	BUG_ON(!i2c_device);
-	if (i2c_status != I2C_STATUS_START)
+	if (i2c_state != I2C_STATE_READ)
 		return 0;
 
 	byte = i2c_hw_read_byte();
@@ -153,26 +242,12 @@ uint8_t i2c_read_byte(void)
 void i2c_write_byte(uint8_t byte)
 {
 	BUG_ON(!i2c_device);
-	if (i2c_status != I2C_STATUS_START)
+	if (i2c_state != I2C_STATE_WRITE)
 		return;
 
 	i2c_hw_write_byte(byte);
 	i2c_handle_status();
 }
-
-#ifdef CONFIG_I2C_MASTER
-#define i2c_addr_mode(addr, mode)	((addr << 1) | mode)
-
-#ifdef CONFIG_I2C_10BIT_ADDRESS
-static void i2c_write_address(void)
-{
-}
-#else
-static void i2c_write_address(void)
-{
-	i2c_write_byte(i2c_addr_mode(i2c_target, i2c_dir_mode()));
-}
-#endif
 
 void i2c_apply_frequency(void)
 {
@@ -201,6 +276,44 @@ void i2c_master_commit(i2c_len_t len)
 	i2c_commit = len;
 }
 
+void i2c_tx_aval(void)
+{
+	if (i2c_state == I2C_STATE_WAIT) {
+		if (i2c_txsubmit > 0)
+			i2c_enter_state(I2C_STATE_WRITE);
+	}
+	if (i2c_state == I2C_STATE_WRITE) {
+	}
+}
+
+void i2c_master_submit(i2c_addr_t slave, i2c_len_t txlen, i2c_len_t rxlen)
+{
+	/* IDLE means start, STOP means repeated start */
+	if (i2c_state == I2C_STATE_IDLE) {
+		i2c_txsubmit = txlen + I2C_ADDR_LEN;
+		i2c_rxsubmit = rxlen + I2C_ADDR_LEN;
+		i2c_current = 0;
+		if (txlen > 0) {
+			i2c_limit = i2c_txsubmit;
+			i2c_config_mode(I2C_MODE_MASTER_TX, true);
+		} else if (rxlen > 0) {
+			i2c_limit = i2c_rxsubmit;
+			i2c_config_mode(I2C_MODE_MASTER_RX, true);
+		}
+	} else if (i2c_state == I2C_STATE_WRITE) {
+		i2c_txsubmit += txlen;
+		i2c_limit += txlen;
+		i2c_rxsubmit += rxlen;
+	} else if (i2c_state == I2C_STATE_READ) {
+		i2c_rxsubmit += rxlen;
+		i2c_limit += rxlen;
+	}
+
+	if (i2c_state == I2C_STATE_IDLE)
+		i2c_enter_state(I2C_STATE_WAIT);
+}
+
+#if 0
 uint8_t i2c_master_submit(i2c_addr_t slave,
 			  i2c_len_t txlen, i2c_len_t rxlen)
 {
@@ -215,44 +328,57 @@ uint8_t i2c_master_submit(i2c_addr_t slave,
 		return I2C_STATUS_ARBI;
 
 	if (txlen > 0) {
-		i2c_enter_state(I2C_STATE_WAIT);
 		i2c_limit = txlen + I2C_ADDR_LEN;
 		i2c_current = 0;
 		i2c_config_mode(I2C_MODE_MASTER_TX, true);
+		con_dbg("TX start\n");
 		i2c_hw_start_condition(false);
 		while (i2c_status == I2C_STATUS_IDLE ||
 		       i2c_status == I2C_STATUS_STOP);
+		con_dbg("TX address\n");
 		i2c_write_address();
+		con_dbg("TX aval\n");
 		i2c_device->iocb(txlen);
 		while (i2c_state != I2C_STATE_IDLE)
 			bh_sync();
 	}
+	con_dbg("TX compl\n");
 
 	if (rxlen > 0) {
-		i2c_enter_state(I2C_STATE_WAIT);
 		i2c_limit = rxlen + I2C_ADDR_LEN;
 		i2c_current = 0;
 		i2c_config_mode(I2C_MODE_MASTER_RX, txlen == 0);
+		con_dbg("RX start\n");
 		i2c_hw_start_condition(txlen != 0);
 		while (i2c_status == I2C_STATUS_IDLE ||
 		       i2c_status == I2C_STATUS_STOP);
+		con_dbg("RX address\n");
 		i2c_write_address();
+		con_dbg("RX aval\n");
 		i2c_device->iocb(rxlen);
 		while (i2c_state != I2C_STATE_IDLE)
 			bh_sync();
 	}
+	con_dbg("RX compl\n");
 
 	return i2c_status;
 }
+#endif
 
 uint8_t i2c_master_write(i2c_addr_t slave, i2c_len_t txlen)
 {
-	return i2c_master_submit(slave, txlen, 0);
+	i2c_master_submit(slave, txlen, 0);
+	while (i2c_state != I2C_STATE_IDLE)
+		bh_sync();
+	return i2c_current;
 }
 
 uint8_t i2c_master_read(i2c_addr_t slave, i2c_len_t rxlen)
 {
-	return i2c_master_submit(slave, 0, rxlen);
+	i2c_master_submit(slave, 0, rxlen);
+	while (i2c_state != I2C_STATE_IDLE)
+		bh_sync();
+	return i2c_current;
 }
 
 void i2c_master_release(void)
@@ -388,17 +514,16 @@ void i2c_register_device(i2c_device_t *dev)
 
 void i2c_set_status(uint8_t status)
 {
+	con_dbg("i2c: status = %s\n", i2c_status_name(status));
 	i2c_status = status;
+#if 0
 	if (status == I2C_STATUS_IDLE)
 		i2c_enter_state(I2C_STATE_IDLE);
-#ifndef CONFIG_ARCH_HAS_I2C_START
+#endif
 	if (status == I2C_STATUS_START)
 		i2c_raise_event(I2C_EVENT_START);
-#endif
-#ifndef CONFIG_ARCH_HAS_I2C_STOP
 	if (status == I2C_STATUS_STOP)
 		i2c_raise_event(I2C_EVENT_STOP);
-#endif
 	if (status == I2C_STATUS_ARBI)
 		i2c_raise_event(I2C_EVENT_ABORT);
 	if (status == I2C_STATUS_NACK)
@@ -455,12 +580,11 @@ static void i2c_handle_xfr(void)
 			else
 				i2c_enter_state(I2C_STATE_READ);
 		}
-		break;
 	case I2C_STATE_IDLE:
 		break;
 	}
 
-	i2c_clear_event(event);
+	i2c_unraise_event(event);
 }
 
 static void i2c_handle_bh(void)

@@ -432,7 +432,9 @@ bool ddr_spd_read(uint8_t *buf)
 
 	spd_hw_read_bytes(ddr_slot_ctrl.spd_addr, 0,
 			  ddr_slot_ctrl.spd_buf, DDR_SPD_SIZE);
+#if 0
 	hexdump(0, ddr_slot_ctrl.spd_buf, 1, DDR_SPD_SIZE);
+#endif
 	return true;
 }
 
@@ -454,7 +456,9 @@ static int do_spd_dump(int argc, char *argv[])
 	ddr_slot_ctrl.smbus = smbus;
 	ddr_spd_read(ddr_slot_ctrl.spd_buf);
 	sslot = ddr_slot_save(slot);
+#if 0
 	ddr_spd_dump(ddr_slot_ctrl.spd_buf);
+#endif
 	ddr_slot_restore(sslot);
 	return 0;
 }

@@ -162,6 +162,7 @@ static int i2c_tx_finish(void)
 
 static void dw_i2c_translate_status(void)
 {
+#if 0
 	uint32_t irqs = __raw_readl(IC_RAW_INTR_STAT(dw_i2cd));
 	uint32_t abrt;
 
@@ -191,6 +192,7 @@ static void dw_i2c_translate_status(void)
 		i2c_set_status(I2C_STATUS_NACK);
 	} else
 		i2c_set_status(I2C_STATUS_ACK);
+#endif
 }
 
 /* Do nothing at I2C bus here because START will be issued automatically
@@ -204,6 +206,7 @@ void dw_i2c_start_condition(bool sr)
 		dw_i2c_stop_condition();
 	}
 	i2c_set_status(I2C_STATUS_START);
+	con_dbg("dw_i2c: DW_I2C_DRIVER_START\n");
 	dw_i2c.state = DW_I2C_DRIVER_START;
 }
 
@@ -221,12 +224,14 @@ void dw_i2c_stop_condition(void)
 {
 	uint32_t val = dw_i2c.last_tx_byte;
 
+	printf("stop_condition\n");
 #ifdef CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER
 	val |= IC_DATA_CMD_STOP;
 #endif
 	__raw_writel(val, IC_DATA_CMD(dw_i2cd));
 	i2c_tx_finish();
 	dw_i2c_translate_status();
+	con_dbg("dw_i2c: DW_I2C_DRIVER_STOP\n");
 	dw_i2c.state = DW_I2C_DRIVER_STOP;
 }
 
@@ -275,12 +280,18 @@ bool dw_i2c_device_id(uint8_t byte)
 #define dw_i2c_device_id(byte)		false
 #endif
 
+void dw_i2c_handle_status(void)
+{
+}
+
 void dw_i2c_write_byte(uint8_t byte)
 {
 	uint32_t val;
 
 	if (dw_i2c_device_id(byte))
 		return;
+
+	con_dbg("dw_i2c_write_byte\n");
 
 	/* Normal case:
 	 *   START +
@@ -292,6 +303,7 @@ void dw_i2c_write_byte(uint8_t byte)
 	 * should be disabled first.
 	 */
 	if (dw_i2c.state == DW_I2C_DRIVER_START) {
+		printf("dw_i2c: driver start\n");
 		dw_i2c.addr_mode = byte;
 		val = dw_i2c.addr_mode >> 1;
 		dw_i2c_set_target(val);
@@ -301,7 +313,7 @@ void dw_i2c_write_byte(uint8_t byte)
 			dw_i2c.state = DW_I2C_DRIVER_DATA;
 		} else
 			dw_i2c.state = DW_I2C_DRIVER_TX;
-		dw_i2c_translate_status();
+		i2c_set_status(I2C_STATUS_ACK);
 		return;
 	}
 
@@ -375,6 +387,7 @@ void dw_i2c_handle_irq(void)
 	}
 	if (status & IC_INTR_TX_EMPTY) {
 		/* con_dbg("dw_i2c: INTR_TX_EMPTY\n"); */
+		i2c_tx_aval();
 	}
 	if (status & IC_INTR_RD_REQ) {
 		con_dbg("dw_i2c: INTR_RD_REQ\n");
@@ -384,11 +397,16 @@ void dw_i2c_handle_irq(void)
 		con_dbg("dw_i2c: INTR_TX_ABRT\n");
 		abrt_src = (i2c_addr_t)__raw_readl(IC_TX_ABRT_SOURCE(dw_i2cd));
 		__raw_readl(IC_CLR_TX_ABRT(dw_i2cd));
+		if (abrt_src & IC_TX_ABRT_SOURCE_NOACK)
+			i2c_set_status(I2C_STATUS_NACK);
+		else
+			i2c_set_status(I2C_STATUS_ARBI);
 		i2c_master_abort(abrt_src);
 	}
 	if (status & IC_INTR_RX_DONE) {
 		con_dbg("dw_i2c: INTR_RX_DONE\n");
 		__raw_readl(IC_CLR_RX_DONE(dw_i2cd));
+		i2c_raise_event(I2C_EVENT_RX_AVAL);
 	}
 	if (status & IC_INTR_ACTIVITY) {
 		con_dbg("dw_i2c: INTR_ACTIVITY\n");
@@ -435,14 +453,6 @@ void dw_i2c_irq_init(void)
 	irqc_enable_irq(IRQ_I2C0 + dw_i2cd);
 }
 #endif
-
-void dw_i2c_read_bytes(uint8_t *buf, i2c_len_t len)
-{
-}
-
-void dw_i2c_write_bytes(uint8_t *buf, i2c_len_t len)
-{
-}
 
 /* Initialize controller as master device */
 void __dw_i2c_master_init(void)
