@@ -380,7 +380,5 @@ void dw_i2c_transfer_reset(void);
 void dw_i2c_irq_init(void);
 #endif
 void dw_i2c_handle_irq(void);
-void dw_i2c_read_bytes(uint8_t *buf, i2c_len_t len);
-void dw_i2c_write_bytes(uint8_t *buf, i2c_len_t len);
 
 #endif /* __DW_I2C_H_INCLUDE__ */

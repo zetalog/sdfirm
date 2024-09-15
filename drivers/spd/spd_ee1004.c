@@ -13,6 +13,7 @@ static void __spd_hw_i2c_iocb(i2c_len_t len)
 {
 	if (i2c_dir_mode() == I2C_MODE_TX) {
 		BUG_ON(len != 1);
+		printf("set_page\n");
 		i2c_write_byte(spd_pos);
 	} else {
 		i2c_len_t i;
@@ -46,6 +47,7 @@ static int spd_ee1004_set_page(uint8_t spd, uint8_t new_page)
 	i2c = (spa >> 1);
 	/* XXX SPA repeats as Data */
 	spd_pos = spa;
+	printf("before master_write spd_pos\n");
 	i2c_master_write(i2c, 1);
 	spd_page = new_page;
 	return 0;
@@ -58,7 +60,9 @@ int spd_hw_read_bytes(i2c_addr_t i2c, uint16_t offset,
 	int len0 = 0;
 	int len1 = 0;
 
+	printf("spd_hw_read_bytes\n");
 	i2c_register_device(&spd_ee1004);
+	printf("spd_hw_read_bytes 1\n");
 	if (offset >= SPD_EE_SIZE || (offset + len) > SPD_EE_SIZE) {
 		con_err("spd_ee1004: Invalid range [0x%x-0x%x]\n",
 			offset, offset + len);
@@ -77,9 +81,11 @@ int spd_hw_read_bytes(i2c_addr_t i2c, uint16_t offset,
 	}
 
 	if (len0 > 0) {
+		printf("set_page 0\n");
 		spd_ee1004_set_page(spd, 0);
 		spd_pos = offset;
 		spd_buf = buffer;
+		printf("submit 1 %d\n", len0);
 		i2c_master_submit(i2c, 1, len0);
 		i2c_master_release();
 	}
@@ -88,11 +94,17 @@ int spd_hw_read_bytes(i2c_addr_t i2c, uint16_t offset,
 			offset = 0;
 		else
 			offset -= SPD_EE_PAGE_SIZE;
+		printf("set_page 1\n");
 		spd_ee1004_set_page(spd, 1);
 		spd_pos = offset;
 		spd_buf = buffer + len0;
+		printf("submit 1 %d\n", len1);
 		i2c_master_submit(i2c, 1, len1);
 		i2c_master_release();
 	}
 	return len;
+}
+
+void spd_ee1004_init(void)
+{
 }

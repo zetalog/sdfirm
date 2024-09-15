@@ -14,6 +14,8 @@ typedef uint8_t i2c_t;
 #endif
 #define INVALID_I2C		NR_I2C_MASTERS
 
+typedef uint16_t i2c_event_t;
+
 struct i2c_device {
 	i2c_io_cb iocb;
 };
@@ -24,12 +26,18 @@ struct i2c_master {
 	i2c_addr_t address;
 	uint16_t freq;
 	uint8_t mode;
+
+	/* TODO: RX/TX split transfer */
+	i2c_len_t rxsubmit;
+	i2c_len_t txsubmit;
+
 	i2c_len_t limit;
 	i2c_len_t current;
 	i2c_len_t commit;
+
 	uint8_t status;
 	uint8_t state;
-	uint8_t event;
+	i2c_event_t event;
 	i2c_device_t *device;
 	i2c_addr_t abrt_slave;
 };
@@ -42,6 +50,8 @@ extern i2c_t i2c_mid;
 #define i2c_address	i2c_masters[i2c_mid].address
 #define i2c_freq	i2c_masters[i2c_mid].freq
 #define i2c_mode	i2c_masters[i2c_mid].mode
+#define i2c_txsubmit	i2c_masters[i2c_mid].txsubmit
+#define i2c_rxsubmit	i2c_masters[i2c_mid].rxsubmit
 #define i2c_limit	i2c_masters[i2c_mid].limit
 #define i2c_current	i2c_masters[i2c_mid].current
 #define i2c_commit	i2c_masters[i2c_mid].commit
@@ -59,12 +69,14 @@ extern i2c_addr_t i2c_target;
 extern i2c_addr_t i2c_address;
 extern uint16_t i2c_freq;
 extern uint8_t i2c_mode;
+extern i2c_len_t i2c_txsubmit;
+extern i2c_len_t i2c_rxsubmit;
 extern i2c_len_t i2c_limit;
 extern i2c_len_t i2c_current;
 extern i2c_len_t i2c_commit;
 extern uint8_t i2c_status;
 extern uint8_t i2c_state;
-extern uint8_t i2c_event;
+extern i2c_event_t i2c_event;
 extern i2c_device_t *i2c_device;
 extern i2c_addr_t i2c_abrt_slave;
 
@@ -110,16 +122,26 @@ extern i2c_addr_t i2c_abrt_slave;
 #define I2C_STATUS_NACK		0x03
 #define I2C_STATUS_ARBI		0x04
 #define I2C_STATUS_STOP		0x05
+#define I2C_STATUS_RX_AVAL	0x06
+#define I2C_STATUS_TX_AVAL	0x07
+#define I2C_STATUS_RX_CMPL	0x08
+#define I2C_STATUS_TX_CMPL	0x09
 
 #define I2C_STATE_IDLE		0x00
 #define I2C_STATE_WAIT		0x01
 #define I2C_STATE_READ		0x02
 #define I2C_STATE_WRITE		0x03
 
+#define I2C_EVENT_IDLE		_BV(I2C_STATUS_IDLE)
 #define I2C_EVENT_START		_BV(I2C_STATUS_START)
-#define I2C_EVENT_STOP		_BV(I2C_STATUS_STOP)
 #define I2C_EVENT_PAUSE		_BV(I2C_STATUS_ACK)
 #define I2C_EVENT_ABORT		_BV(I2C_STATUS_NACK)
+#define I2C_EVENT_ARB		_BV(I2C_STATUS_ARBI)
+#define I2C_EVENT_STOP		_BV(I2C_STATUS_STOP)
+#define I2C_EVENT_RX_AVAL	_BV(I2C_STATUS_RX_AVAL)
+#define I2C_EVENT_TX_AVAL	_BV(I2C_STATUS_TX_AVAL)
+#define I2C_EVENT_RX_CMPL	_BV(I2C_STATUS_RX_CMPL)
+#define I2C_EVENT_TX_CMPL	_BV(I2C_STATUS_TX_CMPL)
 
 #define I2C_BUS(x)		(x & I2C_BUS_MASK)
 #define I2C_DIR(x)		(x & I2C_DIR_MASK)
@@ -137,8 +159,8 @@ extern i2c_addr_t i2c_abrt_slave;
 void i2c_apply_frequency(void);
 uint8_t i2c_master_write(i2c_addr_t slave, i2c_len_t txlen);
 uint8_t i2c_master_read(i2c_addr_t slave, i2c_len_t rxlen);
-uint8_t i2c_master_submit(i2c_addr_t slave,
-			  i2c_len_t txlimit, i2c_len_t rxlimit);
+void i2c_master_submit(i2c_addr_t slave,
+		       i2c_len_t txlimit, i2c_len_t rxlimit);
 void i2c_master_release(void);
 void i2c_master_init(void);
 #define i2c_set_frequency(khz) i2c_hw_set_frequency(khz)
@@ -178,6 +200,9 @@ void i2c_apply_address(void);
 #define i2c_apply_address()
 #endif
 
+void i2c_raise_event(uint8_t event);
+void i2c_enter_state(uint8_t state);
+
 /* called by device driver */
 void i2c_register_device(i2c_device_t *dev);
 uint8_t i2c_read_byte(void);
@@ -186,12 +211,15 @@ bool i2c_last_byte(void);
 void i2c_read_bytes(uint8_t *buf, i2c_len_t len);
 void i2c_write_bytes(uint8_t *buf, i2c_len_t len);
 
+void i2c_tx_aval(void);
+
 /* called by bus controller driver */
 void i2c_set_status(uint8_t status);
 uint8_t i2c_bus_mode(void);
 uint8_t i2c_dir_mode(void);
 uint8_t i2c_bus_dir_mode(void);
 
+void i2c_master_submit_async(i2c_addr_t slave, i2c_len_t txlen, i2c_len_t rxlen);
 void i2c_master_commit(i2c_len_t len);
 void i2c_master_abort(i2c_addr_t slave);
 void i2c_master_start(void);
