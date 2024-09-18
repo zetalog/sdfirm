@@ -126,23 +126,74 @@
 #define IC_CON_SMBUS_ARP_EN			_BV(18)
 #define IC_CON_SMBUS_SLAVE_QUICK_EN		_BV(17)
 #define IC_CON_OPTIONAL_SAR_CTRL		_BV(16)
+#ifdef CONFIG_DW_I2C_BUS_CLEAR
 #define IC_CON_BUS_CLEAR_FEATURE_CTRL		_BV(11)
+#else
+#define IC_CON_BUS_CLEAR_FEATURE_CTRL		0
+#endif
+#ifdef CONFIG_DW_I2C_STOP_DET
 #define IC_CON_STOP_DET_IF_MASTER_ACTIVE	_BV(10)
+#else
+#define IC_CON_STOP_DET_IF_MASTER_ACTIVE	0
+#endif
+#ifdef CONFIG_DW_I2C_RX_FULL_HLD_BUS
 #define IC_CON_RX_FIFO_FULL_HLD_CTRL		_BV(9)
+#else
+#define IC_CON_RX_FIFO_FULL_HLD_CTRL		0
+#endif
 #define IC_CON_TX_EMPTY_CTRL			_BV(8)
 #define IC_CON_STOP_DET_IFADDRESSED		_BV(7)
 #define IC_CON_SLAVE_DISABLE			_BV(6)
+#ifdef CONFIG_DW_I2C_RESTART
 #define IC_CON_RESTART_EN			_BV(5)
+#else
+#define IC_CON_RESTART_EN			0
+#endif
+#ifdef CONFIG_DW_I2C_10BITADDR
 #define IC_CON_10BITADDR_MASTER			_BV(4)
 #define IC_CON_10BITADDR_SLAVE			_BV(3)
+#else
+#define IC_CON_10BITADDR_MASTER			0
+#define IC_CON_10BITADDR_SLAVE			0
+#endif
 #define IC_CON_SPEED_OFFSET			1
 #define IC_CON_SPEED_MASK			REG_2BIT_MASK
 #define IC_CON_SPEED(value)			_SET_FV(IC_CON_SPEED, value)
 #define IC_CON_SPEED_STD			0x1
 #define IC_CON_SPEED_FAST			0x2
 #define IC_CON_SPEED_HIGH			0x3
+#ifdef CONFIG_DW_I2C_SPEED_STANDARD
+#define IC_CON_SPEED_MAX			IC_CON_SPEED_STD
+#endif
+#ifdef CONFIG_DW_I2C_SPEED_FAST
+#define IC_CON_SPEED_MAX			IC_CON_SPEED_FAST
+#endif
+#ifdef CONFIG_DW_I2C_SPEED_HIGH
 #define IC_CON_SPEED_MAX			IC_CON_SPEED_HIGH
+#endif
 #define IC_CON_MASTER_MODE			_BV(0)
+#define IC_CON_DEFAULT_MASTER			\
+	(IC_CON_MASTER_MODE |			\
+	 IC_CON_10BITADDR_MASTER |		\
+	 IC_CON_SPEED(IC_CON_SPEED_MAX) |	\
+	 IC_CON_RESTART_EN |			\
+	 IC_CON_SLAVE_DISABLE |			\
+	 IC_CON_TX_EMPTY_CTRL |			\
+	 IC_CON_RX_FIFO_FULL_HLD_CTRL |		\
+	 IC_CON_STOP_DET_IF_MASTER_ACTIVE |	\
+	 IC_CON_BUS_CLEAR_FEATURE_CTRL)
+#define IC_CON_DEFAULT_SLAVE			\
+	(IC_CON_10BITADDR_SLAVE |		\
+	 IC_CON_SPEED(IC_CON_SPEED_MAX) |	\
+	 IC_CON_STOP_DET_IFADDRESSED |		\
+	 IC_CON_RX_FIFO_FULL_HLD_CTRL |		\
+	 IC_CON_BUS_CLEAR_FEATURE_CTRL)
+#ifdef CONFIG_I2C_MASTER
+#define IC_CON_DEFAULT				IC_CON_DEFAULT_MASTER
+#endif
+#ifdef CONFIG_I2C_SLAVE
+#define IC_CON_DEFAULT				IC_CON_DEFAULT_SLAVE
+#endif
 
 /* 5.1.2 IC_TAR */
 #define IC_TAR_SMBUS_QUICK_CMD			_BV(16)
@@ -168,7 +219,18 @@
 #define IC_DATA_CMD_DAT_MASK			REG_10BIT_MASK
 #define IC_DATA_CMD_DAT(dat)			_SET_FV(IC_DATA_CMD_DAT, dat)
 #define IC_DATA_CMD_CMD				_BV(8)
+#ifdef CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER
 #define IC_DATA_CMD_STOP			_BV(9)
+#define IC_DATA_CMD_RESTART			_BV(10)
+#else /* CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER */
+#define IC_DATA_CMD_STOP			0
+#define IC_DATA_CMD_RESTART			0
+#endif /* CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER */
+#ifdef CONFIG_DW_I2C_FIRST_DATA_BYTE_STATUS
+#define IC_DATA_CMD_FIRST_DATA_BYTE		_BV(11)
+#else
+#define IC_DATA_CMD_FIRST_DATA_BYTE		0
+#endif
 
 /* 5.1.15 IC_INTR_STAT
  * 5.1.16 IC_INTR_MASK
@@ -197,17 +259,36 @@
 #define IC_INTR_RX_FULL				_BV(2)
 #define IC_INTR_RX_OVER 			_BV(1)
 #define IC_INTR_RX_UNDER			_BV(0)
-#define IC_INTR_ALL				\
+#define IC_INTR_DEF_MASTER			\
 	(IC_INTR_SCL_STUCK_AT_LOW |		\
-	 IC_INTR_MASTER_ON_HOLD |		\
+	 IC_INTR_GEN_CALL |			\
+	 IC_INTR_START_DET | IC_INTR_STOP_DET |	\
+	 IC_INTR_ACTIVITY)
+#define IC_INTR_DEF_SLAVE			\
+	(IC_INTR_SCL_STUCK_AT_LOW |		\
 	 IC_INTR_RESTART_DET |			\
 	 IC_INTR_GEN_CALL |			\
 	 IC_INTR_START_DET | IC_INTR_STOP_DET |	\
-	 IC_INTR_ACTIVITY |			\
-	 IC_INTR_RX_DONE | IC_INTR_TX_ABRT |	\
-	 IC_INTR_RD_REQ |			\
-	 IC_INTR_TX_EMPTY | IC_INTR_TX_OVER |	\
-	 IC_INTR_RX_FULL | IC_INTR_RX_OVER | IC_INTR_RX_UNDER)
+	 IC_INTR_ACTIVITY | IC_INTR_RD_REQ)
+#define IC_INTR_RX_MASTER			\
+	(IC_INTR_RX_FULL | IC_INTR_RX_OVER | IC_INTR_RX_UNDER)
+#define IC_INTR_RX_SLAVE			\
+	(IC_INTR_RX_FULL | IC_INTR_RX_OVER | IC_INTR_RX_UNDER)
+#define IC_INTR_TX_MASTER			\
+	(IC_INTR_MASTER_ON_HOLD | IC_INTR_TX_ABRT | IC_INTR_TX_EMPTY | IC_INTR_TX_OVER)
+#define IC_INTR_TX_SLAVE			\
+	(IC_INTR_TX_ABRT | IC_INTR_RX_DONE | IC_INTR_TX_EMPTY | IC_INTR_TX_OVER)
+#ifdef CONFIG_I2C_MASTER
+#define IC_INTR_DEF				IC_INTR_DEF_MASTER
+#define IC_INTR_RX				IC_INTR_RX_MASTER
+#define IC_INTR_TX				IC_INTR_TX_MASTER
+#endif
+#ifdef CONFIG_I2C_SLAVE
+#define IC_INTR_DEF				IC_INTR_DEF_SLAVE
+#define IC_INTR_RX				IC_INTR_RX_SLAVE
+#define IC_INTR_TX				IC_INTR_TX_SLAVE
+#endif
+#define IC_INTR_ALL				(IC_INTR_DEF | IC_INTR_RX | IC_INTR_TX)
 
 /* 5.1.18 IC_RX_TL */
 #define IC_RX_TL_TL_OFFSET			0
@@ -234,11 +315,24 @@
 #define IC_STATUS_SMBUS_SLAVE_ADDR_RESOLVED	_BV(18)
 #define IC_STATUS_SMBUS_SLAVE_ADDR_VALID	_BV(17)
 #define IC_STATUS_SMBUS_QUICK_CMD_BIT		_BV(16)
+#ifdef CONFIG_DW_I2C_BUS_CLEAR
 #define IC_STATUS_SDA_STUCK_NOT_RECOVERED	_BV(11)
+#else
+#define IC_STATUS_SDA_STUCK_NOT_RECOVERED	0
+#endif
+#ifdef CONFIG_DW_I2C_STAT_FOR_CLK_STRETCH
+#define IC_STATUS_SLV_ISO_SAR_DATA_CLK_STRETCH	_BV(12)
 #define IC_STATUS_SLV_HOLD_RX_FIFO_FULL		_BV(10)
 #define IC_STATUS_SLV_HOLD_TX_FIFO_EMPTY	_BV(9)
 #define IC_STATUS_MST_HOLD_RX_FIFO_FULL		_BV(8)
 #define IC_STATUS_MST_HOLD_TX_FIFO_EMPTY	_BV(7)
+#else
+#define IC_STATUS_SLV_ISO_SAR_DATA_CLK_STRETCH	0
+#define IC_STATUS_SLV_HOLD_RX_FIFO_FULL		0
+#define IC_STATUS_SLV_HOLD_TX_FIFO_EMPTY	0
+#define IC_STATUS_MST_HOLD_RX_FIFO_FULL		0
+#define IC_STATUS_MST_HOLD_TX_FIFO_EMPTY	0
+#endif
 #define IC_STATUS_SLV_ACTIVITY			_BV(6)
 #define IC_STATUS_MST_ACTIVITY			_BV(5)
 #define IC_STATUS_RFF				_BV(4)
@@ -254,7 +348,11 @@
 #define IC_TX_ABRT_SOURCE_ABRT_DEVICE_WRITE		_BV(20)
 #define IC_TX_ABRT_SOURCE_ABRT_DEVICE_SLVADDR_NOACK	_BV(19)
 #define IC_TX_ABRT_SOURCE_ABRT_DEVICE_NOACK		_BV(18)
+#ifdef CONFIG_DW_I2C_BUS_CLEAR
 #define IC_TX_ABRT_SOURCE_ABRT_SDA_STUCK_AT_LOW		_BV(17)
+#else
+#define IC_TX_ABRT_SOURCE_ABRT_SDA_STUCK_AT_LOW		0
+#endif
 #define IC_TX_ABRT_SOURCE_ABRT_USER_ABRT		_BV(16)
 #define IC_TX_ABRT_SOURCE_ABRT_SLVRD_INTX		_BV(15)
 #define IC_TX_ABRT_SOURCE_ABRT_SLV_ARBLOST		_BV(14)
@@ -321,6 +419,7 @@ struct dw_i2c_ctx {
 	uint8_t addr_mode;
 	uint8_t last_tx_byte;
 	int state;
+	uint8_t status;
 };
 
 #ifdef CONFIG_DW_I2C_TX_BUFFER_DEPTH_8
@@ -380,5 +479,28 @@ void dw_i2c_transfer_reset(void);
 void dw_i2c_irq_init(void);
 #endif
 void dw_i2c_handle_irq(void);
+
+#define dw_i2c_setl(v,a)				\
+	do {						\
+		uint32_t __v = dw_i2c_readl(a);		\
+		__v |= (v);				\
+		dw_i2c_writel(__v, (a));		\
+	} while (0)
+#define dw_i2c_clearl(v,a)				\
+	do {						\
+		uint32_t __v = dw_i2c_readl(a);		\
+		__v &= ~(v);				\
+		dw_i2c_writel(__v, (a));		\
+	} while (0)
+#define dw_i2c_writel_mask(v,m,a)			\
+	do {						\
+		uint32_t __v = dw_i2c_readl(a);		\
+		__v &= ~(m);				\
+		__v |= (v);				\
+		dw_i2c_writel(__v, (a));		\
+	} while (0)
+
+uint32_t dw_i2c_readl(caddr_t reg);
+void dw_i2c_writel(uint32_t val, caddr_t reg);
 
 #endif /* __DW_I2C_H_INCLUDE__ */

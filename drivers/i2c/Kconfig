@@ -240,6 +240,12 @@ menu "Top Level Parameters"
 config DW_I2C_REG_TIMEOUT
 	bool "Enable register timeout counter support"
 	depends !ARCH_HAS_DW_I2C_HC_REG_TIMEOUT_VALUE && !ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_0
+	help
+	  Enable timeout counter register (REG_TIMEOUT_RST). If disabled,
+	  the timeout is triggered as soon as the transaction tries to
+	  read an empputy RX_FIFO or to write to a full TX_FIFO. As there
+	  are the only cases where PREADY signal goes low, it ensures that
+	  PREADY is tied high throughout.
 
 choice
 	prompt "Register timeout width"
@@ -249,6 +255,10 @@ choice
 	default DW_I2C_REG_TIMEOUT_WIDTH_6 if ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_6 && !ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_7
 	default DW_I2C_REG_TIMEOUT_WIDTH_5 if ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_5 && !ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_6
 	default DW_I2C_REG_TIMEOUT_WIDTH_4 if ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_4 && !ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_5
+	help
+	  Define the width of register timeout counter. Setting values
+	  from 4 through 32 for this parameter configures the timeout
+	  period from 2^4 to 2^8 PCLK cycles.
 
 config DW_I2C_REG_TIMEOUT_WIDTH_4
 	bool "4"
@@ -277,15 +287,24 @@ choice
 	default DW_I2C_SPEED_HIGH if ARCH_IS_DW_I2C_MAX_SPEED_HIGH
 	default DW_I2C_SPEED_FAST if ARCH_IS_DW_I2C_MAX_SPEED_FAST && !ARCH_IS_DW_I2C_MAX_SPEED_HIGH
 	default DW_I2C_SPEED_STANDARD if ARCH_IS_DW_I2C_MAX_SPEED_STANDARD && !ARCH_IS_DW_I2C_MAX_SPEED_FAST
+	help
+	  Controls SPEED bit field [2:1] of the IC_CON register. For speed
+	  modes faster than the configured maximum speed mode, the
+	  corresponding registers are not present in the top-level RTL.
 
 config DW_I2C_SPEED_STANDARD
 	bool "Standard"
 	depends ARCH_IS_DW_I2C_MAX_SPEED_STANDARD
 	depends !DW_I2C_SMBUS
+	help
+	  IC_FS_SCL_* IC_HS_MADDR and IC_HS_SCL_* registers are not
+	  present.
 
 config DW_I2C_SPEED_FAST
 	bool "Fast"
 	depends ARCH_IS_DW_I2C_MAX_SPEED_FAST
+	help
+	  IC_HS_MADDR and IC_HS_SCL_* registers are not present.
 
 config DW_I2C_SPEED_HIGH
 	bool "High"
@@ -363,10 +382,30 @@ config DW_I2C_RX_BUFFER_DEPTH_256
 
 endchoice
 
+config DW_I2C_10BITADDR
+	bool "Enable 10bit address support"
+	depends ARCH_HAS_DW_I2C_10BITADDR_MASTER || ARCH_HAS_DW_I2C_10BITADDR_SLAVE
+	select ARCH_HAS_I2C_10BIT_ADDR
+	default y if !DW_I2C_SMBUS
+	help
+	  Controls whether 7 or 10-bit addressing on I2C interface is
+	  supported when acting as a master or a slave.
+
 config DW_I2C_RESTART
 	bool "Enable RESTART condition support"
 	depends ARCH_HAS_DW_I2C_RESTART
 	default y
+	help
+	  Controls whether IC_RESTART_EN (bit 5) of IC_CON register is
+	  controlled. When it is enabled, which allows RESTART conditions
+	  to be sent when acting as a master. Some older slaves do not
+	  support handling RESTART conditons; however, RESTART conditions
+	  are used in several I2C operations. When it is disabled, the
+	  master is incapable of performing the following functions:
+	  * Sending a START BYTE
+	  * Performing any high-speed mode operations
+	  * Performing direction changes in combined format mode
+	  * Performing a read operation with 10-bit address
 
 config DW_I2C_DMA
 	bool "Enable DMA handshaking support"
@@ -376,17 +415,39 @@ config DW_I2C_INTR_POL
 	bool "Enalbe polarity configuration of IRQ support"
 	depends ARCH_HAS_DW_I2C_POL
 	default y
+	help
+	  Controls active level of the output interrupt lines. Polarity of
+	  interrupts is active high if checked.
 
 menu "Internal Configuration"
 
 config DW_I2C_ADD_ENCODED_PARAMS
 	bool "Enable encoded parameters support"
 	depends ARCH_HAS_DW_I2C_ADD_ENCODED_PARAMS
+	help
+	  Adding the encoded parameters gives firmware an easy and quick
+	  way of identifying the DesignWare component within an I/O memory
+	  map. Some critical design-time options determine how a driver
+	  should interact with the peripheral. This allows a single driver
+	  to be developed for each component which will be
+	  self-configurable.
+	  When bit 7 of IC_COMP_PARAM_1 is read and contains a '1' the
+	  encoded parameters can be read via software. If this bit is a
+	  '0' then the entire register is '0' regardless of the setting of
+	  any of the other parameters that are encoded in the register's
+	  bits.
 
 config DW_I2C_USE_COUNTS
-	bool "Enable SCL frequency configuration with COUNT*"
+	bool "Enable *CNT programming support"
 	depends ARCH_HAS_DW_I2C_USE_COUNTS
 	depends !ARCH_HAS_DW_I2C_HC_COUNTS
+	depends !DW_I2C_SPEED_STANDARD || DW_I2C_ULTRA_FAST_MODE
+	help
+	  When enabled, *CNT registers are programmed. When disabled, the
+	  *CNT registers are read only or hard coded and their reset values
+	  are specified by the corresponding *COUNT configurations.
+	  For fast mode plus, it is recommended to enable this to reprogram
+	  the IC_FS_SC_*CNT register to achieve the required data rate.
 
 endmenu
 
@@ -396,51 +457,119 @@ config DW_I2C_DYNAMIC_TAR_UPDATE
 	bool "Enable dynamic update of target address support"
 	depends ARCH_HAS_DW_I2C_DYNAMIC_TAR_UPDATE
 	depends I2C_MASTER
+	help
+	  When enabled, IC_TAR register will be updated dynamically via
+	  IC_10BITADDR_MASTER bit of IC_TAR. When disabled, the addressing
+	  mode is only controlled via bit 4 of IC_CON register.
 
 config DW_I2C_SLV_DATA_NACK
 	bool "Enable slave NACK only after receiving a data byte support"
 	depends ARCH_HAS_DW_I2C_SLV_RX_DATA_NACK
 	depends I2C_SLAVE
+	depends !DW_I2C_ULTRA_FAST_MODE
+	help
+	  Enables IC_SLV_DATA_NACK_ONLY register which controls whether
+	  generates a NACK after a data byte has been transferred to the
+	  controller.
+	  When enabled, it can only generates a NACK after a data byte is
+	  received; hence the data transfer is aborted. Also, the data
+	  received is not pushed to the receive buffer.
+	  When disabled, it generates NACK/ACK depending on normal
+	  criteria.
 
 config DW_I2C_SLV_FULL_NACK
 	bool "Enable slave NACK on FIFO full support"
 	depends ARCH_HAS_DW_I2C_SLV_RX_FULL_NACK
 	depends I2C_SLAVE
+	depends !DW_I2C_ULTRA_FAST_MODE && !DW_I2C_SLV_DATA_NACK
+	help
+	  When enabled, the slave generates NACK for a data byte received
+	  when receive FIFO is physically full. The new data byte will not
+	  be pushed to the receive FIFO, hence no overflow ahppends and
+	  RX_OVER interrupt will not be set.
 
 config DW_I2C_EMPTYFIFO_HOLD_MASTER
 	bool "Enable master hold on empty FIFO support"
 	depends ARCH_HAS_DW_I2C_EMPTYFIFO_HOLD_MASTER
 	default y if DW_I2C_SMBUS
+	help
+	  IC_EMPTYFIFO_HOLD_MASTER_EN is enabled when this option is
+	  enabled. Thus the master will only completes a transfer - that
+	  is issues a STOP - when it finds a Tx FIFO entry tagged with a
+	  STOP bit. If the Tx FIFO becomes empty and the last byte does
+	  not have the STOP bit set, the master stalls the transfer by
+	  holding the SCL line low.
+	  When disabled, the master completes a transfer when the Tx FIFO
+	  is empty.
 
 config DW_I2C_RX_FULL_HLD_BUS
 	bool "Enable bus hold on Rx FIFO full support"
 	depends ARCH_HAS_DW_I2C_RX_FULL_HLD_BUS
 	default y if DW_I2C_MULTI_SAR
+	help
+	  When enabled, bit 9 of the IC_CON register
+	  (RX_FIFO_FULL_HLD_CTRL) is programmed, and RX_OVER interrupt is
+	  never set to 1 as the criteria to set this interrupt is never
+	  met.
 
 config DW_I2C_SLV_RESTART_DET
 	bool "Enable slave restart detection support"
 	depends ARCH_HAS_DW_I2C_SLV_RESTART_DET
 	depends I2C_SLAVE
+	help
+	  When enabled, RESTART_DET interrupt bit is handled in the slave
+	  mode.
 
 config DW_I2C_STOP_DET
 	bool "Enable master stop detection support"
 	depends ARCH_HAS_DW_I2C_STOP_DET_IF_MASTER_ACTIVE
+	depends I2C_MASTER
+	help
+	  When enabled, STOP_DET interrupt bit is handled in the slave
+	  mode.
 
 config DW_I2C_STAT_FOR_CLK_STRETCH
 	bool "Enable status of clock stretch support"
 	depends ARCH_HAS_DW_I2C_STAT_FOR_CLK_STRETCH
+	help
+	  When enabled, IC_STATUS register contains the following bits:
+	  * SLV_ISO_SAR_DATA_CLK_STRETCH (bit 12) checked when the slave
+	    holds the bus to isolate current Rx FIFO data from next
+	    transfer related to another slave address.
+	  * SLV_HOLD_RX_FIFO_FULL (bit 10) checked when the slave holds
+	    the bus due to Rx FIFO is full.
+	  * SLV_HOLD_TX_FIFO_EMPTY (bit 9) checked when the slave holds
+	    the bus due to Tx FIFO is empty.
+	  * MST_HOLD_RX_FIFO_FULL (bit 8) checked when the master holds
+	    the bus due to Rx FIFO is full.
+	  * MST_HOLD_TX_FIFO_EMPTY (bit 7) checked when the master holds
+	    the bus due to Tx FIFO is empty.
 
 config DW_I2C_TX_CMD_BLOCK
 	bool "Enable transmission hold of Tx FIFO data support"
 	depends ARCH_HAS_DW_I2C_TX_CMD_BLOCK
+	depends I2C_MASTER
+	help
+	  When enabled, master holds the transmission of data on I2C bus
+	  when Tx FIFO has data to transmit.
+	  When disabled, master transmits data on I2C bus as soon as data
+	  is available.
 
 config DW_I2C_FIRST_DATA_BYTE_STATUS
 	bool "Enable first data byte status support"
 	depends ARCH_HAS_DW_I2C_FIRST_DATA_BYTE_STATUS
+	help
+	  When enabled, bit FIRST_DATA_BYTE in IC_DATA_CMD is checked to
+	  indicate whether the data present in IC_DATA_CMD register is
+	  first data byte after the address phase of a receive transfer.
 
 config DW_I2C_DW_I2C_AVOID_RX_FIFO_FLUSH_ON_TX_ABRT
 	bool "Enable Rx FIFO flush avoid on transmit abort support"
 	depends ARCH_HAS_DW_I2C_DW_I2C_AVOID_RX_FIFO_FLUSH_ON_TX_ABRT
+	help
+	  When enabled, only Tx FIFO is flushed on transmit abort. When
+	  disabled, both Tx FIFO and Rx FIFO are flushed on transmit
+	  abort.
 
 endmenu
 
@@ -451,10 +580,25 @@ menu "I2C Version 3.0 Features Parameters"
 config DW_I2C_BUS_CLEAR
 	bool "Enable bus clear support"
 	depends ARCH_HAS_DW_I2C_BUS_CLEAR
+	depends !DW_I2C_ULTRA_FAST_MODE
+	help
+	  When enabled, IC_TX_ABRT_SOURCE contains ABRT_SDA_STUCK_AT_LOW
+	  to indicate SDA stuck at low. SDA_STUCK_RECOVERY_EN bit 3 of
+	  IC_ENABLE is enabled to recover the SDA by sending at most 9 SCL
+	  clocks. SDA_STUCK_NOT_RECOVERED bit 11 of IC_STATUS is indidated
+	  if the DA is not recovered after sending 9 SCL clocks which
+	  intimate the user for system reset. Bit 14 SCL_STUCK_AT_LOW of
+	  IC_INTR_RAW_STATUS for master mode is used to intimate the user
+	  for system reset.
 
 config DW_I2C_DEVICE_ID
 	bool "Enable device-id support"
 	depends ARCH_HAS_DW_I2C_DEVICE_ID
+	help
+	  This enables hardware offloading of DEVICE-ID via IC_DEVICE_ID
+	  register to store the device-id and bit 13 DEVICE_ID in IC_TAR
+	  register to initiate the device ID read for a particular slave
+	  address mentioned in IC_TAR register.
 
 endmenu
 
@@ -463,6 +607,7 @@ menu "SMBus Features Parameters"
 config DW_I2C_SMBUS
 	bool "Enable SMBus support"
 	depends ARCH_HAS_DW_I2C_SMBUS
+	select DW_I2C_EMPTYFIFO_HOLD_MASTER
 
 if DW_I2C_SMBUS
 
