@@ -430,7 +430,7 @@ bool ddr_spd_read(uint8_t *buf)
 	i2c_master_select(ddr_slot_ctrl.smbus);
 	i2c_set_frequency(DDR_SPD_FREQ);
 
-	spd_hw_read_bytes(ddr_slot_ctrl.spd_addr, 0,
+	spd_hw_read_bytes(ddr_slot_ctrl.lsa, 0,
 			  ddr_slot_ctrl.spd_buf, DDR_SPD_SIZE);
 #if 0
 	hexdump(0, ddr_slot_ctrl.spd_buf, 1, DDR_SPD_SIZE);
@@ -446,14 +446,15 @@ static void ddr_spd_dump(const uint8_t *buf)
 static int do_spd_dump(int argc, char *argv[])
 {
 	__unused ddr_sid_t slot, sslot;
-	uint8_t smbus = 0x50;
+	uint8_t lsa = 0;
 
 	if (argc < 3)
 		return -EINVAL;
 	slot = (ddr_cid_t)strtoul(argv[2], 0, 0);
 	if (argc > 3)
-		smbus = strtoul(argv[3], 0, 0);
-	ddr_slot_ctrl.smbus = smbus;
+		lsa = strtoul(argv[3], 0, 0);
+	ddr_slot_ctrl.smbus = slot;
+	ddr_slot_ctrl.lsa = lsa;
 	ddr_spd_read(ddr_slot_ctrl.spd_buf);
 	sslot = ddr_slot_save(slot);
 #if 0
@@ -474,6 +475,6 @@ static int do_spd(int argc, char *argv[])
 }
 
 DEFINE_COMMAND(spd, do_spd, "DDR SPD commands",
-	"dump slot\n"
+	"dump <slot> [lsa]\n"
 	"    - dump SPD of DDR slot\n"
 );

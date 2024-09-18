@@ -155,6 +155,11 @@ extern i2c_addr_t i2c_abrt_slave;
 #define I2C_MODE_SLAVE_RX	(I2C_MODE_SLAVE | I2C_MODE_RX)
 #define I2C_MODE_MASTER_RX	(I2C_MODE_MASTER | I2C_MODE_RX)
 
+/* Target address and mode suffix */
+#define i2c_addr_mode(addr, mode)	(((addr) << 1) | (mode))
+#define i2c_addr(addr_mode)		((addr_mode) >> 1)
+#define i2c_mode(addr_mode)		((addr_mode) & 0x01)
+
 #ifdef CONFIG_I2C_MASTER
 void i2c_apply_frequency(void);
 uint8_t i2c_master_write(i2c_addr_t slave, i2c_len_t txlen);
@@ -207,17 +212,17 @@ void i2c_enter_state(uint8_t state);
 void i2c_register_device(i2c_device_t *dev);
 uint8_t i2c_read_byte(void);
 void i2c_write_byte(uint8_t byte);
+bool i2c_first_byte(void);
 bool i2c_last_byte(void);
 void i2c_read_bytes(uint8_t *buf, i2c_len_t len);
 void i2c_write_bytes(uint8_t *buf, i2c_len_t len);
-
-void i2c_tx_aval(void);
 
 /* called by bus controller driver */
 void i2c_set_status(uint8_t status);
 uint8_t i2c_bus_mode(void);
 uint8_t i2c_dir_mode(void);
 uint8_t i2c_bus_dir_mode(void);
+uint8_t i2c_data_mode(void);
 
 void i2c_master_submit_async(i2c_addr_t slave, i2c_len_t txlen, i2c_len_t rxlen);
 void i2c_master_commit(i2c_len_t len);
