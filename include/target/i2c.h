@@ -122,10 +122,6 @@ extern i2c_addr_t i2c_abrt_slave;
 #define I2C_STATUS_NACK		0x03
 #define I2C_STATUS_ARBI		0x04
 #define I2C_STATUS_STOP		0x05
-#define I2C_STATUS_RX_AVAL	0x06
-#define I2C_STATUS_TX_AVAL	0x07
-#define I2C_STATUS_RX_CMPL	0x08
-#define I2C_STATUS_TX_CMPL	0x09
 
 #define I2C_STATE_IDLE		0x00
 #define I2C_STATE_WAIT		0x01
@@ -138,10 +134,6 @@ extern i2c_addr_t i2c_abrt_slave;
 #define I2C_EVENT_ABORT		_BV(I2C_STATUS_NACK)
 #define I2C_EVENT_ARB		_BV(I2C_STATUS_ARBI)
 #define I2C_EVENT_STOP		_BV(I2C_STATUS_STOP)
-#define I2C_EVENT_RX_AVAL	_BV(I2C_STATUS_RX_AVAL)
-#define I2C_EVENT_TX_AVAL	_BV(I2C_STATUS_TX_AVAL)
-#define I2C_EVENT_RX_CMPL	_BV(I2C_STATUS_RX_CMPL)
-#define I2C_EVENT_TX_CMPL	_BV(I2C_STATUS_TX_CMPL)
 
 #define I2C_BUS(x)		(x & I2C_BUS_MASK)
 #define I2C_DIR(x)		(x & I2C_DIR_MASK)
@@ -212,22 +204,23 @@ void i2c_enter_state(uint8_t state);
 void i2c_register_device(i2c_device_t *dev);
 uint8_t i2c_read_byte(void);
 void i2c_write_byte(uint8_t byte);
+
 bool i2c_first_byte(void);
+bool i2c_prev_byte(void);
 bool i2c_last_byte(void);
-void i2c_read_bytes(uint8_t *buf, i2c_len_t len);
-void i2c_write_bytes(uint8_t *buf, i2c_len_t len);
 
 /* called by bus controller driver */
 void i2c_set_status(uint8_t status);
 uint8_t i2c_bus_mode(void);
 uint8_t i2c_dir_mode(void);
 uint8_t i2c_bus_dir_mode(void);
-uint8_t i2c_data_mode(void);
 
 void i2c_master_submit_async(i2c_addr_t slave, i2c_len_t txlen, i2c_len_t rxlen);
 void i2c_master_commit(i2c_len_t len);
 void i2c_master_abort(i2c_addr_t slave);
 void i2c_master_start(void);
 void i2c_master_stop(void);
+void i2c_config_mode(uint8_t mode, bool freq);
+void i2c_sync_status(void);
 
 #endif /* __I2C_H_INCLUDE__ */

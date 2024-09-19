@@ -78,7 +78,7 @@ int spd_hw_read_bytes(uint8_t lsa, uint16_t offset,
 		/* spd_ee1004_set_page(0); */
 		spd_pos = offset;
 		spd_buf = buffer;
-		i2c_master_read(SPD_DSC_SPD(lsa), len0);
+		i2c_master_submit(SPD_DSC_SPD(lsa), 1, len0);
 	}
 	if (len1 > 0) {
 		if (offset < SPD_EE_PAGE_SIZE)
@@ -89,7 +89,7 @@ int spd_hw_read_bytes(uint8_t lsa, uint16_t offset,
 		spd_pos = offset;
 		spd_buf = buffer + len0;
 		spd_len = 0;
-		i2c_master_read(SPD_DSC_SPD(lsa), len1);
+		i2c_master_submit(SPD_DSC_SPD(lsa), 1, len1);
 	}
 	return len;
 }
