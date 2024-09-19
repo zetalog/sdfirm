@@ -506,6 +506,7 @@ void timer_test(void)
 	BUG_ON(timer_orders[1] != INVALID_TID);
 	BUG_ON(timer_orders[2] != INVALID_TID);
 #else
+	timer_running_tid = tid_1;
 	timer_schedule_shot(timer_running_tid, CONFIG_TIMER_TEST_SHOT_PERIOD);
 #endif
 }
