@@ -5,9 +5,6 @@
 config ARCH_HAS_I2C
 	bool
 
-config ARCH_HAS_I2C_BLOCK
-	bool
-
 config ARCH_HAS_I2C_START
 	bool
 

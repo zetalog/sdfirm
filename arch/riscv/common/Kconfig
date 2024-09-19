@@ -863,6 +863,7 @@ menuconfig ACLINT
 	select ARCH_HAS_SBI_IPI
 	select ARCH_HAS_SBI_TIMER
 	select RISCV_SSTC
+	select CLINT
 
 if ACLINT
 

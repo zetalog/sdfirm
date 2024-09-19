@@ -229,7 +229,6 @@ config ARCH_IS_DW_I2C_ULTRA_FAST_MODE
 menuconfig DW_I2C
 	bool "Synopsys DesignWare APB I2C support"
 	depends I2C
-	select ARCH_HAS_I2C_BLOCK
 	select ARCH_HAS_I2C_START
 	select ARCH_HAS_I2C_STOP
 
