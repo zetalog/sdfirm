@@ -385,7 +385,6 @@ config DW_I2C_10BITADDR
 	bool "Enable 10bit address support"
 	depends ARCH_HAS_DW_I2C_10BITADDR_MASTER || ARCH_HAS_DW_I2C_10BITADDR_SLAVE
 	select ARCH_HAS_I2C_10BIT_ADDR
-	default y if !DW_I2C_SMBUS
 	help
 	  Controls whether 7 or 10-bit addressing on I2C interface is
 	  supported when acting as a master or a slave.

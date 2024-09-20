@@ -265,8 +265,7 @@ void dw_i2c_submit_write(uint8_t byte)
 {
 	uint32_t val = byte;
 
-	con_dbg("dw_i2c_submit_write %d/%d\n", i2c_current, i2c_limit);
-	if (i2c_prev_byte()) {
+	if ((i2c_rxsubmit == 0) && i2c_prev_byte()) {
 		val |= IC_DATA_CMD_STOP;
 	}
 	if (i2c_first_byte()) {
@@ -282,19 +281,15 @@ void dw_i2c_submit_write(uint8_t byte)
 
 void dw_i2c_commit_write(void)
 {
-	con_dbg("dw_i2c_commit_write %d/%d\n", i2c_current, i2c_limit);
 	if (i2c_last_byte())
 		dw_i2c_clearl(IC_INTR_TX, IC_INTR_MASK(dw_i2cd));
 }
 
 void dw_i2c_write_byte(uint8_t byte)
 {
-	static int recursive = 0;
-
 	if (dw_i2c_device_id(byte))
 		return;
 
-	con_dbg("dw_i2c: write enter %d\n", recursive++);
 	/* Normal case:
 	 *   START +
 	 *   1st byte: target_address << 7 | I2C_DIR
@@ -310,7 +305,6 @@ void dw_i2c_write_byte(uint8_t byte)
 		con_dbg("dw_i2c: DW_I2C_DRIVER_DATA\n");
 		dw_i2c.state = DW_I2C_DRIVER_DATA;
 		i2c_set_status(I2C_STATUS_ACK);
-		con_dbg("dw_i2c: write leave %d\n", --recursive);
 		return;
 	}
 
@@ -321,16 +315,12 @@ void dw_i2c_write_byte(uint8_t byte)
 		bh_sync();
 	dw_i2c_commit_write();
 	i2c_set_status(dw_i2c.status);
-	con_dbg("dw_i2c: write leave %d\n", --recursive);
 }
 
 void dw_i2c_submit_read(void)
 {
 	uint32_t val = IC_DATA_CMD_CMD;
 
-	con_dbg("dw_i2c_submit_read %d/%d\n", i2c_current, i2c_limit);
-	if (i2c_prev_byte())
-		val |= IC_DATA_CMD_STOP;
 	if (i2c_first_byte()) {
 		dw_i2c_setl(IC_INTR_RX, IC_INTR_MASK(dw_i2cd));
 		val |= IC_DATA_CMD_RESTART;
@@ -342,7 +332,6 @@ uint8_t dw_i2c_commit_read(void)
 {
 	uint8_t byte;
 
-	con_dbg("dw_i2c_commit_read %d/%d\n", i2c_current, i2c_limit);
 	while (!(dw_i2c_get_status() & IC_STATUS_RFNE));
 	byte = (uint8_t)dw_i2c_readl(IC_DATA_CMD(dw_i2cd));
 	if (i2c_last_byte())
@@ -353,9 +342,7 @@ uint8_t dw_i2c_commit_read(void)
 uint8_t dw_i2c_read_byte(void)
 {
 	uint8_t byte;
-	static int recursive = 0;
 
-	con_dbg("dw_i2c: read enter %d\n", recursive++);
 	i2c_sync_status();
 	dw_i2c.status = I2C_STATUS_IDLE;
 	dw_i2c_submit_read();
@@ -363,7 +350,6 @@ uint8_t dw_i2c_read_byte(void)
 		bh_sync();
 	byte = dw_i2c_commit_read();
 	i2c_set_status(dw_i2c.status);
-	con_dbg("dw_i2c: read leave %d\n", --recursive);
 	return byte;
 }
 
@@ -403,8 +389,7 @@ void dw_i2c_handle_irq(void)
 		__raw_readl(IC_CLR_RX_OVER(dw_i2cd));
 	}
 	if (status & IC_INTR_RX_FULL) {
-		con_dbg("dw_i2c: INTR_RX_OVER\n");
-		__raw_readl(IC_CLR_RX_OVER(dw_i2cd));
+		con_dbg("dw_i2c: INTR_RX_FULL\n");
 		dw_i2c.status = I2C_STATUS_ACK;
 	}
 	if (status & IC_INTR_TX_OVER) {
@@ -486,7 +471,7 @@ void __dw_i2c_master_init(void)
 {
 	dw_i2c_ctrl_disable();
 	dw_i2c_writel(IC_CON_DEFAULT, IC_CON(dw_i2cd));
-	dw_i2c_writel(1, IC_RX_TL(dw_i2cd));
+	dw_i2c_writel(0, IC_RX_TL(dw_i2cd));
 	dw_i2c_writel(DW_I2C_TX_FIFO_SIZE - 1, IC_TX_TL(dw_i2cd));
 	dw_i2c_writel(IC_INTR_DEF, IC_INTR_MASK(dw_i2cd));
 	dw_i2c_ctrl_disable();
