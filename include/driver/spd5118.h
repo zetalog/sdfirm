@@ -17,7 +17,13 @@
 
 #define SPD5_EE_BLK_SIZE	64
 #define SPD5_EE_BLK_CNT		16
-#define SPD5_EE_SIZE		(SPD_EE_BLK_SIZE * SPD_EE_BLK_CNT)
+#define SPD5_EE_PAGE_SIZE	128
+#define SPD5_EE_PAGE_CNT	8
+#ifdef CONFIG_SPD5118_I2C_LEGACY
+#define SPD5_EE_SIZE		(SPD5_EE_PAGE_SIZE * SPD5_EE_PAGE_CNT)
+#else
+#define SPD5_EE_SIZE		(SPD5_EE_BLK_SIZE * SPD5_EE_BLK_CNT)
+#endif
 
 #define SPD5_Mem		_BV(7)
 #define SPD5_Reg		0
@@ -112,8 +118,41 @@
 #define SPD5_ts			SPD5_MR(51) /* TS Temperature Status */
 #define SPD5_es			SPD5_MR(52) /* Hub, Thermal and NVM Error Status */
 
+/* MR11 */
+#define SPD5_I2C_LEGACY_MODE_ADDR			_BV(3)
+#define SPD5_I2C_LEGACY_MODE_ADDR_POINTER_OFFSET	0
+#define SPD5_I2C_LEGACY_MODE_ADDR_POINTER_MASK		REG_3BIT_MASK
+#define SPD5_I2C_LEGACY_MODE_ADDR_POINTER(value)	_SET_FV(SPD5_I2C_LEGACY_MODE_ADDR_POINTER, value)
+
+#define spd5_set_reg(l,v,a)				\
+	do {						\
+		uint32_t __v = spd5_read_reg((l), (a));	\
+		__v |= (v);				\
+		spd5_write_reg((l), __v, (a));		\
+	} while (0)
+#define spd5_clear_reg(l,v,a)				\
+	do {						\
+		uint32_t __v = spd5_read_reg((l), (a));	\
+		__v &= ~(v);				\
+		spd5_write_reg((l), __v, (a));		\
+	} while (0)
+#define spd5_write_reg_mask(l,v,m,a)			\
+	do {						\
+		uint32_t __v = spd5_read_reg((l), (a));	\
+		__v &= ~(m);				\
+		__v |= (v);				\
+		spd5_write_reg((l), __v, (a));		\
+	} while (0)
+
 uint8_t spd5_read_reg(uint8_t hid, uint8_t adr);
 void spd5_write_reg(uint8_t hid, uint8_t adr, uint8_t val);
+
+#define spd5_set_legacy_page(hid, page)				\
+	spd5_write_reg_mask(hid,				\
+		SPD5_I2C_LEGACY_MODE_ADDR_POINTER(page),	\
+		SPD5_I2C_LEGACY_MODE_ADDR_POINTER(		\
+			SPD5_I2C_LEGACY_MODE_ADDR_POINTER_MASK),\
+		SPD5_i2c_lcfg)
 
 int spd_hw_read_bytes(uint8_t lsa, uint16_t offset,
 		      uint8_t *buffer, int len);
