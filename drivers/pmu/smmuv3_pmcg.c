@@ -524,28 +524,6 @@ static int smmu_pmu_offline_cpu(unsigned int cpu, struct hlist_node *node)
 	return 0;
 }
 
-static void smmu_pmu_free_msis(void *data)
-{
-	struct device *dev = data;
-
-	platform_device_msi_free_irqs_all(dev);
-}
-
-static void smmu_pmu_write_msi_msg(struct msi_desc *desc, struct msi_msg *msg)
-{
-	phys_addr_t doorbell;
-	struct device *dev = msi_desc_to_dev(desc);
-	struct smmu_pmu *pmu = dev_get_drvdata(dev);
-
-	doorbell = (((uint64_t)msg->address_hi) << 32) | msg->address_lo;
-	doorbell &= MSI_CFG0_ADDR_MASK;
-
-	writeq_relaxed(doorbell, pmu->reg_base + SMMU_PMCG_IRQ_CFG0);
-	writel_relaxed(msg->data, pmu->reg_base + SMMU_PMCG_IRQ_CFG1);
-	writel_relaxed(MSI_CFG2_MEMATTR_DEVICE_nGnRE,
-		       pmu->reg_base + SMMU_PMCG_IRQ_CFG2);
-}
-
 static void smmu_pmu_shutdown(void)
 {
 	struct smmu_pmu *smmu_pmu = platform_get_drvdata(pdev);
@@ -554,21 +532,47 @@ static void smmu_pmu_shutdown(void)
 }
 #endif
 
+static inline void smmu_pmu_disable(void)
+{
+	__raw_writel(0, TCU_PMCG_CR(iommu_dev));
+	__raw_writel(0, TCU_PMCG_IRQ_CTRL(iommu_dev));
+}
+
+iommu_dev_t smmu_pmu_irq2iommu(irq_t irq)
+{
+	iommu_dev_t dev;
+	__unused iommu_dev_t sdev;
+	irq_t pmu_irq;
+
+	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
+		sdev = iommu_device_save(dev);
+		pmu_irq = SMMU_HW_IRQ_PMU(dev);
+		iommu_device_restore(sdev);
+		if (pmu_irq == irq)
+			return dev;
+	}
+	return INVALID_IOMMU_DEV;
+}
+
 static void smmu_pmu_handle_irq(irq_t irq)
 {
 	uint64_t ovsr;
 	DECLARE_BITMAP(ovs, 64);
 	unsigned int idx;
+	__unused iommu_dev_t dev = smmu_pmu_irq2iommu(irq);
+	__unused iommu_dev_t sdev;
 
+	sdev = iommu_device_save(dev);
 	ovsr = __raw_readq(TCU_PMCG_OVSSET0(iommu_dev));
 	if (!ovsr)
-		return;
+		goto err_exit;
 
 	__raw_writeq(ovsr, TCU_PMCG_OVSCLR0(iommu_dev));
 
+	idx = find_first_set_bit(ovs, smmu_pmu_ctrl.num_counters);
+	while (idx < smmu_pmu_ctrl.num_counters) {
 #if 0
-	for_each_set_bit(idx, ovs, smmu_pmu->num_counters) {
-		struct perf_event *event = smmu_pmu->events[idx];
+		struct perf_event *event = smmu_pmu_ctrl.events[idx];
 		struct hw_perf_event *hwc;
 
 		if (WARN_ON_ONCE(!event))
@@ -578,14 +582,58 @@ static void smmu_pmu_handle_irq(irq_t irq)
 		hwc = &event->hw;
 
 		smmu_pmu_set_period(smmu_pmu, hwc);
+#endif
+		idx = find_next_set_bit(ovs, smmu_pmu_ctrl.num_counters, idx+1);
 	}
+err_exit:
+	iommu_device_restore(sdev);
+}
+
+#ifdef CONFIG_SMMU_PMCG_MSI
+static void smmu_pmu_free_msis(void)
+{
+#if 0
+	msi_free_irqs_all(iommu_dev);
 #endif
 }
 
-static inline void smmu_pmu_disable(void)
+static void smmu_pmu_write_msi_msg(struct msi_desc *desc, struct msi_msg *msg)
 {
-	__raw_writel(0, TCU_PMCG_CR(iommu_dev));
-	__raw_writel(0, TCU_PMCG_IRQ_CTRL(iommu_dev));
+	phys_addr_t doorbell;
+
+	doorbell = (((uint64_t)msg->address_hi) << 32) | msg->address_lo;
+	doorbell &= MSI_CFG0_ADDR_MASK;
+
+	writeq_relaxed(doorbell, SMMU_PMCG_IRQ_CFG0(iommu_dev));
+	writel_relaxed(msg->data, SMMU_PMCG_IRQ_CFG1(iommu_dev));
+	writel_relaxed(MSI_CFG2_MEMATTR_DEVICE_nGnRE, SMMU_PMCG_IRQ_CFG2(iommu_dev));
+}
+
+static void smmu_pmu_setup_msi(void)
+{
+	int ret;
+
+	/* Clear MSI address reg */
+	__raw_writeq(0, TCU_PMCG_IRQ_CFG0(iommu_dev));
+
+	/* MSI supported or not */
+	if (!(__raw_readl(TCU_PMCG_CFGR(iommu_dev)) & SMMU_PMCG_CFGR_MSI))
+		return;
+
+#if 0
+	msi_init_and_alloc_irqs(iommu_dev, smmu_pmu_alloc_msis);
+	pmu->irq = msi_get_virq(dev, 0);
+	smmu_pmu_free_msis();
+#endif
+}
+#else
+#define smmu_pmu_setup_msi()		do { } while (0)
+#endif
+
+static void smmu_pmu_setup_irq(void)
+{
+	smmu_pmu_setup_msi();
+	irq_register_vector(SMMU_HW_IRQ_PMU(iommu_dev), smmu_pmu_handle_irq);
 }
 
 static void smmu_pmu_reset(void)
@@ -622,42 +670,6 @@ static void smmu_pmu_get_iidr(void)
 			     FIELD_PREP(SMMU_PMCG_IIDR_IMPLEMENTER, implementer);
 }
 
-#ifdef CONFIG_SMMU_PMCG_MSI
-static void smmu_pmu_setup_msi(void)
-{
-	int ret;
-
-	/* Clear MSI address reg */
-	__raw_writeq(0, TCU_PMCG_IRQ_CFG0(iommu_dev));
-
-	/* MSI supported or not */
-	if (!(__raw_readl(TCU_PMCG_CFGR(iommu_dev)) & SMMU_PMCG_CFGR_MSI))
-		return;
-
-#if 0
-	smmu_pmu_write_msi_msg();
-	pmu->irq = msi_get_virq(dev, 0);
-	smmu_pmu_free_msis();
-#endif
-}
-#else
-#define smmu_pmu_setup_msi()		do { } while (0)
-#endif
-
-static void smmu_pmu_setup_irq(void)
-{
-	smmu_pmu_setup_msi();
-	irq_register_vector(SMMU_HW_IRQ_PMU(iommu_dev), smmu_pmu_handle_irq);
-}
-
-void smmu_pmcg_start(void)
-{
-}
-
-void smmu_pmcg_stop(void)
-{
-}
-
 void smmu_pmcg_init(void)
 {
 	uint32_t cfgr, reg_size;
@@ -689,7 +701,16 @@ void smmu_pmcg_init(void)
 	smmu_pmu_reset();
 	smmu_pmu_setup_irq();
 	smmu_pmu_get_iidr();
+
 	con_log("pmcg: counters=%d filters=%s\n",
 		smmu_pmu_ctrl.num_counters,
 		smmu_pmu_ctrl.global_filter ? "Global(Counter0)" : "Individual");
+}
+
+void smmu_pmcg_start(void)
+{
+}
+
+void smmu_pmcg_stop(void)
+{
 }
