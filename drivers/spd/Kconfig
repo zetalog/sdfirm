@@ -22,4 +22,12 @@ menuconfig SPD5118
 	depends I2C && I2C_MASTER
 	default y
 
+if SPD5118
+
+config SPD5118_I2C_LEGACY
+	bool "Enable I2C legacy mode"
+	depends I2C && I2C_MASTER
+
+endif
+
 endmenu

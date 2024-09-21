@@ -125,7 +125,10 @@ void i2c_enter_state(uint8_t state)
 {
 	con_dbg("i2c: state = %s\n", i2c_state_name(state));
 	i2c_state = state;
-	if (state == I2C_STATE_WAIT)
+	if (state == I2C_STATE_IDLE) {
+		if (i2c_rxsubmit == 0)
+			i2c_hw_stop_condition();
+	} else if (state == I2C_STATE_WAIT)
 		i2c_hw_start_condition(false);
 	else if (state == I2C_STATE_WRITE) {
 		if (i2c_current < I2C_ADDR_LEN)
@@ -441,7 +444,7 @@ static void i2c_handle_irq(void)
 	i2c_t i2c;
 	__unused i2c_t si2c;
 
-	for (i2c = 0; i2c <= NR_I2C_MASTERS; i2c++) {
+	for (i2c = 0; i2c < NR_I2C_MASTERS; i2c++) {
 		si2c = i2c_master_save(i2c);
 		i2c_hw_handle_irq();
 		i2c_master_restore(si2c);
@@ -503,7 +506,7 @@ static void i2c_handle_bh(void)
 	i2c_t i2c;
 	__unused i2c_t si2c;
 
-	for (i2c = 0; i2c <= NR_I2C_MASTERS; i2c++) {
+	for (i2c = 0; i2c < NR_I2C_MASTERS; i2c++) {
 		si2c = i2c_master_save(i2c);
 		i2c_handle_xfr();
 		i2c_master_restore(si2c);
@@ -536,7 +539,7 @@ void i2c_init(void)
 	__unused i2c_t si2c;
 
 	i2c_bh = bh_register_handler(i2c_bh_handler);
-	for (i2c = 0; i2c <= NR_I2C_MASTERS; i2c++) {
+	for (i2c = 0; i2c < NR_I2C_MASTERS; i2c++) {
 		si2c = i2c_master_save(i2c);
 		i2c_set_status(I2C_STATUS_IDLE);
 		i2c_master_init();

@@ -16,7 +16,7 @@ void dw_i2c_master_select(i2c_t i2c)
 	dw_i2cd = i2c;
 }
 #else
-#define dw_i2cd			0
+#define dw_i2cd				0
 #define dw_i2c_master_select(i2c)	do { } while (0)
 
 static struct dw_i2c_ctx dw_i2c;
@@ -157,24 +157,6 @@ static void dw_i2c_flush_rxfifo(void)
 	while (dw_i2c_get_status() & IC_STATUS_RFNE);
 }
 
-static int i2c_tx_finish(void)
-{
-	uint32_t val;
-
-	while (1) {
-		val = dw_i2c_get_status();
-		if (val & IC_STATUS_TFE)
-			break;
-
-		val = dw_i2c_readl(IC_RAW_INTR_STAT(dw_i2cd));
-		if (val & IC_INTR_STOP_DET) {
-			val = dw_i2c_readl(IC_CLR_STOP_DET(dw_i2cd));
-			break;
-		}
-	}
-	return 0;
-}
-
 /* Do nothing at I2C bus here because START will be issued automatically
  * by the controller.
  * When operating as an I2C master, putting data into the transmit FIFO
@@ -202,13 +184,6 @@ void dw_i2c_start_condition(bool sr)
  */
 void dw_i2c_stop_condition(void)
 {
-	uint32_t val = dw_i2c.last_tx_byte;
-
-#ifdef CONFIG_DW_I2C_EMPTYFIFO_HOLD_MASTER
-	val |= IC_DATA_CMD_STOP;
-#endif
-	dw_i2c_writel(val, IC_DATA_CMD(dw_i2cd));
-	i2c_tx_finish();
 	con_dbg("dw_i2c: DW_I2C_DRIVER_STOP\n");
 	dw_i2c.state = DW_I2C_DRIVER_STOP;
 }
@@ -430,7 +405,6 @@ void dw_i2c_handle_irq(void)
 	if (status & IC_INTR_START_DET) {
 		con_dbg("dw_i2c: INTR_START_DET\n");
 		__raw_readl(IC_CLR_START_DET(dw_i2cd));
-		/* dw_i2c.status = I2C_STATUS_START; */
 	}
 	if (status & IC_INTR_GEN_CALL) {
 		con_dbg("dw_i2c: INTR_GEN_CALL\n");
