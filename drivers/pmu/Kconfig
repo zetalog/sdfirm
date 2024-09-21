@@ -13,4 +13,11 @@ config SMMU_PMCG
 	bool "SMMUv3 performance monitor counter groups (PMCG) support"
 	depends ARCH_HAS_SMMU_PMCG
 
+if SMMU_PMCG
+
+config SMMU_PMCG_MSI
+	bool "Enable PMCG MSI support"
+
+endif
+
 endmenu

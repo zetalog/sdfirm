@@ -74,6 +74,7 @@ void hpm_count_init(void)
 #define hpm_count_init()		do { } while (0)
 #endif
 
+#ifdef CONFIG_HPM
 void hpm_init(void);
 void hpm_start(void);
 void hpm_stop(void);
@@ -82,5 +83,13 @@ perf_cnt_t hpm_get_event_count(perf_evt_t event);
 void hpm_set_event_count(perf_evt_t event, perf_cnt_t count);
 void hpm_enable_event(perf_evt_t event);
 void hpm_disable_event(perf_evt_t event);
+#else
+#define hpm_init()			do { } while (0)
+#define hpm_start()			do { } while (0)
+#define hpm_stop()			do { } while (0)
+#define hpm_enable_event(event)		do { } while (0)
+#define hpm_disable_event(event)	do { } while (0)
+#define hpm_configure_event(event)	do { } while (0)
+#endif
 
 #endif /* __HPM_RISCV_H_INCLUDE__ */

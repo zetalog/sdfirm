@@ -20,17 +20,17 @@
 #define TBU_PMCG_PAGE0_REG(smmu, tbu, offset)	TBU_PAGE0_REG(smmu, tbu, SMMU_PMCG_BASE + (offset))
 #define TBU_PMCG_PAGE1_REG(smmu, tbu, offset)	TBU_PAGE1_REG(smmu, tbu, SMMU_PMCG_BASE + (offset))
 
-#define TCU_PMCG_EVCNTR(smmu, n)	(TCU_PMCG_PAGE0_REG(smmu, 0x0) + ((n) * PMCG_STRIDE))
+#define TCU_PMCG_EVCNTR(smmu, n)	(TCU_PMCG_PAGE0_REG(smmu, 0x0 + SMMU_PMCG_RELOC_BASE(smmu)) + ((n) * PMCG_STRIDE))
 #define TCU_PMCG_EVTYPER(smmu, n)	(TCU_PMCG_PAGE0_REG(smmu, 0x400) + ((n) * 4))
-#define TCU_PMCG_SVR(smmu, n)		(TCU_PMCG_PAGE0_REG(smmu, 0x600) + ((n) * PMCG_STRIDE))
+#define TCU_PMCG_SVR(smmu, n)		(TCU_PMCG_PAGE0_REG(smmu, 0x600 + SMMU_PMCG_RELOC_BASE(smmu)) + ((n) * PMCG_STRIDE))
 #define TCU_PMCG_SMR(smmu, n)		(TCU_PMCG_PAGE0_REG(smmu, 0xA00) + ((n) * 4))
 #define TCU_PMCG_CNTENSET0(smmu)	TCU_PMCG_PAGE0_REG(smmu, 0xC00)
 #define TCU_PMCG_CNTENCLR0(smmu)	TCU_PMCG_PAGE0_REG(smmu, 0xC20)
 #define TCU_PMCG_INTENSET0(smmu)	TCU_PMCG_PAGE0_REG(smmu, 0xC40)
 #define TCU_PMCG_INTENCLR0(smmu)	TCU_PMCG_PAGE0_REG(smmu, 0xC60)
-#define TCU_PMCG_OVSCLR0(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xC80)
-#define TCU_PMCG_OVSSET0(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xCC0)
-#define TCU_PMCG_CAPR(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xD88)
+#define TCU_PMCG_OVSCLR0(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xC80 + SMMU_PMCG_RELOC_BASE(smmu))
+#define TCU_PMCG_OVSSET0(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xCC0 + SMMU_PMCG_RELOC_BASE(smmu))
+#define TCU_PMCG_CAPR(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xD88i + SMMU_PMCG_RELOC_BASE(smmu))
 #define TCU_PMCG_SCR(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xDF8)
 #define TCU_PMCG_CFGR(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xE00)
 #define TCU_PMCG_CR(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xE04)
@@ -158,8 +158,14 @@ struct smmu_pmu {
 	bool global_filter;
 };
 
+#if NR_SMMU_STREAMS > 1
 extern struct smmu_pmu smmu_pmus[];
 #define smmu_pmu_ctrl		smmu_pmus[iommu_dev]
+#define SMMU_PMCG_RELOC_BASE(i)	(smmu_pmus[i].reloc_base)
+#else
+extern struct smmu_pmu smmu_pmu_ctrl;
+#define SMMU_PMCG_RELOC_BASE(i)	smmu_pmu_ctrl.reloc_base
+#endif
 
 #ifdef CONFIG_SMMU_PMCG
 void smmu_pmcg_init(void);

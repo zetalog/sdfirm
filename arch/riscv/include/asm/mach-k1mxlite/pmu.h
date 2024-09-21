@@ -50,6 +50,8 @@
 #endif
 #ifdef CONFIG_K1MXLITE_BMU
 #define PMU_BMU_COUNTERS	8
+#else
+#define PMU_BMU_COUNTERS	0
 #endif
 #ifdef CONFIG_SMMU_PMCG
 #define NR_SMMU_TCUS		1
@@ -58,6 +60,7 @@
 #define PMCG_EVENT_ID(evt)	((evt) % 32)
 #define PMCG_EVENT_IS_TCU(evt)	(((evt) / 32) < NR_SMMU_TCUS)
 #define PMCG_EVENT_IS_TBU(evt)	(((evt) / 32) >= NR_SMMU_TCUS)
+#define SMMU_HW_IRQ_PMU(dev)	IRQ_SMMU_PMCG
 #else
 #define PMU_PMCG_COUNTERS	0
 #endif

@@ -18,7 +18,6 @@ config K1MXLITEIOMMU
 	select CPU_ZIOMMU if K1MXLITE_IOMMU
 	select K1MXLITE_DMAR if IOMMU
 	select K1MXLITE_DMAC if DMAC
-	select K1MXLITE_BMU if PERF
 	help
 	  This configuration contains server SoC design.
 
