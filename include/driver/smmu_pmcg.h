@@ -141,11 +141,55 @@
 #define SMMU_PMCG_EVCNTR_RDONLY         _BV(0)
 #define SMMU_PMCG_HARDEN_DISABLE        _BV(1)
 
+#define smmu_pmcg_disable()					\
+	do {							\
+		__raw_writel(0, TCU_PMCG_CR(iommu_dev));	\
+		__raw_writel(0, TCU_PMCG_IRQ_CTRL(iommu_dev));	\
+	} while (0)
+#define smmu_pmcg_enable()					\
+	do {							\
+		__raw_writel(SMMU_PMCG_IRQ_CTRL_IRQEN,		\
+			     TCU_PMCG_IRQ_CTRL(iommu_dev));	\
+		__raw_writel(SMMU_PMCG_CR_ENABLE,		\
+			     TCU_PMCG_CR(iommu_dev));		\
+	} while (0)
+#define smmu_pmcg_counter_set_value(idx, value)			\
+	__pmcg_write(value, TCU_PMCG_EVCNTR(iommu_dev, idx))
+#define smmu_pmcg_counter_get_value(idx)			\
+	__pmcg_read(TCU_PMCG_EVCNTR(iommu_dev, idx))
+#define smmu_pmcg_counter_enable(idx)				\
+	__raw_writeq(_BV_ULL(idx), TCU_PMCG_CNTENSET0(iommu_dev))
+#define smmu_pmcg_counter_disable(idx)				\
+	__raw_writeq(_BV_ULL(idx), TCU_PMCG_CNTENCLR0(iommu_dev))
+#define smmu_pmcg_interrupt_enable(idx)				\
+	__raw_writeq(_BV_ULL(idx), TCU_PMCG_INTENSET0(iommu_dev))
+#define smmu_pmcg_interrupt_disable(idx)			\
+	__raw_writeq(_BV_ULL(idx), TCU_PMCG_INTENCLR0(iommu_dev))
+#define smmu_pmcg_set_evtyper(idx, val)				\
+	__raw_writel(val, TCU_PMCG_EVTYPER(iommu_dev, idx))
+#define smmu_pmcg_set_smr(idx, val)				\
+	__raw_writel(val, TCU_PMCG_SMR(iommu_dev, idx))
+
+struct smmu_perf_event {
+	uint8_t state;
+	struct list_head sibling_list;
+#define PMCG_STOPPED	_BV(0)
+#define PMCG_UPTODATE	_BV(1)
+	perf_cnt_t count;
+	uint32_t idx;
+	uint64_t prev_count;
+	/* Configure EVTYPERn.EVENT */
+	uint16_t event;
+	bool filter;
+	/* Configure EVTYPERn.FILTER_SID_SPAN */
+	bool filter_sid_span;
+	/* Configure SMRn */
+	uint32_t streamid;
+	struct smmu_perf_event *group_leader;
+};
+
 struct smmu_pmu {
-#if 0
-	struct hlist_node node;
-	struct perf_event *events[SMMU_PMCG_MAX_COUNTERS];
-#endif
+	struct smmu_perf_event events[SMMU_PMCG_MAX_COUNTERS];
 	DECLARE_BITMAP(used_counters, SMMU_PMCG_MAX_COUNTERS);
 	DECLARE_BITMAP(supported_events, SMMU_PMCG_ARCH_MAX_EVENTS);
 	unsigned int irq;

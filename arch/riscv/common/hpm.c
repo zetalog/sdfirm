@@ -446,10 +446,9 @@ void hpm_init(void)
 {
 	cpu_t cpu;
 
-	hpm_register_event(0, "NO_EVENT");
-	hpm_register_event(1, "cpu:CY");
-	hpm_register_event(2, "cpu:TM");
-	hpm_register_event(3, "cpu:IR");
+	hpm_register_event(0, "cpu:CY");
+	hpm_register_event(1, "cpu:TM");
+	hpm_register_event(2, "cpu:IR");
 	for_each_cpu(cpu, smp_online_cpus) {
 		hpm_add_event(cpu, HPM_CYCLE);
 		hpm_add_event(cpu, HPM_TIME);
@@ -549,8 +548,8 @@ static int do_hpm(int argc, char *argv[])
 DEFINE_COMMAND(hpm, do_hpm, "Hardware performance monitor (HPM) commands",
 	"hpm dump [cpu]\n"
 	"    -dump all HPM events\n"
-	"hpm add event [cpu]\n"
+	"hpm add <event> [cpu]\n"
 	"    -register HPM event\n"
-	"hpm remove event [cpu]\n"
+	"hpm remove <event> [cpu]\n"
 	"    -deregister HPM event\n"
 );
