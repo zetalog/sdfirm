@@ -1,229 +1,151 @@
 #include <target/perf.h>
 #include <target/console.h>
+#include <target/cmdline.h>
 
 cpu_t pmcg_cpu;
 
 struct smmu_pmu smmu_pmus[NR_IOMMU_DEVICES];
-#if 0
-#define SMMU_PMU_EVENT_ATTR_EXTRACTOR(_name, _config, _start, _end)        \
-	static inline uint32_t get_##_name(struct perf_event *event)            \
-	{                                                                  \
-		return FIELD_GET(GENMASK_ULL(_end, _start),                \
-				 event->attr._config);                     \
-	}                                                                  \
 
-SMMU_PMU_EVENT_ATTR_EXTRACTOR(event, config, 0, 15);
-SMMU_PMU_EVENT_ATTR_EXTRACTOR(filter_stream_id, config1, 0, 31);
-SMMU_PMU_EVENT_ATTR_EXTRACTOR(filter_span, config1, 32, 32);
-SMMU_PMU_EVENT_ATTR_EXTRACTOR(filter_enable, config1, 33, 33);
+#define for_each_sibling_event(sibling, event)			\
+	if ((event)->group_leader == (event))			\
+		list_for_each_entry(struct smmu_perf_event, (sibling), &(event)->sibling_list, sibling_list)
 
-static inline void smmu_pmu_enable(struct pmu *pmu)
+static int smmu_pmcg_apply_event_filter(struct smmu_perf_event *event, int idx);
+
+const char *smmu_pmcg_event_names[] = {
+	"cycles",
+	"transaction",
+	"tlb_miss",
+	"config_cache_miss",
+	"trans_table_walk_access",
+	"config_struct_access",
+	"pcie_ats_trans_rq",
+	"pcie_ats_trans_passed",
+};
+
+const char *smmu_pmcg_event_name(uint32_t val)
 {
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(pmu);
-
-	writel(SMMU_PMCG_IRQ_CTRL_IRQEN,
-	       smmu_pmu->reg_base + SMMU_PMCG_IRQ_CTRL);
-	writel(SMMU_PMCG_CR_ENABLE, smmu_pmu->reg_base + SMMU_PMCG_CR);
+	if (val >= ARRAY_SIZE(smmu_pmcg_event_names))
+		return "UNKNOWN";
+	return smmu_pmcg_event_names[val];
 }
 
-static int smmu_pmu_apply_event_filter(struct smmu_pmu *smmu_pmu,
-				       struct perf_event *event, int idx);
-
-static inline void smmu_pmu_enable_quirk_hip08_09(struct pmu *pmu)
+static void smmu_pmcg_event_update(struct smmu_perf_event *event)
 {
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(pmu);
-	unsigned int idx;
-
-	for_each_set_bit(idx, smmu_pmu->used_counters, smmu_pmu->num_counters)
-		smmu_pmu_apply_event_filter(smmu_pmu, smmu_pmu->events[idx], idx);
-
-	smmu_pmu_enable(pmu);
-}
-
-static inline void smmu_pmu_counter_set_value(struct smmu_pmu *smmu_pmu,
-					      uint32_t idx, uint64_t value)
-{
-	if (smmu_pmu->counter_mask & BIT(32))
-		writeq(value, smmu_pmu->reloc_base + SMMU_PMCG_EVCNTR(idx, 8));
-	else
-		writel(value, smmu_pmu->reloc_base + SMMU_PMCG_EVCNTR(idx, 4));
-}
-
-static inline uint64_t smmu_pmu_counter_get_value(struct smmu_pmu *smmu_pmu, uint32_t idx)
-{
-	uint64_t value;
-
-	if (smmu_pmu->counter_mask & BIT(32))
-		value = readq(smmu_pmu->reloc_base + SMMU_PMCG_EVCNTR(idx, 8));
-	else
-		value = readl(smmu_pmu->reloc_base + SMMU_PMCG_EVCNTR(idx, 4));
-
-	return value;
-}
-
-static inline void smmu_pmu_counter_enable(struct smmu_pmu *smmu_pmu, uint32_t idx)
-{
-	writeq(BIT(idx), smmu_pmu->reg_base + SMMU_PMCG_CNTENSET0);
-}
-
-static inline void smmu_pmu_counter_disable(struct smmu_pmu *smmu_pmu, uint32_t idx)
-{
-	writeq(BIT(idx), smmu_pmu->reg_base + SMMU_PMCG_CNTENCLR0);
-}
-
-static inline void smmu_pmu_interrupt_enable(struct smmu_pmu *smmu_pmu, uint32_t idx)
-{
-	writeq(BIT(idx), smmu_pmu->reg_base + SMMU_PMCG_INTENSET0);
-}
-
-static inline void smmu_pmu_interrupt_disable(struct smmu_pmu *smmu_pmu,
-					      uint32_t idx)
-{
-	writeq(BIT(idx), smmu_pmu->reg_base + SMMU_PMCG_INTENCLR0);
-}
-
-static inline void smmu_pmu_set_evtyper(struct smmu_pmu *smmu_pmu, uint32_t idx,
-					uint32_t val)
-{
-	writel(val, smmu_pmu->reg_base + SMMU_PMCG_EVTYPER(idx));
-}
-
-static inline void smmu_pmu_set_smr(struct smmu_pmu *smmu_pmu, uint32_t idx, uint32_t val)
-{
-	writel(val, smmu_pmu->reg_base + SMMU_PMCG_SMR(idx));
-}
-
-static void smmu_pmu_event_update(struct perf_event *event)
-{
-	struct hw_perf_event *hwc = &event->hw;
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(event->pmu);
 	uint64_t delta, prev, now;
-	uint32_t idx = hwc->idx;
+	uint32_t idx = event->idx;
 
 	do {
-		prev = local64_read(&hwc->prev_count);
-		now = smmu_pmu_counter_get_value(smmu_pmu, idx);
-	} while (local64_cmpxchg(&hwc->prev_count, prev, now) != prev);
+		prev = READ_ONCE(event->prev_count);
+		now = smmu_pmcg_counter_get_value(idx);
+	} while (cmpxchg(&event->prev_count, prev, now) != prev);
 
 	/* handle overflow. */
 	delta = now - prev;
-	delta &= smmu_pmu->counter_mask;
+	delta &= smmu_pmu_ctrl.counter_mask;
 
-	local64_add(delta, &event->count);
+	event->count += delta;
 }
 
-static void smmu_pmu_set_period(struct smmu_pmu *smmu_pmu,
-				struct hw_perf_event *hwc)
+static void smmu_pmcg_set_period(struct smmu_perf_event *event)
 {
-	uint32_t idx = hwc->idx;
+	uint32_t idx = event->idx;
 	uint64_t new;
 
-	if (smmu_pmu->options & SMMU_PMCG_EVCNTR_RDONLY) {
-		/*
-		 * On platforms that require this quirk, if the counter starts
-		 * at < half_counter value and wraps, the current logic of
-		 * handling the overflow may not work. It is expected that,
-		 * those platforms will have full 64 counter bits implemented
-		 * so that such a possibility is remote(eg: HiSilicon HIP08).
-		 */
-		new = smmu_pmu_counter_get_value(smmu_pmu, idx);
-	} else {
-		/*
-		 * We limit the max period to half the max counter value
-		 * of the counter size, so that even in the case of extreme
-		 * interrupt latency the counter will (hopefully) not wrap
-		 * past its initial value.
-		 */
-		new = smmu_pmu->counter_mask >> 1;
-		smmu_pmu_counter_set_value(smmu_pmu, idx, new);
-	}
+	/* We limit the max period to half the max counter value
+	 * of the counter size, so that even in the case of extreme
+	 * interrupt latency the counter will (hopefully) not wrap
+	 * past its initial value.
+	 */
+	new = smmu_pmu_ctrl.counter_mask >> 1;
+	smmu_pmcg_counter_set_value(idx, new);
 
-	local64_set(&hwc->prev_count, new);
+	event->prev_count += new;
 }
 
-static void smmu_pmu_set_event_filter(struct perf_event *event,
-				      int idx, uint32_t span, uint32_t sid)
+static void smmu_pmcg_set_event_filter(struct smmu_perf_event *event,
+				       int idx, uint32_t span, uint32_t sid)
 {
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(event->pmu);
 	uint32_t evtyper;
 
-	evtyper = get_event(event) | span << SMMU_PMCG_SID_SPAN_SHIFT;
-	smmu_pmu_set_evtyper(smmu_pmu, idx, evtyper);
-	smmu_pmu_set_smr(smmu_pmu, idx, sid);
+	evtyper = event->event | span << SMMU_PMCG_SID_SPAN_SHIFT;
+	smmu_pmcg_set_evtyper(idx, evtyper);
+	smmu_pmcg_set_smr(idx, sid);
 }
 
-static bool smmu_pmu_check_global_filter(struct perf_event *curr,
-					 struct perf_event *new)
+static bool smmu_pmcg_check_global_filter(struct smmu_perf_event *curr,
+					  struct smmu_perf_event *new)
 {
-	if (get_filter_enable(new) != get_filter_enable(curr))
+	if (new->filter != curr->filter)
 		return false;
 
-	if (!get_filter_enable(new))
+	if (!new->filter)
 		return true;
 
-	return get_filter_span(new) == get_filter_span(curr) &&
-	       get_filter_stream_id(new) == get_filter_stream_id(curr);
+	return new->filter_sid_span == curr->filter_sid_span &&
+	       new->streamid == curr->streamid;
 }
 
-static int smmu_pmu_apply_event_filter(struct smmu_pmu *smmu_pmu,
-				       struct perf_event *event, int idx)
+static int smmu_pmcg_apply_event_filter(struct smmu_perf_event *event, int idx)
 {
 	uint32_t span, sid;
-	unsigned int cur_idx, num_ctrs = smmu_pmu->num_counters;
-	bool filter_en = !!get_filter_enable(event);
+	unsigned int cur_idx, num_ctrs = smmu_pmu_ctrl.num_counters;
+	bool filter_en = !!event->filter;
 
-	span = filter_en ? get_filter_span(event) :
-			   SMMU_PMCG_DEFAULT_FILTER_SPAN;
-	sid = filter_en ? get_filter_stream_id(event) :
-			   SMMU_PMCG_DEFAULT_FILTER_SID;
+	span = filter_en ? event->filter_sid_span : SMMU_PMCG_DEFAULT_FILTER_SPAN;
+	sid = filter_en ? event->streamid : SMMU_PMCG_DEFAULT_FILTER_SID;
 
-	cur_idx = find_first_bit(smmu_pmu->used_counters, num_ctrs);
+	cur_idx = find_first_set_bit(smmu_pmu_ctrl.used_counters, num_ctrs);
 	/*
 	 * Per-counter filtering, or scheduling the first globally-filtered
 	 * event into an empty PMU so idx == 0 and it works out equivalent.
 	 */
-	if (!smmu_pmu->global_filter || cur_idx == num_ctrs) {
-		smmu_pmu_set_event_filter(event, idx, span, sid);
+	if (!smmu_pmu_ctrl.global_filter || cur_idx == num_ctrs) {
+		smmu_pmcg_set_event_filter(event, idx, span, sid);
 		return 0;
 	}
 
 	/* Otherwise, must match whatever's currently scheduled */
-	if (smmu_pmu_check_global_filter(smmu_pmu->events[cur_idx], event)) {
-		smmu_pmu_set_evtyper(smmu_pmu, idx, get_event(event));
+	if (smmu_pmcg_check_global_filter(&smmu_pmu_ctrl.events[cur_idx], event)) {
+		smmu_pmcg_set_evtyper(idx, event->event);
 		return 0;
 	}
 
 	return -EAGAIN;
 }
 
-static int smmu_pmu_get_event_idx(struct smmu_pmu *smmu_pmu,
-				  struct perf_event *event)
+static int smmu_pmcg_get_event_idx(uint16_t evtype, bool filter, uint32_t streamid, bool span)
 {
 	int idx, err;
-	unsigned int num_ctrs = smmu_pmu->num_counters;
+	unsigned int num_ctrs = smmu_pmu_ctrl.num_counters;
+	struct smmu_perf_event *event;
 
-	idx = find_first_zero_bit(smmu_pmu->used_counters, num_ctrs);
+	idx = find_first_clear_bit(smmu_pmu_ctrl.used_counters, num_ctrs);
 	if (idx == num_ctrs)
 		/* The counters are all in use. */
 		return -EAGAIN;
 
-	err = smmu_pmu_apply_event_filter(smmu_pmu, event, idx);
+	event = &smmu_pmu_ctrl.events[idx];
+	event->event = evtype;
+	event->filter = filter;
+	event->filter_sid_span = span;
+	if (streamid) {
+		event->filter_sid_span = true;
+		event->streamid = streamid;
+	}
+	err = smmu_pmcg_apply_event_filter(event, idx);
 	if (err)
 		return err;
 
-	set_bit(idx, smmu_pmu->used_counters);
-
+	set_bit(idx, smmu_pmu_ctrl.used_counters);
 	return idx;
 }
 
-static bool smmu_pmu_events_compatible(struct perf_event *curr,
-				       struct perf_event *new)
+static bool smmu_pmcg_events_compatible(struct smmu_perf_event *curr,
+				       struct smmu_perf_event *new)
 {
-	if (new->pmu != curr->pmu)
-		return false;
-
-	if (to_smmu_pmu(new->pmu)->global_filter &&
-	    !smmu_pmu_check_global_filter(curr, new))
+	if (smmu_pmu_ctrl.global_filter &&
+	    !smmu_pmcg_check_global_filter(curr, new))
 		return false;
 
 	return true;
@@ -234,308 +156,101 @@ static bool smmu_pmu_events_compatible(struct perf_event *curr,
  * the core perf events code.
  */
 
-static int smmu_pmu_event_init(struct perf_event *event)
+static int smmu_pmcg_event_init(struct smmu_perf_event *event)
 {
-	struct hw_perf_event *hwc = &event->hw;
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(event->pmu);
-	struct device *dev = smmu_pmu->dev;
-	struct perf_event *sibling;
+	struct smmu_perf_event *sibling;
 	int group_num_events = 1;
-	u16 event_id;
-
-	if (event->attr.type != event->pmu->type)
-		return -ENOENT;
-
-	if (hwc->sample_period) {
-		dev_dbg(dev, "Sampling not supported\n");
-		return -EOPNOTSUPP;
-	}
-
-	if (event->cpu < 0) {
-		dev_dbg(dev, "Per-task mode not supported\n");
-		return -EOPNOTSUPP;
-	}
+	uint16_t event_id;
 
 	/* Verify specified event is supported on this PMU */
-	event_id = get_event(event);
+	event_id = event->event;
 	if (event_id < SMMU_PMCG_ARCH_MAX_EVENTS &&
-	    (!test_bit(event_id, smmu_pmu->supported_events))) {
-		dev_dbg(dev, "Invalid event %d for this PMU\n", event_id);
+	    (!test_bit(event_id, smmu_pmu_ctrl.supported_events))) {
+		con_dbg("smcg: Invalid event %d for this PMU\n", event_id);
 		return -EINVAL;
 	}
 
 	/* Don't allow groups with mixed PMUs, except for s/w events */
-	if (!is_software_event(event->group_leader)) {
-		if (!smmu_pmu_events_compatible(event->group_leader, event))
-			return -EINVAL;
-
-		if (++group_num_events > smmu_pmu->num_counters)
-			return -EINVAL;
-	}
+	if (!smmu_pmcg_events_compatible(event->group_leader, event))
+		return -EINVAL;
+	if (++group_num_events > smmu_pmu_ctrl.num_counters)
+		return -EINVAL;
 
 	for_each_sibling_event(sibling, event->group_leader) {
-		if (is_software_event(sibling))
-			continue;
-
-		if (!smmu_pmu_events_compatible(sibling, event))
+		if (!smmu_pmcg_events_compatible(sibling, event))
 			return -EINVAL;
-
-		if (++group_num_events > smmu_pmu->num_counters)
+		if (++group_num_events > smmu_pmu_ctrl.num_counters)
 			return -EINVAL;
 	}
 
-	hwc->idx = -1;
-
-	/*
-	 * Ensure all events are on the same cpu so all events are in the
-	 * same cpu context, to avoid races on pmu_enable etc.
-	 */
-	event->cpu = smmu_pmu->on_cpu;
-
+	event->idx = -1;
 	return 0;
 }
 
-static void smmu_pmu_event_start(struct perf_event *event, int flags)
+static void smmu_pmcg_event_start(struct smmu_perf_event *event)
 {
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(event->pmu);
-	struct hw_perf_event *hwc = &event->hw;
-	int idx = hwc->idx;
+	int idx = event->idx;
 
-	hwc->state = 0;
+	event->state = 0;
 
-	smmu_pmu_set_period(smmu_pmu, hwc);
-
-	smmu_pmu_counter_enable(smmu_pmu, idx);
+	smmu_pmcg_set_period(event);
+	smmu_pmcg_counter_enable(idx);
 }
 
-static void smmu_pmu_event_stop(struct perf_event *event, int flags)
+static void smmu_pmcg_event_stop(struct smmu_perf_event *event)
 {
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(event->pmu);
-	struct hw_perf_event *hwc = &event->hw;
-	int idx = hwc->idx;
+	int idx = event->idx;
 
-	if (hwc->state & PERF_HES_STOPPED)
+	if (event->state & PMCG_STOPPED)
 		return;
 
-	smmu_pmu_counter_disable(smmu_pmu, idx);
+	smmu_pmcg_counter_disable(idx);
 	/* As the counter gets updated on _start, ignore PERF_EF_UPDATE */
-	smmu_pmu_event_update(event);
-	hwc->state |= PERF_HES_STOPPED | PERF_HES_UPTODATE;
+	smmu_pmcg_event_update(event);
+	event->state |= PMCG_STOPPED | PMCG_UPTODATE;
 }
 
-static int smmu_pmu_event_add(struct perf_event *event, int flags)
+static int smmu_pmcg_event_add(uint16_t evtype, bool filter, uint32_t streamid, bool span)
 {
-	struct hw_perf_event *hwc = &event->hw;
 	int idx;
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(event->pmu);
+	struct smmu_perf_event *event;
 
-	idx = smmu_pmu_get_event_idx(smmu_pmu, event);
+	idx = smmu_pmcg_get_event_idx(evtype, filter, streamid, span);
 	if (idx < 0)
 		return idx;
 
-	hwc->idx = idx;
-	hwc->state = PERF_HES_STOPPED | PERF_HES_UPTODATE;
-	smmu_pmu->events[idx] = event;
-	local64_set(&hwc->prev_count, 0);
+	event = &smmu_pmu_ctrl.events[idx];
+	event->idx = idx;
+	event->state = PMCG_STOPPED | PMCG_UPTODATE;
+	WRITE_ONCE(event->prev_count, 0);
 
-	smmu_pmu_interrupt_enable(smmu_pmu, idx);
-
-	if (flags & PERF_EF_START)
-		smmu_pmu_event_start(event, flags);
-
-	/* Propagate changes to the userspace mapping. */
-	perf_event_update_userpage(event);
-
+	smmu_pmcg_interrupt_enable(idx);
 	return 0;
 }
 
-static void smmu_pmu_event_del(struct perf_event *event, int flags)
+static void smmu_pmcg_event_del(uint32_t idx)
 {
-	struct hw_perf_event *hwc = &event->hw;
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(event->pmu);
-	int idx = hwc->idx;
+	struct smmu_perf_event *event;
 
-	smmu_pmu_event_stop(event, flags | PERF_EF_UPDATE);
-	smmu_pmu_interrupt_disable(smmu_pmu, idx);
-	smmu_pmu->events[idx] = NULL;
-	clear_bit(idx, smmu_pmu->used_counters);
+	if (idx >= smmu_pmu_ctrl.num_counters)
+		return;
+	if (!test_bit(idx, smmu_pmu_ctrl.used_counters))
+		return;
 
-	perf_event_update_userpage(event);
+	event = &smmu_pmu_ctrl.events[idx];
+	smmu_pmcg_event_stop(event);
+	smmu_pmcg_interrupt_disable(idx);
+	event->idx = -1;
+	event->event = 0;
+	event->filter = false;
+	event->filter_sid_span = false;
+	event->streamid = 0;
+	clear_bit(idx, smmu_pmu_ctrl.used_counters);
 }
 
-static void smmu_pmu_event_read(struct perf_event *event)
+static void smmu_pmcg_event_read(struct smmu_perf_event *event)
 {
-	smmu_pmu_event_update(event);
-}
-
-/* cpumask */
-
-static ssize_t smmu_pmu_cpumask_show(struct device *dev,
-				     struct device_attribute *attr,
-				     char *buf)
-{
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(dev_get_drvdata(dev));
-
-	return cpumap_print_to_pagebuf(true, buf, cpumask_of(smmu_pmu->on_cpu));
-}
-
-static struct device_attribute smmu_pmu_cpumask_attr =
-		__ATTR(cpumask, 0444, smmu_pmu_cpumask_show, NULL);
-
-static struct attribute *smmu_pmu_cpumask_attrs[] = {
-	&smmu_pmu_cpumask_attr.attr,
-	NULL
-};
-
-static const struct attribute_group smmu_pmu_cpumask_group = {
-	.attrs = smmu_pmu_cpumask_attrs,
-};
-
-/* Events */
-
-static ssize_t smmu_pmu_event_show(struct device *dev,
-				   struct device_attribute *attr, char *page)
-{
-	struct perf_pmu_events_attr *pmu_attr;
-
-	pmu_attr = container_of(attr, struct perf_pmu_events_attr, attr);
-
-	return sysfs_emit(page, "event=0x%02llx\n", pmu_attr->id);
-}
-
-#define SMMU_EVENT_ATTR(name, config)			\
-	PMU_EVENT_ATTR_ID(name, smmu_pmu_event_show, config)
-
-static struct attribute *smmu_pmu_events[] = {
-	SMMU_EVENT_ATTR(cycles, 0),
-	SMMU_EVENT_ATTR(transaction, 1),
-	SMMU_EVENT_ATTR(tlb_miss, 2),
-	SMMU_EVENT_ATTR(config_cache_miss, 3),
-	SMMU_EVENT_ATTR(trans_table_walk_access, 4),
-	SMMU_EVENT_ATTR(config_struct_access, 5),
-	SMMU_EVENT_ATTR(pcie_ats_trans_rq, 6),
-	SMMU_EVENT_ATTR(pcie_ats_trans_passed, 7),
-	NULL
-};
-
-static umode_t smmu_pmu_event_is_visible(struct kobject *kobj,
-					 struct attribute *attr, int unused)
-{
-	struct device *dev = kobj_to_dev(kobj);
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(dev_get_drvdata(dev));
-	struct perf_pmu_events_attr *pmu_attr;
-
-	pmu_attr = container_of(attr, struct perf_pmu_events_attr, attr.attr);
-
-	if (test_bit(pmu_attr->id, smmu_pmu->supported_events))
-		return attr->mode;
-
-	return 0;
-}
-
-static const struct attribute_group smmu_pmu_events_group = {
-	.name = "events",
-	.attrs = smmu_pmu_events,
-	.is_visible = smmu_pmu_event_is_visible,
-};
-
-static ssize_t smmu_pmu_identifier_attr_show(struct device *dev,
-					struct device_attribute *attr,
-					char *page)
-{
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(dev_get_drvdata(dev));
-
-	return sysfs_emit(page, "0x%08x\n", smmu_pmu->iidr);
-}
-
-static umode_t smmu_pmu_identifier_attr_visible(struct kobject *kobj,
-						struct attribute *attr,
-						int n)
-{
-	struct device *dev = kobj_to_dev(kobj);
-	struct smmu_pmu *smmu_pmu = to_smmu_pmu(dev_get_drvdata(dev));
-
-	if (!smmu_pmu->iidr)
-		return 0;
-	return attr->mode;
-}
-
-static struct device_attribute smmu_pmu_identifier_attr =
-	__ATTR(identifier, 0444, smmu_pmu_identifier_attr_show, NULL);
-
-static struct attribute *smmu_pmu_identifier_attrs[] = {
-	&smmu_pmu_identifier_attr.attr,
-	NULL
-};
-
-static const struct attribute_group smmu_pmu_identifier_group = {
-	.attrs = smmu_pmu_identifier_attrs,
-	.is_visible = smmu_pmu_identifier_attr_visible,
-};
-
-/* Formats */
-PMU_FORMAT_ATTR(event,		   "config:0-15");
-PMU_FORMAT_ATTR(filter_stream_id,  "config1:0-31");
-PMU_FORMAT_ATTR(filter_span,	   "config1:32");
-PMU_FORMAT_ATTR(filter_enable,	   "config1:33");
-
-static struct attribute *smmu_pmu_formats[] = {
-	&format_attr_event.attr,
-	&format_attr_filter_stream_id.attr,
-	&format_attr_filter_span.attr,
-	&format_attr_filter_enable.attr,
-	NULL
-};
-
-static const struct attribute_group smmu_pmu_format_group = {
-	.name = "format",
-	.attrs = smmu_pmu_formats,
-};
-
-static const struct attribute_group *smmu_pmu_attr_grps[] = {
-	&smmu_pmu_cpumask_group,
-	&smmu_pmu_events_group,
-	&smmu_pmu_format_group,
-	&smmu_pmu_identifier_group,
-	NULL
-};
-
-/*
- * Generic device handlers
- */
-
-static int smmu_pmu_offline_cpu(unsigned int cpu, struct hlist_node *node)
-{
-	struct smmu_pmu *smmu_pmu;
-	unsigned int target;
-
-	smmu_pmu = hlist_entry_safe(node, struct smmu_pmu, node);
-	if (cpu != smmu_pmu->on_cpu)
-		return 0;
-
-	target = cpumask_any_but(cpu_online_mask, cpu);
-	if (target >= nr_cpu_ids)
-		return 0;
-
-	perf_pmu_migrate_context(&smmu_pmu->pmu, cpu, target);
-	smmu_pmu->on_cpu = target;
-	WARN_ON(irq_set_affinity(smmu_pmu->irq, cpumask_of(target)));
-
-	return 0;
-}
-
-static void smmu_pmu_shutdown(void)
-{
-	struct smmu_pmu *smmu_pmu = platform_get_drvdata(pdev);
-
-	smmu_pmu_disable(&smmu_pmu->pmu);
-}
-#endif
-
-static inline void smmu_pmu_disable(void)
-{
-	__raw_writel(0, TCU_PMCG_CR(iommu_dev));
-	__raw_writel(0, TCU_PMCG_IRQ_CTRL(iommu_dev));
+	smmu_pmcg_event_update(event);
 }
 
 iommu_dev_t smmu_pmu_irq2iommu(irq_t irq)
@@ -554,7 +269,7 @@ iommu_dev_t smmu_pmu_irq2iommu(irq_t irq)
 	return INVALID_IOMMU_DEV;
 }
 
-static void smmu_pmu_handle_irq(irq_t irq)
+static void smmu_pmcg_handle_irq(irq_t irq)
 {
 	uint64_t ovsr;
 	DECLARE_BITMAP(ovs, 64);
@@ -571,18 +286,13 @@ static void smmu_pmu_handle_irq(irq_t irq)
 
 	idx = find_first_set_bit(ovs, smmu_pmu_ctrl.num_counters);
 	while (idx < smmu_pmu_ctrl.num_counters) {
-#if 0
-		struct perf_event *event = smmu_pmu_ctrl.events[idx];
-		struct hw_perf_event *hwc;
+		struct smmu_perf_event *event = &smmu_pmu_ctrl.events[idx];
 
-		if (WARN_ON_ONCE(!event))
+		if (!event)
 			continue;
 
-		smmu_pmu_event_update(event);
-		hwc = &event->hw;
-
-		smmu_pmu_set_period(smmu_pmu, hwc);
-#endif
+		smmu_pmcg_event_update(event);
+		smmu_pmcg_set_period(event);
 		idx = find_next_set_bit(ovs, smmu_pmu_ctrl.num_counters, idx+1);
 	}
 err_exit:
@@ -590,14 +300,14 @@ err_exit:
 }
 
 #ifdef CONFIG_SMMU_PMCG_MSI
-static void smmu_pmu_free_msis(void)
+static void smmu_pmcg_free_msis(void)
 {
 #if 0
 	msi_free_irqs_all(iommu_dev);
 #endif
 }
 
-static void smmu_pmu_write_msi_msg(struct msi_desc *desc, struct msi_msg *msg)
+static void smmu_pmcg_write_msi_msg(struct msi_desc *desc, struct msi_msg *msg)
 {
 	phys_addr_t doorbell;
 
@@ -609,7 +319,7 @@ static void smmu_pmu_write_msi_msg(struct msi_desc *desc, struct msi_msg *msg)
 	writel_relaxed(MSI_CFG2_MEMATTR_DEVICE_nGnRE, SMMU_PMCG_IRQ_CFG2(iommu_dev));
 }
 
-static void smmu_pmu_setup_msi(void)
+static void smmu_pmcg_setup_msi(void)
 {
 	int ret;
 
@@ -621,26 +331,26 @@ static void smmu_pmu_setup_msi(void)
 		return;
 
 #if 0
-	msi_init_and_alloc_irqs(iommu_dev, smmu_pmu_alloc_msis);
+	msi_init_and_alloc_irqs(iommu_dev, smmu_pmcg_alloc_msis);
 	pmu->irq = msi_get_virq(dev, 0);
-	smmu_pmu_free_msis();
+	smmu_pmcg_free_msis();
 #endif
 }
 #else
-#define smmu_pmu_setup_msi()		do { } while (0)
+#define smmu_pmcg_setup_msi()		do { } while (0)
 #endif
 
-static void smmu_pmu_setup_irq(void)
+static void smmu_pmcg_setup_irq(void)
 {
-	smmu_pmu_setup_msi();
-	irq_register_vector(SMMU_HW_IRQ_PMU(iommu_dev), smmu_pmu_handle_irq);
+	smmu_pmcg_setup_msi();
+	irq_register_vector(SMMU_HW_IRQ_PMU(iommu_dev), smmu_pmcg_handle_irq);
 }
 
-static void smmu_pmu_reset(void)
+static void smmu_pmcg_reset(void)
 {
 	uint64_t counter_present_mask = GENMASK_ULL(smmu_pmu_ctrl.num_counters - 1, 0);
 
-	smmu_pmu_disable();
+	smmu_pmcg_disable();
 
 	/* Disable counter and interrupt */
 	__raw_writeq(counter_present_mask, TCU_PMCG_CNTENCLR0(iommu_dev));
@@ -670,7 +380,12 @@ static void smmu_pmu_get_iidr(void)
 			     FIELD_PREP(SMMU_PMCG_IIDR_IMPLEMENTER, implementer);
 }
 
-void smmu_pmcg_init(void)
+void __smmu_pmcg_exit(void)
+{
+	smmu_pmcg_disable();
+}
+
+void __smmu_pmcg_init(void)
 {
 	uint32_t cfgr, reg_size;
 	uint8_t i;
@@ -698,8 +413,8 @@ void smmu_pmcg_init(void)
 	reg_size = FIELD_GET(SMMU_PMCG_CFGR_SIZE, cfgr);
 	smmu_pmu_ctrl.counter_mask = GENMASK_ULL(reg_size, 0);
 
-	smmu_pmu_reset();
-	smmu_pmu_setup_irq();
+	smmu_pmcg_reset();
+	smmu_pmcg_setup_irq();
 	smmu_pmu_get_iidr();
 
 	con_log("pmcg: counters=%d filters=%s\n",
@@ -707,10 +422,187 @@ void smmu_pmcg_init(void)
 		smmu_pmu_ctrl.global_filter ? "Global(Counter0)" : "Individual");
 }
 
+static void __smmu_pmcg_start(void)
+{
+	uint32_t idx;
+
+	idx = find_first_set_bit(smmu_pmu_ctrl.used_counters, smmu_pmu_ctrl.num_counters);
+	while (idx < smmu_pmu_ctrl.num_counters) {
+		struct smmu_perf_event *event = &smmu_pmu_ctrl.events[idx];
+		if (!event)
+			continue;
+		smmu_pmcg_event_start(event);
+		idx = find_next_set_bit(smmu_pmu_ctrl.used_counters,
+					smmu_pmu_ctrl.num_counters, idx+1);
+	}
+}
+
+static void __smmu_pmcg_stop(void)
+{
+	uint32_t idx;
+
+	idx = find_first_set_bit(smmu_pmu_ctrl.used_counters, smmu_pmu_ctrl.num_counters);
+	while (idx < smmu_pmu_ctrl.num_counters) {
+		struct smmu_perf_event *event = &smmu_pmu_ctrl.events[idx];
+		if (!event)
+			continue;
+		smmu_pmcg_event_stop(event);
+		idx = find_next_set_bit(smmu_pmu_ctrl.used_counters,
+					smmu_pmu_ctrl.num_counters, idx+1);
+	}
+}
+
 void smmu_pmcg_start(void)
 {
+	__unused iommu_dev_t dev, sdev;
+
+	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
+		sdev = iommu_device_save(dev);
+		if (iommu_device_ctrl.valid)
+			__smmu_pmcg_start();
+		iommu_device_restore(sdev);
+	}
 }
 
 void smmu_pmcg_stop(void)
 {
+	__unused iommu_dev_t dev, sdev;
+
+	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
+		sdev = iommu_device_save(dev);
+		if (iommu_device_ctrl.valid)
+			__smmu_pmcg_stop();
+		iommu_device_restore(sdev);
+	}
 }
+
+void smmu_pmcg_init(void)
+{
+	__unused iommu_dev_t dev, sdev;
+
+	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
+		sdev = iommu_device_save(dev);
+		if (iommu_device_ctrl.valid)
+			__smmu_pmcg_init();
+		iommu_device_restore(sdev);
+	}
+}
+
+static int do_pmcg_remove(int argc, char *argv[])
+{
+	__unused iommu_dev_t dev;
+	__unused iommu_dev_t sdev;
+	uint32_t idx;
+
+	if (argc < 4)
+		return -EINVAL;
+	dev = (iommu_dev_t)strtoull(argv[2], 0, 0);
+	idx = (uint32_t)strtoull(argv[3], 0, 0);
+	sdev = iommu_device_save(dev);
+	smmu_pmcg_event_del(idx);
+	iommu_device_restore(sdev);
+	return 0;
+}
+
+static int do_pmcg_add(int argc, char *argv[])
+{
+	__unused iommu_dev_t dev;
+	__unused iommu_dev_t sdev;
+	uint16_t event;
+	bool filter = false;
+	uint32_t streamid = 0;
+	bool span = false;
+
+	if (argc < 4)
+		return -EINVAL;
+	dev = (iommu_dev_t)strtoull(argv[2], 0, 0);
+	event = (uint16_t)strtoull(argv[3], 0, 0);
+	if (argc > 4) {
+		filter = true;
+		streamid = (uint32_t)strtoull(argv[4], 0, 0);
+		if (argc > 5) {
+			if (strcmp(argv[5], "span") == 0)
+				span = true;
+		}
+	}
+	dev = (iommu_dev_t)strtoull(argv[2], 0, 0);
+	sdev = iommu_device_save(dev);
+	smmu_pmcg_event_add(event, filter, streamid, span);
+	iommu_device_restore(sdev);
+	return 0;
+}
+
+static int do_pmcg_dump(int argc, char *argv[])
+{
+	__unused iommu_dev_t dev;
+	__unused iommu_dev_t sdev;
+	uint32_t idx;
+
+	if (argc < 3)
+		return -EINVAL;
+	dev = (iommu_dev_t)strtoull(argv[2], 0, 0);
+	sdev = iommu_device_save(dev);
+	idx = find_first_set_bit(smmu_pmu_ctrl.used_counters, smmu_pmu_ctrl.num_counters);
+	while (idx < smmu_pmu_ctrl.num_counters) {
+		struct smmu_perf_event *event = &smmu_pmu_ctrl.events[idx];
+
+		if (!event)
+			continue;
+
+		smmu_pmcg_event_read(event);
+		printf("%d: %s=%016llx\n",
+		       idx, smmu_pmcg_event_name(event->event),
+		       event->count);
+		idx = find_next_set_bit(smmu_pmu_ctrl.used_counters,
+					smmu_pmu_ctrl.num_counters, idx+1);
+	}
+	iommu_device_restore(sdev);
+	return 0;
+}
+
+static int do_pmcg_id(int argc, char *argv[])
+{
+	__unused iommu_dev_t dev;
+	__unused iommu_dev_t sdev;
+	uint16_t event = 0;
+
+	if (argc < 3)
+		return -EINVAL;
+	dev = (iommu_dev_t)strtoull(argv[2], 0, 0);
+	sdev = iommu_device_save(dev);
+	printf("iidr: 0x%08x\n", smmu_pmu_ctrl.iidr);
+	printf("supported events:\n");
+	while (event < ARRAY_SIZE(smmu_pmcg_event_names)) {
+		if (test_bit(event, smmu_pmu_ctrl.supported_events))
+			printf("%d - %s\n", event, smmu_pmcg_event_name(event));
+		event++;
+	}
+	iommu_device_restore(sdev);
+	return 0;
+}
+
+static int do_pmcg(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+	if (strcmp(argv[1], "id") == 0)
+		return do_pmcg_id(argc, argv);
+	if (strcmp(argv[1], "dump") == 0)
+		return do_pmcg_dump(argc, argv);
+	if (strcmp(argv[1], "add") == 0)
+		return do_pmcg_add(argc, argv);
+	if (strcmp(argv[1], "remove") == 0)
+		return do_pmcg_remove(argc, argv);
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(pmcg, do_pmcg, "SMMUv3 performance monitor counter group commands",
+	"pmcg id <iommu>\n"
+	"    -display IIDR and supported events\n"
+	"pmcg dump <iommu>\n"
+	"    -display event counter relationship\n"
+	"pmcg add <iommu> <event> [streamid] [span]\n"
+	"    -add PMCG event with/without filter enabled\n"
+	"pmcg remove <iommu> <counter>\n"
+	"    -remove PMCG event using counter ID\n"
+);
