@@ -476,6 +476,7 @@ void smmu_pmcg_start(void)
 {
 	__unused iommu_dev_t dev, sdev;
 
+	smmu_pmcg_enable();
 	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
 		sdev = iommu_device_save(dev);
 		if (iommu_device_ctrl.valid)
@@ -494,6 +495,7 @@ void smmu_pmcg_stop(void)
 			__smmu_pmcg_stop();
 		iommu_device_restore(sdev);
 	}
+	smmu_pmcg_disable();
 }
 
 void smmu_pmcg_init(void)
