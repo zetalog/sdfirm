@@ -3,15 +3,16 @@
 
 #include <target/iommu.h>
 
-#ifdef CONFIG_64BIT
+#ifdef CONFIG_SMMU_PMCG_STRIDE64
 #define PMCG_STRIDE			8
 #define __pmcg_read(addr)		__raw_readq(addr)
 #define __pmcg_write(v, addr)		__raw_writeq(v, addr)
-#else /* CONFIG_64BIT */
+#endif /* CONFIG_SMMU_PMCG_STRIDE64 */
+#ifdef CONFIG_SMMU_PMCG_STRIDE32
 #define PMCG_STRIDE			4
 #define __pmcg_read(addr)		__raw_readl(addr)
 #define __pmcg_write(v, addr)		__raw_writel(v, addr)
-#endif /* CONFIG_64BIT */
+#endif /* CONFIG_SMMU_PMCG_STRIDE32 */
 
 #define SMMU_PMCG_BASE			0x2000
 
@@ -215,10 +216,18 @@ extern struct smmu_pmu smmu_pmu_ctrl;
 void smmu_pmcg_init(void);
 void smmu_pmcg_start(void);
 void smmu_pmcg_stop(void);
+/* APIs with iommu_dev selected */
+int smmu_pmcg_event_add(uint16_t evtype, bool filter, uint32_t streamid, bool span);
+void smmu_pmcg_event_del(uint32_t idx);
+void smmu_pmcg_event_dump(void);
 #else
 #define smmu_pmcg_init()	do { } while (0)
 #define smmu_pmcg_start()	do { } while (0)
 #define smmu_pmcg_stop()	do { } while (0)
+#define smmu_pmcg_event_add(e, f, sid, span)	\
+				do { } while (0)
+#define smmu_pmcg_event_del(i)	do { } while (0)
+#define smmu_pmcg_event_dump()	do { } while (0)
 #endif
 
 #endif /* __SMMU_PMCG_H_INCLUDE__ */

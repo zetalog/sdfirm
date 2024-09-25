@@ -42,6 +42,7 @@
 #ifndef __PMU_K1MXLITE_H_INCLUDE__
 #define __PMU_K1MXLITE_H_INCLUDE__
 
+#define PMU_HW_DEFAULT_EVENT	0
 #ifdef CONFIG_HPM
 #define PMU_HPM_COUNTERS	HPM_MAX_COUNTERS
 #define HPM_EVENT_ID(evt)	((evt) % 32)

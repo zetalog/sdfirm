@@ -50,7 +50,6 @@
 #define HPM_CYCLE			0
 #define HPM_TIME			1
 #define HPM_INSTRET			2
-#define PMU_HW_DEFAULT_EVENT		HPM_CYCLE
 
 #ifdef CONFIG_RISCV_SSCOFPMF
 #define COFPMF_OF		_BV_ULL(63)
