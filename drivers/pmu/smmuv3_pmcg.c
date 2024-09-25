@@ -210,7 +210,7 @@ static void smmu_pmcg_event_stop(struct smmu_perf_event *event)
 	event->state |= PMCG_STOPPED | PMCG_UPTODATE;
 }
 
-static int smmu_pmcg_event_add(uint16_t evtype, bool filter, uint32_t streamid, bool span)
+int smmu_pmcg_event_add(uint16_t evtype, bool filter, uint32_t streamid, bool span)
 {
 	int idx;
 	struct smmu_perf_event *event;
@@ -228,7 +228,7 @@ static int smmu_pmcg_event_add(uint16_t evtype, bool filter, uint32_t streamid, 
 	return 0;
 }
 
-static void smmu_pmcg_event_del(uint32_t idx)
+void smmu_pmcg_event_del(uint32_t idx)
 {
 	struct smmu_perf_event *event;
 
@@ -251,6 +251,26 @@ static void smmu_pmcg_event_del(uint32_t idx)
 static void smmu_pmcg_event_read(struct smmu_perf_event *event)
 {
 	smmu_pmcg_event_update(event);
+}
+
+void smmu_pmcg_event_dump(void)
+{
+	uint32_t idx;
+
+	idx = find_first_set_bit(smmu_pmu_ctrl.used_counters, smmu_pmu_ctrl.num_counters);
+	while (idx < smmu_pmu_ctrl.num_counters) {
+		struct smmu_perf_event *event = &smmu_pmu_ctrl.events[idx];
+
+		if (!event)
+			continue;
+
+		smmu_pmcg_event_read(event);
+		printf("%d: %s=%016llx\n",
+		       idx, smmu_pmcg_event_name(event->event),
+		       event->count);
+		idx = find_next_set_bit(smmu_pmu_ctrl.used_counters,
+					smmu_pmu_ctrl.num_counters, idx+1);
+	}
 }
 
 iommu_dev_t smmu_pmu_irq2iommu(irq_t irq)
@@ -394,13 +414,13 @@ void __smmu_pmcg_init(void)
 
 	/* Determine if page 1 is present */
 	if (cfgr & SMMU_PMCG_CFGR_RELOC_CTRS) {
-		smmu_pmu_ctrl.reloc_base = SMMU_PAGESIZE;
+		smmu_pmu_ctrl.reloc_base = (SMMU_PAGESIZE << 1);
 	} else {
 		smmu_pmu_ctrl.reloc_base = 0;
 	}
 
 	for (i = 0; i < SMMU_PMCG_ARCH_MAX_EVENTS; i++) {
-		if (__raw_readq(TCU_PMCG_CEID(iommu_dev, i) & PMCG_CEID(i)))
+		if (__raw_readq(TCU_PMCG_CEID(iommu_dev, i)) & PMCG_CEID(i))
 			set_bit(i, smmu_pmu_ctrl. supported_events);
 	}
 
@@ -536,26 +556,12 @@ static int do_pmcg_dump(int argc, char *argv[])
 {
 	__unused iommu_dev_t dev;
 	__unused iommu_dev_t sdev;
-	uint32_t idx;
 
 	if (argc < 3)
 		return -EINVAL;
 	dev = (iommu_dev_t)strtoull(argv[2], 0, 0);
 	sdev = iommu_device_save(dev);
-	idx = find_first_set_bit(smmu_pmu_ctrl.used_counters, smmu_pmu_ctrl.num_counters);
-	while (idx < smmu_pmu_ctrl.num_counters) {
-		struct smmu_perf_event *event = &smmu_pmu_ctrl.events[idx];
-
-		if (!event)
-			continue;
-
-		smmu_pmcg_event_read(event);
-		printf("%d: %s=%016llx\n",
-		       idx, smmu_pmcg_event_name(event->event),
-		       event->count);
-		idx = find_next_set_bit(smmu_pmu_ctrl.used_counters,
-					smmu_pmu_ctrl.num_counters, idx+1);
-	}
+	smmu_pmcg_event_dump();
 	iommu_device_restore(sdev);
 	return 0;
 }

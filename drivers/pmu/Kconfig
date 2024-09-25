@@ -9,11 +9,30 @@ config ARCH_HAS_SMMU_PMCG
 	bool
 	depends ARM_SMMUv3
 
+config ARCH_IS_SMMU_PMCG_STRIDE64
+	bool
+
+config ARCH_IS_SMMU_PMCG_STRIDE32
+	bool
+
 config SMMU_PMCG
 	bool "SMMUv3 performance monitor counter groups (PMCG) support"
 	depends ARCH_HAS_SMMU_PMCG
 
 if SMMU_PMCG
+
+choice
+	prompt "Register stride"
+
+config SMMU_PMCG_STRIDE64
+	bool "64-bits"
+	depends ARCH_IS_SMMU_PMCG_STRIDE64
+
+config SMMU_PMCG_STRIDE32
+	bool "32-bits"
+	depends ARCH_IS_SMMU_PMCG_STRIDE32
+
+endchoice
 
 config SMMU_PMCG_MSI
 	bool "Enable PMCG MSI support"
