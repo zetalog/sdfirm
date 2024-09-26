@@ -413,11 +413,10 @@ void __smmu_pmcg_init(void)
 	cfgr = __raw_readl(TCU_PMCG_CFGR(iommu_dev));
 
 	/* Determine if page 1 is present */
-	if (cfgr & SMMU_PMCG_CFGR_RELOC_CTRS) {
-		smmu_pmu_ctrl.reloc_base = (SMMU_PAGESIZE << 1);
-	} else {
-		smmu_pmu_ctrl.reloc_base = 0;
-	}
+	if (cfgr & SMMU_PMCG_CFGR_RELOC_CTRS)
+		smmu_pmu_ctrl.reloc = true;
+	else
+		smmu_pmu_ctrl.reloc = false;
 
 	for (i = 0; i < SMMU_PMCG_ARCH_MAX_EVENTS; i++) {
 		if (__raw_readq(TCU_PMCG_CEID(iommu_dev, i)) & PMCG_CEID(i))

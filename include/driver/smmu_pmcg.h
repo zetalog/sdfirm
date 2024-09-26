@@ -3,39 +3,42 @@
 
 #include <target/iommu.h>
 
-#ifdef CONFIG_SMMU_PMCG_STRIDE64
-#define PMCG_STRIDE			8
+#ifdef CONFIG_SMMU_PMCG_SIZE64
+#define PMCG_SIZE			8
 #define __pmcg_read(addr)		__raw_readq(addr)
 #define __pmcg_write(v, addr)		__raw_writeq(v, addr)
-#endif /* CONFIG_SMMU_PMCG_STRIDE64 */
-#ifdef CONFIG_SMMU_PMCG_STRIDE32
-#define PMCG_STRIDE			4
+#endif /* CONFIG_SMMU_PMCG_SIZE64 */
+#ifdef CONFIG_SMMU_PMCG_SIZE32
+#define PMCG_SIZE			4
 #define __pmcg_read(addr)		__raw_readl(addr)
 #define __pmcg_write(v, addr)		__raw_writel(v, addr)
-#endif /* CONFIG_SMMU_PMCG_STRIDE32 */
+#endif /* CONFIG_SMMU_PMCG_SIZE32 */
 
 #define SMMU_PMCG_BASE			0x2000
 
 #define TCU_PMCG_PAGE0_REG(smmu, offset)	TCU_PAGE0_REG(smmu, SMMU_PMCG_BASE + (offset))
 #define TCU_PMCG_PAGE1_REG(smmu, offset)	TCU_PAGE2_REG(smmu, SMMU_PMCG_BASE + (offset))
+#define TCU_PMCG_RELOC_BASE			(SMMU_PAGESIZE << 1)
 #define TBU_PMCG_PAGE0_REG(smmu, tbu, offset)	TBU_PAGE0_REG(smmu, tbu, SMMU_PMCG_BASE + (offset))
 #define TBU_PMCG_PAGE1_REG(smmu, tbu, offset)	TBU_PAGE1_REG(smmu, tbu, SMMU_PMCG_BASE + (offset))
+#define TCU_PMCG_RELOC_REG(smmu, offset)	(smmu_pmus[smmu].reloc  ? TCU_PMCG_PAGE1_REG(smmu, offset) : TCU_PMCG_PAGE0_REG(smmu, offset))
+#define TBU_PMCG_RELOC_REG(smmu, offset)	(smmu_pmus[smmu].reloc  ? TBU_PMCG_PAGE1_REG(smmu, offset) : TBU_PMCG_PAGE0_REG(smmu, offset))
 
-#define TCU_PMCG_EVCNTR(smmu, n)	(TCU_PMCG_PAGE0_REG(smmu, 0x0 + SMMU_PMCG_RELOC_BASE(smmu)) + ((n) * PMCG_STRIDE))
-#define TCU_PMCG_EVTYPER(smmu, n)	(TCU_PMCG_PAGE0_REG(smmu, 0x400) + ((n) * 4))
-#define TCU_PMCG_SVR(smmu, n)		(TCU_PMCG_PAGE0_REG(smmu, 0x600 + SMMU_PMCG_RELOC_BASE(smmu)) + ((n) * PMCG_STRIDE))
-#define TCU_PMCG_SMR(smmu, n)		(TCU_PMCG_PAGE0_REG(smmu, 0xA00) + ((n) * 4))
+#define TCU_PMCG_EVCNTR(smmu, n)	TCU_PMCG_RELOC_REG(smmu, 0x0 + ((n) * PMCG_SIZE))
+#define TCU_PMCG_EVTYPER(smmu, n)	TCU_PMCG_PAGE0_REG(smmu, 0x400 + ((n) * 4))
+#define TCU_PMCG_SVR(smmu, n)		TCU_PMCG_RELOC_REG(smmu, 0x600 + ((n) * PMCG_SIZE))
+#define TCU_PMCG_SMR(smmu, n)		TCU_PMCG_PAGE0_REG(smmu, 0xA00 + ((n) * 4))
 #define TCU_PMCG_CNTENSET0(smmu)	TCU_PMCG_PAGE0_REG(smmu, 0xC00)
 #define TCU_PMCG_CNTENCLR0(smmu)	TCU_PMCG_PAGE0_REG(smmu, 0xC20)
 #define TCU_PMCG_INTENSET0(smmu)	TCU_PMCG_PAGE0_REG(smmu, 0xC40)
 #define TCU_PMCG_INTENCLR0(smmu)	TCU_PMCG_PAGE0_REG(smmu, 0xC60)
-#define TCU_PMCG_OVSCLR0(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xC80 + SMMU_PMCG_RELOC_BASE(smmu))
-#define TCU_PMCG_OVSSET0(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xCC0 + SMMU_PMCG_RELOC_BASE(smmu))
-#define TCU_PMCG_CAPR(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xD88i + SMMU_PMCG_RELOC_BASE(smmu))
+#define TCU_PMCG_OVSCLR0(smmu)		TCU_PMCG_RELOC_REG(smmu, 0xC80)
+#define TCU_PMCG_OVSSET0(smmu)		TCU_PMCG_RELOC_REG(smmu, 0xCC0)
+#define TCU_PMCG_CAPR(smmu)		TCU_PMCG_RELOC_REG(smmu, 0xD88)
 #define TCU_PMCG_SCR(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xDF8)
 #define TCU_PMCG_CFGR(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xE00)
 #define TCU_PMCG_CR(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xE04)
-#define TCU_PMCG_CEID(smmu, n)		(TCU_PMCG_PAGE0_REG(smmu, 0xE20) + (REG64_1BIT_INDEX(n) << 3))
+#define TCU_PMCG_CEID(smmu, n)		TCU_PMCG_PAGE0_REG(smmu, 0xE20 + (REG64_1BIT_INDEX(n) << 3))
 #define TCU_PMCG_IRQ_CTRL(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xE50)
 #define TCU_PMCG_IRQ_CTRLACK(smmu)	TCU_PMCG_PAGE0_REG(smmu, 0xE54)
 #ifdef CONFIG_SMMU_PMCG_MSI
@@ -61,21 +64,21 @@
 #define TCU_PMCG_PMDARCH(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xFBC)
 #define TCU_PMCG_PMDTYPE(smmu)		TCU_PMCG_PAGE0_REG(smmu, 0xFCC)
 
-#define TBU_PMCG_EVCNTR(smmu, tbu, n)	(TBU_PMCG_PAGE0_REG(smmu, tbu, 0x0)+ ((n) * PMCG_STRIDE))
-#define TBU_PMCG_EVTYPER(smmu, tbu, n)	(TBU_PMCG_PAGE0_REG(smmu, tbu, 0x400)+ ((n) * 4))
-#define TBU_PMCG_SVR(smmu, tbu, n)	(TBU_PMCG_PAGE0_REG(smmu, tbu, 0x600)+ ((n) * PMCG_STRIDE))
-#define TBU_PMCG_SMR(smmu, tbu, n)	(TBU_PMCG_PAGE0_REG(smmu, tbu, 0xA00)+ ((n) * 4))
+#define TBU_PMCG_EVCNTR(smmu, tbu, n)	TBU_PMCG_RELOC_REG(smmu, tbu, 0x0 + ((n) * PMCG_SIZE))
+#define TBU_PMCG_EVTYPER(smmu, tbu, n)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0x400 + ((n) * 4))
+#define TBU_PMCG_SVR(smmu, tbu, n)	TBU_PMCG_RELOC_REG(smmu, tbu, 0x600 + ((n) * PMCG_SIZE))
+#define TBU_PMCG_SMR(smmu, tbu, n)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xA00 + ((n) * 4))
 #define TBU_PMCG_CNTENSET0(smmu, tbu)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xC00)
 #define TBU_PMCG_CNTENCLR0(smmu, tbu)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xC20)
 #define TBU_PMCG_INTENSET0(smmu, tbu)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xC40)
 #define TBU_PMCG_INTENCLR0(smmu, tbu)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xC60)
-#define TBU_PMCG_OVSCLR0(smmu, tbu, n)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xC80)
-#define TBU_PMCG_OVSSET0(smmu, tbu, n)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xCC0)
-#define TBU_PMCG_CAPR(smmu, tbu)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xD88)
+#define TBU_PMCG_OVSCLR0(smmu, tbu, n)	TBU_PMCG_RELOC_REG(smmu, tbu, 0xC80)
+#define TBU_PMCG_OVSSET0(smmu, tbu, n)	TBU_PMCG_RELOC_REG(smmu, tbu, 0xCC0)
+#define TBU_PMCG_CAPR(smmu, tbu)	TBU_PMCG_RELOC_REG(smmu, tbu, 0xD88)
 #define TBU_PMCG_SCR(smmu, tbu)		TBU_PMCG_PAGE0_REG(smmu, tbu, 0xDF8)
 #define TBU_PMCG_CFGR(smmu, tbu)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xE00)
 #define TBU_PMCG_CR(smmu, tbu)		TBU_PMCG_PAGE0_REG(smmu, tbu, 0xE04)
-#define TBU_PMCG_CEID(smmu, tbu, n)	(TBU_PMCG_PAGE0_REG(smmu, tbu, 0xE20) + (REG64_1BIT_INDEX(n) << 3))
+#define TBU_PMCG_CEID(smmu, tbu, n)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xE20 + (REG64_1BIT_INDEX(n) << 3))
 #define TBU_PMCG_IRQ_CTRL(smmu)		TBU_PMCG_PAGE0_REG(smmu, tbu, 0xE50)
 #define TBU_PMCG_IRQ_CTRLACK(smmu)	TBU_PMCG_PAGE0_REG(smmu, tbu, 0xE54)
 #ifdef CONFIG_SMMU_PMCG_MSI
@@ -196,7 +199,7 @@ struct smmu_pmu {
 	unsigned int irq;
 	unsigned int on_cpu;
 	unsigned int num_counters;
-	caddr_t reloc_base;
+	bool reloc;
 	uint64_t counter_mask;
 	uint32_t options;
 	uint32_t iidr;

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Sat Sep 21 14:39:53 2024
+# Thu Sep 26 09:14:10 2024
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -574,7 +574,10 @@ CONFIG_ARCH_HAS_N100_CCIX=y
 # PMU drivers
 #
 CONFIG_ARCH_HAS_SMMU_PMCG=y
+CONFIG_ARCH_IS_SMMU_PMCG_SIZE32=y
 CONFIG_SMMU_PMCG=y
+# CONFIG_SMMU_PMCG_SIZE64 is not set
+CONFIG_SMMU_PMCG_SIZE32=y
 # CONFIG_SMMU_PMCG_MSI is not set
 
 #
