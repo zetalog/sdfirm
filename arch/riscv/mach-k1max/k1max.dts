@@ -76,7 +76,11 @@
 #ifdef CONFIG_CPU_CVA6
 			riscv,isa = "rv64imafdcsu_sscofpmf";
 #else
+#ifdef CONFIG_RISCV_SMAIA
+			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc_smaia_ssaia_smstateen";
+#else
 			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+#endif
 #endif
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
@@ -85,6 +89,7 @@
 
 			cpu0_intc: interrupt-controller {
 				#interrupt-cells = <0x1>;
+				#address-cells = <1>;
 				interrupt-controller;
 				compatible = "riscv,cpu-intc";
 			};
@@ -268,8 +273,13 @@
 
 #ifdef CONFIG_DW_UART
 		uart@10010000 {
-			interrupts = <16>;
+#ifdef CONFIG_RISCV_SMAIA
+			interrupt-parent = <&saplic>;
+			interrupts = <16 4>;
+#else
 			interrupt-parent = <&plic>;
+			interrupts = <16>;
+#endif
 			clock-frequency = <APB_CLK_FREQ>;
 			reg = <DT_REGHI(UART_BASE) DT_REGLO(UART_BASE)
 			       0x0 0x1000
@@ -325,6 +335,65 @@
 		};
 #endif
 
+#ifdef CONFIG_RISCV_SMAIA
+		maplic: interrupt-controller@30000000 {
+			compatible = "riscv,aplic";
+			msi-parent = <&mimsic>;
+			reg = <0x0 0x30000000 0x0 0x4000>;
+			interrupt-controller;
+			#interrupt-cells = <2>;
+			#address-cells = <1>;
+			riscv,num-sources = <96>;
+			riscv,children = <&saplic>;
+			riscv,delegate = <&saplic 1 90>;
+			status = "disabled";
+		};
+
+		saplic: interrupt-controller@30004000 {
+			compatible = "riscv,aplic";
+			msi-parent = <&simsic>;
+			reg = <0x0 0x30004000 0x0 0x4000>;
+			interrupt-controller;
+			#interrupt-cells = <2>;
+			#address-cells = <1>;
+			riscv,num-sources = <96>;
+		};
+
+		mimsic: interrupt-controller@3c000000 {
+			compatible = "riscv,imsics";
+			interrupts-extended = <&cpu0_intc 11
+#ifdef CONFIG_SMP
+						&cpu1_intc 11
+#endif
+			>;
+			reg = <0x0 0x3C000000 0x0 0x2000>;
+			interrupt-controller;
+			#interrupt-cells = <0>;
+			#address-cells = <1>;
+			msi-controller;
+			riscv,num-ids = <255>;
+			status = "disabled";
+		};
+
+		simsic: interrupt-controller@3c100000 {
+			compatible = "riscv,imsics";
+			interrupts-extended = <&cpu0_intc 9
+#ifdef CONFIG_SMP
+						&cpu1_intc 9
+#endif
+			>;
+			reg = <0x0 0x3C100000 0x0 0x100000>;
+			interrupt-controller;
+			#interrupt-cells = <0>;
+			#address-cells = <1>;
+			msi-controller;
+			riscv,num-ids = <255>;
+			riscv,group-index-bits = <1>;
+			riscv,group-index-shift = <32>;
+			riscv,hart-index-bits = <4>;
+			riscv,guest-index-bits = <4>;
+		};
+#else
 		plic: interrupt-controller@30000000 {
 			reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
 			       0x0 0x08000000
@@ -354,12 +423,18 @@
 			#interrupt-cells = <0x1>;
 			#address-cells = <0x0>;
 		};
+#endif
 
 		dma: dma-controller@10030000{
 			compatible = "snps,dma-spear1340";
 			reg = <0x0 0x10030000 0x0 0x1000>;
+#ifdef CONFIG_RISCV_SMAIA
+			interrupt-parent = <&saplic>;
+			interrupts = <21 4>;
+#else
 			interrupt-parent = <&plic>;
 			interrupts = <21>;
+#endif
 			dma-masters = <1>;
 			dma-channels = <8>;
 			chan_allocation_order = <0>;
@@ -403,8 +478,13 @@
 			compatible = "spacemit,k1-pro-mac";
 			reg = <0x00 0x1003a000 0x00 0x10000>;
 			reg-names = "gmac";
+#ifdef CONFIG_RISCV_SMAIA
+			interrupt-parent = <&saplic>;
+			interrupts = <0x1a 4>;
+#else
 			interrupt-parent = <&plic>;
 			interrupts = <0x1a>;
+#endif
 			interrupt-names = "macirq";
 			snps,pbl = <0x20>;
 			snps,fixed-burst;

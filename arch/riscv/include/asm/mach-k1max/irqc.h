@@ -69,6 +69,10 @@ extern caddr_t k1max_plic_ctx_base[2];
 #define clint_hw_ctx(cpu)		cpu2pic(cpu)
 
 #include <asm/plic.h>
+#ifdef CONFIG_RISCV_SMAIA
+#include <asm/aplic.h>
+#include <asm/imsic.h>
+#endif
 
 #define plic_hw_ctrl_init()			\
 	do {					\

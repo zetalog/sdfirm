@@ -135,9 +135,14 @@ static int k1max_console_getc(void)
 
 static int k1max_irqchip_init(bool cold_boot)
 {
+#ifdef CONFIG_RISCV_SMAIA
+	imsic_sbi_init_cold();
+	aplic_sbi_init_cold();
+#else
 	if (cold_boot)
 		plic_sbi_init_cold();
 	plic_sbi_init_warm(sbi_processor_id());
+#endif
 	return 0;
 }
 

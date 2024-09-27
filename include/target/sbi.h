@@ -777,6 +777,7 @@ ulong sbi_hart_available_mask(void);
 void sbi_hart_unmark_available(uint32_t hartid);
 struct sbi_scratch *sbi_hart_id_to_scratch(struct sbi_scratch *scratch,
 					   uint32_t hartid);
+struct sbi_scratch * sbi_hartid_to_scratch(uint32_t hartid);
 uint32_t sbi_current_hartid(void);
 int sbi_hart_priv_version(struct sbi_scratch *scratch);
 void sbi_hart_get_priv_version_str(struct sbi_scratch *scratch,

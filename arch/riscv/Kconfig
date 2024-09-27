@@ -269,6 +269,7 @@ config ARCH_K1MAX
 	select PLIC if !SYS_NOIRQ
 	select ARCH_HAS_NOC if K1M_SOC || K1M_K1X
 	select K1M_UART if CONSOLE || DEBUG_PRINT
+	select ARCH_HAS_IMSIC if CPU_SMAIA_IMSIC
 	help
 	  This enables support for spacemit k1max IoT platform.
 

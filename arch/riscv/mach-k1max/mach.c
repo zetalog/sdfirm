@@ -114,6 +114,7 @@ void board_shutdown(void)
 
 static int do_k1max_aia_msi(int argc, char *argv[])
 {
+#ifdef CONFIG_CPU_SMAIA_IMSIC
 	int i, msi;
 	uint64_t inc = 0x0101010101010101;
 	uint64_t val;
@@ -167,10 +168,14 @@ static int do_k1max_aia_msi(int argc, char *argv[])
 		printf("EIE%02d      : %016llx\n", i, val);
 	}
 	return 0;
+#else
+	return -1;
+#endif
 }
 
 static int do_k1max_aia_prio(int argc, char *argv[])
 {
+#ifdef CONFIG_CPU_SMAIA_IMSIC
 	int i;
 	uint64_t inc = 0x0101010101010101;
 	uint64_t val = 0x3020100030201000;
@@ -186,6 +191,9 @@ static int do_k1max_aia_prio(int argc, char *argv[])
 		printf("MIPRIO%02d   : %016llx\n", i, val);
 	}
 	return 0;
+#else
+	return -1;
+#endif
 }
 
 static int do_k1max_aia(int argc, char *argv[])

@@ -106,6 +106,10 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
 			 struct clint_data *clint);
 int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
 			  const char *compatible);
+#ifdef CONFIG_RISCV_SMAIA
+int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic);
+int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic);
+#endif
 
 #ifdef CONFIG_FDT_PMU
 int fdt_pmu_setup(void *fdt);

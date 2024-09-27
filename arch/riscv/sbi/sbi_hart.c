@@ -867,3 +867,9 @@ struct sbi_scratch *sbi_hart_id_to_scratch(struct sbi_scratch *scratch,
 {
 	return ((h2s)scratch->hartid_to_scratch)(hartid);
 }
+
+struct sbi_scratch *sbi_hartid_to_scratch(uint32_t hartid)
+{
+	extern struct sbi_scratch * _hartid_to_scratch(uint32_t hartid);
+	return _hartid_to_scratch(hartid);
+}
