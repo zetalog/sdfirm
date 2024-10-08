@@ -3,6 +3,10 @@
 
 #include <target/generic.h>
 #include <target/sbi.h>
+#ifdef CONFIG_RISCV_SMAIA
+#include <asm/imsic.h>
+#include <asm/aplic.h>
+#endif
 
 #ifdef __CHECKER__
 #define FDT_FORCE	__attribute__((force))
