@@ -442,8 +442,6 @@ endchoice
 
 endif
 
-source "arch/arm64/common/coresight/Kconfig"
-
 menu "ARM CoreLink peripheral support"
 
 endmenu

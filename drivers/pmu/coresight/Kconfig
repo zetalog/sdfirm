@@ -1,0 +1,61 @@
+
+menuconfig CORESIGHT
+	bool "ARM CoreSight architecture support"
+
+if CORESIGHT
+
+config CORESIGHT_VERBOSE
+	bool "Enable log verbosity"
+	help
+	  Print detailed enumeration logs.
+
+config CORESIGHT_DBG_CPUv80A
+	bool "ARM CoreSight Processor Core v8.0A Debug support"
+	depends CPU_v80A
+	help
+	  DEVARCH.archid=0x6A15.
+
+config CORESIGHT_ETM
+	bool "ARM CoreSight Embedded Trace Macrocell (ETM) support"
+	help
+	  DEVARCH.archid=0x4A13.
+
+config CORESIGHT_STM
+	bool "ARM CoreSight System Trace Macrocell (STM) support"
+	help
+	  DEVARCH.archid=0x0A63.
+
+config CORESIGHT_PMU
+	bool "ARM CoreSight Performance Monitor Unit (PMU) support"
+	help
+	  DEVARCH.archid=0x2A16.
+
+config CORESIGHT_CTI
+	bool "ARM CoreSight Cross Trigger Interface (CTI) support"
+
+config CORESIGHT_TPIU
+	bool "ARM CoreSight Trace Port Interface Unit (TPIU) support"
+	help
+	  DEVTYPE.major=1, DEVTYPE.sub=1.
+
+config CORESIGHT_ETB
+	bool "ARM CoreSight Embedded Trace Buffer (ETB) support"
+	help
+	  DEVTYPE.major=1, DEVTYPE.sub=2.
+
+config CORESIGHT_FUNNEL
+	bool "ARM CoreSight Funnel/Router support"
+	help
+	  DEVTYPE.major=2, DEVTYPE.sub=1.
+
+config CORESIGHT_REPLICATOR
+	bool "ARM CoreSight Replicator support"
+	help
+	  DEVTYPE.major=2, DEVTYPE.sub=2.
+
+config CORESIGHT_TMC
+	bool "ARM CoreSight Trace Memory Controller (TMC) support"
+	help
+	  DEVTYPE.major=2, DEVTYPE.sub=3.
+
+endif
