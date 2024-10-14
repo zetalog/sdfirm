@@ -381,7 +381,6 @@ static int test_stuck_address(ulv *bufa, size_t count)
         printf("\b\b\b\b\b\b\b\b\b\b\b");
         p1 = (ulv *) bufa;
         printf("setting %3u\n", j);
-	printf("count:%lu\n",count);
         fflush(stdout);
         for (i = 0; i < count; i++) {
             *p1 = ((j + i) % 2) == 0 ? (ul) p1 : ~((ul) p1);
@@ -392,7 +391,6 @@ static int test_stuck_address(ulv *bufa, size_t count)
         fflush(stdout);
         p1 = (ulv *) bufa;
         for (i = 0; i < count; i++, p1++) {
-		printf("i:%ld\n", i);
             if (*p1 != (((j + i) % 2) == 0 ? (ul) p1 : ~((ul) p1))) {
                 memtester_badaddr(i);
                 printf("Skipping to next test...\n");
