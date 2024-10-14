@@ -39,4 +39,6 @@ config SMMU_PMCG_MSI
 
 endif
 
+source "drivers/pmu/coresight/Kconfig"
+
 endmenu
