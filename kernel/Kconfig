@@ -771,8 +771,15 @@ endmenu
 config ARCH_HAS_GPIO
 	bool
 
-config GPIO
+menuconfig GPIO
 	bool "General purpose Input/Output (GPIO) support"
+
+if GPIO
+
+config GPIO_COMMANDS
+	bool "Enable GPIO command line support"
+
+endif
 
 config ARCH_HAS_CLK
 	bool
