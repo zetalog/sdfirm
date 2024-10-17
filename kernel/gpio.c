@@ -6,6 +6,27 @@ void gpio_init(void)
 	gpio_hw_ctrl_init();
 }
 
+#ifdef CONFIG_GPIO_COMMANDS
+uint8_t gpio_pins[NR_GPIOS];
+uint8_t gpio_drives[NR_GPIOS];
+
+static int do_gpio_pin_dump(int argc, char *argv[])
+{
+	uint16_t pin;
+
+	for (pin = 0; pin < NR_GPIOS; pin++) {
+		printf("%d: %c%c %s %s %s %dMA\n",
+		       pin,
+		       gpio_pins[pin] & GPIO_PAD_PULL_UP ? 'U' : '\0',
+		       gpio_pins[pin] & GPIO_PAD_PULL_DOWN ? 'D' : '\0',
+		       gpio_pins[pin] & GPIO_PAD_OPEN_DRAIN ? "OD" : "PP",
+		       gpio_pins[pin] & GPIO_PAD_SLEW_RATE ? "slew-rate" : "",
+		       gpio_pins[pin] & GPIO_PAD_SCHMITT_TRIG ? "schmit-trig" : "",
+		       gpio_drives[pin]);
+	}
+	return 0;
+}
+
 static int do_gpio_pin(int argc, char *argv[])
 {
 	int port, pin;
@@ -51,11 +72,34 @@ static int do_gpio_pin(int argc, char *argv[])
 		gpio_write_pin(port, pin, !!val);
 		return 0;
 	}
+	if (strcmp(argv[4], "dump") == 0) {
+		do_gpio_pin_dump(argc, argv);
+		return 0;
+	}
 	return -EINVAL;
 
 }
 
 #ifndef CONFIG_SYS_NOIRQ
+uint8_t gpio_irqs[NR_GPIOS];
+bool gpio_irq_ens[NR_GPIOS];
+
+static int do_gpio_irq_dump(int argc, char *argv[])
+{
+	uint16_t pin;
+
+	for (pin = 0; pin < NR_GPIOS; pin++) {
+		if (gpio_irq_ens[pin]) {
+			printf("%d: %c%c %c\n",
+			       pin,
+			       gpio_irqs[pin] & GPIO_IRQ_HIGH ? 'H' : '\0',
+			       gpio_irqs[pin] & GPIO_IRQ_LOW ? 'L' : '\0',
+			       gpio_irqs[pin] & GPIO_IRQ_LEVEL_TRIG ? 'L' : 'E');
+		}
+	}
+	return 0;
+}
+
 static int do_gpio_irq(int argc, char *argv[])
 {
 	int port, pin;
@@ -76,16 +120,23 @@ static int do_gpio_irq(int argc, char *argv[])
 		if (strcmp(argv[6], "high") == 0)
 			mode |= GPIO_IRQ_HIGH;
 		else
-			mode |= GPIO_IRQ_LOW
+			mode |= GPIO_IRQ_LOW;
+		gpio_irqs[pin] = mode;
 		gpio_config_irq(port, pin, mode);
 		return 0;
 	}
 	if (strcmp(argv[4], "enable") == 0) {
+		gpio_irq_ens[pin] = true;
 		gpio_enable_irq(port, pin);
 		return 0;
 	}
 	if (strcmp(argv[4], "disable") == 0) {
+		gpio_irq_ens[pin] = false;
 		gpio_disable_irq(port, pin);
+		return 0;
+	}
+	if (strcmp(argv[4], "dump") == 0) {
+		do_gpio_irq_dump(argc, argv);
 		return 0;
 	}
 	return -EINVAL;
@@ -122,3 +173,4 @@ DEFINE_COMMAND(gpio, do_gpio, "general purpose IO (GPIO) commands",
 	"gpio irq <port> <pin> disable\n"
 	"    -disable GPIO interrupt\n"
 );
+#endif
