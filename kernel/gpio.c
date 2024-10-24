@@ -32,31 +32,35 @@ static int do_gpio_pin(int argc, char *argv[])
 	int port, pin;
 	uint8_t val;
 	uint8_t mode = 0;
-	uint8_t ma = 10;
+	uint8_t ma = 0;
 
-	if (argc < 5)
-		return -EINVAL;
 	port = (uint8_t)strtoull(argv[2], 0, 0);
 	pin = (uint8_t)strtoull(argv[3], 0, 0);
-	if (strcmp(argv[4], "config") == 0) {
-		if (argc < 9)
+	if (strcmp(argv[4], "in") == 0) {
+		if (argc < 5)
 			return -EINVAL;
-		if (strcmp(argv[5], "in") == 0)
-			mode |= GPIO_DRIVE_IN;
-		if (strcmp(argv[6], "od") == 0)
-			mode |= GPIO_PAD_OPEN_DRAIN;
-		else
-			mode |= GPIO_PAD_PUSH_PULL;
-		if (strcmp(argv[7], "up") == 0)
+		ma = GPIO_DRIVE_IN;
+		if (strcmp(argv[5], "up") == 0)
 			mode |= GPIO_PAD_PULL_UP;
 		else
 			mode |= GPIO_PAD_PULL_DOWN;
-		if (strcmp(argv[8], "strong") == 0)
-			mode |= GPIO_PAD_STRONG_PULL;
-		else
-			mode |= GPIO_PAD_WEAK_PULL;
-		if (argc >= 9)
-			ma = (uint8_t)strtoull(argv[9], 0, 0);
+		if (argc > 5){
+			if (strcmp(argv[6], "od") == 0)
+				mode |= GPIO_PAD_OPEN_DRAIN;
+			else
+				mode |= GPIO_PAD_PUSH_PULL;
+			if (strcmp(argv[7], "strong") == 0)
+				mode |= GPIO_PAD_STRONG_PULL;
+			else
+				mode |= GPIO_PAD_WEAK_PULL;
+		}
+		gpio_config_pad(port, pin, mode, ma);
+		return 0;
+	}
+	else if (strcmp(argv[4], "out") == 0){
+		if (argc < 5)
+			return -EINVAL;
+		ma = (uint8_t)strtoull(argv[5], 0, 0);
 		gpio_config_pad(port, pin, mode, ma);
 		return 0;
 	}
@@ -66,7 +70,7 @@ static int do_gpio_pin(int argc, char *argv[])
 		return 0;
 	}
 	if (strcmp(argv[4], "write") == 0) {
-		if (argc < 6)
+		if (argc < 5)
 			return -EINVAL;
 		val  = (uint8_t)strtoull(argv[5], 0, 0);
 		gpio_write_pin(port, pin, !!val);
@@ -159,13 +163,17 @@ static int do_gpio(int argc, char *argv[])
 	return -EINVAL;
 }
 
-DEFINE_COMMAND(gpio, do_gpio, "general purpose IO (GPIO) commands",
-	"gpio pin <port> <pin> config <in|out> <pp|od> <up|down> <weak|strong> [ma]\n"
+DEFINE_COMMAND(gpio, do_gpio, "general purposes IO (GPIO) commands",
+	"gpio pin <port> <pin> in <up|down> [pp|od] [weak|strong]\n"
+	"    -configure GPIO pad\n"
+	"gpio pin <port> <pin> out <ma>\n"
 	"    -configure GPIO pad\n"
 	"gpio pin <port> <pin> write <value>\n"
 	"    -write GPIO value\n"
 	"gpio pin <port> <pin> read\n"
 	"    -read GPIO value\n"
+	"gpio pin <port> <pin> dump\n"
+	"    -dump GPIO pad\n"
 	"gpio irq <port> <pin> config <in|out> <edge|level> <high|low>\n"
 	"    -configure GPIO interrupt\n"
 	"gpio irq <port> <pin> enable\n"
