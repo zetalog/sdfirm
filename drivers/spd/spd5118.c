@@ -253,10 +253,12 @@ static int do_spd5_reg(int argc, char *argv[])
 	if (strcmp(argv[2], "write") == 0) {
 		if (argc < 6)
 			return -EINVAL;
+#if 0
 		if (adr == SPD5_MR(11)) {
 			printf("Please use \"cfg legacy\" command\n");
 			return -EINVAL;
 		}
+#endif
 		val = (uint8_t)strtoull(argv[5], 0, 0);
 		spd5_write_reg(hid, adr, val);
 	}

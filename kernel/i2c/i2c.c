@@ -2,6 +2,12 @@
 #include <target/panic.h>
 #include <target/bh.h>
 
+#ifdef CONFIG_DW_I2C_DEBUG
+#define i2c_dbg(...)	con_dbg(__VA_ARGS__)
+#else
+#define i2c_dbg(...)	do { } while (0)
+#endif
+
 #ifdef SYS_REALTIME
 #define i2c_poll_init()		__i2c_poll_init()
 #define i2c_irq_init()		do { } while (0)
@@ -102,7 +108,7 @@ const char *i2c_event_name(uint8_t event)
 
 void i2c_raise_event(uint8_t event)
 {
-	con_dbg("i2c: event = %s\n", i2c_event_name(event));
+	i2c_dbg("i2c: event = %s\n", i2c_event_name(event));
 	i2c_event |= event;
 	bh_resume(i2c_bh);
 }
@@ -123,7 +129,7 @@ static void i2c_write_address(void)
 
 void i2c_enter_state(uint8_t state)
 {
-	con_dbg("i2c: state = %s\n", i2c_state_name(state));
+	i2c_dbg("i2c: state = %s\n", i2c_state_name(state));
 	i2c_state = state;
 	if (state == I2C_STATE_IDLE) {
 		if (i2c_rxsubmit == 0)
@@ -411,7 +417,7 @@ void i2c_register_device(i2c_device_t *dev)
 
 void i2c_set_status(uint8_t status)
 {
-	con_dbg("i2c: status = %s\n", i2c_status_name(status));
+	i2c_dbg("i2c: status = %s\n", i2c_status_name(status));
 	i2c_status = status;
 #if 0
 	if (status == I2C_STATUS_IDLE)

@@ -3,6 +3,12 @@
 #include <target/console.h>
 #include <target/irq.h>
 
+#ifdef CONFIG_DW_I2C_DEBUG
+#define dw_i2c_dbg(...)		con_dbg(__VA_ARGS__)
+#else
+#define dw_i2c_dbg(...)		do { } while (0)
+#endif
+
 #if NR_DW_I2CS > 1
 #define dw_i2c				dw_i2cs[dw_i2cd]
 
@@ -27,13 +33,13 @@ uint32_t dw_i2c_readl(caddr_t reg)
 	uint32_t val;
 
 	val = __raw_readl(reg);
-	con_dbg("dw_i2c: R %016lx=%08x\n", reg, val);
+	dw_i2c_dbg("dw_i2c: R %016lx=%08x\n", reg, val);
 	return val;
 }
 
 void dw_i2c_writel(uint32_t val, caddr_t reg)
 {
-	con_dbg("dw_i2c: W %016lx=%08x\n", reg, val);
+	dw_i2c_dbg("dw_i2c: W %016lx=%08x\n", reg, val);
 	__raw_writel(val, reg);
 }
 
@@ -168,7 +174,7 @@ void dw_i2c_start_condition(bool sr)
 		dw_i2c_stop_condition();
 	}
 	i2c_set_status(I2C_STATUS_START);
-	con_dbg("dw_i2c: DW_I2C_DRIVER_START\n");
+	dw_i2c_dbg("dw_i2c: DW_I2C_DRIVER_START\n");
 	dw_i2c.state = DW_I2C_DRIVER_START;
 }
 
@@ -184,7 +190,7 @@ void dw_i2c_start_condition(bool sr)
  */
 void dw_i2c_stop_condition(void)
 {
-	con_dbg("dw_i2c: DW_I2C_DRIVER_STOP\n");
+	dw_i2c_dbg("dw_i2c: DW_I2C_DRIVER_STOP\n");
 	dw_i2c.state = DW_I2C_DRIVER_STOP;
 }
 
@@ -203,7 +209,7 @@ bool dw_i2c_device_id(uint8_t byte)
 	case DW_I2C_DRIVER_START:
 		/* Process 1st byte: Detect this case. */
 		if (byte == (I2C_ADDR_DEVID << 7 | I2C_MODE_TX)) {
-			con_dbg("dw_i2c: DW_I2C_DRIVER_DEVID_START\n");
+			dw_i2c_dbg("dw_i2c: DW_I2C_DRIVER_DEVID_START\n");
 			dw_i2c.state = DW_I2C_DRIVER_DEVID_START;
 			return true;
 		}
@@ -217,14 +223,14 @@ bool dw_i2c_device_id(uint8_t byte)
 		val = dw_i2c.addr_mode >> 1;
 		val |= IC_TAR_DEVICE_ID;
 		dw_i2c_update_target(val);
-		con_dbg("dw_i2c: DW_I2C_DRIVER_DEVID_TAR\n");
+		dw_i2c_dbg("dw_i2c: DW_I2C_DRIVER_DEVID_TAR\n");
 		dw_i2c.state = DW_I2C_DRIVER_DEVID_TAR;
 		return true;
 	case DW_I2C_DRIVER_DEVID_TAR:
 		/* Process 3rd byte:
 		 * Push 3 read commands into IC_DATA_CMD.
 		 */
-		con_dbg("dw_i2c: DW_I2C_DRIVER_DATA\n");
+		dw_i2c_dbg("dw_i2c: DW_I2C_DRIVER_DATA\n");
 		dw_i2c.state = DW_I2C_DRIVER_DATA;
 		return true;
 	default:
@@ -277,7 +283,7 @@ void dw_i2c_write_byte(uint8_t byte)
 	if (dw_i2c.state == DW_I2C_DRIVER_START) {
 		dw_i2c.addr_mode = byte;
 		dw_i2c_set_target(i2c_addr(dw_i2c.addr_mode));
-		con_dbg("dw_i2c: DW_I2C_DRIVER_DATA\n");
+		dw_i2c_dbg("dw_i2c: DW_I2C_DRIVER_DATA\n");
 		dw_i2c.state = DW_I2C_DRIVER_DATA;
 		i2c_set_status(I2C_STATUS_ACK);
 		return;
@@ -340,7 +346,7 @@ void dw_i2c_transfer_reset(void)
 
 	/* Reset internal status of driver */
 	dw_i2c.addr_mode = 0;
-	con_dbg("dw_i2c: DW_I2C_DRIVER_INIT\n");
+	dw_i2c_dbg("dw_i2c: DW_I2C_DRIVER_INIT\n");
 	dw_i2c.state = DW_I2C_DRIVER_INIT;
 }
 
@@ -356,32 +362,32 @@ void dw_i2c_handle_irq(void)
 		return;
 
 	if (status & IC_INTR_RX_UNDER) {
-		con_dbg("dw_i2c: INTR_RX_UNDER\n");
+		dw_i2c_dbg("dw_i2c: INTR_RX_UNDER\n");
 		__raw_readl(IC_CLR_RX_UNDER(dw_i2cd));
 	}
 	if (status & IC_INTR_RX_OVER) {
-		con_dbg("dw_i2c: INTR_RX_OVER\n");
+		dw_i2c_dbg("dw_i2c: INTR_RX_OVER\n");
 		__raw_readl(IC_CLR_RX_OVER(dw_i2cd));
 	}
 	if (status & IC_INTR_RX_FULL) {
-		con_dbg("dw_i2c: INTR_RX_FULL\n");
+		dw_i2c_dbg("dw_i2c: INTR_RX_FULL\n");
 		dw_i2c.status = I2C_STATUS_ACK;
 	}
 	if (status & IC_INTR_TX_OVER) {
-		con_dbg("dw_i2c: INTR_TX_OVER\n");
+		dw_i2c_dbg("dw_i2c: INTR_TX_OVER\n");
 		__raw_readl(IC_CLR_TX_OVER(dw_i2cd));
 	}
 	if (status & IC_INTR_TX_EMPTY) {
-		con_dbg("dw_i2c: INTR_TX_EMPTY\n");
+		dw_i2c_dbg("dw_i2c: INTR_TX_EMPTY\n");
 		dw_i2c.status = I2C_STATUS_ACK;
 		dw_i2c_clearl(IC_INTR_IDL, IC_INTR_MASK(dw_i2cd));
 	}
 	if (status & IC_INTR_RD_REQ) {
-		con_dbg("dw_i2c: INTR_RD_REQ\n");
+		dw_i2c_dbg("dw_i2c: INTR_RD_REQ\n");
 		__raw_readl(IC_CLR_RD_REQ(dw_i2cd));
 	}
 	if (status & IC_INTR_TX_ABRT) {
-		con_dbg("dw_i2c: INTR_TX_ABRT\n");
+		dw_i2c_dbg("dw_i2c: INTR_TX_ABRT\n");
 		abrt_src = (i2c_addr_t)__raw_readl(IC_TX_ABRT_SOURCE(dw_i2cd));
 		__raw_readl(IC_CLR_TX_ABRT(dw_i2cd));
 		if (abrt_src & IC_TX_ABRT_SOURCE_NOACK)
@@ -390,37 +396,37 @@ void dw_i2c_handle_irq(void)
 			dw_i2c.status = I2C_STATUS_ARBI;
 	}
 	if (status & IC_INTR_RX_DONE) {
-		con_dbg("dw_i2c: INTR_RX_DONE\n");
+		dw_i2c_dbg("dw_i2c: INTR_RX_DONE\n");
 		__raw_readl(IC_CLR_RX_DONE(dw_i2cd));
 	}
 	if (status & IC_INTR_ACTIVITY) {
-		con_dbg("dw_i2c: INTR_ACTIVITY\n");
+		dw_i2c_dbg("dw_i2c: INTR_ACTIVITY\n");
 		__raw_readl(IC_CLR_ACTIVITY(dw_i2cd));
 	}
 	if (status & IC_INTR_STOP_DET) {
-		con_dbg("dw_i2c: INTR_STOP_DET\n");
+		dw_i2c_dbg("dw_i2c: INTR_STOP_DET\n");
 		__raw_readl(IC_CLR_STOP_DET(dw_i2cd));
 		/* dw_i2c.status = I2C_STATUS_STOP; */
 	}
 	if (status & IC_INTR_START_DET) {
-		con_dbg("dw_i2c: INTR_START_DET\n");
+		dw_i2c_dbg("dw_i2c: INTR_START_DET\n");
 		__raw_readl(IC_CLR_START_DET(dw_i2cd));
 	}
 	if (status & IC_INTR_GEN_CALL) {
-		con_dbg("dw_i2c: INTR_GEN_CALL\n");
+		dw_i2c_dbg("dw_i2c: INTR_GEN_CALL\n");
 		__raw_readl(IC_CLR_GEN_CALL(dw_i2cd));
 	}
 #ifdef CONFIG_DW_I2C_SLV_RESTART_DET
 	if (status & IC_INTR_RESTART_DET) {
-		con_dbg("dw_i2c: INTR_RESTART_DET\n");
+		dw_i2c_dbg("dw_i2c: INTR_RESTART_DET\n");
 	}
 #endif
 	if (status & IC_INTR_MASTER_ON_HOLD) {
-		con_dbg("dw_i2c: INTR_MASTER_ON_HOLD\n");
+		dw_i2c_dbg("dw_i2c: INTR_MASTER_ON_HOLD\n");
 	}
 #ifdef CONFIG_DW_I2C_BUS_CLEAR
 	if (status & IC_INTR_SCL_STUCK_AT_LOW) {
-		con_dbg("dw_i2c: INTR_SCL_STU_AT_LOW\n");
+		dw_i2c_dbg("dw_i2c: INTR_SCL_STU_AT_LOW\n");
 	}
 #endif
 }
@@ -450,14 +456,14 @@ void __dw_i2c_master_init(void)
 	dw_i2c_writel(IC_INTR_DEF, IC_INTR_MASK(dw_i2cd));
 	dw_i2c_ctrl_disable();
 
-	con_dbg("dw_i2c: DW_I2C_DRIVER_INIT\n");
+	dw_i2c_dbg("dw_i2c: DW_I2C_DRIVER_INIT\n");
 	dw_i2c.state = DW_I2C_DRIVER_INIT;
 }
 
 void dw_i2c_master_init(void)
 {
 	dw_i2c.addr_mode = 0;
-	con_dbg("dw_i2c: DW_I2C_DRIVER_INVALID\n");
+	dw_i2c_dbg("dw_i2c: DW_I2C_DRIVER_INVALID\n");
 	dw_i2c.state = DW_I2C_DRIVER_INVALID;
 	__dw_i2c_master_init();
 }
