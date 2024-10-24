@@ -234,6 +234,13 @@ menuconfig DW_I2C
 
 if DW_I2C
 
+config DW_I2C_DEBUG
+	bool "Enable debugging message"
+	depends CONSOLE_DEBUG
+	help
+	  Additional debugging messages including register accesses and
+	  driver states.
+
 menu "Top Level Parameters"
 
 config DW_I2C_REG_TIMEOUT
@@ -677,10 +684,6 @@ config DW_I2C_ULTRA_FAST_MODE
 	depends ARCH_HAS_DW_I2C_ULTRA_FAST_MODE
 
 endmenu
-
-config DW_I2C_TEST_IRQ
-	bool "Test IRQ handler for DW I2C"
-	default n
 
 endif
 
