@@ -101,6 +101,7 @@ typedef unsigned long			loff_t;
 #define REG_36BIT_MASK			ULL(0xFFFFFFFFF)
 #define REG_40BIT_MASK			ULL(0xFFFFFFFFFF)
 #define REG_44BIT_MASK			ULL(0xFFFFFFFFFFF)
+#define REG_48BIT_MASK			ULL(0xFFFFFFFFFFFF)
 
 #define REG16_1BIT_INDEX(n)		((((uint16_t)(n)) & (~UL(15))) >> 4)
 #define REG16_2BIT_INDEX(n)		((((uint16_t)(n)) & (~UL(7 ))) >> 3)
