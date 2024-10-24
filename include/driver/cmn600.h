@@ -276,6 +276,41 @@ typedef uint32_t cmn_id_t;
 #define CMN_hnf_sam_6sn_nodeid(base)	CMN_REG(base, 0x0D20)
 #define CMN_hnf_rn_phys_id(base, n)	CMN_32BIT_REG(base, 0x0D28, (n))
 
+
+//abf
+#define hnf_abf_lo_addr(base)		(__raw_readq(CMN_hnf_abf_lo_addr(base)))
+#define hnf_abf_hi_addr(base)		(__raw_readq(CMN_hnf_abf_hi_addr(base)))
+#define hnf_abf_pr(base)		(__raw_readq(CMN_hnf_abf_pr(base)))
+#define hnf_abf_sr(base)		(__raw_readq(CMN_hnf_abf_sr(base)))
+#define CMN_hnf_abf_lo_addr(base)	CMN_REG(base, 0xF50)
+#define CMN_hnf_abf_hi_addr(base)	CMN_REG(base, 0xF58)
+#define CMN_hnf_abf_pr(base)		CMN_REG(base, 0xF60)
+#define CMN_hnf_abf_sr(base)		CMN_REG(base, 0xF68)
+
+#define hnf_cfg_ctl(base)		(__raw_readq(CMN_hnf_cfg_ctl(base)))
+//slc
+#define hnf_slc_lock_ways(base)		(__raw_readq(CMN_hnf_slc_lock_ways(base)))
+
+
+#define CMN_abf_mode_OFFSET		1
+#define CMN_abf_mode_MASK		REG_2BIT_MASK
+#define CMN_abf_mode(value)		_SET_FV_ULL(CMN_abf_mode, value)
+#define CMN_abf_enable_OFFSET		0
+#define CMN_abf_enable_MASK		REG_1BIT_MASK
+#define CMN_abf_enable(value)		_SET_FV_ULL(CMN_abf_enable, value)
+#define CMN_abf_lo_addr_OFFSET		0
+#define CMN_abf_lo_addr_MASK		REG_48BIT_MASK
+#define CMN_abf_lo_addr(value)		_SET_FV_ULL(CMN_abf_lo_addr, value)
+#define CMN_abf_hi_addr_OFFSET		0
+#define CMN_abf_hi_addr_MASK		REG_48BIT_MASK
+#define CMN_abf_hi_addr(value)		_SET_FV_ULL(CMN_abf_hi_addr, value)
+#define CMN_hnf_ocm_en_MASK		REG_1BIT_MASK
+#define CMN_hnf_ocm_en_OFFSET		9
+#define CMN_hnf_ocm_en(value)		_SET_FV_ULL(CMN_hnf_ocm_en, value)
+#define CMN_hnf_ocm_always_en_MASK		REG_1BIT_MASK
+#define CMN_hnf_ocm_always_en_OFFSET		10
+#define CMN_hnf_ocm_always_en(value)	_SET_FV_ULL(CMN_hnf_ocm_always_en, value)
+
 /* 3.2.6 XP register summary */
 #define CMN_MAX_mxp_device_ports	2
 #define CMN_mxp_device_port_connect_info(base, n)	\
@@ -290,12 +325,15 @@ typedef uint32_t cmn_id_t;
 /* 3.2.9 RN SAM register summary */
 #define CMN_MAX_rnsam_sys_cache_groups	4
 #define CMN_MAX_rnsam_non_hash_mem_regions	20
+#define CMN_MAX_NON_HASH_MEM_REGION_10		10
 #define CMN_MAX_rnsam_non_hash_tgt_nodes	20
 #define CMN_MAX_rnsam_sys_cache_grp_hn_nodes	32
 #define CMN_MAX_NON_HASH_TGT_NODES_20	20
 #define CMN_rnsam_status(base)		CMN_REG(base, 0x0C00)
 #define CMN_rnsam_non_hash_mem_region(base, n)		\
 					CMN_32BIT_REG(base, 0x0C08, n)
+#define CMN_rnsam_non_hash_mem_region2(base, n)		\
+					CMN_32BIT_REG(base, 0x0CA0, ((n) - 10))
 #define CMN_rnsam_non_hash_tgt_nodeid(base, n)		\
 					CMN_12BIT_REG(base, 0x0C30, n)
 #define CMN_rnsam_sys_cache_grp_region(base, n)		\
