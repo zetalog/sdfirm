@@ -56,12 +56,20 @@ cmn_id_t ccix_sa_count;
 struct cmn600_ccix_ha_mmap cml_ha_mmap_table_local[CMN_MAX_HA_MMAP_COUNT];
 cmn_id_t cml_ha_mmap_count_local;
 
-uint64_t cmn600_cml_base(void)
+uint64_t cmn600_cml_base(caddr_t base, uint16_t chip_id, bool ccix)
 {
-	if (cmn600_hw_chip_id() != 0)
-		return cmn600_hw_chip_base() * cmn600_hw_chip_id();
-	else
-		return 0;
+	uint16_t local_chip_id = cmn600_hw_chip_id();
+
+	if (chip_id == CMN600_CHIP_LOCAL)
+		return base;
+
+	if (local_chip_id != 0) {
+		if (ccix)
+			return base - (cmn600_hw_chip_base(base, chip_id, ccix) * local_chip_id);
+		else
+			return base + (cmn600_hw_chip_base(base, chip_id, ccix) * local_chip_id);
+	} else
+		return base;
 }
 
 int cmn600_cml_get_config(void)

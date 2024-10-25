@@ -1111,11 +1111,14 @@ void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i);
 #define cmn_writeq_mask(v,m,a,n,i)	__raw_writeq_mask(v,m,a)
 #endif
 
+#define CMN600_CHIP_LOCAL		CMN_MAX_CHIPS
+
 struct cmn600_memregion {
     caddr_t base;
     uint64_t size;
     uint16_t type;
     uint16_t node_id;
+    uint16_t chip_id;
 };
 
 struct cmn600_ccix_ha_mmap {
@@ -1154,16 +1157,16 @@ int cmn600_cml_get_config(void);
 void cmn600_cml_set_config(void);
 void cmn600_cml_enable_sf(void);
 void cmn600_cml_enable_dvm(void);
-uint64_t cmn600_cml_base(void);
+uint64_t cmn600_cml_base(caddr_t base, uint16_t chip_id, bool ccix);
 void cmn600_cml_init(void);
 #else
-#define cmn600_cml_detect_mmap()	do { } while (0)
-#define cmn600_cml_get_config()		(-ENODEV)
-#define cmn600_cml_set_config()		do { } while (0)
-#define cmn600_cml_enable_sf()		do { } while (0)
-#define cmn600_cml_enable_dvm()		do { } while (0)
-#define cmn600_cml_base()		0
-#define cmn600_cml_init()		do { } while (0)
+#define cmn600_cml_detect_mmap()			do { } while (0)
+#define cmn600_cml_get_config()				(-ENODEV)
+#define cmn600_cml_set_config()				do { } while (0)
+#define cmn600_cml_enable_sf()				do { } while (0)
+#define cmn600_cml_enable_dvm()				do { } while (0)
+#define cmn600_cml_base(base, chip_id, ccix)		0
+#define cmn600_cml_init()				do { } while (0)
 #endif
 
 #ifdef CONFIG_CMN600_RAS
