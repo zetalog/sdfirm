@@ -387,16 +387,16 @@ static void cmn_configure_hnf_sam_range_based(caddr_t hnf)
 	struct cmn600_memregion *region;
 	caddr_t base;
 
-	base = cmn600_cml_base();
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
 
 		if (region->type != CMN600_REGION_TYPE_SYSCACHE_SUB)
 			continue;
 
+		base = cmn600_cml_base(region->base, region->chip_id, false);
 		cmn_writeq(CMN_sam_range_nodeid(region->node_id) |
 			   CMN_sam_range_size(__ilog2_u64((region->size) / CMN_SAM_GRANU)) |
-			   CMN_sam_range_base_addr((region->base + base) / CMN_SAM_GRANU) |
+			   CMN_sam_range_base_addr(base / CMN_SAM_GRANU) |
 			   CMN_sam_range_valid,
 			   CMN_hnf_sam_memregion(hnf, region_sub_count),
 			   "CMN_hnf_sam_memregion", region_sub_count);
@@ -405,8 +405,7 @@ static void cmn_configure_hnf_sam_range_based(caddr_t hnf)
 		con_dbg(CMN_MODNAME ": %s: HN-F SAM %d: ID: %d, [%016llx - %016llx]\n",
 			cmn600_mem_region_name(region->type),
 			region_sub_count, region->node_id,
-			(uint64_t)(region->base + base),
-			(uint64_t)(region->base + base + region->size));
+			(uint64_t)base, (uint64_t)(base + region->size));
 #endif
 
 		region_sub_count++;
@@ -625,13 +624,13 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		region = &cmn_mmap_table[region_index];
 		/* TODO: Should rely on chip id to fill remote regions */
 		if (region->type == CMN600_REGION_TYPE_CCIX)
-			base = region->base - cmn600_cml_base();
+			base = cmn600_cml_base(region->base, region->chip_id, true);
 #ifdef CONFIG_CMN600_SAM_RANGE
 		else if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
 			base = region->base;
 #endif
 		else
-			base = region->base + cmn600_cml_base();
+			base = cmn600_cml_base(region->base, region->chip_id, false);
 #ifdef CONFIG_CMN600_DEBUG_CONFIGURE
 		con_dbg(CMN_MODNAME "configuring...\n");
 		con_dbg(CMN_MODNAME ": %s-%d: RN SAM %d/%d: ID: %d, [%016llx - %016llx]\n",

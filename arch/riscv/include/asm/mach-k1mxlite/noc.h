@@ -48,19 +48,20 @@
 #define N100_HW_NODES		32
 #define N100_HW_COLS		3
 #define N100_HW_ROWS		2
+#define N100_HW_CHIPS		2
 
 #include <driver/n100.h>
 
 #ifdef CONFIG_K1MXLITE_D2D
-#define n100_hw_chip_id()	sysreg_die_id()
-#define n100_hw_chip_base()	DIE1_BASE
+#define n100_hw_chip_id()			sysreg_die_id()
+#define n100_hw_chip_base(base, chip, ccix)	DIE1_BASE
 #endif
 #ifdef CONFIG_K1MXLITE_N100
-#define k1mxlite_n100_init()		spacemit_n100_init()
-#define k1mxlite_n100_d2d_init()	spacemit_n100_d2d_init()
+#define k1mxlite_n100_init()			spacemit_n100_init()
+#define k1mxlite_n100_d2d_init()		spacemit_n100_d2d_init()
 #else
-#define k1mxlite_n100_init()		do { } while (0)
-#define k1mxlite_n100_d2d_init()	do { } while (0)
+#define k1mxlite_n100_init()			do { } while (0)
+#define k1mxlite_n100_d2d_init()		do { } while (0)
 #endif
 
 #endif /* __NOC_K1MXLITE_H_INCLUDE__ */
