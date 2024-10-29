@@ -4,7 +4,7 @@
 #ifndef __QDSS_QDF2400_H_INCLUDE__
 #define __QDSS_QDF2400_H_INCLUDE__
 
-#include <asm/coresight.h>
+#include <driver/coresight.h>
 
 /* ROM Tables */
 

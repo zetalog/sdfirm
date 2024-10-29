@@ -1,4 +1,4 @@
-#include <asm/coresight.h>
+#include <target/dts.h>
 
 static int coresight_replicator_handler(struct coresight_rom_device *device)
 {
