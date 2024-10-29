@@ -2,7 +2,8 @@
 
 static int coresight_stm_handler(struct coresight_rom_device *device)
 {
-	coresight_log("CoreSight STM (%016llx)\n", device->base);
+	coresight_log("CoreSight STM (%016llx)\n",
+		      (uint64_t)device->base);
 	return 0;
 }
 
