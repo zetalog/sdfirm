@@ -59,6 +59,8 @@ int coresight_visit_table(uintptr_t rom_table_base)
 	table.part = coresight_get_part(rom_table_base);
 
 	for (i = 0; i < coresight_nr_tables; i++) {
+		printf("ROM (%016llx): class_expect=%02x, class=%02x\n",
+		       	(uint64_t)table.base, coresight_tables[i]->clazz, table.clazz);
 		if (coresight_tables[i]->clazz == table.clazz) {
 			coresight_tables[i]->handler(&table);
 			handled = true;
@@ -81,6 +83,9 @@ int __coresight_visit_device(struct coresight_rom_device *device)
 	bool handled = false;
 
 	for (i = 0; i < coresight_nr_devices; i++) {
+		printf("DEV (%016llx): jep106_expect=%04x jep106=%04x arch_expect=%04x, arch=%04x\n",
+		       (uint64_t)device->base, coresight_devices[i]->jep106_ident, device->jep106_ident,
+		       coresight_devices[i]->arch_id, device->arch_id);
 		if (coresight_devices[i]->jep106_ident == device->jep106_ident &&
 		    coresight_devices[i]->arch_id == device->arch_id) {
 			coresight_devices[i]->handler(device);
@@ -95,6 +100,50 @@ int __coresight_visit_device(struct coresight_rom_device *device)
 		       "jep106=%04x, arch=%04xv%02x part=%02x\n",
 		       (uint64_t)device->base, device->jep106_ident,
 		       device->arch_id, device->revision, device->part_no);
+	}
+	return 0;
+}
+
+static int __coresight_class9_table_handler(struct coresight_rom_table *table)
+{
+	uint16_t offset;
+	uint64_t romentry;
+	uintptr_t base = (uintptr_t)table;
+
+	coresight_log("Class 0x9 ROM (%016llx): jep106=%04x, part=%04x\n",
+		      (uint64_t)table->base,
+		      table->jep106_ident, table->part);
+
+	//for (offset = 0; offset < CORESIGHT_CLASS1_ENTRIES; offset++) {
+	for (offset = 0; offset < 10; offset++) {
+		romentry = __raw_readq(LROMENTRYn(table->base, offset));
+		printf("offset: %d(%016llx), romentry: 0x%016llx\n",
+		       offset, LROMENTRYn(table->base, offset), romentry);
+		if (!romentry) {
+			break;
+		}
+		if (!LROMENTRY_OFFSET(romentry)) {
+			continue;
+		}
+		if (!(ROMENTRY_PRESENT & romentry)) {
+			coresight_log("Skip rom=%016llx, present=%02x\n",
+				      base, ROMENTRY_PRESENT & romentry);
+			continue;
+		}
+		if (!(ROMENTRY_FORMAT & romentry)) {
+			coresight_log("Skip rom=%016llx, format=%02x\n",
+				      base, ROMENTRY_FORMAT & romentry);
+			continue;
+		}
+		if (!(ROMENTRY_POWERIDVALID & romentry)) {
+			coresight_log("Skip rom=%016llx, powerid=%02x\n",
+				      base, ROMENTRY_POWERID(romentry));
+			continue;
+		}
+		base = table->base +
+		       (LROMENTRY_OFFSET(romentry) <<
+			LROMENTRY_OFFSET_OFFSET);
+		coresight_visit_table(base); 
 	}
 	return 0;
 }
@@ -119,13 +168,11 @@ int coresight_visit_device(uintptr_t rom_table_base)
 			       rom_table_base);
 		device.arch_id = CORESIGHT_ARCH_ROM;
 	}
-
 	if (device.arch_id == 0) {
 		printf("BUG: %016llx: DEVARCH register is PRESENT, but ARCHID is invalid\n",
 		       rom_table_base);
 		device.arch_id = CORESIGHT_ARCH_ROM;
 	}
-
 	/* DEVARCH.PRESENT=0 or DEVARCH.ARCHID=ROM */
 	if (device.arch_id == CORESIGHT_ARCH_ROM) {
 		devtype = __raw_readl(DEVTYPE(rom_table_base));
@@ -134,6 +181,8 @@ int coresight_visit_device(uintptr_t rom_table_base)
 					 pidr_jep106_cont(rom_table_base));
 		device.arch_id = CORESIGHT_TYPE(DEVTYPE_MAJOR(devtype),
 						DEVTYPE_SUB(devtype));
+		if (devtype == 0)
+			return __coresight_class9_table_handler(rom_table_base);
 	}
 	return __coresight_visit_device(&device);
 }
@@ -152,24 +201,24 @@ static int coresight_class1_table_handler(struct coresight_rom_table *table)
 	for (offset = 0; offset < CORESIGHT_CLASS1_ENTRIES; offset++) {
 		romentry = __raw_readl(ROMENTRYn(table->base, offset));
 		memtype = __raw_readl(MEMTYPE(table->base));
-		if (!romentry)
+		printf("offset: %d, romentry: 0x%x, memtype: 0x%x\n", offset, romentry, memtype);
+		if (!romentry) {
 			break;
-		if (!ROMENTRY_OFFSET(romentry))
+		}
+		if (!ROMENTRY_OFFSET(romentry)) {
 			continue;
+		}
 		if (!(ROMENTRY_PRESENT & romentry)) {
 			coresight_log("Skip rom=%016llx, present=%02x\n",
 				      base, ROMENTRY_PRESENT & romentry);
 			continue;
 		}
-#if 0
 		if (!(ROMENTRY_FORMAT & romentry)) {
 			coresight_log("Skip rom=%016llx, format=%02x\n",
 				      base, ROMENTRY_FORMAT & romentry);
 			continue;
 		}
-#endif
-		if (ROMENTRY_POWERIDVALID & romentry &&
-		    ROMENTRY_POWERID(romentry) != 0) {
+		if (!(ROMENTRY_POWERIDVALID & romentry)) {
 			coresight_log("Skip rom=%016llx, powerid=%02x\n",
 				      base, ROMENTRY_POWERID(romentry));
 			continue;
@@ -177,7 +226,7 @@ static int coresight_class1_table_handler(struct coresight_rom_table *table)
 		base = table->base +
 		       (ROMENTRY_OFFSET(romentry) <<
 			ROMENTRY_OFFSET_OFFSET);
-		coresight_visit_table(base);
+		coresight_visit_table(base); 
 	}
 	return 0;
 }
@@ -197,6 +246,17 @@ struct coresight_table coresight_class9_rom_table = {
 	.name = "Class 0x9 ROM Table",
 	.clazz = 0x09,
 	.handler = coresight_class9_table_handler,
+};
+
+static int coresight_class15_table_handler(struct coresight_rom_table *table)
+{
+	return coresight_visit_device(table->base);
+}
+
+struct coresight_table coresight_class15_rom_table = {
+	.name = "Class 0xF ROM Table",
+	.clazz = 0x0f,
+	.handler = coresight_class15_table_handler,
 };
 
 int coresight_init(uintptr_t rom_table_base, uintptr_t *blacklist)

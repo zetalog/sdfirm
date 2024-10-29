@@ -275,6 +275,7 @@ typedef uint32_t cmn_id_t;
 #define CMN_hnf_sam_sn_properties(base)	CMN_REG(base, 0x0D18)
 #define CMN_hnf_sam_6sn_nodeid(base)	CMN_REG(base, 0x0D20)
 #define CMN_hnf_rn_phys_id(base, n)	CMN_32BIT_REG(base, 0x0D28, (n))
+#define CMN_hnf_pmu_event_sel(base)	CMN_REG(base, 0x2000)
 
 
 //abf
@@ -321,6 +322,7 @@ typedef uint32_t cmn_id_t;
 					CMN_REG(base, 0x0020)
 #define CMN_mxp_p_info(base, n)		CMN_REG(base, 0x0900 + ((n) << 3))
 #define CMN_mxp_aux_ctl(base)		CMN_REG(base, 0x0A00)
+#define CMN_mxp_pmu_event_sel(base)	CMN_REG(base, 0x2000)
 
 /* 3.2.9 RN SAM register summary */
 #define CMN_MAX_rnsam_sys_cache_groups	4
