@@ -236,6 +236,12 @@
 #define DEVTYPE_SUB_MASK		0x0F
 #define DEVTYPE_SUB(value)		_GET_FV(DEVTYPE_SUB, value)
 
+/* DEVID register */
+#define DEVID_FORMAT_OFFSET		0
+#define DEVID_FORMAT_MASK		REG_3BIT_MASK
+#define DEVID_FORMAT(value)		_GET_FV(DEVID_FORMAT, value)
+#define DEVID_PRR			_BV(5)
+
 /* ======================================================================
  * CLASS 0x1 ROM Tables
  * ====================================================================== */
@@ -270,7 +276,7 @@
  * ====================================================================== */
 
 struct coresight_rom_table {
-	uintptr_t base;
+	caddr_t base;
 	uint8_t clazz;
 
 	uint16_t jep106_ident;

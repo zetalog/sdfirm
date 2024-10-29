@@ -2,7 +2,8 @@
 
 static int coresight_replicator_handler(struct coresight_rom_device *device)
 {
-	coresight_log("CoreSight replicator (%016llx)\n", device->base);
+	coresight_log("CoreSight replicator (%016llx)\n",
+		      (uint64_t)device->base);
 	return 0;
 }
 
