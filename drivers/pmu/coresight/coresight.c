@@ -138,7 +138,7 @@ static int __coresight_class9_visit_ngpr_table(caddr_t rom_table_base)
 			coresight_log("Skip rom=%016llx, powerid=%02x\n",
 				      (uint64_t)rom_table_base,
 				      (uint8_t)(ROMENTRY_POWERID(romentry)));
-			continue;
+			//continue;
 		}
 		base = rom_table_base +
 		       (ROMENTRY_OFFSET(romentry) <<
@@ -183,7 +183,7 @@ static int __coresight_class9_visit_gpr_table(caddr_t rom_table_base)
 			coresight_log("Skip rom=%016llx, powerid=%02x\n",
 				      (uint64_t)rom_table_base,
 				      (uint8_t)(ROMENTRY_POWERID(romentry)));
-			continue;
+			//continue;
 		}
 		base = rom_table_base +
 		       (LROMENTRY_OFFSET(romentry) <<
@@ -333,6 +333,7 @@ int coresight_init(caddr_t rom_table_base, caddr_t *blacklist)
 	coresight_pmu_init();
 	coresight_cti_init();
 	coresight_dbg_cpuv80a_init();
+	coresight_mem_ap_init();
 
 	coresight_register_table(&coresight_class1_rom_table);
 	coresight_register_table(&coresight_class9_rom_table);

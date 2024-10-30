@@ -270,6 +270,24 @@
  * CLASS 0x9 ROM Tables
  * ====================================================================== */
 
+/* ======================================================================
+ * MEM AP Registers
+ * ====================================================================== */
+
+/* Main control and status registers */
+#define CORESIGHT_MEM_AP_CSW(base)	CORESIGHT_REG(base, 0xD00)
+#define CORESIGHT_MEM_AP_TAR(base, n)	CORESIGHT_REG(base, (0xD04 + (n << 2)))
+#define CORESIGHT_MEM_AP_DRW(base)	CORESIGHT_REG(base, 0xD0C)
+#define CORESIGHT_MEM_AP_BD(base, n)	CORESIGHT_REG(base, (0xD10 + (n << 2)))
+#define CORESIGHT_MEM_AP_MBT(base)	CORESIGHT_REG(base, 0xD20)
+#define CORESIGHT_MEM_AP_TRR(base)	CORESIGHT_REG(base, 0xD24)
+#define CORESIGHT_MEM_AP_T0TR(base)	CORESIGHT_REG(base, 0xD30)
+#define CORESIGHT_MEM_AP_MECID(base)	CORESIGHT_REG(base, 0xDDC)
+#define CORESIGHT_MEM_AP_CFG1(base)	CORESIGHT_REG(base, 0xDE0)
+#define CORESIGHT_MEM_AP_BASE(base)	CORESIGHT_REG(base, 0xDF0)
+#define CORESIGHT_MEM_AP_CFG(base)	CORESIGHT_REG(base, 0xDF4)
+#define CORESIGHT_MEM_AP_BASE2(base)	CORESIGHT_REG(base, 0xDF8)
+#define CORESIGHT_MEM_AP_IDR(base)	CORESIGHT_REG(base, 0xDFC)
 
 /* ======================================================================
  * Interfaces
