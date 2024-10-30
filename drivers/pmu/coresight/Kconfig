@@ -57,5 +57,10 @@ config CORESIGHT_TMC
 	bool "ARM CoreSight Trace Memory Controller (TMC) support"
 	help
 	  DEVTYPE.major=2, DEVTYPE.sub=3.
+	
+config CORESIGHT_MEM_AP
+	bool "ARM CoreSight Memory Access Port (MEM_AP) support"
+	help
+	  DEVARCH.archid=0x0A17.
 
 endif
