@@ -98,6 +98,7 @@ config ARCH_HAS_SPIFLASH_ADDR_4BYTE
 
 menuconfig MTD_SPIFLASH
 	bool "Winbond SPI interfaced flash support"
+	depends SPI_MASTER
 
 if MTD_SPIFLASH
 
