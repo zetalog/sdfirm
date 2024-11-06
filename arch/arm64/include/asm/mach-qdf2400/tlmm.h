@@ -256,7 +256,7 @@
 	(TLMM_INTR_DIR_CONN_EN |	\
 	 TLMM_INTR_TARGET_PROC(TLMM_INTR_TARGET_PROC_MASK))
 
-void tlmm_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv);
+void tlmm_config_pad(uint8_t gpio, pad_cfg_t pad, uint8_t drv);
 void tlmm_config_irq(uint8_t gpio, uint32_t mode);
 
 #endif /* __TLMM_QDF2400_H_INCLUDE__ */

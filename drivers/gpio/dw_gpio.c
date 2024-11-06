@@ -1,7 +1,7 @@
 #include <target/gpio.h>
 
 void dw_gpio_config_pad(uint8_t n, uint8_t p, uint8_t pin,
-			uint8_t pad, uint8_t drv)
+			pad_cfg_t pad, uint8_t drv)
 {
 	if (drv == GPIO_DRIVE_IN)
 		__raw_clearl(_BV(pin), GPIO_SWPORT_DDR(n, p));

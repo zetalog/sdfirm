@@ -135,9 +135,10 @@ void __gpio_hw_set_od(uint8_t port, uint8_t pin)
 }
 
 void gpio_hw_config_pad(uint8_t port, uint8_t pin,
-			uint8_t pad, uint8_t drv)
+			pad_cfg_t gpad, uint8_t drv)
 {
 	uint8_t val = 0xFF;
+	uint8_t pad = (uint8_t)gpad;
 
 	__gpio_hw_clear_od(port, pin);
 	if (pad == GPIO_PAD_OD) {

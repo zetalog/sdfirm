@@ -120,7 +120,7 @@ static inline void __uart##n##_dm_config_gpio(void)			\
 			     UART_DM_GPIO_MUX_UART(n));			\
 }
 
-static inline void __uart_dm_config_pad(uint8_t gpio, uint8_t pad,
+static inline void __uart_dm_config_pad(uint8_t gpio, pad_cfg_t pad,
 					uint8_t func)
 {
 	gpio_config_pad(GPIO_HW_PORT, gpio, pad, 8);

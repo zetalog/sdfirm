@@ -126,7 +126,7 @@ uint8_t gpio_hw_read_port(uint8_t port, uint8_t mask);
 void gpio_hw_write_port(uint8_t port, uint8_t mask,
 			uint8_t val);
 void gpio_hw_config_pad(uint8_t port, uint8_t pin,
-			uint8_t pad, uint8_t drv);
+			pad_cfg_t gpad, uint8_t drv);
 #define gpio_hw_config_mux(port, pin, mux)
 #define gpio_hw_ctrl_init()
 #define gpio_hw_porting_init()

@@ -130,8 +130,6 @@ extern caddr_t sifive_gpio_reg_base;
 #define sifive_gpio_low_clear(gpio)		\
 	__raw_setl(_BV(gpio), GPIO_LOW_IP)
 
-void sifive_gpio_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv);
-
 /* GPIO abstraction */
 #define GPIO_HW_MAX_PORTS	1
 #define GPIO_HW_MAX_PINS	16
@@ -150,7 +148,7 @@ void sifive_gpio_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv);
 #define sifive_gpio_low_disable(gpio)		\
 	__raw_clearl(_BV(gpio), GPIO_LOW_IE)
 
-void sifive_gpio_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv);
+void sifive_gpio_config_pad(uint8_t gpio, pad_cfg_t pad, uint8_t drv);
 void sifive_gpio_config_irq(uint8_t gpio, uint32_t mode);
 
 /* GPIO abstraction */

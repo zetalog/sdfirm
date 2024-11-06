@@ -43,7 +43,7 @@
 #include <target/paging.h>
 
 static inline void uart_config_pad(bool rxtx, uint16_t pin,
-				   uint8_t pad, uint8_t func)
+				   pad_cfg_t pad, uint8_t func)
 {
 	if (rxtx) {
 		gpio_config_mux(UART_CON_PORT_DATA, pin, func);

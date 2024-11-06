@@ -41,7 +41,7 @@
 
 #include <target/gpio.h>
 
-void port_config_pad(uint8_t port, uint8_t pin, uint8_t pad, uint8_t drv)
+void port_config_pad(uint8_t port, uint8_t pin, pad_cfg_t pad, uint8_t drv)
 {
 	uint32_t cfg = 0;
 
@@ -50,7 +50,8 @@ void port_config_pad(uint8_t port, uint8_t pin, uint8_t pad, uint8_t drv)
 		return;
 
 	if (drv == GPIO_DRIVE_IN) {
-		gpio_direct_input(port, pin);
+		if (pad & GPIO_PAD_GPIO)
+			gpio_direct_input(port, pin);
 		if (pad & GPIO_PAD_DIGITAL_IO) {
 			if (pad & GPIO_PAD_OPEN_DRAIN)
 				cfg |= PCR_ODE;
@@ -60,7 +61,8 @@ void port_config_pad(uint8_t port, uint8_t pin, uint8_t pad, uint8_t drv)
 				cfg |= PCR_DSE;
 		}
 	} else {
-		gpio_direct_output(port, pin);
+		if (pad & GPIO_PAD_GPIO)
+			gpio_direct_output(port, pin);
 		if (pad & GPIO_PAD_DIGITAL_IO) {
 			if (pad & GPIO_PAD_PULL_MASK) {
 				if (pad & GPIO_PAD_PULL_UP)

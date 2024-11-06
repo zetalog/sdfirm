@@ -167,7 +167,7 @@
 
 #ifdef CONFIG_DUOWEN_TLMM
 void tlmm_config_mux(uint16_t gpio, uint8_t mux);
-void tlmm_config_pad(uint16_t gpio, uint8_t pad, uint8_t drv);
+void tlmm_config_pad(uint16_t gpio, pad_cfg_t pad, uint8_t drv);
 #else /* CONFIG_DUOWEN_TLMM */
 #define tlmm_config_mux(gpio, mux)		do { } while (0)
 #define tlmm_config_pad(gpio, pad, drv)		do { } while (0)

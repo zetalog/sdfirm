@@ -41,9 +41,10 @@ void gpio_hw_config_mux(uint8_t port, uint8_t pin, uint8_t mux)
 }
 
 void gpio_hw_config_pad(uint8_t port, uint8_t pin,
-			uint8_t pad, uint8_t drv)
+			pad_cfg_t gpad, uint8_t drv)
 {
 	unsigned long reg;
+	uint8_t pad = (uint8_t)gpad;
 
 	/* configure PIN IO type */
 	/* digital IO */

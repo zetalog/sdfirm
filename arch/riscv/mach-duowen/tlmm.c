@@ -50,7 +50,7 @@ void tlmm_config_mux(uint16_t gpio, uint8_t mux)
 			  TLMM_PAD_GPIO_CFG(duowen_gpio_soc(gpio), gpio));
 }
 
-void tlmm_config_pad(uint16_t gpio, uint8_t pad, uint8_t drv)
+void tlmm_config_pad(uint16_t gpio, pad_cfg_t pad, uint8_t drv)
 {
 	uint32_t cfg = 0;
 
