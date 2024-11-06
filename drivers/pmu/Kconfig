@@ -39,6 +39,9 @@ config SMMU_PMCG_MSI
 
 endif
 
+config CMN600_PMU
+	bool "CMN600 performance monitor unit (PMU) support"
+
 source "drivers/pmu/coresight/Kconfig"
 
 endmenu
