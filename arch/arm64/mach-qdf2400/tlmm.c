@@ -42,7 +42,7 @@
 #include <target/arch.h>
 #include <target/gpio.h>
 
-void tlmm_config_pad(uint8_t gpio, uint8_t pad, uint8_t drv)
+void tlmm_config_pad(uint8_t gpio, pad_cfg_t pad, uint8_t drv)
 {
 	uint32_t cfg = 0;
 

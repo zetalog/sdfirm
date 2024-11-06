@@ -59,7 +59,7 @@ void duowen_sd_power(void)
 	__raw_setl(IMC_SD_HOST_REG_VOL_STABLE, SCSR_SD_STABLE);
 }
 
-static inline void duowen_sd_gpio(uint16_t pin, uint8_t pad, uint8_t mux)
+static inline void duowen_sd_gpio(uint16_t pin, pad_cfg_t pad, uint8_t mux)
 {
 	gpio_config_mux(GPIO1A, pin, mux);
 	gpio_config_pad(GPIO1A, pin, pad, 8);

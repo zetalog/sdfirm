@@ -175,15 +175,16 @@ void gpio_hw_write_port(uint8_t port, uint32_t val)
 }
 
 void gpio_hw_config_pad(uint8_t port, uint16_t pin,
-			uint8_t pad, uint8_t drv)
+			pad_cfg_t pad, uint8_t drv)
 {
 	if (port > GPIO_HW_MAX_PORTS)
 		return;
 
-	dw_gpio_config_pad(duowen_gpiop_ctrl(port),
-			   duowen_gpiop_port(port),
-			   duowen_gpio_pin(pin), pad, drv);
-	tlmm_config_pad(pin, pad, drv);
+	if (pad & GPIO_PAD_GPIO)
+		dw_gpio_config_pad(duowen_gpiop_ctrl(port),
+				   duowen_gpiop_port(port),
+				   duowen_gpio_pin(pin), pad, drv);
+	tlmm_config_pad(pin, pad & (~GPIO_PAD_GPIO), drv);
 }
 
 void gpio_hw_config_mux(uint8_t port, uint16_t pin, uint8_t mux)
@@ -623,16 +624,18 @@ void gpio_hw_write_pin(uint8_t port, uint16_t pin, uint8_t val)
 }
 
 void gpio_hw_config_pad(uint8_t port, uint16_t pin,
-			uint8_t pad, uint8_t drv)
+			pad_cfg_t pad, uint8_t drv)
 {
 	uint16_t gpio = duowen_gpio_from_pin(pin);
 
 	if (gpio == INVALID_TLMM_GPIO)
 		return;
 
-	dw_gpio_config_pad(duowen_gpio_ctrl(pin), duowen_gpio_port(pin),
-			   duowen_gpio_pin(pin), pad, drv);
-	tlmm_config_pad(gpio, pad, drv);
+	if (pad & GPIO_PAD_GPIO)
+		dw_gpio_config_pad(duowen_gpio_ctrl(pin),
+				   duowen_gpio_port(pin),
+				   duowen_gpio_pin(pin), pad, drv);
+	tlmm_config_pad(gpio, pad & (~GPIO_PAD_GPIO), drv);
 }
 
 void gpio_hw_config_mux(uint8_t port, uint16_t pin, uint8_t mux)

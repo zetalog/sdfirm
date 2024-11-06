@@ -72,8 +72,11 @@ extern caddr_t dpu_gpio_reg_base;
 #define gpio_hw_write_pin(port, pin, val)	\
 	dw_gpio_write_pin(0, port, pin, val)
 /* No programmable PAD model and no multiplexing for now */
-#define gpio_hw_config_pad(port, pin, pad, ma)	\
-	dw_gpio_config_pad(0, port, pin, pad, ma)
+#define gpio_hw_config_pad(port, pin, pad, ma)				\
+	do {								\
+		if (pad & GPIO_PAD_GPIO)				\
+			dw_gpio_config_pad(0, port, pin, pad, ma);	\
+	} while (0)
 #define gpio_hw_config_mux(port, pin, mux)	do { } while (0)
 #ifndef CONFIG_SYS_NOIRQ
 #define gpio_hw_config_irq(port, pin, mode)	\

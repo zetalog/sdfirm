@@ -49,6 +49,14 @@
 #define GPIO_PAD_SU		(GPIO_PAD_PULL_UP | GPIO_PAD_STRONG_PULL)
 #define GPIO_PAD_SD		(GPIO_PAD_PULL_DOWN | GPIO_PAD_STRONG_PULL)
 
+/* Indicates a GPIO rather than a function */
+#define GPIO_PAD_GPIO		0x8000
+
+#ifndef __ASSEMBLY__
+/* GPIO PAD configuration */
+typedef uint16_t pad_cfg_t;
+#endif
+
 /* push pull with weak pull up */
 #define GPIO_PAD_PP_WU		(GPIO_PAD_PP | GPIO_PAD_WU)
 /* push pull with weak pull down */

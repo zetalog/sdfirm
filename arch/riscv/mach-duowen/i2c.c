@@ -3,7 +3,7 @@
 
 bool duowen_i2c_initialized = false;
 
-static inline void duowen_i2c_gpio(uint16_t pin, uint8_t pad, uint8_t mux)
+static inline void duowen_i2c_gpio(uint16_t pin, pad_cfg_t pad, uint8_t mux)
 {
 	gpio_config_mux(GPIO0B, pin, mux);
 	gpio_config_pad(GPIO0B, pin, pad, 8);

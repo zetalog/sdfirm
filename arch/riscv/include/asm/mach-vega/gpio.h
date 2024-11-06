@@ -1048,7 +1048,7 @@
 #endif
 
 void port_config_pad(uint8_t port, uint8_t pin,
-		     uint8_t pad, uint8_t drv);
+		     pad_cfg_t pad, uint8_t drv);
 void port_config_irq(uint8_t port, uint8_t pin, uint32_t mode);
 
 #endif /* __GPIO_VEGA_H_INCLUDE__ */
