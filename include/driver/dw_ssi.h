@@ -81,12 +81,12 @@
 #define SSI_VERSION_ID(n)	DW_SSI_REG(n, 0x5C)
 #define SSI_DR(n, x)		DW_SSI_REG(n, 0x60 + (x) * 0x04)
 #ifdef CONFIG_DW_SSI_MAX_XFER_SIZE_32
-#define dw_ssi_read_dr(n)		__raw_readl(SSI_DR(n, 0))
-#define dw_ssi_write_dr(n, v)		__raw_writel(v, SSI_DR(n, 0))
+#define dw_ssi_read_dr(n)		dw_ssi_readl(SSI_DR(n, 0))
+#define dw_ssi_write_dr(n, v)		dw_ssi_writel(v, SSI_DR(n, 0))
 #endif
 #ifdef CONFIG_DW_SSI_MAX_XFER_SIZE_16
-#define dw_ssi_read_dr(n)		__raw_readw(SSI_DR(n, 0))
-#define dw_ssi_write_dr(n, v)		__raw_writew(v, SSI_DR(n, 0))
+#define dw_ssi_read_dr(n)		dw_ssi_readw(SSI_DR(n, 0))
+#define dw_ssi_write_dr(n, v)		dw_ssi_writew(v, SSI_DR(n, 0))
 #endif
 #define SSI_RX_SAMPLE_DLY(n)	DW_SSI_REG(n, 0xF0)
 #define SSI_SPI_CTRLR0(n)	DW_SSI_REG(n, 0xF4)
@@ -237,8 +237,8 @@ struct dw_ssi_ctx {
 #define SPI_HW_MAX_FREQ			(DW_SSI_CLK_FREQ / 2000) /* kHz */
 #endif /* SPI_HW_MAX_FREQ */
 
-#define dw_ssi_enable_ctrl(n)		__raw_setl(SSI_EN, SSI_SSIENR(n))
-#define dw_ssi_disable_ctrl(n)		__raw_clearl(SSI_EN, SSI_SSIENR(n))
+#define dw_ssi_enable_ctrl(n)		dw_ssi_setl(SSI_EN, SSI_SSIENR(n))
+#define dw_ssi_disable_ctrl(n)		dw_ssi_clearl(SSI_EN, SSI_SSIENR(n))
 #define dw_ssi_reset_ctrl(n)				\
 	do {						\
 		dw_ssi_disable_ctrl(n);			\
@@ -246,16 +246,16 @@ struct dw_ssi_ctx {
 		dw_ssi_enable_ctrl(n);			\
 	} while (0)
 #define dw_ssi_config_xfer(n, tmod)			\
-	__raw_writel_mask(SSI_TMOD(tmod),		\
-			  SSI_TMOD_MASK, SSI_CTRLR0(n))
+	dw_ssi_writel_mask(SSI_TMOD(tmod),		\
+			   SSI_TMOD_MASK, SSI_CTRLR0(n))
 #define dw_ssi_select_chips(n, chips)			\
-	__raw_writel((chips), SSI_SER(n))
+	dw_ssi_writel((chips), SSI_SER(n))
 #define dw_ssi_select_chip(n, chip)	dw_ssi_select_chips(n, _BV(chip))
 #define dw_ssi_deselect_chips(n)	dw_ssi_select_chips(n, 0)
-#define dw_ssi_enable_irqs(n, irqs)	__raw_setl(irqs, SSI_IMR(n))
-#define dw_ssi_disable_irqs(n, irqs)	__raw_clearl(irqs, SSI_IMR(n))
-#define dw_ssi_irqs_status(n)		__raw_readl(SSI_ISR(n))
-#define dw_ssi_clear_irqs(n, irqs)	__raw_clearl(irqs, SSI_ISR(n))
+#define dw_ssi_enable_irqs(n, irqs)	dw_ssi_setl(irqs, SSI_IMR(n))
+#define dw_ssi_disable_irqs(n, irqs)	dw_ssi_clearl(irqs, SSI_IMR(n))
+#define dw_ssi_irqs_status(n)		dw_ssi_readl(SSI_ISR(n))
+#define dw_ssi_clear_irqs(n, irqs)	dw_ssi_clearl(irqs, SSI_ISR(n))
 
 uint8_t dw_ssi_read_byte(int n);
 void dw_ssi_write_byte(int n, uint8_t byte);
@@ -287,5 +287,27 @@ int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata);
 #else
 #define dw_ssi_xfer(n, txdata, txsize, rxdata)		-ENODEV
 #endif
+
+#define dw_ssi_setl(v,a)				\
+	do {						\
+		uint32_t __v = dw_ssi_readl(a);		\
+		__v |= (v);				\
+		dw_ssi_writel(__v, (a));		\
+	} while (0)
+#define dw_ssi_clearl(v,a)				\
+	do {						\
+		uint32_t __v = dw_ssi_readl(a);		\
+		__v &= ~(v);				\
+		dw_ssi_writel(__v, (a));		\
+	} while (0)
+#define dw_ssi_writel_mask(v,m,a)			\
+	do {						\
+		uint32_t __v = dw_ssi_readl(a);		\
+		__v &= ~(m);				\
+		__v |= (v);				\
+		dw_ssi_writel(__v, (a));		\
+	} while (0)
+uint32_t dw_ssi_readl(caddr_t reg);
+void dw_ssi_writel(uint32_t val, caddr_t reg);
 
 #endif /* __DW_SSI_H_INCLUDE__ */
