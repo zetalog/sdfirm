@@ -5,6 +5,12 @@
 
 menu "SPI Master drivers"
 
+config DW_SSI_MASTER
+	bool
+
+config ARCH_HAS_SSI_ENH_CLK_RATIO
+	bool
+
 config ARCH_HAS_SSI_RX_SAMPLE_DELAY
 	bool
 
@@ -15,6 +21,66 @@ config ARCH_HAS_SSI_XFER_16
 	bool
 
 config ARCH_HAS_SSI_XFER_32
+	bool
+
+config ARCH_IS_SSI_RX_FIFO_DEPTH_2
+	bool
+
+config ARCH_IS_SSI_RX_FIFO_DEPTH_4
+	bool
+
+config ARCH_IS_SSI_RX_FIFO_DEPTH_8
+	bool
+
+config ARCH_IS_SSI_RX_FIFO_DEPTH_16
+	bool
+
+config ARCH_IS_SSI_RX_FIFO_DEPTH_32
+	bool
+
+config ARCH_IS_SSI_RX_FIFO_DEPTH_64
+	bool
+
+config ARCH_IS_SSI_RX_FIFO_DEPTH_128
+	bool
+
+config ARCH_IS_SSI_RX_FIFO_DEPTH_256
+	bool
+
+config ARCH_IS_SSI_TX_FIFO_DEPTH_2
+	bool
+
+config ARCH_IS_SSI_TX_FIFO_DEPTH_4
+	bool
+
+config ARCH_IS_SSI_TX_FIFO_DEPTH_8
+	bool
+
+config ARCH_IS_SSI_TX_FIFO_DEPTH_16
+	bool
+
+config ARCH_IS_SSI_TX_FIFO_DEPTH_32
+	bool
+
+config ARCH_IS_SSI_TX_FIFO_DEPTH_64
+	bool
+
+config ARCH_IS_SSI_TX_FIFO_DEPTH_128
+	bool
+
+config ARCH_IS_SSI_TX_FIFO_DEPTH_256
+	bool
+
+config ARCH_IS_SSI_ENDCONV_NO
+	bool
+
+config ARCH_IS_SSI_ENDCONV_SIG
+	bool
+
+config ARCH_IS_SSI_ENDCONV_REG
+	bool
+
+config ARCH_HAS_SSI_DMA
 	bool
 
 config ARCH_HAS_SSI_FRF
@@ -29,6 +95,18 @@ config ARCH_HAS_SSI_SSP
 config ARCH_HAS_SSI_MICROWIRE
 	bool
 
+config ARCH_HAS_SSI_DFLT_SCPOL
+	bool
+
+config ARCH_HAS_SSI_DFLT_SCPH
+	bool
+
+config ARCH_HAS_SSI_SCPH0_SSTOGGLE
+	bool
+
+config ARCH_HAS_SSI_DFLT_SECONV
+	bool
+
 config ARCH_HAS_SSI_SPI_1WIRE
 	bool
 
@@ -41,7 +119,7 @@ config ARCH_HAS_SSI_SPI_4WIRE
 config ARCH_HAS_SSI_SPI_8WIRE
 	bool
 
-config ARCH_HAS_SSI_DMA
+config ARCH_HAS_SSI_IO_MAP
 	bool
 
 config ARCH_HAS_SSI_DDR
@@ -66,15 +144,36 @@ config ARCH_HAS_SSI_DM
 	help
 	  Selects if data mask signal shall be included on SPI interface.
 
+config ARCH_HAS_SSI_XIP
+	bool
+
 menuconfig DW_SSI
 	bool "Synopsys DesignWare APB SSI support"
 	select MATH_DIV32
 	select DW_SSI_HC_FRF if !ARCH_HAS_SSI_FRF
+	select DW_SSI_MASTER if SPI_MASTER
 
 if DW_SSI
 
+config DW_SSI_DEBUG
+	bool "Enable debugging message"
+	depends CONSOLE_DEBUG
+	help
+	  Additional debugging messages including register accesses and
+	  driver states.
+
+menu "Top Level Parameters"
+
+config DW_SSI_ENH_CLK_RATIO
+	bool "Include Enhanced Clock Ratio Architecture"
+	depends ARCH_HAS_SSI_ENH_CLK_RATIO
+	depends !DW_SSI_MASTER
+	help
+	  Enable device to work in clock ratio of 4 and 6 between ssi_clk
+	  and sclk_in signals.
+
 choice
-	prompt "Maximum transfer size"
+	prompt "Maximum Transfer Size"
 	default DW_SSI_MAX_XFER_SIZE_32
 	help
 	  Configures the maximum transfer size supported by device. The
@@ -100,7 +199,8 @@ if DW_SSI_FIFO_DEPTH
 config DW_SSI_RX_FIFO_DEPTH
 	int "Receive FIFO buffer depth"
 	default 8
-	range 2 256
+	range 2 256 if DW_SSI_SPI_MODE_STD
+	range 4 256 if !DW_SSI_SPI_MODE_STD
 
 config DW_SSI_TX_FIFO_DEPTH
 	int "Transmit FIFO buffer depth"
@@ -117,13 +217,22 @@ config DW_SSI_MAX_SLAVES
 	range 1 16
 
 config DW_SSI_RX_DLY_SR_DEPTH
-	int "Maximum RXD sample delay"
+	int "Maximum RXD Sample Delay"
 	default 4
 	range 4 255
 	depends ARCH_HAS_SSI_RX_SAMPLE_DELAY
 	help
 	  Defines the maximum number of ssi_clk cycles that can be used to
 	  delay the sampling of the rxd input.
+
+config DW_SSI_ENDCONV
+	bool "Include Endian Conversion for XIP and data register"
+	depends ARCH_IS_SSI_ENDCONV_REG
+	depends DW_SSI_MASTER
+
+config DW_SSI_DMA
+	bool "Enable DMA handshaking"
+	depends ARCH_HAS_SSI_DMA
 
 config DW_SSI_HC_FRF
 	bool "Enable hard coded (fixed) frame format"
@@ -149,6 +258,42 @@ config DW_SSI_DFLT_FRF_MICROWIRE
 	depends ARCH_HAS_SSI_MICROWIRE
 
 endchoice
+
+config DW_SSI_DFLT_SCPOL
+	bool "Default serial clock polarity"
+	depends ARCH_HAS_SSI_DFLT_SCPOL
+	depends DW_SSI_DFLT_FRF_SPI
+
+config DW_SSI_DFLT_SCPH
+	bool "Default serial clock phase"
+	depends ARCH_HAS_SSI_DFLT_SCPH
+	depends DW_SSI_DFLT_FRF_SPI
+
+config DW_SSI_SCPH0_SSTOGGLE
+	bool "Toggle slave select signal between frames"
+	depends DW_SSI_DFLT_FRF_SPI || !DW_SSI_HC_FRF
+	help
+	  When operating in SPI mode with clock phase (SCPH) set to 0,
+	  this parameter controls the behavior of the slave select line
+	  (ss_*_n) between data frames.
+	  1. If "Y" and CTRLR0.SSTE is "1" the "ss_*_n" line will
+	     toggle between consecutive data frames, with the serial
+	     clock (sclk) being held to its default value while "ss_*_n"
+	     is high.
+	  2. If "Y" and CTRLR0.SSTE is "0" the "ss_*_n" line will stay
+	     low and sclk will run continuously for the duration of the
+	     transfer.
+	  3. If "N", the ss_*_n will stay low and sclk will run
+	     continuously for the duration of the transfer.
+
+config DW_SSI_DFLT_SECONV
+	bool "Default Endianess Value"
+	depends DW_SSI_ENDCONV
+	depends ARCH_HAS_SSI_DFLT_SECONV
+
+endmenu
+
+menu "SPI Parameters"
 
 config DW_SSI_SPI_MODE_STD_ONLY
 	bool
@@ -180,10 +325,36 @@ config DW_SSI_SPI_MODE_OCTAL
 
 endchoice
 
+config DW_SSI_IO_MAP
+	bool "Enable Enhanced SPI I/O mapping"
+	depends ARCH_HAS_SSI_IO_MAP
+
+config DW_SSI_DDR
+	bool "Include Dual transfer rate transfers in SPI frame format"
+	depends DW_SSI_MASTER
+	depends !DW_SSI_SPI_MODE_STD
+	depends ARCH_HAS_SSI_DDR
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+
+config DW_SSI_RXDS
+	bool "Include data strobe signal for rxd line"
+	depends DW_SSI_DDR
+	depends DW_SSI_MASTER
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+	depends ARCH_HAS_SSI_RXDS
+
+config DW_SSI_DM
+	bool "Include Data Mask Signal for data transfer in SPI mode"
+	depends !DW_SSI_SPI_MODE_STD
+	depends ARCH_HAS_SSI_DM
+
 config DW_SSI_XIP
 	bool "Include XIP feature in SPI mode"
+	depends ARCH_HAS_SSI_XIP
 	depends !DW_SSI_SPI_MODE_STD && !ARCH_HAS_APB_20 && \
 		ARCH_HAS_DW_AMBA_ADVANCED
+
+endmenu
 
 config DW_SSI_XFER
 	bool "Enable multi-byte transfer mode"

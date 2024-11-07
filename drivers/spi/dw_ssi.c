@@ -43,11 +43,32 @@
 #include <target/console.h>
 #include <target/jiffies.h>
 
+#ifdef CONFIG_DW_SSI_DEBUG
+#define dw_ssi_dbg(...)		con_dbg(__VA_ARGS__)
+#else
+#define dw_ssi_dbg(...)		do { } while (0)
+#endif
+
 /* Only 8 Bits transfers are allowed */
 #define DW_SSI_XFER_SIZE		8
 typedef uint8_t dw_ssi_data;
 
 struct dw_ssi_ctx dw_ssis[NR_DW_SSIS];
+
+uint32_t dw_ssi_readl(caddr_t reg)
+{
+	uint32_t val;
+
+	val = __raw_readl(reg);
+	dw_ssi_dbg("dw_ssi: R %016lx=%08x\n", reg, val);
+	return val;
+}
+
+void dw_ssi_writel(uint32_t val, caddr_t reg)
+{
+	dw_ssi_dbg("dw_ssi: W %016lx=%08x\n", reg, val);
+	__raw_writel(val, reg);
+}
 
 #ifdef CONFIG_CLK
 uint32_t dw_ssi_get_clk_freq(void)
@@ -94,13 +115,13 @@ void dw_ssi_switch_xfer(int n, uint8_t tmod)
 
 void dw_ssi_write_byte(int n, uint8_t byte)
 {
-	while (!(__raw_readl(SSI_RISR(n)) & SSI_TXEI));
+	while (!(dw_ssi_readl(SSI_RISR(n)) & SSI_TXEI));
 	dw_ssi_write_dr(n, byte);
 }
 
 uint8_t dw_ssi_read_byte(int n)
 {
-	while (!(__raw_readl(SSI_RISR(n)) & SSI_RXFI));
+	while (!(dw_ssi_readl(SSI_RISR(n)) & SSI_RXFI));
 	return dw_ssi_read_dr(n);
 }
 
@@ -109,8 +130,8 @@ uint8_t dw_ssi_read_byte(int n)
 		if (!depth) {						\
 			uint32_t fifo;					\
 			for (fifo = 0; fifo < 256; fifo++) {		\
-				__raw_writel(fifo, reg(n));		\
-				if (fifo != __raw_readl(reg(n)))	\
+				dw_ssi_writel(fifo, reg(n));		\
+				if (fifo != dw_ssi_readl(reg(n)))	\
 					break;				\
 			}						\
 			depth = fifo;					\
@@ -166,16 +187,16 @@ void dw_ssi_start_ctrl(int n)
 		return;
 
 	/* Configure CTRLR0 */
-	__raw_writel(SSI_FRF(dw_ssis[n].frf) |
-		     SSI_TMOD(dw_ssis[n].tmod) |
-		     SSI_SPI_FRF(dw_ssis[n].spi_frf) |
-		     SSI_SPI_MODE(dw_ssis[n].spi_mode) |
-		     SSI_DFS(DW_SSI_XFER_SIZE - 1),
-		     SSI_CTRLR0(n));
+	dw_ssi_writel(SSI_FRF(dw_ssis[n].frf) |
+		      SSI_TMOD(dw_ssis[n].tmod) |
+		      SSI_SPI_FRF(dw_ssis[n].spi_frf) |
+		      SSI_SPI_MODE(dw_ssis[n].spi_mode) |
+		      SSI_DFS(DW_SSI_XFER_SIZE - 1),
+		      SSI_CTRLR0(n));
 
 	/* Configure FIFO */
-	__raw_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
-	__raw_writel(0, SSI_RXFTLR(n));
+	dw_ssi_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
+	dw_ssi_writel(0, SSI_RXFTLR(n));
 
 	/* Configure SPI_CTRLR0 */
 	ctrl = SSI_TRANS_TYPE(0);
@@ -186,10 +207,10 @@ void dw_ssi_start_ctrl(int n)
 			SSI_ADDR_L(dw_ssis[n].eeprom_addr_len >> 2);
 	}
 	ctrl |= SSI_WAIT_CYCLES(dw_ssis[n].spi_wait);
-	__raw_writel(ctrl, SSI_SPI_CTRLR0(n));
+	dw_ssi_writel(ctrl, SSI_SPI_CTRLR0(n));
 
 	/* Configure BAUDR */
-	__raw_writel(dw_ssis[n].sckdv, SSI_BAUDR(n));
+	dw_ssi_writel(dw_ssis[n].sckdv, SSI_BAUDR(n));
 	dw_ssi_enable_ctrl(n);
 }
 
@@ -201,7 +222,7 @@ static inline uint32_t tx_max(int n)
 	tx_left = div32u(dw_ssis[n].tx_end - dw_ssis[n].tx,
 			 DW_SSI_XFER_SIZE >> 3);
 	tx_room = ((uint32_t)dw_ssis[n].tx_fifo_depth + 1) -
-		  __raw_readl(SSI_TXFLR(n));
+		  dw_ssi_readl(SSI_TXFLR(n));
 	rxtx_gap = div32u((dw_ssis[n].rx_end - dw_ssis[n].rx) -
 			  (dw_ssis[n].tx_end - dw_ssis[n].tx),
 			  DW_SSI_XFER_SIZE >> 3);
@@ -216,7 +237,7 @@ static inline uint32_t rx_max(int n)
 
 	rx_left = div32u(dw_ssis[n].rx_end - dw_ssis[n].rx,
 			 DW_SSI_XFER_SIZE >> 3);
-	return min(rx_left, __raw_readl(SSI_RXFLR(n)));
+	return min(rx_left, dw_ssi_readl(SSI_RXFLR(n)));
 }
 
 static void dw_writer(int n)
@@ -298,8 +319,8 @@ int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata)
 
 	dw_ssi_disable_ctrl(n);
 	con_dbg("dw_ssi: %s: cr0=%08x\n", __func__, cr0);
-	if (__raw_readl(SSI_CTRLR0(n)) != cr0)
-		__raw_writel(cr0, SSI_CTRLR0(n));
+	if (dw_ssi_readl(SSI_CTRLR0(n)) != cr0)
+		dw_ssi_writel(cr0, SSI_CTRLR0(n));
 	dw_ssi_enable_ctrl(n);
 	return poll_transfer(n);
 }
