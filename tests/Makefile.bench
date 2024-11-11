@@ -1,4 +1,4 @@
-# Should be passed from command line
+
 # CONFIG_BENCH_STATIC=y
 
 CC=$(CROSS_COMPILE)gcc
@@ -61,3 +61,4 @@ CFLAGS =-DHOSTED -DCONFIG_FP=1 \
 %.elf: %.unstrip
 	@echo " STRIP  $<"
 	@$(STRIP) -s --remove-section=.note --remove-section=.comment $< -o $@
+	#@cp -f $< $@
