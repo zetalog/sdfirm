@@ -919,7 +919,7 @@ static int do_memtester(int argc, char **argv)
 	}
 
 	errno = 0;
-	wantraw = (size_t)strtoul(argv[1], &memsuffix, 0);
+	wantraw = (size_t)strtoul(argv[0], &memsuffix, 0);
 	argc--;
 	argv++;
 	if (errno != 0) {
