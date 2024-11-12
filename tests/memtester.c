@@ -962,12 +962,14 @@ static int do_memtester_run(int argc, char **argv)
 			(ull)maxmb);
 		return EXIT_FAIL_NONSTARTER;
 	}
+#ifdef CONFIG_MEMTESTER_PAGE
 	if (wantbytes < pagesize) {
 		fprintf(stderr,
 			"bytes %ld < pagesize %ld -- memory argument too large?\n",
 			wantbytes, pagesize);
 		return EXIT_FAIL_NONSTARTER;
 	}
+#endif
 
 	if (argc < 1) {
 		loops = 0;
@@ -1166,7 +1168,9 @@ static int do_memtester(int argc, char **argv)
 DEFINE_COMMAND(memtester, do_memtester, "Memory stress tests",
 	"memtester [-p physaddrbase] <mem>[B|K|M|G] [loops]\n"
 	"    -run memory stress tests\n"
+#ifdef CONFIG_MEMTESTER_PAGE
 	"     mem: At least 4K\n"
+#endif
 	"memtester mask <mask>"
 	"    -set memory mask\n"
 	"memtester dump"

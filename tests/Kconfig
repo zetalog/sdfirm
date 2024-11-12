@@ -108,6 +108,12 @@ if TEST_MEMTESTER
 config MEMTESTER_NARROW_WRITES
 	bool "Enable narrow writes support"
 
+config MEMTESTER_PAGE
+	bool "Enable page size (4K) boundary check"
+	default y
+	help
+	  It is safer to enable 4K boundary check.
+
 endif
 
 config TEST_ESPI
