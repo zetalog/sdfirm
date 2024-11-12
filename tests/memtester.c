@@ -127,7 +127,7 @@ static ul memtester_testmask(void)
 		if (errno) {
 			fprintf(stderr,
 				"error parsing MEMTESTER_TEST_MASK %s: %s\n",
-			env_testmask, strerror(errno));
+				env_testmask, strerror(errno));
 			usage();
 			return -EXIT_FAIL_NONSTARTER;
 		}
@@ -172,6 +172,7 @@ static int memtester_parseopt(int argc, char **argv, size_t pagesize)
 			/* okay, got address */
 			use_phys = 1;
 			break;
+#ifdef HOSTED
 		case 'd':
 			if (stat(optarg,&statbuf)) {
 				fprintf(stderr,
@@ -192,6 +193,7 @@ static int memtester_parseopt(int argc, char **argv, size_t pagesize)
 				}
 			}
 			break;
+#endif
 		default: /* '?' */
 			usage();
 			return -EXIT_FAIL_NONSTARTER;
@@ -235,6 +237,9 @@ static int memtester_usephys(size_t wantbytes, void __unused volatile **pbuf)
 	return 1;
 }
 #else
+ul mem_testmask;
+#define memtester_pagesize()		PAGE_SIZE
+#define memtester_testmask()		mem_testmask
 #define mlock(a, s)			0
 #define munlock(a, s)			do { } while (0)
 #define check_posix_system()		do { } while (0)
@@ -244,9 +249,6 @@ static void usage(void)
 	fprintf(stderr, "\n"
 		"Usage: memtester [-p physaddrbase] <mem>[B|K|M|G] [loops]\n");
 }
-
-#define memtester_pagesize()				PAGE_SIZE
-#define memtester_testmask()				0
 
 static int memtester_parseopt(int argc, char **argv, size_t pagesize)
 {
@@ -380,7 +382,7 @@ static int test_stuck_address(ulv *bufa, size_t count)
     for (j = 0; j < 16; j++) {
         printf("\b\b\b\b\b\b\b\b\b\b\b");
         p1 = (ulv *) bufa;
-        printf("setting %3u\n", j);
+        printf("setting %3u", j);
         fflush(stdout);
         for (i = 0; i < count; i++) {
             *p1 = ((j + i) % 2) == 0 ? (ul) p1 : ~((ul) p1);
@@ -872,7 +874,7 @@ static struct test {
 #ifdef HOSTED
 int main(int argc, char **argv)
 #else
-static int do_memtester(int argc, char **argv)
+static int do_memtester_run(int argc, char **argv)
 #endif
 {
 	ul loops, loop, i;
@@ -1126,7 +1128,48 @@ static int do_memtester(int argc, char **argv)
 }
 
 #ifndef HOSTED
+static int do_memtester_dump(int argc, char **argv)
+{
+	int i;
+
+	printf("ID %-20s masked\n", "Name");
+	printf("-1 %-20s\n", "Stuck Address");
+	for (i = 0; ; i++) {
+		if (!tests[i].name)
+			break;
+		printf("%02d  %-20s: %c\n", i, tests[i].name,
+		       (mem_testmask & (1 << i)) ? 'M' : '\0');
+	}
+	printf("Using 1<<<ID to mask\n");
+	return 0;
+}
+
+static int do_memtester_mask(int argc, char **argv)
+{
+	if (argc < 3)
+		return -EINVAL;
+	mem_testmask = strtoul(argv[2], 0, 0);
+	return 0;
+}
+
+static int do_memtester(int argc, char **argv)
+{
+	if (argc < 2)
+		return -EINVAL;
+	if (strcmp(argv[1], "dump") == 0)
+		return do_memtester_dump(argc, argv);
+	if (strcmp(argv[1], "mask") == 0)
+		return do_memtester_mask(argc, argv);
+	return do_memtester_run(argc, argv);
+}
+
 DEFINE_COMMAND(memtester, do_memtester, "Memory stress tests",
 	"memtester [-p physaddrbase] <mem>[B|K|M|G] [loops]\n"
+	"    -run memory stress tests\n"
+	"     mem: At least 4K\n"
+	"memtester mask <mask>"
+	"    -set memory mask\n"
+	"memtester dump"
+	"    -dump available tests\n"
 );
 #endif
