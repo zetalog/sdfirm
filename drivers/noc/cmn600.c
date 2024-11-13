@@ -136,6 +136,7 @@ cmn_id_t cmn_hnf_count;
 cmn_id_t cmn_rnd_count;
 cmn_id_t cmn_rni_count;
 cmn_id_t cmn_rnf_count;
+cmn_id_t cmn_snf_count;
 cmn_id_t cmn_cxha_count;
 cmn_id_t cmn_rn_sam_int_count;
 cmn_id_t cmn_rn_sam_ext_count;
@@ -582,6 +583,7 @@ void cmn600_discover(void)
 		BUG();
 	}
 	cmn_hnf_cal_validate();
+	cmn_snf_count = cmn600_hw_snf_count();
 
 	con_dbg(CMN_MODNAME ": Total internal RN-SAM: %d\n", cmn_rn_sam_int_count);
 	con_dbg(CMN_MODNAME ": Total external RN-SAM: %d\n", cmn_rn_sam_ext_count);
@@ -590,6 +592,7 @@ void cmn600_discover(void)
 	con_dbg(CMN_MODNAME ": Total RN-D: %d\n", cmn_rnd_count);
 	con_dbg(CMN_MODNAME ": Total RN-I: %d\n", cmn_rni_count);
 	con_dbg(CMN_MODNAME ": Total CXHA: %d\n", cmn_cxha_count);
+	con_dbg(CMN_MODNAME ": Total SN-F: %d\n", cmn_snf_count);
 
 	if (cmn_cxla_id != CMN_INVAL_ID)
 		con_dbg(CMN_MODNAME ": CCIX CXLA node id %016lx\n", CMN_CXLA_BASE);
@@ -779,6 +782,7 @@ void cmn600_configure(void)
 	con_dbg(CMN_MODNAME ": configure: revision=%s\n",
 		cmn600_revision_name(cmn_revision()));
 
+	cmn_snf_count = cmn600_hw_snf_count();
 	/* Setup HN-F nodes */
 	for (i = 0; i < cmn_hnf_count; i++)
 		cmn600_configure_hnf_sam(CMN_HNF_BASE(cmn_hnf_ids[i]));
