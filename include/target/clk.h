@@ -49,15 +49,23 @@
 #endif
 
 #ifndef __ASSEMBLY__
+#include <driver/clk.h>
+
+#ifndef ARCH_HAVE_CLK_TYPES
 typedef uint16_t clk_t;
 typedef uint8_t clk_cat_t;
 typedef uint8_t clk_clk_t;
 
+#ifndef clkid
 #define clkid(cat, clk)		((clk_t)MAKEWORD(clk, cat))
+#endif
+#ifndef clk_clk
 #define clk_clk(clkid)		LOBYTE(clkid)
+#endif
+#ifdef clk_cat
 #define clk_cat(clkid)		HIBYTE(clkid)
-
-#include <driver/clk.h>
+#endif
+#endif
 
 #ifndef clk_freq_t
 #define clk_freq_t		uint32_t

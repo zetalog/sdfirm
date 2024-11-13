@@ -1140,6 +1140,7 @@ extern cmn_id_t cmn_hnf_count;
 extern cmn_id_t cmn_rnf_count;
 extern cmn_id_t cmn_rnd_count;
 extern cmn_id_t cmn_rni_count;
+extern cmn_id_t cmn_snf_count;
 extern cmn_id_t cmn_rn_sam_int_count;
 extern cmn_id_t cmn_rn_sam_ext_count;
 extern bool cmn600_initialized;
@@ -1177,6 +1178,11 @@ void cmn600_ras_report(cmn_nid_t nid);
 #else
 #define cmn600_ras_config(nid)		do { } while (0)
 #define cmn600_ras_report(nid)		do { } while (0)
+#endif
+
+#ifndef ARCH_HAVE_SNF_TABLE
+#define cmn600_hw_snf_count()				1
+#define cmn600_hw_snf_hashed(hnf)			cmn_snf_table[0]
 #endif
 
 #endif /* __CMN600_H_INCLUDE__ */
