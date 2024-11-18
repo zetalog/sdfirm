@@ -286,4 +286,11 @@ config ESPI_DEBUG
 
 endif
 
+config MCTP
+	bool "Management component transport protocol (MCTP) support"
+
+if MCTP
+
+endif
+
 endmenu
