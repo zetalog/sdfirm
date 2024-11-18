@@ -1,0 +1,13 @@
+#
+# I3C Devices
+#
+
+config ARCH_HAS_I2C
+	bool
+
+menuconfig I3C
+	bool "Improved inter integrated circuit (I3C) support"
+
+if I3C
+
+endif

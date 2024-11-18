@@ -2,7 +2,7 @@
 #include <target/panic.h>
 #include <target/bh.h>
 
-#ifdef CONFIG_DW_I2C_DEBUG
+#ifdef CONFIG_I2C_DEBUG
 #define i2c_dbg(...)	con_dbg(__VA_ARGS__)
 #else
 #define i2c_dbg(...)	do { } while (0)
