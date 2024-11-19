@@ -29,5 +29,6 @@ obj-y += net/
 obj-y += phy/
 obj-y += lpc/
 obj-y += espi/
+obj-y += mctp/
 obj-y += kcs/
 obj-$(CONFIG_PERF) += pmu/
