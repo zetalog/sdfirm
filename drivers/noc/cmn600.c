@@ -621,6 +621,9 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 	uint32_t memregion;
 	cmn_id_t tgt_nodes;
 	cmn_id_t snf;
+	cmn_id_t lid_base;
+	uint8_t scg;
+
 	tgt_nodes = cmn600_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
@@ -743,17 +746,38 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		}
 	}
 
+	lid_base = 0;
+	scg = 0;
+#ifdef CONFIG_CMN600_SAM_RANGE_BASED
 	for (lid = 0; lid < cmn_hnf_count; lid++) {
-		nid = cmn_hnf_scgs[lid];
-		cmn_writeq_mask(CMN_nodeid(lid, nid),
-				CMN_nodeid(lid, CMN_nodeid_MASK),
-				CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, lid),
-				"CMN_rnsam_sys_cache_grp_hn_nodeid", lid);
+		nid = cmn_hnf_scgs[lid_base];
+		cmn_writeq_mask(CMN_nodeid(lid_base, nid),
+				CMN_nodeid(lid_base, CMN_nodeid_MASK),
+				CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, lid_base),
+				"CMN_rnsam_sys_cache_grp_hn_nodeid", lid_base);
+		lid_base++;
 #ifdef CONFIG_CMN600_DEBUG_CONFIGURE
-		con_dbg(CMN_MODNAME ": SCG: %d/%d, ID: %d\n",
-			lid, cmn_hnf_count, nid);
+		con_dbg(CMN_MODNAME ": SCG%d: %d/%d, ID: %d\n",
+			scg, lid_base, cmn_hnf_count, nid);
 #endif
 	}
+#else
+	while (lid_base < cmn_hnf_count) {
+		for (lid = 0; lid < cmn_snf_count && lid_base < cmn_hnf_count; lid++) {
+			nid = cmn_hnf_scgs[lid_base];
+			cmn_writeq_mask(CMN_nodeid(lid_base, nid),
+					CMN_nodeid(lid_base, CMN_nodeid_MASK),
+					CMN_rnsam_sys_cache_grp_hn_nodeid(rnsam, lid_base),
+					"CMN_rnsam_sys_cache_grp_hn_nodeid", lid_base);
+			lid_base++;
+#ifdef CONFIG_CMN600_DEBUG_CONFIGURE
+			con_dbg(CMN_MODNAME ": SCG%d: %d/%d, ID: %d\n",
+				scg, lid_base, cmn_hnf_count, nid);
+#endif
+		}
+		scg++;
+	}
+#endif
 	cmn_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam),
 		   "CMN_rnsam_sys_cache_group_hn_count", -1);
 
