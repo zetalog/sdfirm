@@ -47,6 +47,7 @@ source drivers/phy/Kconfig
 source drivers/lpc/Kconfig
 source drivers/kcs/Kconfig
 source drivers/espi/Kconfig
+source drivers/mctp/Kconfig
 
 source drivers/pmu/Kconfig
 

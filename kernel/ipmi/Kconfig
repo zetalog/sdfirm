@@ -67,6 +67,9 @@ config ARCH_HAS_SIO
 config ARCH_HAS_KCS
 	bool
 
+config ARCH_HAS_MCTP
+	bool
+
 menu "Mangement interfaces support"
 
 menuconfig IPMI
@@ -286,7 +289,7 @@ config ESPI_DEBUG
 
 endif
 
-config MCTP
+menuconfig MCTP
 	bool "Management component transport protocol (MCTP) support"
 
 if MCTP
