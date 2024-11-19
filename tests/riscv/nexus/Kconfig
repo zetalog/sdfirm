@@ -1,0 +1,10 @@
+#
+# RISCV NEXUS Tests
+#
+
+menuconfig TESTS_NEXUS_RISCV
+	bool "RISC-V NEXUS trace reference model tests"
+
+if TESTS_NEXUS_RISCV
+
+endif
