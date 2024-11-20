@@ -138,6 +138,7 @@ cmn_id_t cmn_rni_count;
 cmn_id_t cmn_rnf_count;
 cmn_id_t cmn_snf_count;
 cmn_id_t cmn_cxha_count;
+cmn_id_t cmn_scg_count;
 cmn_id_t cmn_rn_sam_int_count;
 cmn_id_t cmn_rn_sam_ext_count;
 bool cmn600_initialized = false;
@@ -259,8 +260,7 @@ static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_id_t id)
 	cmn_hnf_scgs[id] = cmn_node_id(hnf);
 }
 #endif
-#endif
-/*
+
 static void cmn_hnf_cal_config_ocm(caddr_t hnf)
 {
 	cmn_writeq(hnf_cfg_ctl(hnf) |
@@ -278,6 +278,7 @@ static void cmn_hnf_cal_disable_ocm(caddr_t hnf)
 		CMN_hnf_cfg_ctl(hnf),
 		"CMN_hnf_cfg_ctl", -1);
 }
+
 /*
 static void cmn_hnf_cfg_slc_lockways(caddr_t hnf, uint64_t ways, uint64_t num_hnf)
 {
@@ -637,7 +638,8 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 	cmn_id_t snf;
 	cmn_id_t lid_base;
 	uint8_t scg;
-	
+	cmn_id_t hnfs_per_scg;
+
 	tgt_nodes = cmn600_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
@@ -760,6 +762,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		}
 	}
 
+	hnfs_per_scg = cmn_hnf_count / cmn_scg_count;
 	lid_base = 0;
 	scg = 0;
 #ifdef CONFIG_CMN600_SAM_RANGE_BASED
@@ -777,7 +780,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 	}
 #else
 	while (lid_base < cmn_hnf_count) {
-		for (lid = 0; lid < cmn_snf_count && lid_base < cmn_hnf_count; lid++) {
+		for (lid = 0; lid < hnfs_per_scg && lid_base < cmn_hnf_count; lid++) {
 			nid = cmn_hnf_scgs[lid_base];
 			cmn_writeq_mask(CMN_nodeid(lid_base, nid),
 					CMN_nodeid(lid_base, CMN_nodeid_MASK),
@@ -789,12 +792,12 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				scg, lid_base, cmn_hnf_count, nid);
 #endif
 		}
-		if ((cmn_snf_count * 4) < cmn_hnf_count)
-			lid_base += cmn_hnf_count - (cmn_snf_count * 4);
+		if (hnfs_per_scg < 4)
+			lid_base = ALIGN_UP(hnfs_per_scg, 4);
 		scg++;
 	}
 #endif
-	cmn_writeq(cmn_hnf_count, CMN_rnsam_sys_cache_group_hn_count(rnsam),
+	cmn_writeq(hnfs_per_scg, CMN_rnsam_sys_cache_group_hn_count(rnsam),
 		   "CMN_rnsam_sys_cache_group_hn_count", -1);
 
 	cmn_hnf_cal_apply_scg(rnsam);
@@ -823,6 +826,7 @@ void cmn600_configure(void)
 		cmn600_revision_name(cmn_revision()));
 
 	cmn_snf_count = cmn600_hw_snf_count();
+	cmn_scg_count = cmn600_hw_scg_count();
 	/* Setup HN-F nodes */
 	for (i = 0; i < cmn_hnf_count; i++)
 		cmn600_configure_hnf_sam(CMN_HNF_BASE(cmn_hnf_ids[i]), i);
