@@ -58,6 +58,7 @@ typedef uint8_t clk_clk_t;
 
 #ifndef clkid
 #define clkid(cat, clk)		((clk_t)MAKEWORD(clk, cat))
+#define invalid_clk		clkid(0xFF, 0xFF)
 #endif
 #ifndef clk_clk
 #define clk_clk(clkid)		LOBYTE(clkid)
