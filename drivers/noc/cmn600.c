@@ -345,7 +345,8 @@ uint8_t cmn_hnf_mapping(void)
 static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 {
 	cmn_nid_t nodeid;
-	nodeid = cmn600_hw_hnf_sam_hash_snf(cmn_node_id(hnf));
+
+	nodeid = cmn600_hw_snf_hashed(cmn_node_id(hnf));
 	switch (cmn_hnf_mapping()) {
 	case CMN_HNF_MAPPING_DIRECT:
 		/* TODO: support cmn_snf_count using hnf tgt ids */
