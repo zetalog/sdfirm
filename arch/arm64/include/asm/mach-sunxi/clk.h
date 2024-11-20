@@ -60,8 +60,6 @@
 #define FREQPLAN_RUN		0
 #define INVALID_FREQPLAN	NR_FREQPLANS
 
-#define invalid_clk		clkid(0xFF, 0xFF)
-
 void clk_hw_ctrl_init(void);
 void clock_init_safe(void);
 void clock_init_sec(void);

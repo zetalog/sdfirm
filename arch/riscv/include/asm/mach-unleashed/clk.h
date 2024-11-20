@@ -57,8 +57,6 @@
 #define FREQPLAN_RUN		0
 #define INVALID_FREQPLAN	NR_FREQPLANS
 
-#define invalid_clk		clkid(0xFF, 0xFF)
-
 #define FREQ_33MHZ		UL(33333333)
 #define HFCLK_FREQ		FREQ_33MHZ
 #ifdef CONFIG_UNLEASHED_CORECLK_FREQ_10GHZ

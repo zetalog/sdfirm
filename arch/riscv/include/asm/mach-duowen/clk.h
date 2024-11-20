@@ -58,7 +58,6 @@
 #define INVALID_FREQPLAN	NR_FREQPLANS
 
 #define clk_freq_t		uint64_t
-#define invalid_clk		clkid(0xFF, 0xFF)
 
 #ifdef CONFIG_DUOWEN_PLL_REAL
 #define SOC_VCO_FREQ		ULL(4000000000) /* 4GHz */

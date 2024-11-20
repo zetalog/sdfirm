@@ -57,7 +57,6 @@
 #define INVALID_FREQPLAN	(-1)
 
 #define clk_freq_t		uint64_t
-#define invalid_clk		clkid(0xFF, 0xFF)
 
 #ifdef CONFIG_DPU_RES
 #ifdef CONFIG_DPU_RES_SLOW
