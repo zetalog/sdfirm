@@ -57,8 +57,6 @@
 #define FREQPLAN_2_0		2
 #define INVALID_FREQPLAN	NR_FREQPLANS
 
-#define invalid_clk		clkid(0xFF, 0xFF)
-
 /* Padring reference clocks */
 /* clk_cat_t */
 #define CLK_PADRING		((clk_cat_t)0)

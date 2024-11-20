@@ -59,6 +59,5 @@
 #define INVALID_FREQPLAN	(-1)
 
 #define clk_freq_t		uint64_t
-#define invalid_clk		clkid(0xFF, 0xFF)
 
 #endif /* __CLK_K1MXLITE_H_INCLUDE__ */
