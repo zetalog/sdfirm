@@ -1180,9 +1180,14 @@ void cmn600_ras_report(cmn_nid_t nid);
 #define cmn600_ras_report(nid)		do { } while (0)
 #endif
 
+#define cmn600_hw_hnf_sam_hash_snf(hnf_nid)	cmn600_hw_snf_hashed(hnf_nid)
+#if 0
 #ifndef ARCH_HAVE_SNF_TABLE
 #define cmn600_hw_snf_count()				1
 #define cmn600_hw_snf_hashed(hnf)			cmn_snf_table[0]
+#define cmn600_hw_hnf_masked(nid)			false
+#define cmn600_hw_hnf_group(hnf)			cmn_logical_id(hnf)
+#else
 #endif
-
+#endif
 #endif /* __CMN600_H_INCLUDE__ */
