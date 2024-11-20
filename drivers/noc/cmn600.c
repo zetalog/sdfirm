@@ -254,11 +254,15 @@ static void cmn_hnf_cal_apply_scg(caddr_t rnsam)
 #define cmn_hnf_cal_enable_scg(scg)	do { } while (0)
 #define cmn_hnf_cal_apply_scg(rnsam)	do { } while (0)
 
+#if 0 
 static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_lid_t lid)
 {
+	cmn600_hw_hnf_group(hnf, scg_group);
 	cmn_hnf_scgs[lid] = cmn_node_id(hnf);
 }
 #endif
+#endif
+/*
 
 static void cmn_hnf_cal_config_ocm(caddr_t hnf)
 {
@@ -342,15 +346,17 @@ uint8_t cmn_hnf_mapping(void)
 
 static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 {
+	cmn_nid_t nodeid;
+	nodeid = cmn600_hw_hnf_sam_hash_snf(cmn_node_id(hnf));
 	switch (cmn_hnf_mapping()) {
 	case CMN_HNF_MAPPING_DIRECT:
 		/* TODO: support cmn_snf_count using hnf tgt ids */
-		BUG_ON(cmn_snf_count != 1);
-		cmn_writeq(CMN_hn_cfg_sn_nodeid(0, cmn_snf_table[0]),
+		cmn_writeq(CMN_hn_cfg_sn_nodeid(0,
+			   nodeid),
 			   CMN_hnf_sam_control(hnf),
 			   "CMN_hnf_sam_control", -1);
+		con_dbg("CMNh600:hnf-snf:%x, cmn_nid_t:%d\n", __raw_readl(CMN_hnf_sam_control(hnf)), nodeid);
 		break;
-
 	case CMN_HNF_MAPPING_HASHED_3SN:
 		/* TODO: top address bit 0/1 calculation */
 		cmn_writeq(CMN_hn_cfg_three_sn_en |
@@ -360,7 +366,6 @@ static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 			   CMN_hnf_sam_control(hnf),
 			   "CMN_hnf_sam_control", -1);
 		break;
-
 	case CMN_HNF_MAPPING_HASHED_6SN:
 		/* TODO: top address bit 0/1/2 calculation */
 		cmn_writeq(CMN_hn_cfg_six_sn_en |
@@ -418,12 +423,12 @@ static void cmn_configure_hnf_sam_range_based(caddr_t hnf)
 
 static void cmn600_configure_hnf_sam(caddr_t hnf)
 {
-	cmn_lid_t lid;
+	//cmn_lid_t scg;
 
-	lid = cmn_logical_id(hnf);
+	//lid = cmn_logical_id(hnf);
 
 	cmn_hnf_cal_process(hnf);
-	cmn_hnf_cal_config_scg(hnf, lid);
+	//cmn_hnf_cal_config_scg(hnf, scg);
 
 	/* Set target node */
 	cmn_configure_hnf_sam_hashed(hnf);
@@ -453,6 +458,20 @@ cmn_id_t cmn600_max_tgt_nodes(void)
 	return 0;
 }
 
+#if 0
+static uint64_t cmn_xp_masked(cmn_id_t xp_index, cmn_id_t node_index)
+{
+	uint64_t mask;
+
+	if (node_index == 0)
+		mask = cmn_hw_snf_p0_mask(cmn_ddr_mask) |
+		       cmn_hw_hnf_p0_mask(cmn_cpu_mask);
+	else
+		mask = cmn_hw_snf_p1_mask(cmn_ddr_mask) |
+		       cmn_hw_hnf_p1_mask(cmn_cpu_mask);
+	return mask & (1 << xp);
+}
+#endif
 static void cmn600_discover_external(caddr_t node, caddr_t xp)
 {
 	uint8_t dev_type;
@@ -491,8 +510,10 @@ static void cmn600_discover_internal(caddr_t node)
 				cmn_hnf_count, CMN_MAX_HNF_COUNT);
 			BUG();
 		}
-		cmn_hnf_ids[cmn_hnf_count++] = cmn_nr_nodes;
-		cmn_bases[cmn_nr_nodes++] = node;
+		if (!cmn600_hw_hnf_masked(cmn_node_id(node))) {
+			cmn_hnf_ids[cmn_hnf_count++] = cmn_nr_nodes;
+			cmn_bases[cmn_nr_nodes++] = node;
+		}
 		break;
 	case CMN_RN_SAM:
 		if (cmn_rn_sam_int_count >= CMN_MAX_RN_SAM_INT_COUNT) {
@@ -623,7 +644,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 	cmn_id_t snf;
 	cmn_id_t lid_base;
 	uint8_t scg;
-
+	
 	tgt_nodes = cmn600_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
@@ -808,6 +829,9 @@ void cmn600_configure(void)
 
 	cmn_snf_count = cmn600_hw_snf_count();
 	/* Setup HN-F nodes */
+	for (i = 0; i < cmn_hnf_count; i++)
+		con_dbg("cmn_hnf_ids[i]:%d, cmn_node_id:%d\n",
+			cmn_hnf_ids[i], cmn_node_id(CMN_HNF_BASE(cmn_hnf_ids[i])));
 	for (i = 0; i < cmn_hnf_count; i++)
 		cmn600_configure_hnf_sam(CMN_HNF_BASE(cmn_hnf_ids[i]));
 	con_dbg(CMN_MODNAME "Setup HN-F nodes\n");
