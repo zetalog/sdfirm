@@ -209,15 +209,15 @@ static void cmn_hnf_cal_process(caddr_t hnf)
 	}
 }
 
-static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_lid_t lid)
+static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_id_t id)
 {
 	/* If CAL mode is set, add only even numbered hnd node to
 	 * cmn_rnsam_sys_cache_grp_hn_nodeid registers
 	 */
 	if (((cmn_node_id(hnf) % 2) == 0) && cmn_cal_supported())
-		cmn_hnf_scgs[lid / cal_mode_factor] = cmn_node_id(hnf);
+		cmn_hnf_scgs[id / cal_mode_factor] = cmn_node_id(hnf);
 	else
-		cmn_hnf_scgs[lid] = cmn_node_id(hnf);
+		cmn_hnf_scgs[id] = cmn_node_id(hnf);
 }
 
 static void cmn_hnf_cal_enable_scg(unsigned int scg)
@@ -254,11 +254,9 @@ static void cmn_hnf_cal_apply_scg(caddr_t rnsam)
 #define cmn_hnf_cal_enable_scg(scg)	do { } while (0)
 #define cmn_hnf_cal_apply_scg(rnsam)	do { } while (0)
 
-#if 0 
-static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_id_t index)
+static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_id_t id)
 {
-	cmn600_hw_hnf_group(hnf, scg_group);
-	cmn_hnf_scgs[index] = cmn_node_id(hnf);
+	cmn_hnf_scgs[id] = cmn_node_id(hnf);
 }
 #endif
 #endif
@@ -420,14 +418,10 @@ static void cmn_configure_hnf_sam_range_based(caddr_t hnf)
 #define cmn_configure_hnf_sam_range_based(hnf)	do { } while (0)
 #endif
 
-static void cmn600_configure_hnf_sam(caddr_t hnf, cmn_id_t index)
+static void cmn600_configure_hnf_sam(caddr_t hnf, cmn_id_t id)
 {
-	//cmn_lid_t scg;
-
-	//lid = cmn_logical_id(hnf);
-
 	cmn_hnf_cal_process(hnf);
-	//cmn_hnf_cal_config_scg(hnf, index);
+	cmn_hnf_cal_config_scg(hnf, id);
 
 	/* Set target node */
 	cmn_configure_hnf_sam_hashed(hnf);
@@ -795,6 +789,8 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				scg, lid_base, cmn_hnf_count, nid);
 #endif
 		}
+		if ((cmn_snf_count * 4) < cmn_hnf_count)
+			lid_base += cmn_hnf_count - (cmn_snf_count * 4);
 		scg++;
 	}
 #endif
@@ -828,9 +824,6 @@ void cmn600_configure(void)
 
 	cmn_snf_count = cmn600_hw_snf_count();
 	/* Setup HN-F nodes */
-	for (i = 0; i < cmn_hnf_count; i++)
-		con_dbg("cmn_hnf_ids[i]:%d, cmn_node_id:%d\n",
-			cmn_hnf_ids[i], cmn_node_id(CMN_HNF_BASE(cmn_hnf_ids[i])));
 	for (i = 0; i < cmn_hnf_count; i++)
 		cmn600_configure_hnf_sam(CMN_HNF_BASE(cmn_hnf_ids[i]), i);
 	con_dbg(CMN_MODNAME "Setup HN-F nodes\n");
