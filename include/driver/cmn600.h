@@ -1116,11 +1116,11 @@ void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i);
 #define CMN600_CHIP_LOCAL		CMN_MAX_CHIPS
 
 struct cmn600_memregion {
-    caddr_t base;
-    uint64_t size;
-    uint16_t type;
-    uint16_t node_id;
-    uint16_t chip_id;
+	caddr_t base;
+	uint64_t size;
+	uint16_t type;
+	uint16_t node_id;
+	uint16_t chip_id;
 };
 
 struct cmn600_ccix_ha_mmap {

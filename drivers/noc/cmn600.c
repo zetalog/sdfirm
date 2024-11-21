@@ -150,9 +150,6 @@ uint8_t cmn_rn_sam_ext_ids[CMN_MAX_RN_SAM_EXT_COUNT];
 uint8_t cmn_rn_sam_int_ids[CMN_MAX_RN_SAM_INT_COUNT];
 uint8_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
 
-#define CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP	4
-#define CMN600_HNF_CACHE_GROUP_ENTRY_BITS_WIDTH		12
-
 #ifdef CONFIG_CMN600_DEBUG
 static void cmn_debug_init(void)
 {
@@ -168,14 +165,6 @@ void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i)
 		con_dbg(CMN_MODNAME ": %016llx=%016llx %s%d\n",
 			(uint64_t)a, v, n, i);
 	__raw_writeq(v, a);
-}
-#endif
-
-#if 0
-static int cmn_hnf_cache_group_count(void)
-{
-	return (cmn_hnf_count + CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP - 1) /
-	       CMN600_HNF_CACHE_GROUP_ENTRIES_PER_GROUP;
 }
 #endif
 
@@ -633,6 +622,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 	cmn_nid_t nid;
 	cmn_id_t region_io_count = 0;
 	cmn_id_t region_sys_count = 0;
+	cmn_id_t region_sys2_count = 0;
 	unsigned int region_type;
 	uint32_t memregion;
 	cmn_id_t tgt_nodes;
@@ -640,6 +630,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 	cmn_id_t lid_base;
 	uint8_t scg;
 	cmn_id_t hnfs_per_scg;
+	size_t scg_size;
 
 	tgt_nodes = cmn600_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);
@@ -679,8 +670,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 						CMN_region(region_io_count, CMN_region_MASK),
 						CMN_rnsam_non_hash_mem_region(rnsam, region_io_count),
 						"CMN_rnsam_non_hash_mem_region", region_io_count);
-			}
-			else{
+			} else {
 				cmn_writeq_mask(CMN_region(region_io_count, memregion),
 						CMN_region(region_io_count, CMN_region_MASK),
 						CMN_rnsam_non_hash_mem_region2(rnsam, region_io_count),
@@ -706,13 +696,21 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				BUG();
 			}
 
+			scg_size = region->size / cmn_scg_count;
 			memregion = CMN_valid_region(CMN_region_target_HNF,
-						     base, region->size);
-			cmn_writeq_mask(CMN_region(region_sys_count, memregion),
-					CMN_region(region_sys_count, CMN_region_MASK),
-					CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count),
-					"CMN_rnsam_sys_cache_grp_region", region_sys_count);
-
+						     base + (scg_size * region_sys_count),
+						     scg_size);
+			if (cmn_scg_count == 2 && region_sys_count == 1) {
+				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
+						CMN_region(region_sys_count, CMN_region_MASK),
+						CMN_rnsam_sys_cache_grp_region(rnsam, 2),
+						"CMN_rnsam_sys_cache_grp_region", 2);
+			} else {
+				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
+						CMN_region(region_sys_count, CMN_region_MASK),
+						CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count),
+						"CMN_rnsam_sys_cache_grp_region", region_sys_count);
+			}
 			cmn_hnf_cal_enable_scg(region_sys_count);
 			region_sys_count++;
 			break;
@@ -724,15 +722,23 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				BUG();
 			}
 
+			scg_size = region->size / cmn_scg_count;
 			memregion = CMN_valid_region(CMN_region_target_HNF,
-						     base, region->size);
-			cmn_writeq_mask(CMN_region(region_sys_count, memregion),
-					CMN_region(region_sys_count, CMN_region_MASK),
-					CMN_rnsam_sys_cache_grp_secondary_region(rnsam, region_sys_count),
-					"CMN_rnsam_sys_cache_grp_secondary_region", region_sys_count);
-
+						     base + (scg_size * region_sys_count),
+						     scg_size);
+			if (cmn_scg_count == 2 && region_sys2_count == 1) {
+				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
+						CMN_region(region_sys_count, CMN_region_MASK),
+						CMN_rnsam_sys_cache_grp_secondary_region(rnsam, 2),
+						"CMN_rnsam_sys_cache_grp_secondary_region", 2);
+			} else {
+				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
+						CMN_region(region_sys_count, CMN_region_MASK),
+						CMN_rnsam_sys_cache_grp_secondary_region(rnsam, region_sys2_count),
+						"CMN_rnsam_sys_cache_grp_secondary_region", region_sys2_count);
+			}
 			cmn_hnf_cal_enable_scg(region_sys_count);
-			region_sys_count++;
+			region_sys2_count++;
 			break;
 
 		case CMN600_REGION_TYPE_SYSCACHE_NONHASH:
@@ -793,8 +799,8 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				scg, lid_base, cmn_hnf_count, nid);
 #endif
 		}
-		if (hnfs_per_scg < 4)
-			lid_base = ALIGN_UP(hnfs_per_scg, 4);
+		if (hnfs_per_scg < CMN_MAX_HASH_MEM_REGIONS)
+			lid_base = ALIGN_UP(hnfs_per_scg, CMN_MAX_HASH_MEM_REGIONS);
 		scg++;
 	}
 #endif
