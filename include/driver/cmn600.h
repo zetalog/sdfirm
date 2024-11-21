@@ -130,12 +130,14 @@
 #endif
 
 /* NID and RNP (root node pointer) encodings */
-#define CMN_NID_DeviceID_OFFFSET	0
+#define CMN_NID_DeviceID_OFFSET		0
 #define CMN_NID_DeviceID_MASK		REG_2BIT_MASK
 #define CMN_DID(nid)			_GET_FV(CMN_NID_DeviceID, nid)
+#define cmn_did(did)			_SET_FV(CMN_NID_DeviceID, did)
 #define CMN_NID_Port_OFFSET		2
 #define CMN_NID_Port_MASK		REG_1BIT_MASK
 #define CMN_PID(nid)			_GET_FV(CMN_NID_Port, nid)
+#define cmn_pid(pid)			_SET_FV(CMN_NID_Port, pid)
 #define CMN_ROOT_NODE_POINTER_PID_OFFSET	0
 #define CMN_ROOT_NODE_POINTER_PID_MASK		REG_2BIT_MASK
 #define CMN_ROOT_NODE_POINTER_PID(pid)		_SET_FV(CMN_ROOT_NODE_POINTER_PID, pid)
@@ -145,9 +147,11 @@
 #define CMN_NID_Y_OFFSET		3
 #define CMN_NID_Y_MASK			REG_3BIT_MASK
 #define CMN_Y(nid)			_GET_FV(CMN_NID_Y, nid)
+#define cmn_y(y)			_SET_FV(CMN_NID_Y, y)
 #define CMN_NID_X_OFFSET		6
 #define CMN_NID_X_MASK			REG_3BIT_MASK
 #define CMN_X(nid)			_GET_FV(CMN_NID_X, nid)
+#define cmn_x(x)			_SET_FV(CMN_NID_X, x)
 #define CMN_ROOT_NODE_POINTER_Y_OFFSET	6
 #define CMN_ROOT_NODE_POINTER_Y_MASK	REG_3BIT_MASK
 #define CMN_ROOT_NODE_POINTER_Y(y)	_SET_FV(CMN_ROOT_NODE_POINTER_Y, y)
@@ -178,6 +182,8 @@
 	__CMN_ROOT_NODE_POINTER(CMN_X(nid),	\
 				CMN_Y(nid),	\
 				CMN_PID(nid))
+#define CMN_NID(x, y, pid, did)		\
+	(cmn_did(did) | cmn_pid(pid) | cmn_y(y) | cmn_x(x))
 
 #if NR_CMN_NODES < 256
 typedef uint8_t cmn_id_t;
@@ -1186,6 +1192,7 @@ void cmn600_ras_report(cmn_nid_t nid);
 #define cmn600_hw_snf_hashed(hnf)			cmn_snf_table[0]
 #define cmn600_hw_hnf_masked(nid)			false
 #define cmn600_hw_hnf_group(hnf)			cmn_logical_id(hnf)
+#define cmn600_hw_xp_masked(x, y, p)			false
 #endif
 
 #endif /* __CMN600_H_INCLUDE__ */

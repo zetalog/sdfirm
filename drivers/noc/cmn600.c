@@ -300,23 +300,32 @@ static void cmn_hnf_slc_lock_disable(caddr_t hnf)
 		"CMN_hnf_cfg_ctl", -1);
 }
 */
+
 static void cmn_hnf_abf(uint64_t hnf, uint64_t abf_mode, uint64_t saddr, uint64_t eaddr)
 {
-	printf("flush SLC [%llx:%llx]", saddr, eaddr);
-	cmn_writeq(hnf_abf_lo_addr(hnf) | CMN_abf_lo_addr(saddr),CMN_hnf_abf_lo_addr(hnf),"CMN_hnf_abf_lo_addr", -1);
-	cmn_writeq(hnf_abf_hi_addr(hnf) | CMN_abf_hi_addr(eaddr),CMN_hnf_abf_hi_addr(hnf),"CMN_hnf_abf_hi_addr", -1);
-	cmn_writeq(hnf_abf_pr(hnf) | CMN_abf_mode(abf_mode) | CMN_abf_enable(1),CMN_hnf_abf_pr(hnf),"CMN_hnf_abf_lo_addr", -1);
+	cmn_writeq(hnf_abf_lo_addr(hnf) |
+		   CMN_abf_lo_addr(saddr),
+		   CMN_hnf_abf_lo_addr(hnf),
+		   "CMN_hnf_abf_lo_addr", -1);
+	cmn_writeq(hnf_abf_hi_addr(hnf) |
+		   CMN_abf_hi_addr(eaddr),
+		   CMN_hnf_abf_hi_addr(hnf),
+		   "CMN_hnf_abf_hi_addr", -1);
+	cmn_writeq(hnf_abf_pr(hnf) |
+		   CMN_abf_mode(abf_mode) |
+		   CMN_abf_enable(1),
+		   CMN_hnf_abf_pr(hnf),
+		   "CMN_hnf_abf_lo_addr", -1);
 }
 
 void cmn_hnf_abf_done(int hnf_id_idx)
 {
 	uint64_t abf_sr = 0x0;
-	while ((abf_sr & 0xf) == 0x0){
+
+	while ((abf_sr & 0xf) == 0x0) {
 		//wait_ns(10000);
 		abf_sr = hnf_abf_sr(CMN_HNF_BASE(cmn_hnf_ids[hnf_id_idx]));
-		printf("abf_sr = %llx", abf_sr);
 	}
-
 }
 
 uint8_t cmn_hnf_mapping(void)
@@ -456,6 +465,7 @@ static uint64_t cmn_xp_masked(cmn_id_t xp_index, cmn_id_t node_index)
 	return mask & (1 << xp);
 }
 #endif
+
 static void cmn600_discover_external(caddr_t node, caddr_t xp)
 {
 	uint8_t dev_type;
@@ -548,9 +558,10 @@ static void cmn600_discover_internal(caddr_t node)
 
 void cmn600_discover(void)
 {
-	cmn_id_t xp_index, node_index;
+	cmn_id_t xp_index, node_index, port_index;
 	cmn_id_t xp_count, node_count;
 	caddr_t xp, node;
+	cmn_id_t skip_nodes;
 
 	BUG_ON(cmn_node_type(CMN_CFGM_BASE) != CMN_CFG);
 
@@ -566,13 +577,22 @@ void cmn600_discover(void)
 #endif
 
 		node_count = cmn_child_count(xp);
-		for (node_index = 0; node_index < node_count; node_index++) {
-			node = cmn_child_node(xp, node_index);
+		port_index = 0;
+		for (node_index = 0; node_index < node_count; node_index += skip_nodes) {
+			skip_nodes = cmn600_hw_xp_masked(cmn_node_x(xp),
+							 cmn_node_y(xp),
+							 port_index);
+			port_index = port_index == 0 ? 1 : 0;
 
+			if (skip_nodes)
+				continue;
+
+			node = cmn_child_node(xp, node_index);
 			if (cmn_child_external(xp, node_index))
 				cmn600_discover_external(node, xp);
 			else
 				cmn600_discover_internal(node);
+			skip_nodes = 1;
 		}
 	}
 
@@ -616,6 +636,7 @@ void cmn600_discover(void)
 static void cmn600_configure_rn_sam(caddr_t rnsam)
 {
 	caddr_t base;
+	caddr_t region_base;
 	cmn_id_t region_index;
 	struct cmn600_memregion *region;
 	cmn_lid_t lid;
@@ -697,9 +718,9 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			}
 
 			scg_size = region->size / cmn_scg_count;
+			region_base = base + (scg_size * region_sys_count);
 			memregion = CMN_valid_region(CMN_region_target_HNF,
-						     base + (scg_size * region_sys_count),
-						     scg_size);
+						     region_base, scg_size);
 			if (cmn_scg_count == 2 && region_sys_count == 1) {
 				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
 						CMN_region(region_sys_count, CMN_region_MASK),
@@ -723,9 +744,9 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			}
 
 			scg_size = region->size / cmn_scg_count;
+			region_base = base + (scg_size * region_sys_count);
 			memregion = CMN_valid_region(CMN_region_target_HNF,
-						     base + (scg_size * region_sys_count),
-						     scg_size);
+						     region_base, scg_size);
 			if (cmn_scg_count == 2 && region_sys2_count == 1) {
 				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
 						CMN_region(region_sys_count, CMN_region_MASK),
@@ -851,6 +872,7 @@ void cmn600_configure(void)
 void cmn600_disable_ocm()
 {
 	cmn_id_t i;
+
 	for (i = 0; i < cmn_hnf_count; i++)
 		cmn_hnf_cal_disable_ocm(CMN_HNF_BASE(cmn_hnf_ids[i]));
 }
