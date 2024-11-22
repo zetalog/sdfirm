@@ -966,6 +966,16 @@ static uint16_t cmn600_node_type(cmn_nid_t nid)
 		if (nid == cmn_node_id(base))
 			return cmn_node_type(base);
 	}
+	for (i = 0; i < cmn_dtc_count; i++) {
+		base = cmn_bases[cmn_dtc_ids[i]];
+		if (nid == cmn_node_id(base))
+			return cmn_node_type(base);
+	}
+	for (i = 0; i < cmn_sbsx_count; i++) {
+		base = cmn_bases[cmn_sbsx_ids[i]];
+		if (nid == cmn_node_id(base))
+			return cmn_node_type(base);
+	}
 	for (i = 0; i < cmn_rni_count; i++) {
 		base = cmn_bases[cmn_rni_ids[i]];
 		if (nid == cmn_node_id(base))
