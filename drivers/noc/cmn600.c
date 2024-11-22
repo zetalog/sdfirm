@@ -47,6 +47,7 @@
 
 #include <target/noc.h>
 #include <target/panic.h>
+#include <target/cmdline.h>
 
 #define CMN_MODNAME	"n100"
 
@@ -69,13 +70,15 @@ static const char * const cmn_type2name[] = {
 	[CMN_RNI] = "RN-I",
 	[CMN_RND] = "RN-D",
 	[CMN_RN_SAM] = "RN-SAM",
+	/* Pseudo types */
+	[CMN_RNF] = "RN-F",
+	[CMN_SNF] = "SN-F",
 };
 
 static const char * const cmn_cml_type2name[] = {
 	[CMN_CXRA - CMN_CML] = "CXRA",
 	[CMN_CXHA - CMN_CML] = "CXHA",
 	[CMN_CXLA - CMN_CML] = "CXLA",
-
 };
 
 const char *cmn600_node_type_name(uint16_t node_type)
@@ -917,3 +920,183 @@ void cmn600_init(void)
 	cmn600_cml_detect_mmap();
 	cmn600_initialized = true;
 }
+
+static uint16_t cmn600_node_type(cmn_nid_t nid)
+{
+	cmn_id_t i;
+	caddr_t base;
+
+	for (i = 0; i < cmn_rnd_count; i++) {
+		base = cmn_bases[cmn_rnd_ids[i]];
+		if (nid == cmn_node_id(base))
+			return cmn_node_type(base);
+	}
+	for (i = 0; i < cmn_cxha_count; i++) {
+		base = cmn_bases[cmn_cxha_id];
+		if (nid == cmn_node_id(base))
+			return cmn_node_type(base);
+	}
+	for (i = 0; i < cmn_hnf_count; i++) {
+		base = cmn_bases[cmn_hnf_ids[i]];
+		if (nid == cmn_node_id(base))
+			return cmn_node_type(base);
+	}
+	for (i = 0; i < cmn_rni_count; i++) {
+		base = cmn_bases[cmn_rni_ids[i]];
+		if (nid == cmn_node_id(base))
+			return cmn_node_type(base);
+	}
+	for (i = 0; i < cmn_rn_sam_int_count; i++) {
+		base = cmn_bases[cmn_rn_sam_int_ids[i]];
+		if (nid == cmn_node_id(base))
+			return CMN_RNF;
+	}
+	for (i = 0; i < cmn_rn_sam_ext_count; i++) {
+		base = cmn_bases[cmn_rn_sam_ext_ids[i]];
+		if (nid == cmn_node_id(cmn_rn_sam_ext_ids[i]))
+			return CMN_RNF;
+	}
+	for (i = 0; i < cmn_snf_count; i++) {
+		if (nid == cmn_snf_table[i])
+			return CMN_SNF;
+	}
+	return CMN_INVAL;
+}
+
+static bool cmn600_rnsam_is_rnf(caddr_t base)
+{
+	cmn_id_t i;
+
+	for (i = 0; i < cmn_rnd_count; i++) {
+		if (base == cmn_bases[cmn_rnd_ids[i]])
+			return false;
+	}
+	for (i = 0; i < cmn_rni_count; i++) {
+		if (base == cmn_bases[cmn_rnd_ids[i]])
+			return false;
+	}
+	for (i = 0; i < cmn_cxha_count; i++) {
+		if (base == cmn_bases[cmn_cxha_id])
+			return false;
+	}
+	return true;
+}
+
+static int do_cmn600_dump(int argc, char *argv[])
+{
+	cmn_id_t x, y;
+	cmn_id_t i;
+	uint16_t node_type;
+	cmn_nid_t nid;
+	unsigned long long base;
+
+	if (argc < 3) {
+		printf("Revision: %s\n",
+		       cmn600_revision_name(cmn_revision()));
+		for (y = 0; y < CMN_MESH_DIMEN_Y; y++) {
+			for (x = 0; x < CMN_MESH_DIMEN_X; x++) {
+				nid = CMN_NID(x, y, 0, 0);
+				node_type = cmn600_node_type(nid);
+				printf("{%03d:%-4s}", nid,
+				       cmn600_node_type_name(node_type));
+				printf("|");
+				nid = CMN_NID(x, y, 1, 0);
+				node_type = cmn600_node_type(nid);
+				printf("{%03d:%-4s}", nid,
+				       cmn600_node_type_name(node_type));
+				if (x == CMN_MESH_DIMEN_X - 1) {
+					printf("\n\n");
+					for (x = 0; x < CMN_MESH_DIMEN_X; x++) {
+						printf("    |     ");
+						if (x == CMN_MESH_DIMEN_X - 1)
+							printf("\n\n");
+						else
+							printf("  ");
+					}
+				} else
+					printf("--");
+			}
+		}
+		return 0;
+	} else {
+		if (strcmp(argv[2], "hnf") == 0) {
+			for (i = 0; i < cmn_hnf_count; i++) {
+				base = cmn_bases[cmn_hnf_ids[i]];
+				printf("HN-F%d: %03d, %016llx\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			return 0;
+		}
+		if (strcmp(argv[2], "rnd") == 0) {
+			for (i = 0; i < cmn_rnd_count; i++) {
+				base = cmn_bases[cmn_rnd_ids[i]];
+				printf("RN-D%d: %03d, %016llx\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			return 0;
+		}
+		if (strcmp(argv[2], "rni") == 0) {
+			for (i = 0; i < cmn_rni_count; i++) {
+				base = cmn_bases[cmn_rni_ids[i]];
+				printf("RN-I%d: %03d, %016llx\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			return 0;
+		}
+		if (strcmp(argv[2], "rnf") == 0) {
+			for (i = 0; i < cmn_rn_sam_int_count; i++) {
+				base = cmn_bases[cmn_rn_sam_int_ids[i]];
+				if (!cmn600_rnsam_is_rnf(base))
+					continue;
+				printf("RN-F%d: %03d, %016llx I\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			for (i = 0; i < cmn_rn_sam_ext_count; i++) {
+				base = cmn_bases[cmn_rn_sam_ext_ids[i]];
+				if (!cmn600_rnsam_is_rnf(base))
+					continue;
+				printf("RN-F%d: %03d, %016llx E\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			return 0;
+		}
+		if (strcmp(argv[2], "rnsam") == 0) {
+			for (i = 0; i < cmn_rn_sam_int_count; i++) {
+				base = cmn_bases[cmn_rn_sam_int_ids[i]];
+				printf("RN-SAM%d: %03d, %016llx I\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			for (i = 0; i < cmn_rn_sam_ext_count; i++) {
+				base = cmn_bases[cmn_rn_sam_ext_ids[i]];
+				printf("RN-SAM%d: %03d, %016llx E\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			return 0;
+		}
+		if (strcmp(argv[2], "snf") == 0) {
+			for (i = 0; i < cmn_snf_count; i++)
+				printf("SN-F%d: %03d\n", i, cmn_snf_table[i]);
+			return 0;
+		}
+	}
+	return -EINVAL;
+}
+
+static int do_cmn600(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+
+	if (strcmp(argv[1], "dump") == 0) {
+		do_cmn600_dump(argc, argv);
+		return 0;
+	}
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(cmn600, do_cmn600, "Coherent mesh network (CMN600) commands",
+	"cmn600 dump\n"
+	"    - dump CMN mesh network\n"
+	"cmn600 dump [hnf|rnd|rnf|rni|snf|rnsam|cxha|cxra]\n"
+	"    - dump CMN ndoe information\n"
+);

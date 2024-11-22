@@ -68,6 +68,8 @@
 #define CMN_RNI			0xA
 #define CMN_RND			0xD
 #define CMN_RN_SAM		0xF
+#define CMN_RNF			0x10
+#define CMN_SNF			0x11
 /* CML components */
 #define CMN_CML			0x100
 #define CMN_CXRA		(CMN_CML + 0x0)
@@ -283,7 +285,6 @@ typedef uint32_t cmn_id_t;
 #define CMN_hnf_rn_phys_id(base, n)	CMN_32BIT_REG(base, 0x0D28, (n))
 #define CMN_hnf_pmu_event_sel(base)	CMN_REG(base, 0x2000)
 
-
 //abf
 #define hnf_abf_lo_addr(base)		(__raw_readq(CMN_hnf_abf_lo_addr(base)))
 #define hnf_abf_hi_addr(base)		(__raw_readq(CMN_hnf_abf_hi_addr(base)))
@@ -297,7 +298,6 @@ typedef uint32_t cmn_id_t;
 #define hnf_cfg_ctl(base)		(__raw_readq(CMN_hnf_cfg_ctl(base)))
 //slc
 #define hnf_slc_lock_ways(base)		(__raw_readq(CMN_hnf_slc_lock_ways(base)))
-
 
 #define CMN_abf_mode_OFFSET		1
 #define CMN_abf_mode_MASK		REG_2BIT_MASK
