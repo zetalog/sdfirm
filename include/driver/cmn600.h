@@ -95,6 +95,11 @@
 #define CMN_MXP_CXRA		0x12
 #define CMN_MXP_CXRH		0x13
 
+#ifdef CMN_MXP_COUNT
+#define CMN_MAX_MXP_COUNT		CMN_MXP_COUNT
+#else
+#define CMN_MAX_MXP_COUNT		128
+#endif
 #ifdef CMN_HNF_COUNT
 #define CMN_MAX_HNF_COUNT		CMN_HNF_COUNT
 #else
@@ -114,6 +119,16 @@
 #define CMN_MAX_RNI_COUNT		CMN_RNI_COUNT
 #else
 #define CMN_MAX_RNI_COUNT		32
+#endif
+#ifdef CMN_DTC_COUNT
+#define CMN_MAX_DTC_COUNT		CMN_DTC_COUNT
+#else
+#define CMN_MAX_DTC_COUNT		4
+#endif
+#ifdef CMN_SBSX_COUNT
+#define CMN_MAX_SBSX_COUNT		CMN_SBSX_COUNT
+#else
+#define CMN_MAX_SBSX_COUNT		32
 #endif
 #ifdef CMN_RN_SAM_INT_COUNT
 #define CMN_MAX_RN_SAM_INT_COUNT	CMN_RN_SAM_INT_COUNT
@@ -1090,6 +1105,109 @@ typedef uint8_t cmn_did_t;
 #define CMN600_REGION_TYPE_SYSCACHE_NONHASH		4
 #define CMN600_MEMORY_REGION_TYPE_SYSCACHE_SECONDARY	5
 
+/* PMU performance events */
+/* HN-F performance events */
+#define CMN_PMU_HN_CACHE_MISS_EVENT		1
+#define CMN_PMU_HN_SLC_SF_CACHE_ACCESS_EVENT	2
+#define CMN_PMU_HN_CACHE_FILL_EVENT		3
+#define CMN_PMU_HN_POCQ_RETRY_EVENT		4
+#define CMN_PMU_HN_POCQ_REQS_RECVD_EVENT	5
+#define CMN_PMU_HN_SF_HIT_EVENT			6
+#define CMN_PMU_HN_SF_EVICTIONS_EVENT		7
+#define CMN_PMU_HN_DIR_SNOOPS_SENT_EVENT	8
+#define CMN_PMU_HN_BRD_SNOOPS_SENT_EVENT	9
+#define CMN_PMU_HN_SLC_EVICTION_EVENT		10
+#define CMN_PMU_HN_SLC_FILL_INVALID_WAY_EVENT	11
+#define CMN_PMU_HN_MC_RETRIES_EVENT		12
+#define CMN_PMU_HN_MC_REQS_EVENT		13
+#define CMN_PMU_HN_QOS_HH_RETRY_EVENT		14
+#define CMN_PMU_HN_POCQ_OCCUPANCY_EVENT		15
+#define CMN_PMU_HN_POCQ_ADDRHAZ_EVENT		16
+#define CMN_PMU_HN_POCQ_ATOMICS_ADDRHZ_EVENT	17
+#define CMN_PMU_HN_LD_ST_SWP_ADQ_FULL_EVENT	18
+#define CMN_PMU_HN_CMP_ADQ_FULL_EVENT		19
+#define CMN_PMU_HN_TXDAT_STALL_EVENT		20
+#define CMN_PMU_HN_TXRSP_STALL_EVENT		21
+#define CMN_PMU_HN_SEQ_FULL_EVENT		22
+#define CMN_PMU_HN_SEQ_HIT_EVENT		23
+#define CMN_PMU_HN_SNP_SENT_EVENT		24
+#define CMN_PMU_HN_SFBI_DIR_SNP_SENT_EVENT	25
+#define CMN_PMU_HN_SFBI_BRD_SNP_SENT_EVENT	26
+#define CMN_PMU_HN_SNP_SENT_UNTRK_EVENT		27
+#define CMN_PMU_HN_INTV_DIRTY_EVENT		28
+#define CMN_PMU_HN_STASH_SNP_SENT_EVENT		29
+#define CMN_PMU_HN_STASH_DATA_PULL_EVENT	30
+#define CMN_PMU_HN_SNP_FWDED_EVENT		31
+/* RN-I performance events */
+#define CMN_PMU_RNI_RDATABEATS_P0		1
+#define CMN_PMU_RNI_RDATABEATS_P1		2
+#define CMN_PMU_RNI_RDATABEATS_P2		3
+#define CMN_PMU_RNI_RXDATFLITV			4
+#define CMN_PMU_RNI_TXDATFLITV			5
+#define CMN_PMU_RNI_TXREQFLITV			6
+#define CMN_PMU_RNI_TXREQFLITV_RETRIED		7
+#define CMN_PMU_RNI_RRT_OCCUPANCY		8
+#define CMN_PMU_RNI_WRT_OCCUPANCY		9
+#define CMN_PMU_RNI_TXREQFLITV_REPLAYED		10
+#define CMN_PMU_RNI_WRCANCEL_SENT		11
+#define CMN_PMU_RNI_WDATABEAT_P0		12
+#define CMN_PMU_RNI_WDATABEAT_P1		13
+#define CMN_PMU_RNI_WDATABEAT_P2		14
+#define CMN_PMU_RNI_RRTALLOC			15
+#define CMN_PMU_RNI_WRTALLOC			16
+#define CMN_PMU_RNI_RDB_UNORD			17
+#define CMN_PMU_RNI_RDB_REPLAY			18
+#define CMN_PMU_RNI_RDB_HYBRID			19
+#define CMN_PMU_RNI_RDB_ORD			20
+/* SBSX performance events */
+#define CMN_PMU_SBSX_RXDAT			1
+#define CMN_PMU_SBSX_TXDAT			2
+#define CMN_PMU_SBSX_CMO			3
+#define CMN_PMU_SBSX_TXRSPFLITV_RETIRED		4
+#define CMN_PMU_SBSX_TXDATFLITV_TOTAL		5
+#define CMN_PMU_SBSX_TXRSPFLITV_TOTAL		6
+#define CMN_PMU_SBSX_RRT_RD_OCCUPANCY_CNT_OVFL	17
+#define CMN_PMU_SBSX_RRT_WR_OCCUPANCY_CNT_OVFL	18
+#define CMN_PMU_SBSX_RRT_CMO_OCCUPANCY_CNT_OVFL	19
+#define CMN_PMU_SBSX_WDB_OCCUPANCY_CNT_OVFL	20
+#define CMN_PMU_SBSX_RDT_RD_OCCUPANCY_CNT_OVFL	21
+#define CMN_PMU_SBSX_RDT_CMO_OCCUPANCY_CNT_OVFL	22
+#define CMN_PMU_SBSX_ARVALID_NO_ARREADY		33
+#define CMN_PMU_SBSX_AWVALID_NO_AWREADY		34
+#define CMN_PMU_SBSX_WVALID_NO_WREADY		35
+#define CMN_PMU_SBSX_TXDATFLITV_NO_LINKCRD	36
+#define CMN_PMU_SBSX_TXRSPFLITV_NO_LINKCRD	37
+/* HN-I performance events */
+#define CMN_PMU_HNI_RRT_RD_OCCUPANCY_CNT_OVFL	32
+#define CMN_PMU_HNI_RRT_WR_OCCUPANCY_CNT_OVFL	33
+#define CMN_PMU_HNI_RDT_RD_OCCUPANCY_CNT_OVFL	34
+#define CMN_PMU_HNI_RDT_WR_OCCUPANCY_CNT_OVFL	35
+#define CMN_PMU_HNI_WDB_OCCUPANCY_CNT_OVFL	36
+#define CMN_PMU_HNI_RRT_RD_ALLOCATION		37
+#define CMN_PMU_HNI_RRT_WR_ALLOCATION		38
+#define CMN_PMU_HNI_RDT_RD_ALLOCATION		39
+#define CMN_PMU_HNI_RDT_WR_ALLOCATION		40
+#define CMN_PMU_HNI_WDB_ALLOCATION		41
+#define CMN_PMU_HNI_TXRSPFLITV_RETIRIED		42
+#define CMN_PMU_HNI_ARVALID_NO_ARREADY		43
+#define CMN_PMU_HNI_ARREADY_NO_ARVALID		44
+#define CMN_PMU_HNI_AWVALID_NO_AWREADY		45
+#define CMN_PMU_HNI_AWREADY_NO_AWVALID		46
+#define CMN_PMU_HNI_WVALID_NO_WREADY		47
+#define CMN_PMU_HNI_TXDATFLITV_NO_LINKCRD	48
+#define CMN_PMU_HNI_NONPCIE_SERIALIZED		49
+#define CMN_PMU_HNI_PCIE_SERIALIZED		50
+/* DN performance events */
+#define CMN_PMU_DN_RXREQ_DVMOP			1
+#define CMN_PMU_DN_RXREQ_DVMSYNC		2
+#define CMN_PMU_DN_RXREQ_DVMOP_VMID_FILTERED	3
+#define CMN_PMU_DN_RXREQ_RETRIED		4
+#define CMN_PMU_DN_TRK_OCCUPANCY		5
+/* XP performance events */
+#define CMN_PMU_XP_TXFLIT_VALID			1
+#define CMN_PMU_XP_TXFLIT_STALL			2
+#define CMN_PMU_XP_PARTIAL_DAT_FLIT_VALID	3
+
 #ifdef CONFIG_CMN600_DEBUG
 void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i);
 #define cmn_setq(v,a,n,i)				\
@@ -1136,16 +1254,22 @@ struct cmn600_ccix_ha_mmap {
 };
 
 extern caddr_t cmn_bases[NR_CMN_NODES];
+extern uint8_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
 extern uint8_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
 extern uint8_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
 extern uint8_t cmn_rni_ids[CMN_MAX_RND_COUNT];
+extern uint8_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
+extern uint8_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
 extern cmn_nid_t cmn_cxra_id;
 extern cmn_nid_t cmn_cxla_id;
 extern cmn_nid_t cmn_cxha_id;
+extern cmn_id_t cmn_xp_count;
 extern cmn_id_t cmn_hnf_count;
 extern cmn_id_t cmn_rnf_count;
 extern cmn_id_t cmn_rnd_count;
 extern cmn_id_t cmn_rni_count;
+extern cmn_id_t cmn_dtc_count;
+extern cmn_id_t cmn_sbsx_count;
 extern cmn_id_t cmn_snf_count;
 extern cmn_id_t cmn_rn_sam_int_count;
 extern cmn_id_t cmn_rn_sam_ext_count;
