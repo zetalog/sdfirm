@@ -135,10 +135,13 @@ cmn_id_t cmn_nr_nodes;
 cmn_nid_t cmn_cxra_id = CMN_INVAL_ID;
 cmn_nid_t cmn_cxla_id = CMN_INVAL_ID;
 cmn_nid_t cmn_cxha_id = CMN_INVAL_ID;
+cmn_id_t cmn_xp_count;
 cmn_id_t cmn_hnf_count;
 cmn_id_t cmn_rnd_count;
 cmn_id_t cmn_rni_count;
 cmn_id_t cmn_rnf_count;
+cmn_id_t cmn_dtc_count;
+cmn_id_t cmn_sbsx_count;
 cmn_id_t cmn_snf_count;
 cmn_id_t cmn_cxha_count;
 cmn_id_t cmn_scg_count;
@@ -146,9 +149,12 @@ cmn_id_t cmn_rn_sam_int_count;
 cmn_id_t cmn_rn_sam_ext_count;
 bool cmn600_initialized = false;
 
+uint8_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
 uint8_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
 uint8_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
 uint8_t cmn_rni_ids[CMN_MAX_RND_COUNT];
+uint8_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
+uint8_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
 uint8_t cmn_rn_sam_ext_ids[CMN_MAX_RN_SAM_EXT_COUNT];
 uint8_t cmn_rn_sam_int_ids[CMN_MAX_RN_SAM_INT_COUNT];
 uint8_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
@@ -539,6 +545,23 @@ static void cmn600_discover_internal(caddr_t node)
 		cmn_rni_ids[cmn_rni_count++] = cmn_nr_nodes;
 		cmn_bases[cmn_nr_nodes++] = node;
 		break;
+	case CMN_SBSX:
+		if (cmn_sbsx_count >= CMN_MAX_SBSX_COUNT) {
+			con_err(CMN_MODNAME ": SBSX count %d >= limit %d\n",
+				cmn_sbsx_count, CMN_MAX_SBSX_COUNT);
+			BUG();
+		}
+		cmn_sbsx_ids[cmn_sbsx_count++] = cmn_nr_nodes;
+		cmn_bases[cmn_nr_nodes++] = node;
+		break;
+	case CMN_DTC:
+		if (cmn_dtc_count >= CMN_MAX_DTC_COUNT) {
+			con_err(CMN_MODNAME ": DTC count %d >= limit %d\n",
+				cmn_dtc_count, CMN_MAX_DTC_COUNT);
+			BUG();
+		}
+		cmn_dtc_ids[cmn_dtc_count++] = cmn_nr_nodes;
+		break;
 	case CMN_CXRA:
 		cmn_cxra_id = cmn_nr_nodes;
 		cmn_bases[cmn_nr_nodes++] = node;
@@ -572,6 +595,8 @@ void cmn600_discover(void)
 	xp_count = cmn_child_count(CMN_CFGM_BASE);
 	for (xp_index = 0; xp_index < xp_count; xp_index++) {
 		xp = cmn_child_node(CMN_CFGM_BASE, xp_index);
+		cmn_xp_ids[cmn_xp_count++] = cmn_nr_nodes;
+		cmn_bases[cmn_nr_nodes++] = xp;
 
 #ifdef CONFIG_CMN600_DEBUG_DISCOVER
 		con_dbg(CMN_MODNAME ": XP (%d, %d) ID: %d, LID: %d\n",
@@ -1060,6 +1085,30 @@ static int do_cmn600_dump(int argc, char *argv[])
 			}
 			return 0;
 		}
+		if (strcmp(argv[2], "xp") == 0) {
+			for (i = 0; i < cmn_xp_count; i++) {
+				base = cmn_bases[cmn_xp_ids[i]];
+				printf("XP%d: %03d, %016llx\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			return 0;
+		}
+		if (strcmp(argv[2], "dtc") == 0) {
+			for (i = 0; i < cmn_dtc_count; i++) {
+				base = cmn_bases[cmn_dtc_ids[i]];
+				printf("XP%d: %03d, %016llx\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			return 0;
+		}
+		if (strcmp(argv[2], "sbsx") == 0) {
+			for (i = 0; i < cmn_sbsx_count; i++) {
+				base = cmn_bases[cmn_sbsx_ids[i]];
+				printf("XP%d: %03d, %016llx\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			return 0;
+		}
 		if (strcmp(argv[2], "rnsam") == 0) {
 			for (i = 0; i < cmn_rn_sam_int_count; i++) {
 				base = cmn_bases[cmn_rn_sam_int_ids[i]];
@@ -1097,6 +1146,6 @@ static int do_cmn600(int argc, char *argv[])
 DEFINE_COMMAND(cmn600, do_cmn600, "Coherent mesh network (CMN600) commands",
 	"cmn600 dump\n"
 	"    - dump CMN mesh network\n"
-	"cmn600 dump [hnf|rnd|rnf|rni|snf|rnsam|cxha|cxra]\n"
+	"cmn600 dump [hnf|rnd|rnf|rni|snf|xp|dtc|sbsx|rnsam|cxha|cxra]\n"
 	"    - dump CMN ndoe information\n"
 );

@@ -45,7 +45,7 @@
 #include <target/arch.h>
 
 #define N100_HW_BASE		N100_CFG_BASE
-#define N100_HW_NODES		32
+#define N100_HW_NODES		(16 * 3 + 3 + 8 + 1 + 10)
 #define N100_HW_COLS		3
 #define N100_HW_ROWS		2
 #define N100_HW_CHIPS		2
