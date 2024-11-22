@@ -100,6 +100,11 @@
 #else
 #define CMN_MAX_MXP_COUNT		128
 #endif
+#ifdef CMN_CXG_COUNT
+#define CMN_MAX_CXG_COUNT		CMN_CXG_COUNT
+#else
+#define CMN_MAX_CXG_COUNT		2
+#endif
 #ifdef CMN_HNF_COUNT
 #define CMN_MAX_HNF_COUNT		CMN_HNF_COUNT
 #else
@@ -222,9 +227,10 @@ typedef uint32_t cmn_id_t;
 #define CMN_RNI_BASE(id)		(cmn_bases[id])
 #define CMN_RN_SAM_INT_BASE(id)		(cmn_bases[id])
 #define CMN_RN_SAM_EXT_BASE(id)		(cmn_bases[id])
-#define CMN_CXRA_BASE			(cmn_bases[cmn_cxra_id])
-#define CMN_CXLA_BASE			(cmn_bases[cmn_cxla_id])
-#define CMN_CXHA_BASE			(cmn_bases[cmn_cxha_id])
+/* TODO: Support D2D + C2C */
+#define CMN_CXRA_BASE			(cmn_bases[cmn_cxra_ids[0]])
+#define CMN_CXLA_BASE			(cmn_bases[cmn_cxla_ids[0]])
+#define CMN_CXHA_BASE			(cmn_bases[cmn_cxha_ids[0]])
 
 #define __CMN_HNF_BASE(i)		(cmn_bases[cmn_hnf_ids[i]])
 #define __CMN_RND_BASE(i)		(cmn_bases[cmn_rnd_ids[i]])
@@ -1254,15 +1260,15 @@ struct cmn600_ccix_ha_mmap {
 };
 
 extern caddr_t cmn_bases[NR_CMN_NODES];
-extern uint8_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
-extern uint8_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
-extern uint8_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
-extern uint8_t cmn_rni_ids[CMN_MAX_RND_COUNT];
-extern uint8_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
-extern uint8_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
-extern cmn_nid_t cmn_cxra_id;
-extern cmn_nid_t cmn_cxla_id;
-extern cmn_nid_t cmn_cxha_id;
+extern cmn_id_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
+extern cmn_id_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
+extern cmn_id_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
+extern cmn_id_t cmn_rni_ids[CMN_MAX_RND_COUNT];
+extern cmn_id_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
+extern cmn_id_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
+extern cmn_id_t cmn_cxra_ids[CMN_MAX_CXG_COUNT];
+extern cmn_id_t cmn_cxla_ids[CMN_MAX_CXG_COUNT];
+extern cmn_id_t cmn_cxha_ids[CMN_MAX_CXG_COUNT];
 extern cmn_id_t cmn_xp_count;
 extern cmn_id_t cmn_hnf_count;
 extern cmn_id_t cmn_rnf_count;
