@@ -712,27 +712,14 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			region_type = region->type == CMN600_MEMORY_REGION_TYPE_IO ?
 				CMN_region_target_HNI : CMN_region_target_CXRA;
 			memregion = CMN_valid_region(region_type, base, region->size);
-			if (region_io_count < CMN_MAX_NON_HASH_MEM_REGION_10){
-				cmn_writeq_mask(CMN_region(region_io_count, memregion),
-						CMN_region(region_io_count, CMN_region_MASK),
-						CMN_rnsam_non_hash_mem_region(rnsam, region_io_count),
-						"CMN_rnsam_non_hash_mem_region", region_io_count);
-			} else {
-				cmn_writeq_mask(CMN_region(region_io_count, memregion),
-						CMN_region(region_io_count, CMN_region_MASK),
-						CMN_rnsam_non_hash_mem_region2(rnsam, region_io_count),
-						"CMN_rnsam_non_hash_mem_region2", region_io_count);
-			}
-			if (region_io_count < CMN_MAX_NON_HASH_TGT_NODES_20)
-				cmn_writeq_mask(CMN_nodeid(region_io_count, region->node_id),
-						CMN_nodeid(region_io_count, CMN_nodeid_MASK),
-						CMN_rnsam_non_hash_tgt_nodeid(rnsam, region_io_count),
-						"CMN_rnsam_non_hash_tgt_nodeid", region_io_count);
-			else
-				cmn_writeq_mask(CMN_nodeid(region_io_count, region->node_id),
-						CMN_nodeid(region_io_count, CMN_nodeid_MASK),
-						CMN_rnsam_non_hash_tgt_nodeid2(rnsam, region_io_count),
-						"CMN_rnsam_non_hash_tgt_nodeid2", region_io_count);
+			cmn_writeq_mask(CMN_region(region_io_count, memregion),
+					CMN_region(region_io_count, CMN_region_MASK),
+					CMN_rnsam_non_hash_mem_region(rnsam, region_io_count),
+					"CMN_rnsam_non_hash_mem_region", region_io_count);
+			cmn_writeq_mask(CMN_nodeid(region_io_count, region->node_id),
+					CMN_nodeid(region_io_count, CMN_nodeid_MASK),
+					CMN_rnsam_non_hash_tgt_nodeid(rnsam, region_io_count),
+					"CMN_rnsam_non_hash_tgt_nodeid", region_io_count);
 			region_io_count++;
 			break;
 

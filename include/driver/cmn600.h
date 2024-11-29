@@ -340,7 +340,7 @@ typedef uint32_t cmn_id_t;
 #define CMN_hnf_ocm_always_en(value)	_SET_FV_ULL(CMN_hnf_ocm_always_en, value)
 
 /* 3.2.6 XP register summary */
-#define CMN_MAX_mxp_device_ports	2
+#define CMN_MAX_mxp_device_ports		2
 #define CMN_mxp_device_port_connect_info(base, n)	\
 					CMN_REG(base, 0x0008 + ((n) << 3))
 #define CMN_mxp_mesh_port_connect_info_east(base)	\
@@ -352,19 +352,32 @@ typedef uint32_t cmn_id_t;
 #define CMN_mxp_pmu_event_sel(base)	CMN_REG(base, 0x2000)
 
 /* 3.2.9 RN SAM register summary */
-#define CMN_MAX_rnsam_sys_cache_groups	4
+#define CMN_MAX_rnsam_sys_cache_groups		4
 #define CMN_MAX_rnsam_non_hash_mem_regions	20
-#define CMN_MAX_NON_HASH_MEM_REGION_10		10
 #define CMN_MAX_rnsam_non_hash_tgt_nodes	20
 #define CMN_MAX_rnsam_sys_cache_grp_hn_nodes	32
-#define CMN_MAX_NON_HASH_TGT_NODES_20	20
 #define CMN_rnsam_status(base)		CMN_REG(base, 0x0C00)
+/* CMN_rnsam_non_hash_mem_region0: 0xC08
+ * CMN_rnsam_non_hash_mem_region1: 0xC10
+ * CMN_rnsam_non_hash_mem_region2: 0xC18
+ * CMN_rnsam_non_hash_mem_region3: 0xC20
+ * CMN_rnsam_non_hash_mem_region4: 0xC28
+ * CMN_rnsam_non_hash_mem_region5: 0xCA0
+ * CMN_rnsam_non_hash_mem_region6: 0xCA8
+ * CMN_rnsam_non_hash_mem_region7: 0xCB0
+ * CMN_rnsam_non_hash_mem_region8: 0xCB8
+ * CMN_rnsam_non_hash_mem_region9: 0xCC0
+ */
 #define CMN_rnsam_non_hash_mem_region(base, n)		\
-					CMN_32BIT_REG(base, 0x0C08, n)
-#define CMN_rnsam_non_hash_mem_region2(base, n)		\
-					CMN_32BIT_REG(base, 0x0CA0, ((n) - 10))
+	CMN_32BIT_REG(base, 0x0C08, ((n) >= 10) ? ((n) + 28) : (n))
+/* CMN_rnsam_non_hash_tgt_nodeid0: 0xC30
+ * CMN_rnsam_non_hash_tgt_nodeid1: 0xC38
+ * CMN_rnsam_non_hash_tgt_nodeid2: 0xC40
+ * CMN_rnsam_non_hash_tgt_nodeid3: 0xCE0
+ * CMN_rnsam_non_hash_tgt_nodeid4: 0xCE8
+ */
 #define CMN_rnsam_non_hash_tgt_nodeid(base, n)		\
-					CMN_12BIT_REG(base, 0x0C30, n)
+	CMN_12BIT_REG(base, 0x0C30, ((n) >= 12) ? ((n) + 76): (n))
 #define CMN_rnsam_sys_cache_grp_region(base, n)		\
 					CMN_32BIT_REG(base, 0x0C48, n)
 #define CMN_rnsam_sys_cache_grp_secondary_region(base, n)		\
@@ -373,8 +386,6 @@ typedef uint32_t cmn_id_t;
 					CMN_12BIT_REG(base, 0x0C58, n)
 #define CMN_rnsam_sys_cache_grp_nonhash_nodeid(base, n)	\
 					CMN_12BIT_REG(base, 0x0C98, n)
-#define CMN_rnsam_non_hash_tgt_nodeid2(base, n)		\
-					CMN_12BIT_REG(base, 0x0CE0, ((n) - 20))
 #define CMN_rnsam_sys_cache_group_hn_count(base)	\
 					CMN_REG(base, 0x0D00)
 #define CMN_rnsam_sys_cache_grp_sn_nodeid(base, n)	\
