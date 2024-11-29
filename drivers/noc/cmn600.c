@@ -159,7 +159,7 @@ cmn_id_t cmn_rn_sam_int_ids[CMN_MAX_RN_SAM_INT_COUNT];
 cmn_id_t cmn_cxra_ids[CMN_MAX_CXG_COUNT];
 cmn_id_t cmn_cxla_ids[CMN_MAX_CXG_COUNT];
 cmn_id_t cmn_cxha_ids[CMN_MAX_CXG_COUNT];
-cmn_id_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
+cmn_nid_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
 
 #ifdef CONFIG_CMN600_DEBUG
 static void cmn_debug_init(void)
@@ -260,7 +260,7 @@ static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_id_t id)
 	cmn_hnf_scgs[id] = cmn_node_id(hnf);
 }
 #endif
-
+/*
 static void cmn_hnf_cal_config_ocm(caddr_t hnf)
 {
 	cmn_writeq(hnf_cfg_ctl(hnf) |
@@ -279,7 +279,6 @@ static void cmn_hnf_cal_disable_ocm(caddr_t hnf)
 		"CMN_hnf_cfg_ctl", -1);
 }
 
-/*
 static void cmn_hnf_cfg_slc_lockways(caddr_t hnf, uint64_t ways, uint64_t num_hnf)
 {
 	cmn_writeq(hnf_slc_lock_ways(hnf) |
@@ -310,7 +309,7 @@ static void cmn_hnf_slc_lock_disable(caddr_t hnf)
 		CMN_hnf_cfg_ctl(hnf),
 		"CMN_hnf_cfg_ctl", -1);
 }
-*/
+
 
 static void cmn_hnf_abf(uint64_t hnf, uint64_t abf_mode, uint64_t saddr, uint64_t eaddr)
 {
@@ -338,7 +337,7 @@ void cmn_hnf_abf_done(int hnf_id_idx)
 		abf_sr = hnf_abf_sr(CMN_HNF_BASE(cmn_hnf_ids[hnf_id_idx]));
 	}
 }
-
+*/
 uint8_t cmn_hnf_mapping(void)
 {
 	if (cmn_snf_count == 3)
@@ -353,7 +352,7 @@ uint8_t cmn_hnf_mapping(void)
 
 static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 {
-	cmn_nid_t nodeid;
+	cmn_nid_t nodeid=0;
 
 	nodeid = cmn600_hw_snf_hashed(cmn_node_id(hnf));
 	switch (cmn_hnf_mapping()) {
@@ -363,7 +362,6 @@ static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 			   nodeid),
 			   CMN_hnf_sam_control(hnf),
 			   "CMN_hnf_sam_control", -1);
-		con_dbg("CMNh600:hnf-snf:%x, cmn_nid_t:%d\n", __raw_readl(CMN_hnf_sam_control(hnf)), nodeid);
 		break;
 	case CMN_HNF_MAPPING_HASHED_3SN:
 		/* TODO: top address bit 0/1 calculation */
@@ -614,7 +612,6 @@ void cmn600_discover(void)
 							 cmn_node_y(xp),
 							 port_index);
 			port_index = port_index == 0 ? 1 : 0;
-
 			if (skip_nodes)
 				continue;
 
@@ -640,7 +637,6 @@ void cmn600_discover(void)
 	}
 	cmn_hnf_cal_validate();
 	cmn_snf_count = cmn600_hw_snf_count();
-
 	con_dbg(CMN_MODNAME ": Total internal RN-SAM: %d\n", cmn_rn_sam_int_count);
 	con_dbg(CMN_MODNAME ": Total external RN-SAM: %d\n", cmn_rn_sam_ext_count);
 	con_dbg(CMN_MODNAME ": Total HN-F: %d\n", cmn_hnf_count);
@@ -678,6 +674,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 	uint8_t scg;
 	cmn_id_t hnfs_per_scg;
 	size_t scg_size;
+	int hnf_i;
 
 	tgt_nodes = cmn600_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);
@@ -699,7 +696,6 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			region_index, cmn_mmap_count,
 			region->node_id, (uint64_t)base, (uint64_t)(base + region->size));
 #endif
-
 		switch (region->type) {
 		case CMN600_MEMORY_REGION_TYPE_IO:
 		case CMN600_REGION_TYPE_CCIX:
@@ -708,7 +704,6 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 					region_io_count, tgt_nodes);
 				BUG();
 			}
-
 			region_type = region->type == CMN600_MEMORY_REGION_TYPE_IO ?
 				CMN_region_target_HNI : CMN_region_target_CXRA;
 			memregion = CMN_valid_region(region_type, base, region->size);
@@ -750,28 +745,28 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			break;
 
 		case CMN600_MEMORY_REGION_TYPE_SYSCACHE_SECONDARY:
-			if (region_sys_count >= CMN_MAX_HASH_MEM_REGIONS) {
+			if (region_sys2_count >= CMN_MAX_HASH_MEM_REGIONS) {
 				con_err(CMN_MODNAME ": SYS count %d > limit %d\n",
-					region_sys_count, CMN_MAX_HASH_MEM_REGIONS);
+					region_sys2_count, CMN_MAX_HASH_MEM_REGIONS);
 				BUG();
 			}
 
 			scg_size = region->size / cmn_scg_count;
-			region_base = base + (scg_size * region_sys_count);
+			region_base = base + (scg_size * region_sys2_count);
 			memregion = CMN_valid_region(CMN_region_target_HNF,
 						     region_base, scg_size);
 			if (cmn_scg_count == 2 && region_sys2_count == 1) {
-				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
-						CMN_region(region_sys_count, CMN_region_MASK),
+				cmn_writeq_mask(CMN_region(region_sys2_count, memregion),
+						CMN_region(region_sys2_count, CMN_region_MASK),
 						CMN_rnsam_sys_cache_grp_secondary_region(rnsam, 2),
 						"CMN_rnsam_sys_cache_grp_secondary_region", 2);
 			} else {
-				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
-						CMN_region(region_sys_count, CMN_region_MASK),
+				cmn_writeq_mask(CMN_region(region_sys2_count, memregion),
+						CMN_region(region_sys2_count, CMN_region_MASK),
 						CMN_rnsam_sys_cache_grp_secondary_region(rnsam, region_sys2_count),
 						"CMN_rnsam_sys_cache_grp_secondary_region", region_sys2_count);
 			}
-			cmn_hnf_cal_enable_scg(region_sys_count);
+			//cmn_hnf_cal_enable_scg(region_sys_count);
 			region_sys2_count++;
 			break;
 
@@ -802,7 +797,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			break;
 		}
 	}
-
+	
 	hnfs_per_scg = cmn_hnf_count / cmn_scg_count;
 	lid_base = 0;
 	scg = 0;
@@ -819,7 +814,8 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			scg, lid_base, cmn_hnf_count, nid);
 #endif
 	}
-#else
+#else	
+
 	while (lid_base < cmn_hnf_count) {
 		for (lid = 0; lid < hnfs_per_scg && lid_base < cmn_hnf_count; lid++) {
 			nid = cmn_hnf_scgs[lid_base];
@@ -840,7 +836,6 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 #endif
 	cmn_writeq(hnfs_per_scg, CMN_rnsam_sys_cache_group_hn_count(rnsam),
 		   "CMN_rnsam_sys_cache_group_hn_count", -1);
-
 	cmn_hnf_cal_apply_scg(rnsam);
 
 #ifndef CONFIG_CMN600_SAM_RANGE_BASED
@@ -851,7 +846,6 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				"CMN_rnsam_sys_cache_grp_sn_nodeid", snf);
 	}
 #endif
-
 	cmn_writeq(CMN_sam_nstall_req(CMN_sam_unstall_req),
 		   CMN_rnsam_status(rnsam),
 		   "CMN_rnsam_status", -1);
@@ -871,7 +865,6 @@ void cmn600_configure(void)
 	/* Setup HN-F nodes */
 	for (i = 0; i < cmn_hnf_count; i++)
 		cmn600_configure_hnf_sam(CMN_HNF_BASE(cmn_hnf_ids[i]), i);
-	con_dbg(CMN_MODNAME "Setup HN-F nodes\n");
 	/* Setup internal RN-SAM nodes */
 	for (i = 0; i < cmn_rn_sam_int_count; i++)
 		cmn600_configure_rn_sam(CMN_RN_SAM_INT_BASE(cmn_rn_sam_int_ids[i]));
@@ -881,7 +874,7 @@ void cmn600_configure(void)
 		cmn600_configure_rn_sam(CMN_RN_SAM_EXT_BASE(cmn_rn_sam_ext_ids[i]));
 	con_dbg(CMN_MODNAME "Setup external RN-SAM nodes\n");
 }
-
+/*
 void cmn600_disable_ocm()
 {
 	cmn_id_t i;
@@ -896,8 +889,7 @@ void cmn600_flush_hnfs_slc(uint64_t abf_mode,caddr_t saddr, caddr_t eaddr)
 	for(i = 0; i< cmn_hnf_count; i++)
 		cmn_hnf_abf(CMN_HNF_BASE(cmn_hnf_ids[i]), abf_mode, saddr, eaddr);
 }
-
-
+*/
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid)
 {
 	cmn_id_t rnsam;
@@ -925,7 +917,6 @@ void cmn600_init(void)
 	cmn600_discover();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
 	cmn600_configure();
-
 	/* Capture CCIX host topology */
 	cmn600_cml_detect_mmap();
 	cmn600_initialized = true;

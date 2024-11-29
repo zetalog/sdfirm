@@ -1315,7 +1315,7 @@ void cmn600_cml_init(void);
 #define cmn600_cml_set_config()				do { } while (0)
 #define cmn600_cml_enable_sf()				do { } while (0)
 #define cmn600_cml_enable_dvm()				do { } while (0)
-#define cmn600_cml_base(base, chip_id, ccix)		0
+#define cmn600_cml_base(base, chip_id, ccix)		base
 #define cmn600_cml_init()				do { } while (0)
 #endif
 
