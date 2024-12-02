@@ -537,7 +537,7 @@ config RISCV_IOPMP
 
 config RISCV_H
 	bool "Hypervisor extension support"
-	depends CPU_H
+	select CPU_H
 	select SBI_V10 if SBI
 	select SBI_ECALL_LEGACY if SBI
 	select SBI_ECALL_RFENCE if SBI
