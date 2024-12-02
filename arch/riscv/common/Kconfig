@@ -96,6 +96,10 @@ config CPU_X60
 	bool
 	select CPU_SPACEMIT
 
+config CPU_A100
+	bool
+	select CPU_SPACEMIT
+
 # RI5CY
 config CPU_RI5CY
 	bool
