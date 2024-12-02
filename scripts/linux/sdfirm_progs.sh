@@ -151,7 +151,7 @@ function build_busybox()
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	fi
 	cd $TOP/obj/busybox-$ARCH
-	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j`nproc`
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j6
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE install
 
 	if [ "xyes" = "x${BUILD_NET}" ]; then
@@ -494,7 +494,7 @@ function build_linux()
 			O=$LINUX_BUILD/ clean
 	fi
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		O=$LINUX_BUILD/ -j`nproc`
+		O=$LINUX_BUILD/ -j6
 	${CROSS_COMPILE}objcopy \
 		--only-keep-debug $LINUX_BUILD/vmlinux \
 		$LINUX_BUILD/kernel.sym
@@ -526,7 +526,7 @@ function build_linux()
 		sync
 		build_initramfs ${BUILD_STO_SIZE}
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-			O=$LINUX_BUILD/ -j`nproc`
+			O=$LINUX_BUILD/ -j6
 		if [ ! -f $LINUX_BUILD/vmlinux ]; then
 			echo "Error: Failed to build Linux (S/H)"
 			exit 1
@@ -578,7 +578,7 @@ function build_sdfirm()
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$TOP/obj/sdfirm-$ARCH/ clean
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		O=$TOP/obj/sdfirm-$ARCH/ -j`nproc`
+		O=$TOP/obj/sdfirm-$ARCH/ -j6
 	if [ ! -f $TOP/obj/sdfirm-$ARCH/sdfirm ]
 	then
 		echo "Error: Failed to build sdfirm"
@@ -637,7 +637,7 @@ function build_uboot()
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$TOP/obj/u-boot-$ARCH/ clean
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
-		O=$TOP/obj/u-boot-$ARCH/ -j`nproc`
+		O=$TOP/obj/u-boot-$ARCH/ -j6
 	if [ ! -f $TOP/obj/u-boot-$ARCH/u-boot ]
 	then
 		echo "Error: Failed to build u-boot"
