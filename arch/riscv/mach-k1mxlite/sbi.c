@@ -216,7 +216,9 @@ static int k1mxlite_system_finish(uint32_t code)
 
 static bool k1mxlite_hart_disabled(uint32_t hartid)
 {
-	return ~acpu_get_cpu_map() & CPU_TO_MASK(hartid);
+//FIXME
+	return false;
+//	return ~acpu_get_cpu_map() & CPU_TO_MASK(hartid);
 }
 
 const struct sbi_platform_operations platform_ops = {
