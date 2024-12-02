@@ -367,14 +367,14 @@
 			status = "disabled";
 		};
 
-		simsic: interrupt-controller@3c100000 {
+		simsic: interrupt-controller@3c400000 {
 			compatible = "riscv,imsics";
 			interrupts-extended = <&cpu0_intc 9
 #ifdef CONFIG_SMP
 						&cpu1_intc 9
 #endif
 			>;
-			reg = <0x0 0x3C100000 0x0 0x100000>;
+			reg = <0x0 0x3c400000 0x0 0x100000>;
 			interrupt-controller;
 			#interrupt-cells = <0>;
 			#address-cells = <1>;
