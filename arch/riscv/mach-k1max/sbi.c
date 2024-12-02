@@ -15,12 +15,61 @@
 #include <target/delay.h>
 #include <target/bench.h>
 
+static char riscv_isa_str[100];
+#define FDT_FIXUP_SIZE 100
+
+static void fdt_cpu_riscv_isa_fixup(void *fdt)
+{
+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+	int err, cpu_offset, cpus_offset;
+	uint32_t hartid;
+
+	strcpy(&riscv_isa_str, "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc");
+
+#ifdef CONFIG_RISCV_V
+	strcat(&riscv_isa_str, "_v");
+#endif
+
+#ifdef CONFIG_RISCV_H
+	strcat(&riscv_isa_str, "_h");
+#endif
+
+#ifdef CONFIG_RISCV_SMAIA
+	strcat(&riscv_isa_str, "_smaia_ssaia_smstateen");
+#endif
+
+#ifdef CONFIG_CPU_CVA6
+	strcpy(&riscv_isa_str, "rv64imafdcsu_sscofpmf");
+#endif
+
+	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + FDT_FIXUP_SIZE);
+	if (err < 0)
+		return;
+
+	cpus_offset = fdt_path_offset(fdt, "/cpus");
+	if (cpus_offset < 0)
+		return;
+
+	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
+		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
+		if (err)
+			continue;
+
+		fdt_setprop_string(fdt, cpu_offset, "riscv,isa",
+				   &riscv_isa_str);
+	}
+}
+
+
 static void k1max_modify_dt(void *fdt)
 {
 	fdt_cpu_fixup(fdt);
 	fdt_irq_fixup(fdt, "riscv,clint0");
 	fdt_irqs_fixup(fdt, "riscv,plic0", PLIC_MAX_CHIPS);
 	fdt_fixups(fdt);
+
+	fdt_cpu_riscv_isa_fixup(fdt);
 }
 
 static int k1max_final_init(bool cold_boot)

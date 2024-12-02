@@ -73,15 +73,7 @@
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
-#ifdef CONFIG_CPU_CVA6
-			riscv,isa = "rv64imafdcsu_sscofpmf";
-#else
-#ifdef CONFIG_RISCV_SMAIA
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc_smaia_ssaia_smstateen";
-#else
 			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
-#endif
-#endif
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
