@@ -386,8 +386,8 @@ typedef uint32_t cmn_id_t;
 					CMN_12BIT_REG(base, 0x0C58, n)
 #define CMN_rnsam_sys_cache_grp_nonhash_nodeid(base, n)	\
 					CMN_12BIT_REG(base, 0x0C98, n)
-#define CMN_rnsam_sys_cache_group_hn_count(base)	\
-					CMN_REG(base, 0x0D00)
+#define CMN_rnsam_sys_cache_group_hn_count(base, n)	\
+					CMN_8BIT_REG(base, 0x0D00, n)
 #define CMN_rnsam_sys_cache_grp_sn_nodeid(base, n)	\
 					CMN_12BIT_REG(base, 0x0D08, n)
 #define CMN_rnsam_sys_cache_grp_cal_mode(base)		\
@@ -1271,15 +1271,15 @@ struct cmn600_ccix_ha_mmap {
 };
 
 extern caddr_t cmn_bases[NR_CMN_NODES];
-extern cmn_id_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
-extern cmn_id_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
-extern cmn_id_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
-extern cmn_id_t cmn_rni_ids[CMN_MAX_RND_COUNT];
-extern cmn_id_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
-extern cmn_id_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
-extern cmn_id_t cmn_cxra_ids[CMN_MAX_CXG_COUNT];
-extern cmn_id_t cmn_cxla_ids[CMN_MAX_CXG_COUNT];
-extern cmn_id_t cmn_cxha_ids[CMN_MAX_CXG_COUNT];
+extern cmn_nid_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
+extern cmn_nid_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
+extern cmn_nid_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
+extern cmn_nid_t cmn_rni_ids[CMN_MAX_RND_COUNT];
+extern cmn_nid_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
+extern cmn_nid_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
+extern cmn_nid_t cmn_cxra_ids[CMN_MAX_CXG_COUNT];
+extern cmn_nid_t cmn_cxla_ids[CMN_MAX_CXG_COUNT];
+extern cmn_nid_t cmn_cxha_ids[CMN_MAX_CXG_COUNT];
 extern cmn_id_t cmn_xp_count;
 extern cmn_id_t cmn_hnf_count;
 extern cmn_id_t cmn_rnf_count;
