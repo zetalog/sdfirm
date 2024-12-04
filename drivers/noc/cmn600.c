@@ -148,17 +148,17 @@ cmn_id_t cmn_rn_sam_int_count;
 cmn_id_t cmn_rn_sam_ext_count;
 bool cmn600_initialized = false;
 
-cmn_id_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
-cmn_id_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
-cmn_id_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
-cmn_id_t cmn_rni_ids[CMN_MAX_RND_COUNT];
-cmn_id_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
-cmn_id_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
-cmn_id_t cmn_rn_sam_ext_ids[CMN_MAX_RN_SAM_EXT_COUNT];
-cmn_id_t cmn_rn_sam_int_ids[CMN_MAX_RN_SAM_INT_COUNT];
-cmn_id_t cmn_cxra_ids[CMN_MAX_CXG_COUNT];
-cmn_id_t cmn_cxla_ids[CMN_MAX_CXG_COUNT];
-cmn_id_t cmn_cxha_ids[CMN_MAX_CXG_COUNT];
+cmn_nid_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
+cmn_nid_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
+cmn_nid_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
+cmn_nid_t cmn_rni_ids[CMN_MAX_RND_COUNT];
+cmn_nid_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
+cmn_nid_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
+cmn_nid_t cmn_rn_sam_ext_ids[CMN_MAX_RN_SAM_EXT_COUNT];
+cmn_nid_t cmn_rn_sam_int_ids[CMN_MAX_RN_SAM_INT_COUNT];
+cmn_nid_t cmn_cxra_ids[CMN_MAX_CXG_COUNT];
+cmn_nid_t cmn_cxla_ids[CMN_MAX_CXG_COUNT];
+cmn_nid_t cmn_cxha_ids[CMN_MAX_CXG_COUNT];
 cmn_nid_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
 
 #ifdef CONFIG_CMN600_DEBUG
@@ -570,7 +570,6 @@ static void cmn600_discover_internal(caddr_t node)
 	case CMN_CXHA:
 		cmn_cxha_ids[cmn_cxha_count++] = cmn_nr_nodes;
 		cmn_bases[cmn_nr_nodes++] = node;
-		cmn_cxha_count++;
 		break;
 	default:
 		/* Nothing to be done for other node types */
@@ -669,12 +668,12 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 	unsigned int region_type;
 	uint32_t memregion;
 	cmn_id_t tgt_nodes;
+	cmn_id_t hnf;
 	cmn_id_t snf;
 	cmn_id_t lid_base;
 	uint8_t scg;
 	cmn_id_t hnfs_per_scg;
 	size_t scg_size;
-	int hnf_i;
 
 	tgt_nodes = cmn600_max_tgt_nodes();
 	BUG_ON(tgt_nodes == 0);
@@ -834,15 +833,18 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		scg++;
 	}
 #endif
-	cmn_writeq(hnfs_per_scg, CMN_rnsam_sys_cache_group_hn_count(rnsam),
-		   "CMN_rnsam_sys_cache_group_hn_count", -1);
+	for (hnf = 0; hnf < cmn_scg_count; hnf++) {
+		cmn_writeq(hnfs_per_scg,
+			   CMN_rnsam_sys_cache_group_hn_count(rnsam, hnf),
+			  "CMN_rnsam_sys_cache_group_hn_count", -1);
+	}
 	cmn_hnf_cal_apply_scg(rnsam);
 
 #ifndef CONFIG_CMN600_SAM_RANGE_BASED
 	for (snf = 0; snf < cmn_snf_count; snf++) {
 		cmn_writeq_mask(CMN_nodeid(snf, cmn_snf_table[snf]),
 				CMN_nodeid(snf, CMN_nodeid_MASK),
-			        CMN_rnsam_sys_cache_grp_sn_nodeid(rnsam, snf),
+				CMN_rnsam_sys_cache_grp_sn_nodeid(rnsam, snf),
 				"CMN_rnsam_sys_cache_grp_sn_nodeid", snf);
 	}
 #endif
@@ -1003,7 +1005,7 @@ static int do_cmn600_dump(int argc, char *argv[])
 
 	if (argc < 3) {
 		printf("Revision: %s\n",
-		       cmn600_revision_name(cmn_revision()));
+			cmn600_revision_name(cmn_revision()));
 		for (y = 0; y < CMN_MESH_DIMEN_Y; y++) {
 			for (x = 0; x < CMN_MESH_DIMEN_X; x++) {
 				nid = CMN_NID(x, y, 0, 0);
@@ -1050,7 +1052,7 @@ static int do_cmn600_dump(int argc, char *argv[])
 			for (i = 0; i < cmn_rni_count; i++) {
 				base = cmn_bases[cmn_rni_ids[i]];
 				printf("RN-I%d: %03d, %016llx\n",
-				       cmn_logical_id(base), cmn_node_id(base), base);
+					cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			return 0;
 		}
