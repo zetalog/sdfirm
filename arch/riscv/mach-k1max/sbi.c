@@ -61,15 +61,17 @@ static void fdt_cpu_riscv_isa_fixup(void *fdt)
 	}
 }
 
+static void k1max_modify_dt_early(void *fdt)
+{
+	fdt_cpu_riscv_isa_fixup(fdt);
+}
 
-static void k1max_modify_dt(void *fdt)
+static void k1max_modify_dt_late(void *fdt)
 {
 	fdt_cpu_fixup(fdt);
 	fdt_irq_fixup(fdt, "riscv,clint0");
 	fdt_irqs_fixup(fdt, "riscv,plic0", PLIC_MAX_CHIPS);
 	fdt_fixups(fdt);
-
-	fdt_cpu_riscv_isa_fixup(fdt);
 }
 
 static int k1max_final_init(bool cold_boot)
@@ -80,7 +82,7 @@ static int k1max_final_init(bool cold_boot)
 		return 0;
 
 	fdt = sbi_scratch_thishart_arg1_ptr();
-	k1max_modify_dt(fdt);
+	k1max_modify_dt_late(fdt);
 
 	return 0;
 }
@@ -111,11 +113,16 @@ static int k1max_pmp_region_info(uint32_t hartid, uint32_t index,
 
 static int k1max_early_init(bool cold_boot)
 {
+	void *fdt;
 	struct csr_trap_info trap = {0};
 	
 	csr_read_allowed(CSR_TCMCFG, (unsigned long)&trap);
 	if (!trap.cause) {
 		csr_write(CSR_TCMCFG, 1);
+	}
+
+	if (cold_boot) {
+		k1max_modify_dt_early(fdt);
 	}
 
 	return 0;

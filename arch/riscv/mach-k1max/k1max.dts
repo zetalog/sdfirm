@@ -383,7 +383,7 @@
 			riscv,group-index-bits = <1>;
 			riscv,group-index-shift = <32>;
 			riscv,hart-index-bits = <4>;
-			riscv,guest-index-bits = <4>;
+			riscv,guest-index-bits = <6>;
 		};
 #else
 		plic: interrupt-controller@30000000 {
