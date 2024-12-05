@@ -20,27 +20,25 @@ static char riscv_isa_str[100];
 
 static void fdt_cpu_riscv_isa_fixup(void *fdt)
 {
-	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 	int err, cpu_offset, cpus_offset;
 	uint32_t hartid;
 
-	strcpy(&riscv_isa_str, "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc");
+	strcpy((char *)&riscv_isa_str, "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc");
 
 #ifdef CONFIG_RISCV_V
-	strcat(&riscv_isa_str, "_v");
+	strcat((char *)&riscv_isa_str, "_v");
 #endif
 
 #ifdef CONFIG_RISCV_H
-	strcat(&riscv_isa_str, "_h");
+	strcat((char *)&riscv_isa_str, "_h");
 #endif
 
 #ifdef CONFIG_RISCV_SMAIA
-	strcat(&riscv_isa_str, "_smaia_ssaia_smstateen");
+	strcat((char *)&riscv_isa_str, "_smaia_ssaia_smstateen");
 #endif
 
 #ifdef CONFIG_CPU_CVA6
-	strcpy(&riscv_isa_str, "rv64imafdcsu_sscofpmf");
+	strcpy((char *)&riscv_isa_str, "rv64imafdcsu_sscofpmf");
 #endif
 
 	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + FDT_FIXUP_SIZE);
@@ -57,7 +55,7 @@ static void fdt_cpu_riscv_isa_fixup(void *fdt)
 			continue;
 
 		fdt_setprop_string(fdt, cpu_offset, "riscv,isa",
-				   &riscv_isa_str);
+				   (const char *)&riscv_isa_str);
 	}
 }
 
@@ -113,7 +111,6 @@ static int k1max_pmp_region_info(uint32_t hartid, uint32_t index,
 
 static int k1max_early_init(bool cold_boot)
 {
-	void *fdt;
 	struct csr_trap_info trap = {0};
 	
 	csr_read_allowed(CSR_TCMCFG, (unsigned long)&trap);
@@ -122,6 +119,7 @@ static int k1max_early_init(bool cold_boot)
 	}
 
 	if (cold_boot) {
+		void *fdt = sbi_scratch_thishart_arg1_ptr();
 		k1max_modify_dt_early(fdt);
 	}
 
