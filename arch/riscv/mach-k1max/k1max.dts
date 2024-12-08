@@ -357,6 +357,18 @@
 #ifdef CONFIG_SMP
 						&cpu1_intc 11
 #endif
+#if CONFIG_K1M_SMP_CPUS >= 4
+						&cpu2_intc 11
+						&cpu3_intc 11
+#endif
+#if CONFIG_K1M_SMP_CPUS >= 8
+#ifndef CONFIG_K1M_PARTIAL_GOOD
+						&cpu4_intc 11
+						&cpu5_intc 11
+						&cpu6_intc 11
+						&cpu7_intc 11
+#endif
+#endif
 			>;
 			reg = <0x0 0x3C000000 0x0 0x2000>;
 			interrupt-controller;
@@ -372,6 +384,18 @@
 			interrupts-extended = <&cpu0_intc 9
 #ifdef CONFIG_SMP
 						&cpu1_intc 9
+#endif
+#if CONFIG_K1M_SMP_CPUS >= 4
+						&cpu2_intc 9
+						&cpu3_intc 9
+#endif
+#if CONFIG_K1M_SMP_CPUS >= 8
+#ifndef CONFIG_K1M_PARTIAL_GOOD
+						&cpu4_intc 9
+						&cpu5_intc 9
+						&cpu6_intc 9
+						&cpu7_intc 9
+#endif
 #endif
 			>;
 			reg = <0x0 0x3c400000 0x0 0x100000>;
