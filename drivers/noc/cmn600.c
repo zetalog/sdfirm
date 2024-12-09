@@ -728,19 +728,26 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			region_base = base + (scg_size * region_sys_count);
 			memregion = CMN_valid_region(CMN_region_target_HNF,
 						     region_base, scg_size);
-			if (cmn_scg_count == 2 && region_sys_count == 1) {
-				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
-						CMN_region(region_sys_count, CMN_region_MASK),
-						CMN_rnsam_sys_cache_grp_region(rnsam, 2),
-						"CMN_rnsam_sys_cache_grp_region", 2);
-			} else {
+			if (cmn_scg_count == 2) {
 				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
 						CMN_region(region_sys_count, CMN_region_MASK),
 						CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count),
 						"CMN_rnsam_sys_cache_grp_region", region_sys_count);
+				memregion = CMN_valid_region(CMN_region_target_HNF,
+							    (region_base + scg_size), scg_size);
+				cmn_writeq_mask(CMN_region(region_sys_count, memregion),
+						CMN_region(region_sys_count, CMN_region_MASK),
+						CMN_rnsam_sys_cache_grp_region(rnsam, 2),
+						"CMN_rnsam_sys_cache_grp_region", 2);
 			}
+			else
+				for (region_sys_count = 0; region_sys_count < cmn_scg_count; region_sys_count++) {
+					cmn_writeq_mask(CMN_region(region_sys_count, memregion),
+							CMN_region(region_sys_count, CMN_region_MASK),
+							CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count),
+							"CMN_rnsam_sys_cache_grp_region", region_sys_count);
+				}
 			cmn_hnf_cal_enable_scg(region_sys_count);
-			region_sys_count++;
 			break;
 
 		case CMN600_MEMORY_REGION_TYPE_SYSCACHE_SECONDARY:
@@ -754,19 +761,26 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			region_base = base + (scg_size * region_sys2_count);
 			memregion = CMN_valid_region(CMN_region_target_HNF,
 						     region_base, scg_size);
-			if (cmn_scg_count == 2 && region_sys2_count == 1) {
-				cmn_writeq_mask(CMN_region(region_sys2_count, memregion),
-						CMN_region(region_sys2_count, CMN_region_MASK),
-						CMN_rnsam_sys_cache_grp_secondary_region(rnsam, 2),
-						"CMN_rnsam_sys_cache_grp_secondary_region", 2);
-			} else {
+			if (cmn_scg_count == 2) {
 				cmn_writeq_mask(CMN_region(region_sys2_count, memregion),
 						CMN_region(region_sys2_count, CMN_region_MASK),
 						CMN_rnsam_sys_cache_grp_secondary_region(rnsam, region_sys2_count),
 						"CMN_rnsam_sys_cache_grp_secondary_region", region_sys2_count);
+				memregion = CMN_valid_region(CMN_region_target_HNF,
+							    (region_base + scg_size), scg_size);
+				cmn_writeq_mask(CMN_region(region_sys2_count, memregion),
+						CMN_region(region_sys2_count, CMN_region_MASK),
+						CMN_rnsam_sys_cache_grp_secondary_region(rnsam, 2),
+						"CMN_rnsam_sys_cache_grp_secondary_region", 2);
 			}
-			//cmn_hnf_cal_enable_scg(region_sys_count);
-			region_sys2_count++;
+			else
+				for (region_sys2_count = 0; region_sys2_count < cmn_scg_count; region_sys2_count++) {
+					cmn_writeq_mask(CMN_region(region_sys2_count, memregion),
+							CMN_region(region_sys2_count, CMN_region_MASK),
+							CMN_rnsam_sys_cache_grp_secondary_region(rnsam, region_sys2_count),
+							"CMN_rnsam_sys_cache_grp_secondary_region", region_sys2_count);
+				}
+			cmn_hnf_cal_enable_scg(region_sys2_count);
 			break;
 
 		case CMN600_REGION_TYPE_SYSCACHE_NONHASH:
@@ -810,11 +824,10 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		lid_base++;
 #ifdef CONFIG_CMN600_DEBUG_CONFIGURE
 		con_dbg(CMN_MODNAME ": SCG%d: %d/%d, ID: %d\n",
-			scg, lid_base, cmn_hnf_count, nid);
+				scg, lid_base, cmn_hnf_count, nid);
 #endif
 	}
 #else	
-
 	while (lid_base < cmn_hnf_count) {
 		for (lid = 0; lid < hnfs_per_scg && lid_base < cmn_hnf_count; lid++) {
 			nid = cmn_hnf_scgs[lid_base];
@@ -824,8 +837,15 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 					"CMN_rnsam_sys_cache_grp_hn_nodeid", lid_base);
 			lid_base++;
 #ifdef CONFIG_CMN600_DEBUG_CONFIGURE
-			con_dbg(CMN_MODNAME ": SCG%d: %d/%d, ID: %d\n",
-				scg, lid_base, cmn_hnf_count, nid);
+			if( cmn_scg_count == 2 && lid > 8)
+			{
+				con_dbg(CMN_MODNAME ": SCG2: %d/%d, ID: %d\n",
+					lid_base, cmn_hnf_count, nid);
+			}
+			else {
+				con_dbg(CMN_MODNAME ": SCG%d: %d/%d, ID: %d\n",
+					scg, lid_base, cmn_hnf_count, nid);
+			}
 #endif
 		}
 		if (hnfs_per_scg < CMN_MAX_HASH_MEM_REGIONS)
@@ -833,10 +853,28 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		scg++;
 	}
 #endif
-	for (hnf = 0; hnf < cmn_scg_count; hnf++) {
-		cmn_writeq(hnfs_per_scg,
-			   CMN_rnsam_sys_cache_group_hn_count(rnsam, hnf),
-			  "CMN_rnsam_sys_cache_group_hn_count", -1);
+	if (cmn_scg_count == 2)
+	{
+		cmn_writeq_mask(CMN_scg_hnf_num(0, hnfs_per_scg),
+				CMN_scg_hnf_num(0, CMN_scg_hnf_num_MASK),
+				CMN_rnsam_sys_cache_group_hn_count(rnsam, 0),
+				"CMN_rnsam_sys_cache_group_hn_count", 0);
+		con_dbg("hnf_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, 0)));
+		cmn_writeq_mask(CMN_scg_hnf_num(2, hnfs_per_scg),
+				CMN_scg_hnf_num(2, CMN_scg_hnf_num_MASK),
+				CMN_rnsam_sys_cache_group_hn_count(rnsam, 2),
+				"CMN_rnsam_sys_cache_group_hn_count", 2);
+		con_dbg("hnf_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, 2)));
+	}
+	else
+	{
+		for (hnf = 0; hnf < cmn_scg_count; hnf++) {
+			cmn_writeq_mask(CMN_scg_hnf_num(hnf, hnfs_per_scg),
+					CMN_scg_hnf_num(hnf, CMN_scg_hnf_num_MASK),
+					CMN_rnsam_sys_cache_group_hn_count(rnsam, hnf),
+					"CMN_rnsam_sys_cache_group_hn_count", hnf);
+			con_dbg("hn_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, hnf)));
+		}
 	}
 	cmn_hnf_cal_apply_scg(rnsam);
 

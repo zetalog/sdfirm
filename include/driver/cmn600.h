@@ -242,6 +242,8 @@ typedef uint32_t cmn_id_t;
 #define CMN_12BIT_OFFSET(n)		\
 	(((((uint64_t)(n)) & ULL( 3)) << 4) -	\
 	 ((((uint64_t)(n)) & ULL( 3)) << 2))
+#define CMN_8BIT_OFFSET(n)		\
+	((((uint64_t)(n)) & ULL(3)) << 3)
 
 #define CMN_REG(base, offset)		((base) + (offset))
 #define CMN_CFGM_REG(offset)		CMN_REG(CMN_CFGM_BASE, offset)
@@ -592,6 +594,10 @@ typedef uint8_t cmn_did_t;
 #define CMN_nodeid_OFFSET(n)		CMN_12BIT_OFFSET(n)
 #define CMN_nodeid_MASK			REG_12BIT_MASK
 #define CMN_nodeid(n, value)		_SET_FV_ULLn(n, CMN_nodeid, value)
+
+#define CMN_scg_hnf_num_OFFSET(n)	CMN_8BIT_OFFSET(n)
+#define CMN_scg_hnf_num_MASK		REG_8BIT_MASK
+#define CMN_scg_hnf_num(n, value)	_SET_FV_ULLn(n, CMN_scg_hnf_num, value)
 
 /* CMN_hnf_ppu_pwpr */
 #define CMN_ppu_policy_OFFSET		0
