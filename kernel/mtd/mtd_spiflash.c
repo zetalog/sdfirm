@@ -1,4 +1,5 @@
 #include <target/spiflash.h>
+#include <target/cmdline.h>
 
 #ifdef CONFIG_SPIFLASH_APB_DELAY
 #define spiflash_apb_delay(count)	apb_delay(count)
@@ -320,3 +321,23 @@ void spiflash_init(void)
 	spiflash_hw_chip_init();
 	spiflash_cid = mtd_register_chip(&spiflash_chip);
 }
+
+static int spiflash_readid(int argc, char *argv[])
+{
+	spiflash_tx(SF_JEDEC_ID);
+	printf("0x%x\n", spiflash_rx());
+	return 0;
+}
+
+static int do_mtd_flash(int argc, char *argv[])
+{
+	if (argc < 2)
+		return -EINVAL;
+	if (strcmp(argv[1], "readid") == 0)
+		return spiflash_readid(argc, argv);
+}
+
+DEFINE_COMMAND(spiflash, do_spiflash, "SPIflash commands",
+	"readid\n"
+	"    - read spi flash device ID\n"
+);
