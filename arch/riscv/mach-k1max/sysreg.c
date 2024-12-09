@@ -63,5 +63,6 @@ void k1max_cpu_reset(void)
 			reset |= SYS_CLUSTER_RST(cluster);
 		}
 	}
+	__raw_writel(0, SYS_CPU_SOFTWARE_RST);
 	__raw_writel(reset, SYS_CPU_SOFTWARE_RST);
 }
