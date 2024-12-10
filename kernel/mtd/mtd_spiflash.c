@@ -329,7 +329,7 @@ static int spiflash_readid(int argc, char *argv[])
 	return 0;
 }
 
-static int do_mtd_flash(int argc, char *argv[])
+static int do_spiflash(int argc, char *argv[])
 {
 	if (argc < 2)
 		return -EINVAL;
