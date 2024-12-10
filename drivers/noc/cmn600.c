@@ -859,12 +859,12 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				CMN_scg_hnf_num(0, CMN_scg_hnf_num_MASK),
 				CMN_rnsam_sys_cache_group_hn_count(rnsam, 0),
 				"CMN_rnsam_sys_cache_group_hn_count", 0);
-		con_dbg("hnf_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, 0)));
+		//con_dbg("hnf_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, 0)));
 		cmn_writeq_mask(CMN_scg_hnf_num(2, hnfs_per_scg),
 				CMN_scg_hnf_num(2, CMN_scg_hnf_num_MASK),
 				CMN_rnsam_sys_cache_group_hn_count(rnsam, 2),
 				"CMN_rnsam_sys_cache_group_hn_count", 2);
-		con_dbg("hnf_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, 2)));
+		//con_dbg("hnf_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, 2)));
 	}
 	else
 	{
@@ -873,7 +873,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 					CMN_scg_hnf_num(hnf, CMN_scg_hnf_num_MASK),
 					CMN_rnsam_sys_cache_group_hn_count(rnsam, hnf),
 					"CMN_rnsam_sys_cache_group_hn_count", hnf);
-			con_dbg("hn_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, hnf)));
+			//con_dbg("hn_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, hnf)));
 		}
 	}
 	cmn_hnf_cal_apply_scg(rnsam);
