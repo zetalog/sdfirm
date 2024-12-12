@@ -93,7 +93,11 @@
 #define SSI_TXD_DRIVE_EDGE(n)	DW_SSI_REG(n, 0xF8)
 
 /* 5.1.1 CTRLR0 */
+#ifdef CONFIG_DW_SSI_FC_SSTOGGLE
 #define SSI_SSTE		_BV(24)
+#else
+#define SSI_SSTE		0
+#endif
 #define SSI_SPI_FRF_OFFSET	21
 #define SSI_SPI_FRF_MASK	REG_2BIT_MASK
 #define SSI_SPI_FRF(value)	_SET_FV(SSI_SPI_FRF, value)

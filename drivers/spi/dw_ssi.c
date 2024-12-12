@@ -187,7 +187,8 @@ void dw_ssi_start_ctrl(int n)
 		return;
 
 	/* Configure CTRLR0 */
-	dw_ssi_writel(SSI_FRF(dw_ssis[n].frf) |
+	dw_ssi_writel(SSI_SSTE |
+		      SSI_FRF(dw_ssis[n].frf) |
 		      SSI_TMOD(dw_ssis[n].tmod) |
 		      SSI_SPI_FRF(dw_ssis[n].spi_frf) |
 		      SSI_SPI_MODE(dw_ssis[n].spi_mode) |
