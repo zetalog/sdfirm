@@ -52,6 +52,15 @@ uint8_t bitrev8(uint8_t byte)
 	return byte;
 }
 
+uint16_t bitrev16(uint16_t word)
+{
+	word = ((word & 0x5555) << 1 | (word & 0xAAAA) >> 1);
+	word = ((word & 0x3333) << 2 | (word & 0xCCCC) >> 2);
+	word = ((word & 0x0F0F) << 4 | (word & 0xF0F0) >> 4);
+	word = ((word & 0x00FF) << 8 | (word & 0xFF00) >> 8);
+	return word;
+}
+
 /**
  * set_bit - Set a bit in memory
  * @nr: the bit to set
