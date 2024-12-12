@@ -383,7 +383,7 @@ static int test_stuck_address(ulv *bufa, size_t count)
         p1 = (ulv *) bufa;
         printf("setting %3u\n", j);
         fflush(stdout);
-	printf("bufa:%lu\n",bufa);
+	printf("bufa:%p\n",bufa);
         for (i = 0; i < count; i++) {
 		*p1 = ((j + i) % 2) == 0 ? (ul) p1 : ~((ul) p1);
 		v = *p1;

@@ -288,6 +288,28 @@ extern struct cmn_xp_info cmn_xp_table[CMN_MESH_DIMEN_X * CMN_MESH_DIMEN_Y * 2];
 #define CMN_cfgm_periph_id(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x0008, (n))
 #define CMN_cfgm_component_id(n)	CMN_32BIT_REG(CMN_CFGM_BASE, 0x0028, (n))
 
+/* 3.2.3 Debug and trace register summary */
+#define CMN_dt_dtc_ctl(base)		CMN_REG(base, 0x0A00)
+#define CMN_dt_trigger_status(base)	CMN_REG(base, 0x0A10)
+#define CMN_dt_trigger_status_clr(base)	CMN_REG(base, 0x0A20)
+#define CMN_dt_trace_control(base)	CMN_REG(base, 0x0A30)
+#define CMN_dt_traceid(base)		CMN_REG(base, 0x0A40)
+#define CMN_dt_pmevcntAB(base)		CMN_REG(base, 0x2000)
+#define CMN_dt_pmevcntCD(base)		CMN_REG(base, 0x2010)
+#define CMN_dt_pmevcntEF(base)		CMN_REG(base, 0x2020)
+#define CMN_dt_pmevcntGH(base)		CMN_REG(base, 0x2030)
+#define CMN_dt_pmccntr(base)		CMN_REG(base, 0x2040)
+#define CMN_dt_pmevcntsrAB(base)	CMN_REG(base, 0x2050)
+#define CMN_dt_pmevcntsrCD(base)	CMN_REG(base, 0x2060)
+#define CMN_dt_pmevcntsrEF(base)	CMN_REG(base, 0x2070)
+#define CMN_dt_pmevcntsrGH(base)	CMN_REG(base, 0x2080)
+#define CMN_dt_pmccntrsr(base)		CMN_REG(base, 0x2090)
+#define CMN_dt_pmcr(base)		CMN_REG(base, 0x2100)
+#define CMN_dt_pmovsr(base)		CMN_REG(base, 0x2118)
+#define CMN_dt_pmovsr_clr(base)		CMN_REG(base, 0x2120)
+#define CMN_dt_pmssr(base)		CMN_REG(base, 0x2128)
+#define CMN_dt_pmsrr(base)		CMN_REG(base, 0x2130)
+
 /* 3.2.4 HN-F register summary */
 #define CMN_MAX_hnf_slcway_partitions	4
 #define CMN_MAX_hnf_sam_memregions	2
@@ -326,7 +348,22 @@ extern struct cmn_xp_info cmn_xp_table[CMN_MESH_DIMEN_X * CMN_MESH_DIMEN_Y * 2];
 #define CMN_hnf_sam_sn_properties(base)	CMN_REG(base, 0x0D18)
 #define CMN_hnf_sam_6sn_nodeid(base)	CMN_REG(base, 0x0D20)
 #define CMN_hnf_rn_phys_id(base, n)	CMN_32BIT_REG(base, 0x0D28, (n))
-#define CMN_hnf_pmu_event_sel(base)	CMN_REG(base, 0x2000)
+
+/* MXP DTM registers */
+#define CMN_dtm_control(base)		CMN_REG(base, 0x2100)
+#define CMN_dtm_fifo_entry_ready(base)	CMN_REG(base, 0x2118)
+/* n is 0...3 */
+#define CMN_dtm_fifo_entry_0(base, n)	CMN_REG(base, 0x2120 + ((3 * (n)) << 3))
+#define CMN_dtm_fifo_entry_1(base, n)	CMN_REG(base, 0x2128 + ((3 * (n)) << 3))
+#define CMN_dtm_fifo_entry_2(base, n)	CMN_REG(base, 0x2130 + ((3 * (n)) << 3))
+#define CMN_dtm_wp_config(base, n)	CMN_REG(base, 0x21A0 + ((3 * (n)) << 3))
+#define CMN_dtm_wp_val(base, n)		CMN_REG(base, 0x21A8 + ((3 * (n)) << 3))
+#define CMN_dtm_wp_mask(base, n)	CMN_REG(base, 0x21B0 + ((3 * (n)) << 3))
+#define CMN_dtm_pmsicr(base)		CMN_REG(base, 0x2200)
+#define CMN_dtm_pmsirr(base)		CMN_REG(base, 0x2208)
+#define CMN_dtm_pmu_config(base)	CMN_REG(base, 0x2210)
+#define CMN_dtm_pmevcnt(base, n)	CMN_16BIT_REG(base, 0x2220, n)
+#define CMN_dtm_pmevcntsr(base)		CMN_16BIT_REG(base, 0x2240, n)
 
 //abf
 #define hnf_abf_lo_addr(base)		(__raw_readq(CMN_hnf_abf_lo_addr(base)))
@@ -371,7 +408,6 @@ extern struct cmn_xp_info cmn_xp_table[CMN_MESH_DIMEN_X * CMN_MESH_DIMEN_Y * 2];
 					CMN_REG(base, 0x0020)
 #define CMN_mxp_p_info(base, n)		CMN_REG(base, 0x0900 + ((n) << 3))
 #define CMN_mxp_aux_ctl(base)		CMN_REG(base, 0x0A00)
-#define CMN_mxp_pmu_event_sel(base)	CMN_REG(base, 0x2000)
 
 /* 3.2.9 RN SAM register summary */
 #define CMN_MAX_rnsam_sys_cache_groups		4
@@ -433,6 +469,9 @@ extern struct cmn_xp_info cmn_xp_table[CMN_MESH_DIMEN_X * CMN_MESH_DIMEN_Y * 2];
 #define CMN_erraddr(base)		CMN_REG(base, 0x3018)
 #define CMN_erraddr_NS(base)		CMN_REG(base, 0x3118)
 
+/* CXHA, CXRA, CXLA, HN-F XP */
+#define CMN_pmu_event_sel(base)		CMN_REG(base, 0x2000)
+
 /* HN-F */
 #define CMN_hnf_err_inj(base)		CMN_REG(base, 0x3030)
 
@@ -460,7 +499,6 @@ extern struct cmn_xp_info cmn_xp_table[CMN_MESH_DIMEN_X * CMN_MESH_DIMEN_Y * 2];
 					CMN_REG(base, 0x0D00)
 #define CMN_cxg_ha_rnf_raid_to_ldid_val(base)			\
 					CMN_REG(base, 0x0D08)
-#define CMN_cxg_ha_pmu_event_sel(base)	CMN_REG(base, 0x2000)
 
 /* 3.2.12 CXRA register summary */
 #define CMN_cxg_ra_secure_register_groups_override(base)	\
@@ -486,7 +524,6 @@ extern struct cmn_xp_info cmn_xp_table[CMN_MESH_DIMEN_X * CMN_MESH_DIMEN_Y * 2];
 					CMN_REG(base, 0x0F30)
 #define CMN_cxg_ra_rnd_ldid_to_raid_val(base)			\
 					CMN_REG(base, 0x0F38)
-#define CMN_cxg_ra_pmu_event_sel(base)	CMN_REG(base, 0x2000)
 
 /* 3.2.13 CXLA register summary */
 #define CMN_cxla_secure_register_groups_override(base)		\
@@ -511,10 +548,9 @@ extern struct cmn_xp_info cmn_xp_table[CMN_MESH_DIMEN_X * CMN_MESH_DIMEN_Y * 2];
 #define CMN_cxla_permsg_pyld(base, n)	CMN_REG(base, 0x0D00 + ((n) << 3))
 #define CMN_cxla_permsg_ctl(base)	CMN_REG(base, 0x0D20)
 #define CMN_cxla_err_agent_id(base)	CMN_REG(base, 0x0D28)
-#define CMN_cxla_pmu_event_sel(base)	CMN_REG(base, 0x2000)
-#define CMN_cxla_pmu_config(base)	CMN_REG(base, 0x2210)
-#define CMN_cxla_pmevent(base)		CMN_REG(base, 0x2220)
-#define CMN_cxla_pmevcntsr(base)	CMN_REG(base, 0x2240)
+#define CMN_cxla_pmu_config(base)	CMN_8BIT_REG(base, 0x2210, n)
+#define CMN_cxla_pmevent(base, n)	CMN_16BIT_REG(base, 0x2220, n)
+#define CMN_cxla_pmevcntsr(base, n)	CMN_16BIT_REG(base, 0x2240, n)
 
 typedef uint16_t cmn_nid_t;
 typedef uint16_t cmn_lid_t;
@@ -540,6 +576,14 @@ typedef uint8_t cmn_did_t;
 #define CMN_child_ptr_offset_OFFSET	16
 #define CMN_child_ptr_offset_MASK	REG_16BIT_MASK
 #define CMN_child_ptr_offset(value)	_GET_FV_ULL(CMN_child_ptr_offset, value)
+
+/* CMN_pmu_event_sel */
+#define CMN_pmu_event_id_OFFSET(n)	REG64_8BIT_OFFSET(n)
+#define CMN_pmu_event_id_MASK		REG_8BIT_MASK
+#define CMN_pmu_event_id(n, value)	_SET_FV_ULL(n, CMN_pmu_event_id, value)
+#define CMN_pmu_occupl_id_OFFSET	32
+#define CMN_pmu_occupl_id_MASK		REG_3BIT_MASK
+#define CMN_pmu_occupl_id(value)	_SET_FV_ULL(CMN_pmu_occupl_id, value)
 
 /* CMN_cfgm_periph_id */
 #define CMN_periph_id_OFFSET(n)		REG64_32BIT_OFFSET(n)
@@ -635,6 +679,20 @@ typedef uint8_t cmn_did_t;
 #define CMN_ppu_op_mode_HAM		2
 #define CMN_ppu_op_mode_FAM		3
 #define CMN_ppu_dyn_en			_BV_ULL(8)
+
+/* CMN_dtm_pmu_config */
+#define CMN_pmu_en			_BV_ULL(0)
+#define CMN_pmevcnt01_combined		_BV_ULL(1)
+#define CMN_pmevcnt23_combined		_BV_ULL(2)
+#define CMN_pmevcntall_combined		_BV_ULL(3)
+#define CMN_pmevcnt_paired(n)		_BV_ULL(4 + (n))
+#define CMN_pmevcnt_global_num_OFFSET(n)	REG64_4BIT_OFFSET(n)
+#define CMN_pmevcnt_global_num_MASK		REG_4BIT_MASK
+#define CMN_pmevcnt_global_num(n, value)	_SET_FV_ULL(n, CMN_pmevcnt_global_num, value)
+/* CMN_dtm_pmevcnt/CMN_dtm_pmevcntsr */
+#define CMN_pmevcnt_OFFSET(n)		REG64_16BIT_OFFSET(n)
+#define CMN_pmevcnt_MASK		REG_16BIT_MASK
+#define CMN_pmevcnt(n, value)		_SET_FV_ULL(n, CMN_pmevcnt, value)
 
 /* CMN_rnsam_status */
 #define CMN_sam_use_default_node	_BV_ULL(0)
@@ -1250,6 +1308,11 @@ typedef uint8_t cmn_did_t;
 #define CMN_PMU_XP_TXFLIT_VALID			1
 #define CMN_PMU_XP_TXFLIT_STALL			2
 #define CMN_PMU_XP_PARTIAL_DAT_FLIT_VALID	3
+/* DEVEVENT */
+#define CMN_PMU_DEV_LINE_MISS_NO_SNOOP		0
+#define CMN_PMU_DEV_LINE_MISS_DIRECTED_SNOOP	1
+#define CMN_PMU_DEV_LINE_MISS_BROADCAST_SNOOP	2
+#define CMN_PMU_DEV_LINE_HIT_NO_SNOOP		3
 
 #ifdef CONFIG_CMN600_DEBUG
 void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i);

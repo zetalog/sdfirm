@@ -598,9 +598,15 @@ void cmn600_discover_xp(caddr_t xp)
 		port_node_count = cmn_xp_table[xp_pid].count;
 		if (cmn600_hw_xp_masked(xp_pid)) {
 			con_dbg(CMN_MODNAME ": XP%d(%d,%d,%d) skip %d nodes\n",
-				xp_pid, cmn_node_x(xp), cmn_node_y(xp), 1-port_index,
-				port_node_count);
+				xp_pid, (uint8_t)cmn_node_x(xp), (uint8_t)cmn_node_y(xp),
+				1-port_index, port_node_count);
 		} else {
+			if (node_count < port_node_count) {
+				con_err(CMN_MODNAME ": XP%d(%d,%d,%d) %d nodes exceeding %d\n",
+					xp_pid, (uint8_t)cmn_node_x(xp), (uint8_t)cmn_node_y(xp),
+					1-port_index, port_node_count, node_count);
+				return;
+			}
 			for (port_node_index = 0; port_node_index < port_node_count; port_node_index++) {
 				node = cmn_child_node(xp, node_index + port_node_index);
 				if (cmn_child_external(xp, node_index + port_node_index))
@@ -609,6 +615,7 @@ void cmn600_discover_xp(caddr_t xp)
 					cmn600_discover_internal(node);
 			}
 		}
+		node_count -= port_node_count;
 		node_index += port_node_count;
 	}
 }
