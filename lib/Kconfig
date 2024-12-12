@@ -33,6 +33,9 @@ config BIT_HWEIGHT32
 config BIT_HWEIGHT64
 	bool "hweight64"
 
+config BIT_REV16
+	bool "rev16"
+
 endmenu
 
 menu "Bitmap operations"
