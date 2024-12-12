@@ -592,20 +592,17 @@ void cmn600_discover_xp(caddr_t xp)
 	caddr_t node;
 
 	node_count = cmn_child_count(xp);
-	con_dbg(CMN_MODNAME "node_count:%d\n", node_count);
 	node_index = 0;
 	for (port_index = 0; port_index < 2; port_index++) {
 		xp_pid = CMN_XP_PID(cmn_node_x(xp), cmn_node_y(xp), 1 - port_index);
 		port_node_count = cmn_xp_table[xp_pid].count;
 		if (cmn600_hw_xp_masked(xp_pid)) {
-			//con_dbg(CMN_MODNAME "xp_pid:%d, (%d,%d), %d\n",
-				xp_pid, cmn_node_x(xp), cmn_node_y(xp), 1 - port_index);
-			//con_dbg(CMN_MODNAME ": Skip XP(%d,%d,%d) %d nodes\n",
-				cmn_node_x(xp), cmn_node_y(xp), 1-port_index, port_node_count);
+			con_dbg(CMN_MODNAME ": XP%d(%d,%d,%d) skip %d nodes\n",
+				xp_pid, cmn_node_x(xp), cmn_node_y(xp), 1-port_index,
+				port_node_count);
 		} else {
 			for (port_node_index = 0; port_node_index < port_node_count; port_node_index++) {
 				node = cmn_child_node(xp, node_index + port_node_index);
-				//con_dbg(CMN_MODNAME "node%ld\n", node);
 				if (cmn_child_external(xp, node_index + port_node_index))
 					cmn600_discover_external(node, xp);
 				else
