@@ -356,6 +356,26 @@ config DW_SSI_XIP
 
 endmenu
 
+choice
+	prompt "Flow control mode"
+	default DW_SSI_FC_SCSTRETCH
+
+config DW_SSI_FC_SSTOGGLE
+	bool "Toggle CS (ss_*_n)"
+	depends ARCH_HAS_SSI_SCPH0_SSTOGGLE
+	help
+	  Toggle ss_*_n line between consecutive data frames, with the
+	  serial clock (sclk) being hold to its default value while
+	  (ss_*_n) is high.
+
+config DW_SSI_FC_SCSTRETCH
+	bool "Stretch CLK (sclk)"
+	help
+	  The ss_*_n line stay low and sclk run continuously for the
+	  duration of the transfer.
+
+endchoice
+
 config DW_SSI_XFER
 	bool "Enable multi-byte transfer mode"
 
