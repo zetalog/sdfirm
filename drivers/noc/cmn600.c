@@ -582,12 +582,62 @@ static void cmn600_discover_internal(caddr_t node)
 #endif
 }
 
+#ifdef ARCH_HAVE_XP_TABLE
+void cmn600_discover_xp(caddr_t xp)
+{
+	cmn_id_t node_index, port_index, port_node_index;
+	cmn_id_t node_count;
+	cmn_id_t port_node_count;
+	cmn_nid_t xp_pid;
+	caddr_t node;
+
+	node_count = cmn_child_count(xp);
+	con_dbg(CMN_MODNAME "node_count:%d\n", node_count);
+	node_index = 0;
+	for (port_index = 0; port_index < 2; port_index++) {
+		xp_pid = CMN_XP_PID(cmn_node_x(xp), cmn_node_y(xp), 1 - port_index);
+		port_node_count = cmn_xp_table[xp_pid].count;
+		if (cmn600_hw_xp_masked(xp_pid)) {
+			//con_dbg(CMN_MODNAME "xp_pid:%d, (%d,%d), %d\n",
+				xp_pid, cmn_node_x(xp), cmn_node_y(xp), 1 - port_index);
+			//con_dbg(CMN_MODNAME ": Skip XP(%d,%d,%d) %d nodes\n",
+				cmn_node_x(xp), cmn_node_y(xp), 1-port_index, port_node_count);
+		} else {
+			for (port_node_index = 0; port_node_index < port_node_count; port_node_index++) {
+				node = cmn_child_node(xp, node_index + port_node_index);
+				//con_dbg(CMN_MODNAME "node%ld\n", node);
+				if (cmn_child_external(xp, node_index + port_node_index))
+					cmn600_discover_external(node, xp);
+				else
+					cmn600_discover_internal(node);
+			}
+		}
+		node_index += port_node_count;
+	}
+}
+#else
+void cmn600_discover_xp(caddr_t xp)
+{
+	cmn_id_t node_index;
+	cmn_id_t node_count;
+	caddr_t node;
+
+	node_count = cmn_child_count(xp);
+	for (node_index = 0; node_index < node_count; node_index++) {
+		node = cmn_child_node(xp, node_index);
+		if (cmn_child_external(xp, node_index))
+			cmn600_discover_external(node, xp);
+		else
+			cmn600_discover_internal(node);
+	}
+}
+#endif
+
 void cmn600_discover(void)
 {
-	cmn_id_t xp_index, node_index, port_index;
-	cmn_id_t xp_count, node_count;
-	caddr_t xp, node;
-	cmn_id_t skip_nodes;
+	cmn_id_t xp_index;
+	cmn_id_t xp_count;
+	caddr_t xp;
 
 	BUG_ON(cmn_node_type(CMN_CFGM_BASE) != CMN_CFG);
 
@@ -604,23 +654,7 @@ void cmn600_discover(void)
 			(int)cmn_node_id(xp), (int)cmn_logical_id(xp));
 #endif
 
-		node_count = cmn_child_count(xp);
-		port_index = 0;
-		for (node_index = 0; node_index < node_count; node_index += skip_nodes) {
-			skip_nodes = cmn600_hw_xp_masked(cmn_node_x(xp),
-							 cmn_node_y(xp),
-							 port_index);
-			port_index = port_index == 0 ? 1 : 0;
-			if (skip_nodes)
-				continue;
-
-			node = cmn_child_node(xp, node_index);
-			if (cmn_child_external(xp, node_index))
-				cmn600_discover_external(node, xp);
-			else
-				cmn600_discover_internal(node);
-			skip_nodes = 1;
-		}
+		cmn600_discover_xp(xp);
 	}
 
 	/* RN-F nodes doesn't have node type identifier and hence the count
@@ -739,14 +773,14 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 						CMN_region(region_sys_count, CMN_region_MASK),
 						CMN_rnsam_sys_cache_grp_region(rnsam, 2),
 						"CMN_rnsam_sys_cache_grp_region", 2);
-			}
-			else
+			} else {
 				for (region_sys_count = 0; region_sys_count < cmn_scg_count; region_sys_count++) {
 					cmn_writeq_mask(CMN_region(region_sys_count, memregion),
 							CMN_region(region_sys_count, CMN_region_MASK),
 							CMN_rnsam_sys_cache_grp_region(rnsam, region_sys_count),
 							"CMN_rnsam_sys_cache_grp_region", region_sys_count);
 				}
+			}
 			cmn_hnf_cal_enable_scg(region_sys_count);
 			break;
 
@@ -772,14 +806,14 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 						CMN_region(region_sys2_count, CMN_region_MASK),
 						CMN_rnsam_sys_cache_grp_secondary_region(rnsam, 2),
 						"CMN_rnsam_sys_cache_grp_secondary_region", 2);
-			}
-			else
+			} else {
 				for (region_sys2_count = 0; region_sys2_count < cmn_scg_count; region_sys2_count++) {
 					cmn_writeq_mask(CMN_region(region_sys2_count, memregion),
 							CMN_region(region_sys2_count, CMN_region_MASK),
 							CMN_rnsam_sys_cache_grp_secondary_region(rnsam, region_sys2_count),
 							"CMN_rnsam_sys_cache_grp_secondary_region", region_sys2_count);
 				}
+			}
 			cmn_hnf_cal_enable_scg(region_sys2_count);
 			break;
 
@@ -841,8 +875,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 			{
 				con_dbg(CMN_MODNAME ": SCG2: %d/%d, ID: %d\n",
 					lid_base, cmn_hnf_count, nid);
-			}
-			else {
+			} else {
 				con_dbg(CMN_MODNAME ": SCG%d: %d/%d, ID: %d\n",
 					scg, lid_base, cmn_hnf_count, nid);
 			}
@@ -865,9 +898,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				CMN_rnsam_sys_cache_group_hn_count(rnsam, 2),
 				"CMN_rnsam_sys_cache_group_hn_count", 2);
 		//con_dbg("hnf_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, 2)));
-	}
-	else
-	{
+	} else {
 		for (hnf = 0; hnf < cmn_scg_count; hnf++) {
 			cmn_writeq_mask(CMN_scg_hnf_num(hnf, hnfs_per_scg),
 					CMN_scg_hnf_num(hnf, CMN_scg_hnf_num_MASK),
