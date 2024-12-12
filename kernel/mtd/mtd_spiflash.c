@@ -335,9 +335,23 @@ static int do_spiflash(int argc, char *argv[])
 		return -EINVAL;
 	if (strcmp(argv[1], "readid") == 0)
 		return spiflash_readid(argc, argv);
+	if (strcmp(argv[1], "send") == 0) {
+		spiflash_tx((uint16_t)strtoull(argv[2], 0, 0));
+		return 0;
+	}
+	if (strcmp(argv[1], "recv") == 0) {
+		printf("0x%x\n", spiflash_rx());
+		return 0;
+	}
 }
 
 DEFINE_COMMAND(spiflash, do_spiflash, "SPIflash commands",
+	"select <id>\n"
+	"    - select spi device\n"
 	"readid\n"
 	"    - read spi flash device ID\n"
+	"send <data>\n"
+	"    - spi flash send message\n"
+	"recv\n"
+	"    - spi flash receive message\n"
 );
