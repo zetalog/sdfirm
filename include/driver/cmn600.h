@@ -1420,8 +1420,6 @@ void cmn600_ras_report(cmn_nid_t nid);
 #define cmn600_hw_scg_count()				1
 #define cmn600_hw_snf_count()				1
 #define cmn600_hw_snf_hashed(hnf)			cmn_snf_table[0]
-#define cmn600_hw_hnf_masked(nid)			false
-#define cmn600_hw_hnf_group(hnf)			cmn_logical_id(hnf)
 #endif
 
 #endif /* __CMN600_H_INCLUDE__ */
