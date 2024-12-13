@@ -374,7 +374,6 @@ static int test_stuck_address(ulv *bufa, size_t count)
     ulv *p1 = bufa;
     unsigned int j;
     size_t i;
-    unsigned long int v;
 
     printf("           ");
     fflush(stdout);
@@ -383,14 +382,8 @@ static int test_stuck_address(ulv *bufa, size_t count)
         p1 = (ulv *) bufa;
         printf("setting %3u\n", j);
         fflush(stdout);
-	printf("bufa:%p\n",bufa);
         for (i = 0; i < count; i++) {
 		*p1 = ((j + i) % 2) == 0 ? (ul) p1 : ~((ul) p1);
-		v = *p1;
-		if( i == 0){
-			printf("v=%lu\n",v);
-			printf("p1a%p, p1v%lu\n", (void*)p1, (unsigned long)*p1);
-		}
         	*p1++;
         }
         printf("\b\b\b\b\b\b\b\b\b\b\b");
@@ -398,9 +391,7 @@ static int test_stuck_address(ulv *bufa, size_t count)
         fflush(stdout);
         p1 = (ulv *) bufa;
         for (i = 0; i < count; i++, p1++) {
-		printf("i:%ld\n", i);
             if (*p1 != (((j + i) % 2) == 0 ? (ul) p1 : ~((ul) p1))) {
-		printf("p1a%p, p1v%lu\n", (void*)p1,(unsigned long)*p1);
                 memtester_badaddr(i);
                 printf("Skipping to next test...\n");
                 fflush(stdout);

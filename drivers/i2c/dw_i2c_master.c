@@ -436,6 +436,7 @@ static void dw_i2c_irq_handler(irq_t irq)
 {
 	dw_i2c_master_select(irq - IRQ_I2C0);
 	dw_i2c_handle_irq();
+	irqc_ack_irq(irq);
 }
 
 void dw_i2c_irq_init(void)
