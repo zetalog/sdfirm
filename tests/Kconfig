@@ -115,6 +115,3 @@ config MEMTESTER_PAGE
 	  It is safer to enable 4K boundary check.
 
 endif
-
-config TEST_ESPI
-	bool "Enable espi test"
