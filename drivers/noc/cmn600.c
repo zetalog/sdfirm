@@ -1079,23 +1079,41 @@ static int do_cmn600_dump(int argc, char *argv[])
 			cmn600_revision_name(cmn_revision()));
 		for (y = 0; y < CMN_MESH_DIMEN_Y; y++) {
 			for (x = 0; x < CMN_MESH_DIMEN_X; x++) {
+				if (x == 0) {
+					for (i = 0; i < CMN_MESH_DIMEN_X; i++) {
+						printf("+--------+--------+");
+						if (i == CMN_MESH_DIMEN_X - 1)
+							printf("\n");
+						else
+							printf(" ");
+					}
+				}
 				nid = CMN_NID(x, y, 0, 0);
 				node_type = cmn600_node_type(nid);
-				printf("%03d:%-4s", nid,
+				printf("|%03d:%-4s", nid,
 				       cmn600_node_type_name(node_type));
 				printf("|");
 				nid = CMN_NID(x, y, 1, 0);
 				node_type = cmn600_node_type(nid);
-				printf("%03d:%-4s", nid,
+				printf("%03d:%-4s|", nid,
 				       cmn600_node_type_name(node_type));
 				if (x == CMN_MESH_DIMEN_X - 1) {
-					printf("\n\n");
-					for (x = 0; x < CMN_MESH_DIMEN_X; x++) {
-						printf("        |        ");
-						if (x == CMN_MESH_DIMEN_X - 1)
-							printf("\n\n");
+					printf("\n");
+					for (i = 0; i < CMN_MESH_DIMEN_X; i++) {
+						printf("+--------+--------+");
+						if (i == CMN_MESH_DIMEN_X - 1)
+							printf("\n");
 						else
-							printf("  ");
+							printf(" ");
+					}
+					if (y < CMN_MESH_DIMEN_Y - 1) {
+						for (i = 0; i < CMN_MESH_DIMEN_X; i++) {
+							printf("         |        ");
+							if (i == CMN_MESH_DIMEN_X - 1)
+								printf("\n");
+							else
+								printf("  ");
+						}
 					}
 				} else
 					printf("-");
