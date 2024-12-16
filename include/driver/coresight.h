@@ -415,7 +415,11 @@ struct coresight_device {
 #define coresight_log(...)
 #endif
 
+#ifdef CONFIG_CORESIGHT
 int coresight_init(uintptr_t rom_table_base, uintptr_t *blacklists);
+#else
+#define coresight_init(rom_table_base, blacklist)	do { } while (0)
+#endif
 int coresight_register_table(struct coresight_table *table);
 int coresight_register_device(struct coresight_device *device);
 int coresight_visit_table(uintptr_t rom_table_base);
