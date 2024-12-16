@@ -226,13 +226,6 @@ typedef uint32_t cmn_id_t;
 	((xp_pid) & 0x01)
 #define CMN_XP_PID2NID(xp_pid, dev)	\
 	CMN_NID(CMN_XP_X(xp_pid), CMN_XP_Y(xp_pid), CMN_XP_P(xp_pid), dev)
-
-struct cmn_xp_info {
-	cmn_id_t count;
-	uint8_t type;
-};
-
-extern struct cmn_xp_info cmn_xp_table[CMN_MESH_DIMEN_X * CMN_MESH_DIMEN_Y * 2];
 #endif
 
 #define NR_CMN_NODES			CMN_MAX_NODES
