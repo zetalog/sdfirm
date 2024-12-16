@@ -29,8 +29,10 @@ static void cmn_dtc_init(cmn_id_t id, caddr_t dtc, irq_t irq)
 		   "CMN_dt_dtc_ctl", -1);
 	cmn_writeq(CMN_pmu_en | CMN_ovfl_intr_en, CMN_dt_pmcr(dtc),
 		   "CMN_dt_pmcr", -1);
-	cmn_writeq(0, CMN_dt_pmccntr(base));
-	cmn_writeq(0x1ff, CMN_dt_pmovsr_clr(base));
+	cmn_writeq(0, CMN_dt_pmccntr(dtc),
+		   "CMN_dt_pmccntr", -1);
+	cmn_writeq(0x1ff, CMN_dt_pmovsr_clr(dtc),
+		   "CMN_dt_pmovsr_clr", -1);
 }
 
 void cmn600_pmu_init(void)
