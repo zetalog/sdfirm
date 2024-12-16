@@ -465,10 +465,75 @@ typedef uint32_t cmn_id_t;
 
 /* HN-F */
 #define CMN_hnf_err_inj(base)		CMN_REG(base, 0x3030)
+#define CMN_hnf_err_inj_srcid_OFFSET		16
+#define CMN_hnf_err_inj_srcid_MASK		REG_11BIT_MASK
+#define CMN_hnf_err_inj_srcid(value)		_GET_FV_ULL(CMN_hnf_err_inj_srcid, value)
+#define CMN_hnf_err_inj_lpid_OFFSET		4
+#define CMN_hnf_err_inj_lpid_MASK		REG_5BIT_MASK
+#define CMN_hnf_err_inj_lpid(value)		_GET_FV_ULL(CMN_hnf_err_inj_lpid, value)
+#define CMN_hnf_err_inj_cn			_BV(0)
 
 /* HN-F, XP */
 #define CMN_hnf_byte_par_err_inj(base)		CMN_REG(base, 0x3038)
 #define CMN_mxp_byte_par_err_inj(base, p)	CMN_REG(base, 0x3030 + (p) << 3)
+
+/* ERRMISC */
+#define CMN_xp_errmisc_tgtid_OFFSET		48
+#define CMN_xp_errmisc_tgtid_MASK		REG_11BIT_MASK
+#define CMN_xp_errmisc_tgtid(value)		_GET_FV_ULL(CMN_xp_errmisc_tgtid, value)
+#define CMN_xp_errmisc_opcode_OFFSET		16
+#define CMN_xp_errmisc_opcode_MASK		REG_6BIT_MASK
+#define CMN_xp_errmisc_opcode(value)		_GET_FV_ULL(CMN_xp_errmisc_opcode, value)
+#define CMN_xp_errmisc_srcid_OFFSET		4
+#define CMN_xp_errmisc_srcid_MASK		REG_11BIT_MASK
+#define CMN_xp_errmisc_srcid(value)		_GET_FV_ULL(CMN_xp_errmisc_srcid, value)
+#define CMN_xp_errmisc_errsrc_OFFSET		0
+#define CMN_xp_errmisc_errsrc_MASK		REG_3BIT_MASK
+#define CMN_xp_errmisc_errsrc(value)		_GET_FV_ULL(CMN_xp_errmisc_errsrc, value)
+
+#define CMN_hni_errmisc_size_OFFSET		28
+#define CMN_hni_errmisc_size_MASK		REG_3BIT_MASK
+#define CMN_hni_errmisc_size(value)		_GET_FV_ULL(CMN_hni_errmisc_size, value)
+#define CMN_hni_errmisc_memattr_OFFSET		24
+#define CMN_hni_errmisc_memattr_MASK		REG_4BIT_MASK
+#define CMN_hni_errmisc_memattr(value)		_GET_FV_ULL(CMN_hni_errmisc_memattr, value)
+#define CMN_hni_errmisc_opcode_OFFSET		16
+#define CMN_hni_errmisc_opcode_MASK		REG_6BIT_MASK
+#define CMN_hni_errmisc_opcode(value)		_GET_FV_ULL(CMN_hni_errmisc_opcode, value)
+#define CMN_hni_errmisc_srcid_OFFSET		4
+#define CMN_hni_errmisc_srcid_MASK		REG_11BIT_MASK
+#define CMN_hni_errmisc_srcid(value)		_GET_FV_ULL(CMN_hni_errmisc_srcid, value)
+#define CMN_hni_errmisc_errsrc_OFFSET		0
+#define CMN_hni_errmisc_errsrc_MASK		REG_4BIT_MASK
+#define CMN_hni_errmisc_errsrc(value)		_GET_FV_ULL(CMN_hni_errmisc_errsrc, value)
+
+#define CMN_hnf_errmisc_optype_OFFSET		16
+#define CMN_hnf_errmisc_optype_MASK		REG_2BIT_MASK
+#define CMN_hnf_errmisc_optype(value)		_GET_FV_ULL(CMN_hnf_errmisc_optype, value)
+#define CMN_hnf_errmisc_srcid_OFFSET		4
+#define CMN_hnf_errmisc_srcid_MASK		REG_11BIT_MASK
+#define CMN_hnf_errmisc_srcid(value)		_GET_FV_ULL(CMN_hnf_errmisc_srcid, value)
+#define CMN_hnf_errmisc_errsrc_OFFSET		0
+#define CMN_hnf_errmisc_errsrc_MASK		REG_4BIT_MASK
+#define CMN_hnf_errmisc_errsrc(value)		_GET_FV_ULL(CMN_hnf_errmisc_errsrc, value)
+
+#define CMN_sbsx_errmisc_size_OFFSET		28
+#define CMN_sbsx_errmisc_size_MASK		REG_3BIT_MASK
+#define CMN_sbsx_errmisc_size(value)		_GET_FV_ULL(CMN_sbsx_errmisc_size, value)
+#define CMN_sbsx_errmisc_memattr_OFFSET		24
+#define CMN_sbsx_errmisc_memattr_MASK		REG_4BIT_MASK
+#define CMN_sbsx_errmisc_memattr(value)		_GET_FV_ULL(CMN_sbsx_errmisc_memattr, value)
+#define CMN_sbsx_errmisc_optype			_BV(16)
+#define CMN_sbsx_errmisc_srcid_OFFSET		4
+#define CMN_sbsx_errmisc_srcid_MASK		REG_11BIT_MASK
+#define CMN_sbsx_errmisc_srcid(value)		_GET_FV_ULL(CMN_sbsx_errmisc_srcid, value)
+
+#define CMN_cxha_errmisc_srcraid_OFFSET		4
+#define CMN_cxha_errmisc_srcraid_MASK		REG_6BIT_MASK
+#define CMN_cxha_errmisc_srcraid(value)		_GET_FV_ULL(CMN_cxha_errmisc_srcraid, value)
+#define CMN_cxha_errmisc_errsrc_OFFSET		0
+#define CMN_cxha_errmisc_errsrc_MASK		REG_2BIT_MASK
+#define CMN_cxha_errmisc_errsrc(value)		_GET_FV_ULL(CMN_cxha_errmisc_errsrc, value)
 
 /* CXG link register summary: common to CXHA and CXRA */
 #define CMN_cxg_cxprtcl_link_ctl(base, n)			\
@@ -1148,6 +1213,7 @@ typedef uint8_t cmn_did_t;
 #define cmn_ccix_no_message_pack()		\
 	(!!(__raw_readq(CMN_cxla_ccix_prop_capabilities(CMN_CXLA_BASE)) & CMN_la_nomessagepack))
 
+/* RAS options */
 #define cmn_ras_support_ed(id)			\
 	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_ED))
 #define cmn_ras_enable_ed(id)			\
@@ -1423,9 +1489,11 @@ void cmn600_cml_init(void);
 #ifdef CONFIG_CMN600_RAS
 void cmn600_ras_config(cmn_nid_t nid);
 void cmn600_ras_report(cmn_nid_t nid);
+void cmn600_ras_init(void);
 #else
 #define cmn600_ras_config(nid)		do { } while (0)
 #define cmn600_ras_report(nid)		do { } while (0)
+#define cmn600_ras_init()		do { } while (0)
 #endif
 
 #ifndef ARCH_HAVE_SNF_TABLE
