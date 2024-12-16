@@ -48,6 +48,8 @@
 #ifndef __CMN600_H_INCLUDE__
 #define __CMN600_H_INCLUDE__
 
+#include <target/irq.h>
+
 /* The mach layer should provide the followings:
  * 1. CMN_PERIPH_BASE: base address of CFGM node
  * 2. CMN_MESH_DIMEN_X: X dimension
@@ -95,11 +97,7 @@
 #define CMN_MXP_CXRA		0x12
 #define CMN_MXP_CXRH		0x13
 
-#ifdef CMN_MXP_COUNT
-#define CMN_MAX_MXP_COUNT		CMN_MXP_COUNT
-#else
-#define CMN_MAX_MXP_COUNT		128
-#endif
+#define CMN_MAX_MXP_COUNT		(CMN_MESH_DIMEN_X * CMN_MESH_DIMEN_Y)
 #ifdef CMN_CXG_COUNT
 #define CMN_MAX_CXG_COUNT		CMN_CXG_COUNT
 #else
@@ -611,6 +609,24 @@ typedef uint8_t cmn_did_t;
 #define CMN_child_register_offset_OFFSET	0
 #define CMN_child_register_offset_MASK		REG_14BIT_MASK
 #define CMN_child_register_offset(value)	_GET_FV_ULL(CMN_child_register_offset, value)
+
+/* CMN_dt_dtc_ctl */
+#define CMN_dt_cg_disable			_BV_ULL(10)
+#define CMN_cross_trigger_count_OFFSET		4
+#define CMN_cross_trigger_count_MASK		REG_6BIT_MASK
+#define CMN_cross_trigger_count(value)		_SET_FV_ULL(CMN_cross_trigger_count, value)
+#define CMN_dt_wait_for_trigger			_BV_ULL(3)
+#define CMN_atbtrigger_en			_BV_ULL(2)
+#define CMN_dbgtrigger_en			_BV_ULL(1)
+#define CMN_dt_en				_BV_ULL(0)
+
+/* CMN_dt_pmcr */
+#define CMN_ovfl_intr_en			_BV_ULL(6)
+#define CMN_cntr_rst				_BV_ULL(5)
+#define CMN_cntcfg_OFFSET			1
+#define CMN_cntcfg_MASK				REG_4BIT_MASK
+#define CMN_cntcfg(value)			_SET_FV_ULL(CMN_cntcfg, value)
+#define CMN_pmu_en				_BV_ULL(0)
 
 /* CMN_hnf_sam_control */
 #define CMN_hn_cfg_sn_nodeid_OFFSET(n)		CMN_12BIT_OFFSET(n)
@@ -1370,6 +1386,9 @@ extern cmn_id_t cmn_rni_count;
 extern cmn_id_t cmn_dtc_count;
 extern cmn_id_t cmn_sbsx_count;
 extern cmn_id_t cmn_snf_count;
+extern cmn_id_t cmn_cxla_count;
+extern cmn_id_t cmn_cxra_count;
+extern cmn_id_t cmn_cxha_count;
 extern cmn_id_t cmn_rn_sam_int_count;
 extern cmn_id_t cmn_rn_sam_ext_count;
 extern bool cmn600_initialized;
@@ -1413,6 +1432,13 @@ void cmn600_ras_report(cmn_nid_t nid);
 #define cmn600_hw_scg_count()				1
 #define cmn600_hw_snf_count()				1
 #define cmn600_hw_snf_hashed(hnf)			cmn_snf_table[0]
+#endif
+
+#ifdef CONFIG_CMN600_PMU
+extern irq_t cmn_dtc_irqs[];
+void cmn600_pmu_init(void);
+#else
+#define cmn600_pmu_init()		do { } while (0)
 #endif
 
 #endif /* __CMN600_H_INCLUDE__ */
