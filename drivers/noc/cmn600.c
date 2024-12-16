@@ -81,9 +81,39 @@ static const char * const cmn_cml_type2name[] = {
 	[CMN_CXLA - CMN_CML] = "CXLA",
 };
 
+static const char *cmn_dev2name[] = {
+	[CMN_MXP_INVAL] = "<M>",
+	[CMN_MXP_RNI] = "RN-I",
+	[CMN_MXP_RND] = "RN-D",
+	[CMN_MXP_RNF_CHIB] = "RN-F CHI Issue B",
+	[CMN_MXP_RNF_CHIB_ESAM] = "RN-F CHI Issue B ESAM",
+	[CMN_MXP_RNF_CHIA] = "RN-F CHI Issue A",
+	[CMN_MXP_RNF_CHIA_ESAM] = "RN-F CHI Issue A ESAM",
+	[CMN_MXP_HNT] = "HN-T",
+	[CMN_MXP_HNI] = "HN-I",
+	[CMN_MXP_HND] = "HN-D",
+	[CMN_MXP_SNF] = "SN-F",
+	[CMN_MXP_SBSX] = "SBSX",
+	[CMN_MXP_HNF] = "HN-F",
+	[CMN_MXP_CXHA] = "CXHA",
+	[CMN_MXP_CXRA] = "CXRA",
+	[CMN_MXP_CXRH] = "CXRH",
+};
+
+const char *cmn600_dev_type_name(uint8_t dev_type)
+{
+	if (dev_type <= CMN_MXP_CXRH)
+		return cmn_dev2name[dev_type];
+
+	return cmn_dev2name[CMN_MXP_INVAL];
+}
+
 const char *cmn600_node_type_name(uint16_t node_type)
 {
 	if (node_type <= CMN_RN_SAM)
+		return cmn_type2name[node_type];
+	/* Pseudo names */
+	if (node_type <= CMN_SNF)
 		return cmn_type2name[node_type];
 
 	if (node_type >= CMN_CML &&
@@ -581,28 +611,60 @@ static void cmn600_discover_internal(caddr_t node)
 }
 
 #ifdef ARCH_HAVE_XP_TABLE
+static const uint8_t cmn_dev2count[] = {
+	[CMN_MXP_INVAL] = 0,
+	[CMN_MXP_RNI] = 2,
+	[CMN_MXP_RND] = 3, /* TBD: need to confirm */
+	[CMN_MXP_RNF_CHIB] = 0,
+	[CMN_MXP_RNF_CHIB_ESAM] = 1,
+	[CMN_MXP_RNF_CHIA] = 0,
+	[CMN_MXP_RNF_CHIA_ESAM] = 1,
+	[CMN_MXP_HNT] = 2,
+	[CMN_MXP_HNI] = 1,
+	[CMN_MXP_HND] = 3,
+	[CMN_MXP_SNF] = 0,
+	[CMN_MXP_SBSX] = 1,
+	[CMN_MXP_HNF] = 1,
+	[CMN_MXP_CXHA] = 3, /* TBD: need to confirm */
+	[CMN_MXP_CXRA] = 2, /* TBD: need to confirm */
+	[CMN_MXP_CXRH] = 4,
+};
+
+const uint8_t cmn600_dev_node_count(uint16_t dev_type)
+{
+	if (dev_type <= CMN_MXP_CXRH)
+		return cmn_dev2count[dev_type];
+
+	return cmn_dev2count[CMN_MXP_INVAL];
+}
+
 void cmn600_discover_xp(caddr_t xp)
 {
 	cmn_id_t node_index, port_index, port_node_index;
 	cmn_id_t node_count;
 	cmn_id_t port_node_count;
-	cmn_nid_t xp_pid;
+	cmn_nid_t xp_pid, nid;
 	caddr_t node;
+	cmn_id_t pid;
+	uint8_t dev_type;
 
 	node_count = cmn_child_count(xp);
 	node_index = 0;
 	for (port_index = 0; port_index < 2; port_index++) {
-		xp_pid = CMN_XP_PID(cmn_node_x(xp), cmn_node_y(xp), 1 - port_index);
-		port_node_count = cmn_xp_table[xp_pid].count;
-		if (cmn600_hw_xp_masked(xp_pid)) {
-			con_dbg(CMN_MODNAME ": XP%d(%d,%d,%d) skip %d nodes\n",
-				xp_pid, (uint8_t)cmn_node_x(xp), (uint8_t)cmn_node_y(xp),
-				1-port_index, port_node_count);
+		pid = 1 - port_index;
+		xp_pid = CMN_XP_PID(cmn_node_x(xp), cmn_node_y(xp), pid);
+		nid = CMN_XP_PID2NID(xp_pid, 0);
+		dev_type = cmn_mxp_device_type(xp, pid);
+		port_node_count = cmn600_dev_node_count(dev_type);
+		if (cmn600_hw_xp_masked(nid, dev_type)) {
+			con_dbg(CMN_MODNAME ": XP%d(%d,%d,%d) skip %d %s nodes\n",
+				xp_pid, (uint8_t)cmn_node_x(xp),(uint8_t)cmn_node_y(xp),
+				pid, port_node_count, cmn600_dev_type_name(dev_type));
 		} else {
 			if (node_count < port_node_count) {
 				con_err(CMN_MODNAME ": XP%d(%d,%d,%d) %d nodes exceeding %d\n",
 					xp_pid, (uint8_t)cmn_node_x(xp), (uint8_t)cmn_node_y(xp),
-					1-port_index, port_node_count, node_count);
+					pid, port_node_count, node_count);
 				return;
 			}
 			for (port_node_index = 0; port_node_index < port_node_count; port_node_index++) {
@@ -894,19 +956,16 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 				CMN_scg_hnf_num(0, CMN_scg_hnf_num_MASK),
 				CMN_rnsam_sys_cache_group_hn_count(rnsam, 0),
 				"CMN_rnsam_sys_cache_group_hn_count", 0);
-		//con_dbg("hnf_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, 0)));
 		cmn_writeq_mask(CMN_scg_hnf_num(2, hnfs_per_scg),
 				CMN_scg_hnf_num(2, CMN_scg_hnf_num_MASK),
 				CMN_rnsam_sys_cache_group_hn_count(rnsam, 2),
 				"CMN_rnsam_sys_cache_group_hn_count", 2);
-		//con_dbg("hnf_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, 2)));
 	} else {
 		for (hnf = 0; hnf < cmn_scg_count; hnf++) {
 			cmn_writeq_mask(CMN_scg_hnf_num(hnf, hnfs_per_scg),
 					CMN_scg_hnf_num(hnf, CMN_scg_hnf_num_MASK),
 					CMN_rnsam_sys_cache_group_hn_count(rnsam, hnf),
 					"CMN_rnsam_sys_cache_group_hn_count", hnf);
-			//con_dbg("hn_count:%llx\n", __raw_readq(CMN_rnsam_sys_cache_group_hn_count(rnsam, hnf)));
 		}
 	}
 	cmn_hnf_cal_apply_scg(rnsam);
@@ -1047,6 +1106,39 @@ static uint16_t cmn600_node_type(cmn_nid_t nid)
 	return CMN_INVAL;
 }
 
+static bool cmn600_rnsam_is_rnd(cmn_nid_t nid)
+{
+	cmn_id_t i;
+
+	for (i = 0; i < cmn_rnd_count; i++) {
+		if (nid == cmn_node_id(cmn_bases[cmn_rnd_ids[i]]))
+			return true;
+	}
+	return false;
+}
+
+static bool cmn600_rnsam_is_rni(cmn_nid_t nid)
+{
+	cmn_id_t i;
+
+	for (i = 0; i < cmn_rni_count; i++) {
+		if (nid == cmn_node_id(cmn_bases[cmn_rni_ids[i]]))
+			return true;
+	}
+	return false;
+}
+
+static bool cmn600_rnsam_is_cxha(cmn_nid_t nid)
+{
+	cmn_id_t i;
+
+	for (i = 0; i < cmn_cxha_count; i++) {
+		if (nid == cmn_node_id(cmn_bases[cmn_cxha_ids[i]]))
+			return true;
+	}
+	return false;
+}
+
 static bool cmn600_rnsam_is_rnf(cmn_nid_t nid)
 {
 	cmn_id_t i;
@@ -1056,7 +1148,7 @@ static bool cmn600_rnsam_is_rnf(cmn_nid_t nid)
 			return false;
 	}
 	for (i = 0; i < cmn_rni_count; i++) {
-		if (nid == cmn_node_id(cmn_bases[cmn_rnd_ids[i]]))
+		if (nid == cmn_node_id(cmn_bases[cmn_rni_ids[i]]))
 			return false;
 	}
 	for (i = 0; i < cmn_cxha_count; i++) {
@@ -1124,7 +1216,7 @@ static int do_cmn600_dump(int argc, char *argv[])
 		if (strcmp(argv[2], "hnf") == 0) {
 			for (i = 0; i < cmn_hnf_count; i++) {
 				base = cmn_bases[cmn_hnf_ids[i]];
-				printf("HN-F%d: %03d, %016llx\n",
+				printf("HN-F-%d: %03d, %016llx\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			return 0;
@@ -1132,7 +1224,21 @@ static int do_cmn600_dump(int argc, char *argv[])
 		if (strcmp(argv[2], "rnd") == 0) {
 			for (i = 0; i < cmn_rnd_count; i++) {
 				base = cmn_bases[cmn_rnd_ids[i]];
-				printf("RN-D%d: %03d, %016llx\n",
+				printf("RN-D-%d: %03d, %016llx\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			for (i = 0; i < cmn_rn_sam_int_count; i++) {
+				base = cmn_bases[cmn_rn_sam_int_ids[i]];
+				if (!cmn600_rnsam_is_rnd(cmn_node_id(base)))
+					continue;
+				printf("RN-D-%d SAM: %03d, %016llx I\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			for (i = 0; i < cmn_rn_sam_ext_count; i++) {
+				base = cmn_bases[cmn_rn_sam_ext_ids[i]];
+				if (!cmn600_rnsam_is_rnd(cmn_node_id(base)))
+					continue;
+				printf("RN-D-%d SAM: %03d, %016llx E\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			return 0;
@@ -1140,8 +1246,22 @@ static int do_cmn600_dump(int argc, char *argv[])
 		if (strcmp(argv[2], "rni") == 0) {
 			for (i = 0; i < cmn_rni_count; i++) {
 				base = cmn_bases[cmn_rni_ids[i]];
-				printf("RN-I%d: %03d, %016llx\n",
+				printf("RN-I-%d: %03d, %016llx\n",
 					cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			for (i = 0; i < cmn_rn_sam_int_count; i++) {
+				base = cmn_bases[cmn_rn_sam_int_ids[i]];
+				if (!cmn600_rnsam_is_rni(cmn_node_id(base)))
+					continue;
+				printf("RN-I-%d SAM: %03d, %016llx I\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			for (i = 0; i < cmn_rn_sam_ext_count; i++) {
+				base = cmn_bases[cmn_rn_sam_ext_ids[i]];
+				if (!cmn600_rnsam_is_rni(cmn_node_id(base)))
+					continue;
+				printf("RN-I-%d SAM: %03d, %016llx E\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			return 0;
 		}
@@ -1150,14 +1270,14 @@ static int do_cmn600_dump(int argc, char *argv[])
 				base = cmn_bases[cmn_rn_sam_int_ids[i]];
 				if (!cmn600_rnsam_is_rnf(cmn_node_id(base)))
 					continue;
-				printf("RN-F%d: %03d, %016llx I\n",
+				printf("RN-F-%d SAM: %03d, %016llx I\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			for (i = 0; i < cmn_rn_sam_ext_count; i++) {
 				base = cmn_bases[cmn_rn_sam_ext_ids[i]];
 				if (!cmn600_rnsam_is_rnf(cmn_node_id(base)))
 					continue;
-				printf("RN-F%d: %03d, %016llx E\n",
+				printf("RN-F-%d SAM: %03d, %016llx E\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			return 0;
@@ -1165,7 +1285,7 @@ static int do_cmn600_dump(int argc, char *argv[])
 		if (strcmp(argv[2], "xp") == 0) {
 			for (i = 0; i < cmn_xp_count; i++) {
 				base = cmn_bases[cmn_xp_ids[i]];
-				printf("XP%d: %03d, %016llx\n",
+				printf("XP-%d: %03d, %016llx\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			return 0;
@@ -1173,7 +1293,7 @@ static int do_cmn600_dump(int argc, char *argv[])
 		if (strcmp(argv[2], "dtc") == 0) {
 			for (i = 0; i < cmn_dtc_count; i++) {
 				base = cmn_bases[cmn_dtc_ids[i]];
-				printf("XP%d: %03d, %016llx\n",
+				printf("DTC-%d: %03d, %016llx\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			return 0;
@@ -1181,7 +1301,7 @@ static int do_cmn600_dump(int argc, char *argv[])
 		if (strcmp(argv[2], "sbsx") == 0) {
 			for (i = 0; i < cmn_sbsx_count; i++) {
 				base = cmn_bases[cmn_sbsx_ids[i]];
-				printf("XP%d: %03d, %016llx\n",
+				printf("SBSX-%d: %03d, %016llx\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			return 0;
@@ -1189,35 +1309,49 @@ static int do_cmn600_dump(int argc, char *argv[])
 		if (strcmp(argv[2], "rnsam") == 0) {
 			for (i = 0; i < cmn_rn_sam_int_count; i++) {
 				base = cmn_bases[cmn_rn_sam_int_ids[i]];
-				printf("RN-SAM%d: %03d, %016llx I\n",
+				printf("RN-SAM-%d: %03d, %016llx I\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			for (i = 0; i < cmn_rn_sam_ext_count; i++) {
 				base = cmn_bases[cmn_rn_sam_ext_ids[i]];
-				printf("RN-SAM%d: %03d, %016llx E\n",
+				printf("RN-SAM-%d: %03d, %016llx E\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			return 0;
 		}
 		if (strcmp(argv[2], "snf") == 0) {
 			for (i = 0; i < cmn_snf_count; i++)
-				printf("SN-F%d: %03d\n", i, cmn_snf_table[i]);
+				printf("SN-F-%d: %03d\n", i, cmn_snf_table[i]);
 			return 0;
 		}
 		if (strcmp(argv[2], "cxg") == 0) {
 			for (i = 0; i < cmn_cxha_count; i++) {
 				base = cmn_bases[cmn_cxha_ids[i]];
-				printf("CXHA%d: %03d, %016llx\n",
+				printf("CXHA-%d: %03d, %016llx\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			for (i = 0; i < cmn_cxra_count; i++) {
 				base = cmn_bases[cmn_cxra_ids[i]];
-				printf("CXRA%d: %03d, %016llx\n",
+				printf("CXRA-%d: %03d, %016llx\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			for (i = 0; i < cmn_cxla_count; i++) {
 				base = cmn_bases[cmn_cxla_ids[i]];
-				printf("CXLA%d: %03d, %016llx\n",
+				printf("CXLA-%d: %03d, %016llx\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			for (i = 0; i < cmn_rn_sam_int_count; i++) {
+				base = cmn_bases[cmn_rn_sam_int_ids[i]];
+				if (!cmn600_rnsam_is_cxha(cmn_node_id(base)))
+					continue;
+				printf("CXHA-%d SAM: %03d, %016llx I\n",
+				       cmn_logical_id(base), cmn_node_id(base), base);
+			}
+			for (i = 0; i < cmn_rn_sam_ext_count; i++) {
+				base = cmn_bases[cmn_rn_sam_ext_ids[i]];
+				if (!cmn600_rnsam_is_cxha(cmn_node_id(base)))
+					continue;
+				printf("CXHA-%d SAM: %03d, %016llx E\n",
 				       cmn_logical_id(base), cmn_node_id(base), base);
 			}
 			return 0;
@@ -1238,9 +1372,9 @@ static int do_cmn600(int argc, char *argv[])
 	return -EINVAL;
 }
 
-DEFINE_COMMAND(cmn600, do_cmn600, "Coherent mesh network (CMN600) commands",
-	"cmn600 dump\n"
+DEFINE_COMMAND(cmn600, do_cmn600, "Coherent mesh network (" CMN_MODNAME ") commands",
+	CMN_MODNAME " dump\n"
 	"    - dump CMN mesh network\n"
-	"cmn600 dump [hnf|rnd|rnf|rni|snf|xp|dtc|sbsx|rnsam|cxg]\n"
+	CMN_MODNAME " dump [hnf|rnd|rnf|rni|snf|xp|dtc|sbsx|rnsam|cxg]\n"
 	"    - dump CMN ndoe information\n"
 );
