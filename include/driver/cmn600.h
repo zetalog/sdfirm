@@ -450,6 +450,11 @@ typedef uint32_t cmn_id_t;
 /* RAS register */
 #define CMN_cfgm_errgsr(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x3000, (n))
 #define CMN_cfgm_errgsr_NS(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x3100, (n))
+#define ERRGSR_XP			0
+#define ERRGSR_HNI			1
+#define ERRGSR_HNF			2
+#define ERRGSR_SBSX			3
+#define ERRGSR_CXHA			4
 
 /* HN-F, HN-I, XP, SBSX, CXG  */
 #define CMN_errfr(base)			CMN_REG(base, 0x3000)

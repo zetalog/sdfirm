@@ -276,7 +276,7 @@
 
 /* Main control and status registers */
 #define CORESIGHT_MEM_AP_CSW(base)	CORESIGHT_REG(base, 0xD00)
-#define CORESIGHT_MEM_AP_TAR(base, n)	CORESIGHT_REG(base, (0xD04 + (n << 2)))
+#define CORESIGHT_MEM_AP_TAR(base)	CORESIGHT_REG(base, 0xD04)
 #define CORESIGHT_MEM_AP_DRW(base)	CORESIGHT_REG(base, 0xD0C)
 #define CORESIGHT_MEM_AP_BD(base, n)	CORESIGHT_REG(base, (0xD10 + (n << 2)))
 #define CORESIGHT_MEM_AP_MBT(base)	CORESIGHT_REG(base, 0xD20)
@@ -426,6 +426,7 @@ int coresight_visit_table(uintptr_t rom_table_base);
 int coresight_visit_device(uintptr_t rom_table_base);
 int __coresight_visit_device(struct coresight_rom_device *device);
 
+int coresight_mem_ap_init(void);
 #ifdef CONFIG_CORESIGHT_ETM
 int coresight_etm_init(void);
 #else
