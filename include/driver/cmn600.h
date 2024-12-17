@@ -123,6 +123,11 @@
 #else
 #define CMN_MAX_RNI_COUNT		32
 #endif
+#ifdef CMN_HNI_COUNT
+#define CMN_MAX_HNI_COUNT		CMN_RNI_COUNT
+#else
+#define CMN_MAX_HNI_COUNT		32
+#endif
 #ifdef CMN_DTC_COUNT
 #define CMN_MAX_DTC_COUNT		CMN_DTC_COUNT
 #else

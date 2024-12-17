@@ -166,6 +166,7 @@ cmn_id_t cmn_xp_count;
 cmn_id_t cmn_hnf_count;
 cmn_id_t cmn_rnd_count;
 cmn_id_t cmn_rni_count;
+cmn_id_t cmn_hni_count;
 cmn_id_t cmn_rnf_count;
 cmn_id_t cmn_dtc_count;
 cmn_id_t cmn_sbsx_count;
@@ -182,6 +183,7 @@ cmn_nid_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
 cmn_nid_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
 cmn_nid_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
 cmn_nid_t cmn_rni_ids[CMN_MAX_RND_COUNT];
+cmn_nid_t cmn_hni_ids[CMN_MAX_HNI_COUNT];
 cmn_nid_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
 cmn_nid_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
 cmn_nid_t cmn_rn_sam_ext_ids[CMN_MAX_RN_SAM_EXT_COUNT];
@@ -600,6 +602,10 @@ static void cmn600_discover_internal(caddr_t node)
 		cmn_cxha_ids[cmn_cxha_count++] = cmn_nr_nodes;
 		cmn_bases[cmn_nr_nodes++] = node;
 		break;
+	case CMN_HNI:
+		cmn_hni_ids[cmn_hni_count++] = cmn_nr_nodes;
+		cmn_bases[cmn_nr_nodes++] = node;
+		break;
 	default:
 		/* Nothing to be done for other node types */
 		break;
@@ -741,6 +747,7 @@ void cmn600_discover(void)
 	con_dbg(CMN_MODNAME ": Total RN-F: %d\n", cmn_rnf_count);
 	con_dbg(CMN_MODNAME ": Total RN-D: %d\n", cmn_rnd_count);
 	con_dbg(CMN_MODNAME ": Total RN-I: %d\n", cmn_rni_count);
+	con_dbg(CMN_MODNAME ": Total HN-I: %d\n", cmn_hni_count);
 	con_dbg(CMN_MODNAME ": Total SN-F: %d\n", cmn_snf_count);
 	con_dbg(CMN_MODNAME ": Total CXHA: %d\n", cmn_cxha_count);
 	con_dbg(CMN_MODNAME ": Total CXRA: %d\n", cmn_cxra_count);
