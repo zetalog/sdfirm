@@ -47,7 +47,41 @@ void cmn600_ras_report(cmn_nid_t nid)
 
 cmn_nid_t CMN_ras_nid(uint8_t errg, uint8_t bit)
 {
-	
+	cmn_nid_t nid;
+	unsigned long long base;
+
+	BUG_ON(errg > 5);
+	switch (errg)
+	{
+	case ERRGSR_XP:
+		base = cmn_bases[cmn_xp_ids[bit]];
+		nid = cmn_node_id(base);
+		break;
+
+	case ERRGSR_HNI:
+		base = cmn_bases[cmn_hni_ids[bit]];
+		nid = cmn_node_id(base);
+		break;
+
+	case ERRGSR_HNF:
+		base = cmn_bases[cmn_hnf_ids[bit]];
+		nid = cmn_node_id(base);
+		break;
+
+	case ERRGSR_SBSX:
+		base = cmn_bases[cmn_snf_ids[bit]];
+		nid = cmn_node_id(base);
+		break;
+
+	case ERRGSR_CXHA:
+		base = cmn_bases[cmn_cxha_ids[bit]];
+		nid = cmn_node_id(base);
+		break;
+
+	default:
+		break;
+	}
+	return nid;
 }
 
 void cmn600_handle_s_errs(irq_t irq)

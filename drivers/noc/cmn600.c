@@ -392,6 +392,7 @@ static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 			   nodeid),
 			   CMN_hnf_sam_control(hnf),
 			   "CMN_hnf_sam_control", -1);
+		con_dbg(CMN_MODNAME ": hnf%ld-snf%d\n", CMN_hnf_sam_control(hnf), nodeid);
 		break;
 	case CMN_HNF_MAPPING_HASHED_3SN:
 		/* TODO: top address bit 0/1 calculation */
