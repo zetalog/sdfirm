@@ -24,16 +24,24 @@ int coresight_mem_ap_init(void)
 	return coresight_register_device(&coresight_mem_ap);
 }
 
-uint32_t mem_ap_read(uint32_t ap_sel, uint32_t address)
+uint32_t mem_ap_read(uint32_t address)
 {
-	__raw_writel(address, CORESIGHT_MEM_AP_TAR(mem_ap_base[ap_sel]));
-	return __raw_readl(CORESIGHT_MEM_AP_DRW(mem_ap_base[ap_sel]));
+	if (address & 0xffff0000 != CORESIGHT_ROM_TABLE_0_BASE) {
+		__raw_writel(address, CORESIGHT_MEM_AP_TAR(mem_ap_base[0]));
+		return __raw_readl(CORESIGHT_MEM_AP_DRW(mem_ap_base[0]));
+	}
+	else
+		return __raw_readl(address);
 }
 
-void mem_ap_write(uint32_t ap_sel, uint32_t address, uint32_t data)
+void mem_ap_write(uint32_t address, uint32_t data)
 {
-	__raw_writel(address, CORESIGHT_MEM_AP_TAR(mem_ap_base[ap_sel]));
-	__raw_writel(data, CORESIGHT_MEM_AP_DRW(mem_ap_base[ap_sel]));
+	if (address & 0xffff0000 != CORESIGHT_ROM_TABLE_0_BASE) {
+		__raw_writel(address, CORESIGHT_MEM_AP_TAR(mem_ap_base[0]));
+		__raw_writel(data, CORESIGHT_MEM_AP_DRW(mem_ap_base[0]));
+	}
+	else
+		__raw_writel(data, address);
 }
 
 void mem_ap_list(void)

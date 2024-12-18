@@ -115,7 +115,7 @@ static int __coresight_class9_visit_ngpr_table(caddr_t rom_table_base)
 		      (uint64_t)rom_table_base);
 
 	for (offset = 0; offset < CORESIGHT_CLASS1_ENTRIES; offset++) {
-		romentry = __raw_readl(ROMENTRYn(rom_table_base, offset));
+		romentry = coresight_read(ROMENTRYn(rom_table_base, offset));
 		coresight_log("ROM: offset: %d, romentry: 0x%08x\n",
 			      offset, romentry);
 		if (!romentry)
@@ -160,7 +160,7 @@ static int __coresight_class9_visit_gpr_table(caddr_t rom_table_base)
 		      (uint64_t)rom_table_base);
 
 	for (offset = 0; offset < CORESIGHT_CLASS1_ENTRIES; offset++) {
-		romentry = __raw_readq(LROMENTRYn(rom_table_base, offset));
+		romentry = coresight_read(LROMENTRYn(rom_table_base, offset));
 		coresight_log("ROM: offset: %d, romentry: 0x%016llx\n",
 			      offset, romentry);
 		if (!romentry)
@@ -201,7 +201,7 @@ int coresight_visit_device(caddr_t rom_table_base)
 	uint32_t devarch;
 	uint32_t devtype;
 
-	devarch = __raw_readl(DEVARCH(rom_table_base));
+	devarch = coresight_read(DEVARCH(rom_table_base));
 
 	device.base = rom_table_base;
 	device.jep106_ident = DEVARCH_ARCHITECT(devarch);
@@ -222,14 +222,14 @@ int coresight_visit_device(caddr_t rom_table_base)
 	}
 	/* DEVARCH.PRESENT=0 or DEVARCH.ARCHID=ROM */
 	if (device.arch_id == CORESIGHT_ARCH_ROM) {
-		devtype = __raw_readl(DEVTYPE(rom_table_base));
+		devtype = coresight_read(DEVTYPE(rom_table_base));
 		device.jep106_ident =
 			CORESIGHT_JEP106(pidr_jep106_ident(rom_table_base),
 					 pidr_jep106_cont(rom_table_base));
 		device.arch_id = CORESIGHT_TYPE(DEVTYPE_MAJOR(devtype),
 						DEVTYPE_SUB(devtype));
 		if (devtype == 0) {
-			if (__raw_readl(DEVID(rom_table_base)) & DEVID_PRR)
+			if (coresight_read(DEVID(rom_table_base)) & DEVID_PRR)
 				return __coresight_class9_visit_gpr_table(rom_table_base);
 			else
 				return __coresight_class9_visit_ngpr_table(rom_table_base);
@@ -250,8 +250,8 @@ static int coresight_class1_table_handler(struct coresight_rom_table *table)
 		      table->jep106_ident, table->part);
 
 	for (offset = 0; offset < CORESIGHT_CLASS1_ENTRIES; offset++) {
-		romentry = __raw_readl(ROMENTRYn(table->base, offset));
-		memtype = __raw_readl(MEMTYPE(table->base));
+		romentry = coresight_read(ROMENTRYn(table->base, offset));
+		memtype = coresight_read(MEMTYPE(table->base));
 		coresight_log("offset: %d, romentry: 0x%x, memtype: 0x%x\n",
 			      offset, romentry, memtype);
 		if (!romentry) {
@@ -316,7 +316,7 @@ struct coresight_table coresight_class15_rom_table = {
 	.handler = coresight_class15_table_handler,
 };
 
-int coresight_init(caddr_t rom_table_base, caddr_t *blacklist)
+int coresight_init(caddr_t *rom_table_base, uint32_t rom_table_num, caddr_t *blacklist)
 {
 	coresight_blacklist = blacklist;
 
@@ -337,7 +337,9 @@ int coresight_init(caddr_t rom_table_base, caddr_t *blacklist)
 
 	coresight_register_table(&coresight_class1_rom_table);
 	coresight_register_table(&coresight_class9_rom_table);
-	coresight_visit_table(rom_table_base);
+	coresight_register_table(&coresight_class15_rom_table);
+	for (int i = 0; i < rom_table_num; i++)
+		coresight_visit_table(rom_table_base[i]);
 	return 0;
 }
 

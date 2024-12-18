@@ -331,39 +331,97 @@
 #define MEM_AP_CSW_TRINPROG		_BV(7)
 #define MEM_AP_CSW_MODE_OFFSET		8
 #define MEM_AP_CSW_MODE_MASK		REG_4BIT_MASK
-#define MEM_AP_CSW_MODE(value)		_GET_FV(MEM_AP_CSW_MODE_OFFSET)
+#define MEM_AP_CSW_MODE(value)		_GET_FV(MEM_AP_CSW_MODE_OFFSET, value)
 #define MEM_AP_CSW_TYPE_OFFSET		8
 #define MEM_AP_CSW_TYPE_MASK		REG_3BIT_MASK
-#define MEM_AP_CSW_TYPE(value)		_GET_FV(MEM_AP_CSW_TYPE_OFFSET)
+#define MEM_AP_CSW_TYPE(value)		_GET_FV(MEM_AP_CSW_TYPE_OFFSET, value)
 #define MEM_AP_CSW_MTE			_BV(15)
 #define MEM_AP_CSW_ERRNPASS		_BV(16)
 #define MEM_AP_CSW_ERRSTOP		_BV(17)
 #define MEM_AP_CSW_RMEEN_OFFSET		21
 #define MEM_AP_CSW_RMEEN_MASK		REG_2BIT_MASK
-#define MEM_AP_CSW_RMEEN(value)		_GET_FV(MEM_AP_CSW_RMEEN_OFFSET)
+#define MEM_AP_CSW_RMEEN(value)		_GET_FV(MEM_AP_CSW_RMEEN_OFFSET, value)
 #define MEM_AP_CSW_SDEVICEEN		_BV(23)
 #define MEM_AP_CSW_PROT_OFFSET		24
 #define MEM_AP_CSW_PROT_MASK		REG_7BIT_MASK
-#define MEM_AP_CSW_PROT(value)		_GET_FV(MEM_AP_CSW_PROT_OFFSET)
+#define MEM_AP_CSW_PROT(value)		_GET_FV(MEM_AP_CSW_PROT_OFFSET, value)
 #define MEM_AP_CSW_DBGSWENABLE		_BV(31)
 
 /* MEM_AP IDR Register */
 #define MEM_AP_IDR_TYPE_OFFSET		0
 #define MEM_AP_IDR_TYPE_MASK		REG_4BIT_MASK
-#define MEM_AP_IDR_TYPE(value)		_GET_FV(MEM_AP_IDR_TYPE_OFFSET)
+#define MEM_AP_IDR_TYPE(value)		_GET_FV(MEM_AP_IDR_TYPE_OFFSET, value)
 #define MEM_AP_IDR_VARIANT_OFFSET	4
 #define MEM_AP_IDR_VARIANT_MASK		REG_4BIT_MASK
-#define MEM_AP_IDR_VARIANT(value)	_GET_FV(MEM_AP_IDR_VARIANT_OFFSET)
+#define MEM_AP_IDR_VARIANT(value)	_GET_FV(MEM_AP_IDR_VARIANT_OFFSET, value)
 #define MEM_AP_IDR_CLASS_OFFSET		13
 #define MEM_AP_IDR_CLASS_MASK		REG_4BIT_MASK
-#define MEM_AP_IDR_CLASS(value)		_GET_FV(MEM_AP_IDR_CLASS_OFFSET)
+#define MEM_AP_IDR_CLASS(value)		_GET_FV(MEM_AP_IDR_CLASS_OFFSET, value)
 #define MEM_AP_IDR_DESIGNER_OFFSET	13
 #define MEM_AP_IDR_DESIGNER_MASK	REG_11BIT_MASK
-#define MEM_AP_IDR_DESIGNER(value)	_GET_FV(MEM_AP_IDR_DESIGNER_OFFSET)
+#define MEM_AP_IDR_DESIGNER(value)	_GET_FV(MEM_AP_IDR_DESIGNER_OFFSET, value)
 #define MEM_AP_IDR_REVISION_OFFSET	28
 #define MEM_AP_IDR_REVISION_MASK	REG_4BIT_MASK
-#define MEM_AP_IDR_REVISION(value)	_GET_FV(MEM_AP_IDR_REVISION_OFFSET)
+#define MEM_AP_IDR_REVISION(value)	_GET_FV(MEM_AP_IDR_REVISION_OFFSET, value)
 
+/* ======================================================================
+ * CTI Registers
+ * ====================================================================== */
+#define CTICONTROL(base)		CORESIGHT_REG(base, 0x000)
+#define CTIINTACK(base)			CORESIGHT_REG(base, 0x010)
+#define CTIAPPSET(base)			CORESIGHT_REG(base, 0x014)
+#define CTIAPPCLEAR(base)		CORESIGHT_REG(base, 0x018)
+#define CTIAPPPULSE(base)		CORESIGHT_REG(base, 0x01C)
+#define CTIINEN(base, n)		CORESIGHT_REG(base, 0x020 + (n << 2))
+#define CTIOUTEN(base, n)		CORESIGHT_REG(base, 0x0A0 + (n << 2))
+#define CTITRIGINSTATUS(base)		CORESIGHT_REG(base, 0x130)
+#define CTITRIGOUTSTATUS(base)		CORESIGHT_REG(base, 0x134)
+#define CTICHINSTATUS(base)		CORESIGHT_REG(base, 0x138)
+#define CTICHOUTSTATUS(base)		CORESIGHT_REG(base, 0x13C)
+#define CTIGATE(base)			CORESIGHT_REG(base, 0x140)
+
+/* CTICONTROL */
+#define CTIEN				_BV(0)
+
+/* CTIAPPSET */
+#define APPSET_OFFSET			0
+#define APPSET_MASK			REG_16BIT_MASK
+#define APPSET(value)			_SET_FV(APPSET, value)
+
+/* CTIAPPCLEAR */
+#define APPCLEAR_OFFSET			0
+#define APPCLEAR_MASK			REG_16BIT_MASK
+#define APPCLEAR(value)			_SET_FV(APPCLEAR, value)
+
+/* CTIAPPPULSE */
+#define APPPULSE_OFFSET			0
+#define APPPULSE_MASK			REG_16BIT_MASK
+#define APPPULSE(value)			_SET_FV(APPPULSE, value)
+
+/* CTIINEN */
+#define TRIGINEN_OFFSET			0
+#define TRIGINEN_MASK			REG_16BIT_MASK
+#define TRIGINEN(value)			_SET_FV(TRIGINEN, value)
+
+/* CTIOUTEN */
+#define TRIGOUTEN_OFFSET		0
+#define TRIGOUTEN_MASK			REG_16BIT_MASK
+#define TRIGOUTEN(value)		_SET_FV(TRIGOUTEN, value)
+
+/* CTICHINSTATUS */
+#define CHINSTATUS_OFFSET		0
+#define CHINSTATUS_MASK			REG_16BIT_MASK
+#define CHINSTATUS(value)		_SET_FV(CHINSTATUS, value)
+
+/* CTICHOUTSTATUS */
+#define CHOUTSTATUS_OFFSET		0
+#define CHOUTSTATUS_MASK		REG_16BIT_MASK
+#define CHOUTSTATUS(value)		_SET_FV(CHOUTSTATUS, value)
+
+/* CTIGATE */
+#define CTIGATEEN_OFFSET		0
+#define CTIGATEEN_MASK			REG_16BIT_MASK
+#define CTIGATEEN(value)		_SET_FV(CTIGATEEN, value)
 /* ======================================================================
  * Interfaces
  * ====================================================================== */
@@ -427,6 +485,17 @@ int coresight_visit_device(uintptr_t rom_table_base);
 int __coresight_visit_device(struct coresight_rom_device *device);
 
 int coresight_mem_ap_init(void);
+uint32_t mem_ap_read(uint32_t address);
+void mem_ap_write(uint32_t address, uint32_t data);
+
+#ifdef CONFIG_CORESIGHT_MEM_AP
+#define coresight_read(addr)				mem_ap_read(addr)
+#define coresight_write(addr, data)			mem_ap_write(addr, data)
+#else
+#define coresight_read(addr)				__raw_readl(addr)
+#define coresight_write(addr, data)			__raw_writel(data, addr)
+#endif
+
 #ifdef CONFIG_CORESIGHT_ETM
 int coresight_etm_init(void);
 #else
