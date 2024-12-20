@@ -30,14 +30,17 @@ void cti_list(void)
 	}
 }
 
-void cti_enable(uint32_t id)
+void cti_cfg(uint32_t id, uint32_t en)
 {
-	__raw_writel(0x1, CTICONTROL(cti_base[id]));
+	__raw_writel(en, CTI_CONTROL(cti_base[id]));
 }
 
-void cti_disable(uint32_t id)
+void cti_channel_cfg(uint32_t id, uint32_t io, uint32_t n, uint32_t en)
 {
-	__raw_writel(0x0, CTICONTROL(cti_base[id]));
+	if (io)
+		__raw_writel(en, CTI_INEN(cti_base[id], n));
+	else
+		__raw_writel(en, CTI_OUTEN(cti_base[id], n));
 }
 
 static int do_coresight_cti(int argc, char *argv[])
@@ -48,12 +51,18 @@ static int do_coresight_cti(int argc, char *argv[])
 		cti_list();
 		return 0;
 	}
-	if (strcmp(argv[1], "enable") == 0) {
-		cti_enable((uint32_t)strtoull(argv[2], 0, 0));
+	if (strcmp(argv[1], "cfg") == 0) {
+		uint32_t en = (strcmp(argv[3], "enable") == 0) ? 1 : 0;
+		cti_cfg((uint32_t)strtoull(argv[2], 0, 0), en);
 		return 0;
 	}
-	if (strcmp(argv[1], "disable") == 0) {
-		cti_disable((uint32_t)strtoull(argv[2], 0, 0));
+	if (strcmp(argv[1], "channel") == 0) {
+		if (strcmp(argv[2], "cfg") == 0) {
+			uint32_t io = (strcmp(argv[4], "input") == 0) ? 1 : 0;
+			uint32_t en = (strcmp(argv[6], "enable") == 0) ? 1 : 0;
+			cti_channel_cfg((uint32_t)strtoull(argv[3], 0, 0), io, (uint32_t)strtoull(argv[5], 0, 0), en);
+			return 0;
+		}
 		return 0;
 	}
 }
@@ -61,8 +70,8 @@ static int do_coresight_cti(int argc, char *argv[])
 DEFINE_COMMAND(coresight_cti, do_coresight_cti, "Coresight CTI commands",
 	"list\n"
 	"    - List all CTI devices\n"
-	"enable <id>\n"
-	"    - Enable CTI device <id>\n"
-	"disable <id>\n"
-	"    - Disable CTI device <id>\n"
+	"cfg <id> <enable/disable>\n"
+	"    - Enable/Disable CTI device <id>\n"
+	"channel cfg <id> <io> <channel> <enable/disable>\n"
+	"    - Config <id> <input/output> <channel number>[0-31] enable/disable status\n"
 );
