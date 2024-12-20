@@ -5,7 +5,13 @@ MACH=k1max_soc
 BBLVAR=
 CROSS_COMPILE=riscv64-unknown-linux-gnu-
 
-BUILD_ROOT=$HOME/workspace
+if [ -d "${PWD}/sdfirm" ];then
+    SDFIRM_ROOT=${PWD}/sdfirm
+else
+    SDFIRM_ROOT=${PWD}
+fi
+
+BUILD_ROOT=${SDFIRM_ROOT}/../
 BUILD_CUSTOMER=
 BUILD_TINY=no
 BUILD_LIB=no

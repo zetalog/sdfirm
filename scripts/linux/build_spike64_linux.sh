@@ -5,7 +5,13 @@ MACH=spike64
 BBLVAR=
 CROSS_COMPILE=riscv64-unknown-linux-gnu-
 
-BUILD_ROOT=$HOME/workspace
+if [ -d "${PWD}/sdfirm" ];then
+    SDFIRM_ROOT=${PWD}/sdfirm
+else
+    SDFIRM_ROOT=${PWD}
+fi
+
+BUILD_ROOT=${SDFIRM_ROOT}/../
 BUILD_CUSTOMER=
 BUILD_TINY=yes
 BUILD_LIB=no
