@@ -63,6 +63,8 @@
 	CORESIGHT_TYPE(CORESIGHT_TYPE_TRACE_SINK, 0x01)
 #define CORESIGHT_TYPE_ETB			\
 	CORESIGHT_TYPE(CORESIGHT_TYPE_TRACE_SINK, 0x02)
+#define CORESIGHT_TYPE_ETR			\
+	CORESIGHT_TYPE(CORESIGHT_TYPE_TRACE_SINK, 0x02)
 #define CORESIGHT_TYPE_BTR			\
 	CORESIGHT_TYPE(CORESIGHT_TYPE_TRACE_SINK, 0x03)
 #define CORESIGHT_TYPE_FUNNEL			\
@@ -367,61 +369,215 @@
 /* ======================================================================
  * CTI Registers
  * ====================================================================== */
-#define CTICONTROL(base)		CORESIGHT_REG(base, 0x000)
-#define CTIINTACK(base)			CORESIGHT_REG(base, 0x010)
-#define CTIAPPSET(base)			CORESIGHT_REG(base, 0x014)
-#define CTIAPPCLEAR(base)		CORESIGHT_REG(base, 0x018)
-#define CTIAPPPULSE(base)		CORESIGHT_REG(base, 0x01C)
-#define CTIINEN(base, n)		CORESIGHT_REG(base, 0x020 + (n << 2))
-#define CTIOUTEN(base, n)		CORESIGHT_REG(base, 0x0A0 + (n << 2))
-#define CTITRIGINSTATUS(base)		CORESIGHT_REG(base, 0x130)
-#define CTITRIGOUTSTATUS(base)		CORESIGHT_REG(base, 0x134)
-#define CTICHINSTATUS(base)		CORESIGHT_REG(base, 0x138)
-#define CTICHOUTSTATUS(base)		CORESIGHT_REG(base, 0x13C)
-#define CTIGATE(base)			CORESIGHT_REG(base, 0x140)
+#define CTI_CONTROL(base)		CORESIGHT_REG(base, 0x000)
+#define CTI_INTACK(base)		CORESIGHT_REG(base, 0x010)
+#define CTI_APPSET(base)		CORESIGHT_REG(base, 0x014)
+#define CTI_APPCLEAR(base)		CORESIGHT_REG(base, 0x018)
+#define CTI_APPPULSE(base)		CORESIGHT_REG(base, 0x01C)
+#define CTI_INEN(base, n)		CORESIGHT_REG(base, 0x020 + (n << 2))
+#define CTI_OUTEN(base, n)		CORESIGHT_REG(base, 0x0A0 + (n << 2))
+#define CTI_TRIGINSTATUS(base)		CORESIGHT_REG(base, 0x130)
+#define CTI_TRIGOUTSTATUS(base)		CORESIGHT_REG(base, 0x134)
+#define CTI_CHINSTATUS(base)		CORESIGHT_REG(base, 0x138)
+#define CTI_CHOUTSTATUS(base)		CORESIGHT_REG(base, 0x13C)
+#define CTI_GATE(base)			CORESIGHT_REG(base, 0x140)
+#define CTI_ASICCTRL(base)		CORESIGHT_REG(base, 0x144)
+#define CTI_ITCHOUT(base)		CORESIGHT_REG(base, 0xEE4)
+#define CTI_ITTRIGOUT(base)		CORESIGHT_REG(base, 0xEE8)
+#define CTI_ITCHIN(base)		CORESIGHT_REG(base, 0xEF4)
+#define CTI_ITTRIGIN(base)		CORESIGHT_REG(base, 0xEF8)
 
-/* CTICONTROL */
-#define CTIEN				_BV(0)
+/* CTI_CONTROL */
+#define CTI_EN				_BV(0)
 
-/* CTIAPPSET */
+/* CTI_APPSET */
 #define APPSET_OFFSET			0
 #define APPSET_MASK			REG_16BIT_MASK
 #define APPSET(value)			_SET_FV(APPSET, value)
 
-/* CTIAPPCLEAR */
+/* CTI_APPCLEAR */
 #define APPCLEAR_OFFSET			0
 #define APPCLEAR_MASK			REG_16BIT_MASK
 #define APPCLEAR(value)			_SET_FV(APPCLEAR, value)
 
-/* CTIAPPPULSE */
+/* CTI_APPPULSE */
 #define APPPULSE_OFFSET			0
 #define APPPULSE_MASK			REG_16BIT_MASK
 #define APPPULSE(value)			_SET_FV(APPPULSE, value)
 
-/* CTIINEN */
+/* CTI_INEN */
 #define TRIGINEN_OFFSET			0
 #define TRIGINEN_MASK			REG_16BIT_MASK
 #define TRIGINEN(value)			_SET_FV(TRIGINEN, value)
 
-/* CTIOUTEN */
+/* CTI_OUTEN */
 #define TRIGOUTEN_OFFSET		0
 #define TRIGOUTEN_MASK			REG_16BIT_MASK
 #define TRIGOUTEN(value)		_SET_FV(TRIGOUTEN, value)
 
-/* CTICHINSTATUS */
+/* CTI_CHINSTATUS */
 #define CHINSTATUS_OFFSET		0
 #define CHINSTATUS_MASK			REG_16BIT_MASK
 #define CHINSTATUS(value)		_SET_FV(CHINSTATUS, value)
 
-/* CTICHOUTSTATUS */
+/* CTI_CHOUTSTATUS */
 #define CHOUTSTATUS_OFFSET		0
 #define CHOUTSTATUS_MASK		REG_16BIT_MASK
 #define CHOUTSTATUS(value)		_SET_FV(CHOUTSTATUS, value)
 
-/* CTIGATE */
-#define CTIGATEEN_OFFSET		0
-#define CTIGATEEN_MASK			REG_16BIT_MASK
-#define CTIGATEEN(value)		_SET_FV(CTIGATEEN, value)
+/* CTI_GATE */
+#define CTIGATE_OFFSET			0
+#define CTIGATE_MASK			REG_16BIT_MASK
+#define CTIGATE(value)			_SET_FV(CTIGATE, value)
+
+/* CTI_ASICCTRL */
+#define ASICCTRL_OFFSET			0
+#define ASICCTRL_MASK			REG_8BIT_MASK
+#define ASICCTRL(value)			_SET_FV(ASICCTRL, value)
+
+/* ======================================================================
+ * ETR Registers
+ * ====================================================================== */
+#define ETR_RSZ				CORESIGHT_REG(base, 0x004)
+#define ETR_STS				CORESIGHT_REG(base, 0x00C)
+#define ETR_RRD				CORESIGHT_REG(base, 0x010)
+#define ETR_RRP				CORESIGHT_REG(base, 0x014)
+#define ETR_RWP				CORESIGHT_REG(base, 0x018)
+#define ETR_TRG				CORESIGHT_REG(base, 0x01C)
+#define ETR_CTL				CORESIGHT_REG(base, 0x020)
+#define ETR_RWD				CORESIGHT_REG(base, 0x024)
+#define ETR_MODE			CORESIGHT_REG(base, 0x028)
+#define ETR_LBUFLEVEL			CORESIGHT_REG(base, 0x02C)
+#define ETR_CBUFLEVEL			CORESIGHT_REG(base, 0x030)
+#define ETR_BUFWM			CORESIGHT_REG(base, 0x034)
+#define ETR_RRPHI			CORESIGHT_REG(base, 0x038)
+#define ETR_RWPHI			CORESIGHT_REG(base, 0x03C)
+#define ETR_AXICTL			CORESIGHT_REG(base, 0x110)
+#define ETR_DBALO			CORESIGHT_REG(base, 0x118)
+#define ETR_DBAHI			CORESIGHT_REG(base, 0x11C)
+#define ETR_RURP			CORESIGHT_REG(base, 0x120)
+#define ETR_FFSR			CORESIGHT_REG(base, 0x300)
+#define ETR_FFCR			CORESIGHT_REG(base, 0x304)
+#define ETR_PSCR			CORESIGHT_REG(base, 0x308)
+#define ETR_AXICTL1			CORESIGHT_REG(base, 0xED0)
+#define ETR_ITEVTINTR			CORESIGHT_REG(base, 0xEE0)
+#define ETR_ITTRFLIN			CORESIGHT_REG(base, 0xEE8)
+#define ETR_ITATBDATA0			CORESIGHT_REG(base, 0xEEC)
+#define ETR_ITATBCTR2			CORESIGHT_REG(base, 0xEF0)
+#define ETR_ITATBCTR1			CORESIGHT_REG(base, 0xEF4)
+#define ETR_ITATBCTR0			CORESIGHT_REG(base, 0xEF8)
+
+/* ETR_STS */
+#define ETR_STS_MEMERR			_BV(5)
+#define ETR_STS_EMPTY			_BV(4)
+#define ETR_STS_FTEMPTY			_BV(3)
+#define ETR_STS_TMCREADY		_BV(2)
+#define ETR_STS_TRIGGERED		_BV(1)
+#define ETR_STS_FULL			_BV(0)
+
+/* ETR MODE */
+#define ETR_MODE_SOS			_BV(4)
+#define ETR_MODE_CFG_OFFSET		0
+#define ETR_MODE_CFG_MASK		REG_2BIT_MASK
+#define ETR_MODE_CFG(value)		_SET_FV(ETR_MODE_CFG, value)
+#define ETR_MODE_CB			0
+#define ETR_MODE_SWF1			1
+#define ETR_MODE_SWF2			3
+
+/* ETR CTL */
+#define ETR_CTL_TRACECAPTEN		_BV(0)
+
+/* ETR AXICTL */
+#define ETR_AXICTL_RCACHE_OFFSET	16
+#define ETR_AXICTL_RCACHE_MASK		REG_4BIT_MASK
+#define ETR_AXICTL_RCACHE(value)	_SET_FV(ETR_AXICTL_RCACHE, value)
+#define ETR_AXICTL_WRBURSTLEN_OFFSET	8
+#define ETR_AXICTL_WRBURSTLEN_MASK	REG_4BIT_MASK
+#define ETR_AXICTL_WRBURSTLEN(value)	_SET_FV(ETR_AXICTL_WRBURSTLEN, value)
+#define ETR_AXICTL_WCACHE_OFFSET	2
+#define ETR_AXICTL_WCACHE_MASK		REG_4BIT_MASK
+#define ETR_AXICTL_WCACHE(value)	_SET_FV(ETR_AXICTL_WCACHE, value)
+#define ETR_AXICTL_PROTCTRLBIT1		_BV(1)
+#define ETR_AXICTL_PROTCTRLBIT0		_BV(0)
+
+/* ETR FFSR */
+#define ETR_FFSR_FTSTOPPED		_BV(1)
+#define ETR_FFSR_FLINPROG		_BV(0)
+
+/* ETR FFCR */
+#define ETR_FFCR_EMBEDFLUSH		_BV(15)
+#define ETR_FFCR_STOPONTRIGEVT		_BV(13)
+#define ETR_FFCR_STOPONF1		_BV(12)
+#define ETR_FFCR_TRIGONF1		_BV(10)
+#define ETR_FFCR_TRIGONTRIGEVT		_BV(9)
+#define ETR_FFCR_TRIGONTRIGIN		_BV(8)
+#define ETR_FFCR_FLUSHMAN		_BV(6)
+#define ETR_FFCR_FONTRIGEVENT		_BV(5)
+#define ETR_FFCR_FONFLIN		_BV(4)
+#define ETR_FFCR_ENTL			_BV(1)
+#define ETR_FFCR_ENFT			_BV(0)
+
+/* ETR PSCR */
+#define ETR_PSCR_EMBEDSYNC		_BV(5)
+#define ETR_PSCR_PSCOUNT_OFFSET		0
+#define ETR_PSCR_PSCOUNT_MASK		REG_5BIT_MASK
+#define ETR_PSCR_PSCOUNT(value)		_SET_FV(ETR_PSCR_PSCOUNT, value)
+
+/* ETR AXICTL1 */
+#define ETR_AXICTL1_TLBXLATESLOTS_OFFSET	16
+#define ETR_AXICTL1_TLBXLATESLOTS_MASK		REG_12BIT_MASK
+#define ETR_AXICTL1_TLBXLATESLOTS(value)	_SET_FV(ETR_AXICTL1_TLBXLATESLOTS, value)
+#define ETR_AXICTL1_TLBLIMIT_OFFSET		0
+#define ETR_AXICTL1_TLBLIMIT_MASK		REG_5BIT_MASK
+#define ETR_AXICTL1_TLBLIMIT(value)		_SET_FV(ETR_AXICTL1_TLBLIMIT, value)
+
+/* ETR ITEVINTR */
+#define ETR_ITEVINTR_BUFINTR		_BV(3)
+#define ETR_ITEVINTR_FLUSHCOMP		_BV(2)
+#define ETR_ITEVINTR_FULL		_BV(1)
+#define ETR_ITEVINTR_ACQCOMP		_BV(0)
+
+/* ETR ITTRFLIN */
+#define ETR_ITTRFLIN_FLUSHIN		_BV(1)
+#define ETR_ITTRFLIN_TRIGIN		_BV(0)
+
+/* ETR ITATBDATA0 */
+#define ETR_ATDATASBIT127		_BV(16)
+#define ETR_ATDATASBIT119		_BV(15)
+#define ETR_ATDATASBIT111		_BV(14)
+#define ETR_ATDATASBIT103		_BV(13)
+#define ETR_ATDATASBIT95		_BV(12)
+#define ETR_ATDATASBIT87		_BV(11)
+#define ETR_ATDATASBIT79		_BV(10)
+#define ETR_ATDATASBIT71		_BV(9)
+#define ETR_ATDATASBIT63		_BV(8)
+#define ETR_ATDATASBIT55		_BV(7)
+#define ETR_ATDATASBIT47		_BV(6)
+#define ETR_ATDATASBIT39		_BV(5)
+#define ETR_ATDATASBIT31		_BV(4)
+#define ETR_ATDATASBIT23		_BV(3)
+#define ETR_ATDATASBIT15		_BV(2)
+#define ETR_ATDATASBIT7			_BV(1)
+#define ETR_ATDATASBIT0			_BV(0)
+
+/* ETR ITATBCTR2 */
+#define ETR_ITATBCTR2_SYNCREQS		_BV(2)
+#define ETR_ITATBCTR2_AFVALIDS		_BV(1)
+#define ETR_ITATBCTR2_ATREADYS		_BV(0)
+
+/* ETR ITATBCTR1 */
+#define ETR_ITATBCTR1_ATIDS_OFFSET	0
+#define ETR_ITATBCTR1_ATIDS_MASK	REG_7BIT_MASK
+#define ETR_ITATBCTR1_ATIDS(value)	_SET_FV(ETR_ITATBCTR1_ATIDS, value)
+
+/* ETR ITATBCTR0 */
+#define ETR_ITATBCTR0_ATBYTESS_OFFSET	8
+#define ETR_ITATBCTR0_ATBYTESS_MASK	REG_4BIT_MASK
+#define ETR_ITATBCTR0_ATBYTESS(value)	_SET_FV(ETR_ITATBCTR0_ATBYTESS, value)
+#define ETR_ITATBCTR0_ATWAKEUPS		_BV(2)
+#define ETR_ITATBCTR0_AFREADYS		_BV(1)
+#define ETR_ITATBCTR0_ATVALIDS		_BV(0)
+
 /* ======================================================================
  * Interfaces
  * ====================================================================== */
@@ -548,6 +704,14 @@ static inline int coresight_tpiu_init(void)
 int coresight_etb_init(void);
 #else
 static inline int coresight_etb_init(void)
+{
+	return 0;
+}
+#endif
+#ifdef CONFIG_CORESIGHT_ETR
+int coresight_etr_init(void);
+#else
+static inline int coresight_etr_init(void)
 {
 	return 0;
 }

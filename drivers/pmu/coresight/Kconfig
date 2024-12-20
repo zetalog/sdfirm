@@ -43,6 +43,11 @@ config CORESIGHT_ETB
 	help
 	  DEVTYPE.major=1, DEVTYPE.sub=2.
 
+config CORESIGHT_ETR
+	bool "ARM CoreSight Embedded Trace Router (ETR) support"
+	help
+	  DEVTYPE.major=1, DEVTYPE.sub=2.
+
 config CORESIGHT_FUNNEL
 	bool "ARM CoreSight Funnel/Router support"
 	help

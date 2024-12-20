@@ -323,6 +323,7 @@ int coresight_init(caddr_t *rom_table_base, uint32_t rom_table_num, caddr_t *bla
 	/* DEVTYPE enumerated devices */
 	coresight_tpiu_init();
 	coresight_etb_init();
+	coresight_etr_init();
 	coresight_funnel_init();
 	coresight_replicator_init();
 	coresight_tmc_init();
