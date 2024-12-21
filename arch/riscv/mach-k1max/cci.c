@@ -7,12 +7,14 @@ const int cci_hw_slave_map[] = {
 	1,
 	2,
 	3,
+	4,
+	5
 };
 
 void k1max_cci_init(void)
 {
 	uint8_t clusterid;
 
-	for (clusterid = 0; clusterid < MAX_CPU_CLUSTERS; clusterid++)
+	for (clusterid = 0; clusterid < 6; clusterid++)
 		cci_enable_snoop_dvm_reqs(clusterid);
 }
