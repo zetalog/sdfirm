@@ -34,7 +34,7 @@ uint32_t mem_ap_read(uint32_t address)
 		return __raw_readl(address);
 }
 
-void mem_ap_write(uint32_t address, uint32_t data)
+void mem_ap_write(uint32_t data, uint32_t addr)
 {
 	if (address & 0xffff0000 != CORESIGHT_ROM_TABLE_0_BASE) {
 		__raw_writel(address, CORESIGHT_MEM_AP_TAR(mem_ap_base[0]));
