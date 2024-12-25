@@ -438,34 +438,34 @@
 /* ======================================================================
  * ETR Registers
  * ====================================================================== */
-#define ETR_RSZ				CORESIGHT_REG(base, 0x004)
-#define ETR_STS				CORESIGHT_REG(base, 0x00C)
-#define ETR_RRD				CORESIGHT_REG(base, 0x010)
-#define ETR_RRP				CORESIGHT_REG(base, 0x014)
-#define ETR_RWP				CORESIGHT_REG(base, 0x018)
-#define ETR_TRG				CORESIGHT_REG(base, 0x01C)
-#define ETR_CTL				CORESIGHT_REG(base, 0x020)
-#define ETR_RWD				CORESIGHT_REG(base, 0x024)
-#define ETR_MODE			CORESIGHT_REG(base, 0x028)
-#define ETR_LBUFLEVEL			CORESIGHT_REG(base, 0x02C)
-#define ETR_CBUFLEVEL			CORESIGHT_REG(base, 0x030)
-#define ETR_BUFWM			CORESIGHT_REG(base, 0x034)
-#define ETR_RRPHI			CORESIGHT_REG(base, 0x038)
-#define ETR_RWPHI			CORESIGHT_REG(base, 0x03C)
-#define ETR_AXICTL			CORESIGHT_REG(base, 0x110)
-#define ETR_DBALO			CORESIGHT_REG(base, 0x118)
-#define ETR_DBAHI			CORESIGHT_REG(base, 0x11C)
-#define ETR_RURP			CORESIGHT_REG(base, 0x120)
-#define ETR_FFSR			CORESIGHT_REG(base, 0x300)
-#define ETR_FFCR			CORESIGHT_REG(base, 0x304)
-#define ETR_PSCR			CORESIGHT_REG(base, 0x308)
-#define ETR_AXICTL1			CORESIGHT_REG(base, 0xED0)
-#define ETR_ITEVTINTR			CORESIGHT_REG(base, 0xEE0)
-#define ETR_ITTRFLIN			CORESIGHT_REG(base, 0xEE8)
-#define ETR_ITATBDATA0			CORESIGHT_REG(base, 0xEEC)
-#define ETR_ITATBCTR2			CORESIGHT_REG(base, 0xEF0)
-#define ETR_ITATBCTR1			CORESIGHT_REG(base, 0xEF4)
-#define ETR_ITATBCTR0			CORESIGHT_REG(base, 0xEF8)
+#define ETR_RSZ(base)			CORESIGHT_REG(base, 0x004)
+#define ETR_STS(base)			CORESIGHT_REG(base, 0x00C)
+#define ETR_RRD(base)			CORESIGHT_REG(base, 0x010)
+#define ETR_RRP(base)			CORESIGHT_REG(base, 0x014)
+#define ETR_RWP(base)			CORESIGHT_REG(base, 0x018)
+#define ETR_TRG(base)			CORESIGHT_REG(base, 0x01C)
+#define ETR_CTL(base)			CORESIGHT_REG(base, 0x020)
+#define ETR_RWD(base)			CORESIGHT_REG(base, 0x024)
+#define ETR_MODE(base)			CORESIGHT_REG(base, 0x028)
+#define ETR_LBUFLEVEL(base)		CORESIGHT_REG(base, 0x02C)
+#define ETR_CBUFLEVEL(base)		CORESIGHT_REG(base, 0x030)
+#define ETR_BUFWM(base)			CORESIGHT_REG(base, 0x034)
+#define ETR_RRPHI(base)			CORESIGHT_REG(base, 0x038)
+#define ETR_RWPHI(base)			CORESIGHT_REG(base, 0x03C)
+#define ETR_AXICTL(base)		CORESIGHT_REG(base, 0x110)
+#define ETR_DBALO(base)			CORESIGHT_REG(base, 0x118)
+#define ETR_DBAHI(base)			CORESIGHT_REG(base, 0x11C)
+#define ETR_RURP(base)			CORESIGHT_REG(base, 0x120)
+#define ETR_FFSR(base)			CORESIGHT_REG(base, 0x300)
+#define ETR_FFCR(base)			CORESIGHT_REG(base, 0x304)
+#define ETR_PSCR(base)			CORESIGHT_REG(base, 0x308)
+#define ETR_AXICTL1(base)		CORESIGHT_REG(base, 0xED0)
+#define ETR_ITEVTINTR(base)		CORESIGHT_REG(base, 0xEE0)
+#define ETR_ITTRFLIN(base)		CORESIGHT_REG(base, 0xEE8)
+#define ETR_ITATBDATA0(base)		CORESIGHT_REG(base, 0xEEC)
+#define ETR_ITATBCTR2(base)		CORESIGHT_REG(base, 0xEF0)
+#define ETR_ITATBCTR1(base)		CORESIGHT_REG(base, 0xEF4)
+#define ETR_ITATBCTR0(base)		CORESIGHT_REG(base, 0xEF8)
 
 /* ETR_STS */
 #define ETR_STS_MEMERR			_BV(5)
@@ -642,14 +642,14 @@ int __coresight_visit_device(struct coresight_rom_device *device);
 
 int coresight_mem_ap_init(void);
 uint32_t mem_ap_read(uint32_t address);
-void mem_ap_write(uint32_t address, uint32_t data);
+void mem_ap_write(uint32_t data, uint32_t addr);
 
 #ifdef CONFIG_CORESIGHT_MEM_AP
 #define coresight_read(addr)				mem_ap_read(addr)
-#define coresight_write(addr, data)			mem_ap_write(addr, data)
+#define coresight_write(data, addr)			mem_ap_write(data, addt)
 #else
 #define coresight_read(addr)				__raw_readl(addr)
-#define coresight_write(addr, data)			__raw_writel(data, addr)
+#define coresight_write(data, addr)			__raw_writel(data, addr)
 #endif
 
 #ifdef CONFIG_CORESIGHT_ETM

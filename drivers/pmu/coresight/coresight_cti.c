@@ -32,15 +32,15 @@ void cti_list(void)
 
 void cti_cfg(uint32_t id, uint32_t en)
 {
-	__raw_writel(en, CTI_CONTROL(cti_base[id]));
+	coresight_write(en, CTI_CONTROL(cti_base[id]));
 }
 
 void cti_channel_cfg(uint32_t id, uint32_t io, uint32_t n, uint32_t en)
 {
 	if (io)
-		__raw_writel(en, CTI_INEN(cti_base[id], n));
+		coresight_write(en, CTI_INEN(cti_base[id], n));
 	else
-		__raw_writel(en, CTI_OUTEN(cti_base[id], n));
+		coresight_write(en, CTI_OUTEN(cti_base[id], n));
 }
 
 static int do_coresight_cti(int argc, char *argv[])
