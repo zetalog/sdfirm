@@ -394,7 +394,6 @@ static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 			   nodeid),
 			   CMN_hnf_sam_control(hnf),
 			   "CMN_hnf_sam_control", -1);
-		con_dbg(CMN_MODNAME ": hnf%ld-snf%d\n", CMN_hnf_sam_control(hnf), nodeid);
 		break;
 	case CMN_HNF_MAPPING_HASHED_3SN:
 		/* TODO: top address bit 0/1 calculation */
@@ -546,8 +545,11 @@ static void cmn600_discover_internal(caddr_t node)
 				cmn_hnf_count, CMN_MAX_HNF_COUNT);
 			BUG();
 		}
-		cmn_hnf_ids[cmn_hnf_count++] = cmn_nr_nodes;
-		cmn_bases[cmn_nr_nodes++] = node;
+		if (!cmn600_hw_hnf_masked(cmn_node_id(node))) {
+                        cmn_hnf_ids[cmn_hnf_count++] = cmn_nr_nodes;
+                        cmn_bases[cmn_nr_nodes++] = node;
+                }
+
 		break;
 	case CMN_RN_SAM:
 		if (cmn_rn_sam_int_count >= CMN_MAX_RN_SAM_INT_COUNT) {
