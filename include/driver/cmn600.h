@@ -251,6 +251,7 @@ typedef uint32_t cmn_id_t;
 #define __CMN_HNF_BASE(i)		(cmn_bases[cmn_hnf_ids[i]])
 #define __CMN_RND_BASE(i)		(cmn_bases[cmn_rnd_ids[i]])
 #define __CMN_RNI_BASE(i)		(cmn_bases[cmn_rni_ids[i]])
+#define __CMN_HNI_BASE(i)		(cmn_bases[cmn_hni_ids[i]])
 #define __CMN_RN_SAM_INT_BASE(i)	(cmn_bases[cmn_rn_sam_int_ids[i]])
 #define __CMN_RN_SAM_EXT_BASE(i)	(cmn_bases[cmn_rn_sam_ext_ids[i]])
 
@@ -481,11 +482,11 @@ typedef uint32_t cmn_id_t;
 #define CMN_hnf_err_inj_lpid_OFFSET		4
 #define CMN_hnf_err_inj_lpid_MASK		REG_5BIT_MASK
 #define CMN_hnf_err_inj_lpid(value)		_GET_FV_ULL(CMN_hnf_err_inj_lpid, value)
-#define CMN_hnf_err_inj_cn			_BV(0)
+#define CMN_hnf_err_inj_en			_BV(0)
 
 /* HN-F, XP */
 #define CMN_hnf_byte_par_err_inj(base)		CMN_REG(base, 0x3038)
-#define CMN_mxp_byte_par_err_inj(base, p)	CMN_REG(base, 0x3030 + (p) << 3)
+#define CMN_mxp_byte_par_err_inj(base, p)	CMN_REG(base, 0x3030 + ((p) << 3))
 
 /* ERRMISC */
 #define CMN_xp_errmisc_tgtid_OFFSET		48
@@ -1225,18 +1226,18 @@ typedef uint8_t cmn_did_t;
 
 /* RAS options */
 #define cmn_ras_support_ed(id)			\
-	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_ED))
+	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id, 0))) & CMN_errctlr_ED))
 #define cmn_ras_enable_ed(id)			\
-	__raw_setq(CMN_errctlr_ED, CMN_errctlr(cmn_child_node(id)))
+	__raw_setq(CMN_errctlr_ED, CMN_errctlr(cmn_child_node(id, 0)))
 #define cmn_ras_disable_ed(id)			\
-	__raw_clearq(CMN_errctlr_ED, CMN_errctlr(cmn_child_node(id)))
+	__raw_clearq(CMN_errctlr_ED, CMN_errctlr(cmn_child_node(id, 0)))
 #ifdef CONFIG_CMN600_RAS_DE
 #define cmn_ras_support_de(id)			\
-	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_DE))
+	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id, 0))) & CMN_errctlr_DE))
 #define cmn_ras_enable_de(id)			\
-	__raw_setq(CMN_errctlr_DE, CMN_errctlr(cmn_child_node(id)))
+	__raw_setq(CMN_errctlr_DE, CMN_errctlr(cmn_child_node(id, 0)))
 #define cmn_ras_disable_de(id)			\
-	__raw_clearq(CMN_errctlr_DE, CMN_errctlr(cmn_child_node(id)))
+	__raw_clearq(CMN_errctlr_DE, CMN_errctlr(cmn_child_node(id, 0)))
 #else
 #define cmn_ras_support_de(id)			false
 #define cmn_ras_enable_de(id)			do { } while (0)
@@ -1244,11 +1245,11 @@ typedef uint8_t cmn_did_t;
 #endif
 #ifdef CONFIG_CMN600_RAS_UI
 #define cmn_ras_support_ui(id)			\
-	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_UI))
+	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id, 0))) & CMN_errctlr_UI))
 #define cmn_ras_enable_ui(id)			\
-	__raw_setq(CMN_errctlr_UI, CMN_errctlr(cmn_child_node(id)))
+	__raw_setq(CMN_errctlr_UI, CMN_errctlr(cmn_child_node(id, 0)))
 #define cmn_ras_disable_ui(id)			\
-	__raw_clearq(CMN_errctlr_UI, CMN_errctlr(cmn_child_node(id)))
+	__raw_clearq(CMN_errctlr_UI, CMN_errctlr(cmn_child_node(id, 0)))
 #else
 #define cmn_ras_support_ui(id)			false
 #define cmn_ras_enable_ui(id)			do { } while (0)
@@ -1256,22 +1257,22 @@ typedef uint8_t cmn_did_t;
 #endif
 #ifdef CONFIG_CMN600_RAS_FI
 #define cmn_ras_support_fi(id)			\
-	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_FI))
+	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id, 0))) & CMN_errctlr_FI))
 #define cmn_ras_enable_fi(id)			\
-	__raw_setq(CMN_errctlr_FI, CMN_errctlr(cmn_child_node(id)))
+	__raw_setq(CMN_errctlr_FI, CMN_errctlr(cmn_child_node(id, 0)))
 #define cmn_ras_disable_fi(id)			\
-	__raw_clearq(CMN_errctlr_FI, CMN_errctlr(cmn_child_node(id)))
+	__raw_clearq(CMN_errctlr_FI, CMN_errctlr(cmn_child_node(id, 0)))
 #else
 #define cmn_ras_support_fi(id)			false
 #define cmn_ras_enable_fi(id)			do { } while (0)
 #define cmn_ras_disable_fi(id)			do { } while (0)
 #endif
 #define cmn_ras_support_cfi(id)			\
-	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id))) & CMN_errctlr_CFI))
+	(!!(__raw_readq(CMN_errctlr(cmn_child_node(id, 0))) & CMN_errctlr_CFI))
 #define cmn_ras_enable_cfi(id)			\
-	__raw_setq(CMN_errctlr_CFI, CMN_errctlr(cmn_child_node(id)))
+	__raw_setq(CMN_errctlr_CFI, CMN_errctlr(cmn_child_node(id, 0)))
 #define cmn_ras_disable_cfi(id)			\
-	__raw_clearq(CMN_errctlr_CFI, CMN_errctlr(cmn_child_node(id)))
+	__raw_clearq(CMN_errctlr_CFI, CMN_errctlr(cmn_child_node(id, 0)))
 
 #define CMN_ras_err_inj(id, srcid, lpid)
 #define CMN_ras_hnf_par_err_inj(id, lane)
@@ -1480,6 +1481,7 @@ extern cmn_nid_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
 extern cmn_nid_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
 extern cmn_nid_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
 extern cmn_nid_t cmn_rni_ids[CMN_MAX_RND_COUNT];
+extern cmn_nid_t cmn_hni_ids[CMN_MAX_HNI_COUNT];
 extern cmn_nid_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
 extern cmn_nid_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
 extern cmn_nid_t cmn_cxra_ids[CMN_MAX_CXG_COUNT];
