@@ -632,7 +632,7 @@ struct coresight_device {
 #ifdef CONFIG_CORESIGHT
 int coresight_init(caddr_t *rom_table_base, uint32_t rom_table_num, caddr_t *blacklist);
 #else
-#define coresight_init(*rom_table_base, rom_table_num, blacklist)	do { } while (0)
+#define coresight_init(rom_table_base, rom_table_num, blacklist)	do { } while (0)
 #endif
 int coresight_register_table(struct coresight_table *table);
 int coresight_register_device(struct coresight_device *device);
