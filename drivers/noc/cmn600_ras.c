@@ -3,6 +3,8 @@
 #include <target/cmdline.h>
 #include <target/console.h>
 
+bh_t cmn600_ras_bh;
+
 void cmn600_ras_config(cmn_nid_t nid)
 {
 	uint64_t errfr = __raw_readq(CMN_errfr(cmn_child_node(nid, 0)));
@@ -28,7 +30,7 @@ void cmn600_ras_config(cmn_nid_t nid)
 void cmn600_ras_report(cmn_nid_t nid)
 {
 	uint64_t status = __raw_readq(CMN_errstatus(cmn_child_node(nid, 0)));
-
+	printf("ras_report: %x\n");
 	if (status & CMN_errstatus_AV)
 		con_log("cmn_ras: AV Error: addr=%08llx\n", __raw_readq(CMN_erraddr(cmn_child_node(nid, 0))));
 	if (status & CMN_errstatus_V)
@@ -85,7 +87,7 @@ cmn_nid_t CMN_ras_nid(uint8_t errg, uint8_t bit)
 	return nid;
 }
 
-void cmn600_handle_s_errs(irq_t irq)
+void cmn600_handle_s_errs(void)
 {
 	uint64_t status[5];
 	int i, j;
@@ -100,7 +102,7 @@ void cmn600_handle_s_errs(irq_t irq)
 	}
 }
 
-void cmn600_handle_s_faults(irq_t irq)
+void cmn600_handle_s_faults(void)
 {
 	uint64_t status[5];
 	int i, j;
@@ -115,7 +117,7 @@ void cmn600_handle_s_faults(irq_t irq)
 	}
 }
 
-void cmn600_handle_ns_errs(irq_t irq)
+void cmn600_handle_ns_errs(void)
 {
 	uint64_t status[5];
 	int i, j;
@@ -130,7 +132,7 @@ void cmn600_handle_ns_errs(irq_t irq)
 	}
 }
 
-void cmn600_handle_ns_faults(irq_t irq)
+void cmn600_handle_ns_faults(void)
 {
 	uint64_t status[5];
 	int i, j;
@@ -145,20 +147,52 @@ void cmn600_handle_ns_faults(irq_t irq)
 	}
 }
 
-void cmn600_handle_irq(irq_t irq)
+void cmn600_handle_irq(void)
 {
-	cmn600_handle_s_errs(irq);
-	cmn600_handle_s_faults(irq);
-	cmn600_handle_ns_errs(irq);
-	cmn600_handle_ns_faults(irq);
+	cmn600_handle_s_errs();
+	cmn600_handle_s_faults();
+	cmn600_handle_ns_errs();
+	cmn600_handle_ns_faults();
 }
 
-void cmn600_ras_init(void)
+static void cmn600_ras_bh_handler(uint8_t events)
 {
+	if (events == BH_POLLIRQ) {
+		cmn600_handle_irq();
+		return;
+	}
+}
+
+#ifdef SYS_REALTIME
+static void cmn600_ras_poll_init(void)
+{
+	irq_register_poller(cmn600_ras_bh);
+}
+#define cmn600_ras_irq_init()	do {} while (0)
+#else
+static void cmn600_ras_irq_init(void)
+{
+	irqc_configure_irq(IRQ_N100_REQERRS_NID0, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_N100_REQFLTS_NID0, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_N100_REQERRNS_NID0, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_N100_REQFLTNS_NID0, 0, IRQ_LEVEL_TRIGGERED);
 	irq_register_vector(IRQ_N100_REQERRS_NID0, cmn600_handle_s_errs);
 	irq_register_vector(IRQ_N100_REQFLTS_NID0, cmn600_handle_s_faults);
 	irq_register_vector(IRQ_N100_REQERRNS_NID0, cmn600_handle_ns_errs);
 	irq_register_vector(IRQ_N100_REQFLTNS_NID0, cmn600_handle_ns_faults);
+	irqc_enable_irq(IRQ_N100_REQERRS_NID0);
+	irqc_enable_irq(IRQ_N100_REQFLTS_NID0);
+	irqc_enable_irq(IRQ_N100_REQERRNS_NID0);
+	irqc_enable_irq(IRQ_N100_REQFLTNS_NID0);
+}
+#define cmn600_ras_poll_init()	do {} while (0)
+#endif
+
+void cmn600_ras_init(void)
+{
+	cmn600_ras_bh = bh_register_handler(cmn600_ras_bh_handler);
+	cmn600_ras_irq_init();
+	cmn600_ras_poll_init();
 }
 
 void cmn600_ras_err_inj(uint32_t id, uint32_t srcid, uint32_t lpid)
@@ -176,6 +210,7 @@ void cmn600_ras_hnf_par_err_inj(uint32_t id, uint32_t lane)
 
 void cmn600_ras_mxp_par_err_inj(uint32_t id, uint32_t port, uint32_t lane)
 {
+	printf("mxp_errinj: xp_id=%d, xp_base=0x%lx, port=%d, lane=0x%x\n", cmn_xp_ids[id], cmn_bases[cmn_xp_ids[id]], port, lane);
 	__raw_writel(lane, CMN_mxp_byte_par_err_inj(cmn_bases[cmn_xp_ids[id]], port));
 }
 

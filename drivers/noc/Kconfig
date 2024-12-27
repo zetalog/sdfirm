@@ -88,11 +88,11 @@ config CMN600_CML_HA_RAID_RNF_LOCAL
 	  with RNF feild filling with 0.
 	  However, ARM reference driver never fills such entries.
 
+endif
+
 config CMN600_RAS
 	bool "Enable realiability availability serviceability support"
 	depends RAS
-
-endif
 
 config CMN600_DEBUG
 	bool "Enable register debugging"
