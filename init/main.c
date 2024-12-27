@@ -65,7 +65,6 @@ void system_init(void)
 	heap_init();
 	bulk_init();
 	percpu_init();
-	perf_init();
 
 #ifdef CONFIG_GEM5
 	con_log("Simpoint: Start simpoint_entry\n");
@@ -77,6 +76,7 @@ void system_init(void)
 
 	modules_init();
 	board_late_init();
+	perf_init();
 	task_init();
 	appl_init();
 	smp_init();

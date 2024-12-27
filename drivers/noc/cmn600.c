@@ -1010,11 +1010,11 @@ void cmn600_configure(void)
 	/* Setup internal RN-SAM nodes */
 	for (i = 0; i < cmn_rn_sam_int_count; i++)
 		cmn600_configure_rn_sam(CMN_RN_SAM_INT_BASE(cmn_rn_sam_int_ids[i]));
-	con_dbg(CMN_MODNAME "Setup internal RN-SAM nodes\n");
+	con_dbg(CMN_MODNAME ": Setup internal RN-SAM nodes\n");
 	/* Setup external RN-SAM nodes */
 	for (i = 0; i < cmn_rn_sam_ext_count; i++)
 		cmn600_configure_rn_sam(CMN_RN_SAM_EXT_BASE(cmn_rn_sam_ext_ids[i]));
-	con_dbg(CMN_MODNAME "Setup external RN-SAM nodes\n");
+	con_dbg(CMN_MODNAME ": Setup external RN-SAM nodes\n");
 }
 /*
 void cmn600_disable_ocm()
