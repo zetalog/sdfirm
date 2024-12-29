@@ -73,7 +73,7 @@
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
@@ -92,7 +92,7 @@
 			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
@@ -112,7 +112,7 @@
 			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
@@ -129,7 +129,7 @@
 			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
@@ -149,7 +149,7 @@
 			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
@@ -166,7 +166,7 @@
 			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
@@ -186,7 +186,7 @@
 			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
 			cpu-cacheline = "64Bytes";
@@ -202,7 +202,7 @@
 			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
 			cpu-cacheline = "64Bytes";
@@ -218,7 +218,7 @@
 			reg = <6>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
 			cpu-cacheline = "64Bytes";
@@ -234,7 +234,7 @@
 			reg = <7>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_zicbom_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
 			cpu-cacheline = "64Bytes";
