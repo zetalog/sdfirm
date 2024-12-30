@@ -7,14 +7,14 @@ bh_t cmn600_ras_bh;
 
 void cmn600_ras_config(cmn_nid_t nid)
 {
-	uint64_t errfr = __raw_readq(CMN_errfr(cmn_child_node(nid, 0)));
+	uint64_t errfr = __raw_readq(CMN_errfr(cmn_bases[nid]));
 	uint8_t ed = errfr & CMN_errfr_ED(CMN_errfr_ED_MASK);
 	uint8_t de = errfr & CMN_errfr_DE(CMN_errfr_DE_MASK);
 	uint8_t ui = errfr & CMN_errfr_UI(CMN_errfr_UI_MASK);
 	uint8_t fi = errfr & CMN_errfr_FI(CMN_errfr_FI_MASK);
 	uint8_t cfi = errfr & CMN_errfr_CFI(CMN_errfr_CFI_MASK);
 	uint8_t cec = errfr & CMN_errfr_CEC(CMN_errfr_CEC_MASK);
-	con_log("cmn_ras: ED=%d, DE=%d, UI=%d, FI=%d, CFI=%d, CEC=%d\n", ed, de, ui, fi, cfi, cec);
+	con_log("cmn_ras: nid=%d, ED=%d, DE=%d, UI=%d, FI=%d, CFI=%d, CEC=%d\n", nid, ed, de, ui, fi, cfi, cec);
 	if (cmn_ras_support_ed(nid))
 		cmn_ras_enable_ed(nid);
 	if (cmn_ras_support_de(nid))
@@ -29,10 +29,10 @@ void cmn600_ras_config(cmn_nid_t nid)
 
 void cmn600_ras_report(cmn_nid_t nid)
 {
-	uint64_t status = __raw_readq(CMN_errstatus(cmn_child_node(nid, 0)));
-	printf("ras_report: %x\n");
+	uint64_t status = __raw_readq(CMN_errstatus(cmn_bases[nid]));
+	printf("ras_report: %llx\n", status);
 	if (status & CMN_errstatus_AV)
-		con_log("cmn_ras: AV Error: addr=%08llx\n", __raw_readq(CMN_erraddr(cmn_child_node(nid, 0))));
+		con_log("cmn_ras: AV Error: addr=%08llx\n", __raw_readq(CMN_erraddr(cmn_bases[nid])));
 	if (status & CMN_errstatus_V)
 		con_log("cmn_ras: V Error\n");
 	if (status & CMN_errstatus_UE)
@@ -46,7 +46,7 @@ void cmn600_ras_report(cmn_nid_t nid)
 	if (status & CMN_errstatus_DE)
 		con_log("cmn_ras: DE Error\n");
 
-	__raw_writeq(status, CMN_errstatus(cmn_child_node(nid, 0)));
+	__raw_writeq(status, CMN_errstatus(cmn_bases[nid]));
 }
 
 cmn_nid_t CMN_ras_nid(uint8_t errg, uint8_t bit)
@@ -94,6 +94,9 @@ void cmn600_handle_s_errs(void)
 
 	for (i = 0; i < 5; i++) {
 		status[i] = __raw_readq(CMN_cfgm_errgsr(i));
+		if (status[i] != 0) {
+			printf("status=0x%llx\n", status[i]);
+		}
 		for (j = 0; j < 64; j++) {
 			if (status[i] & _BV(j)) {
 				cmn600_ras_report(CMN_ras_nid(i, j));
@@ -109,6 +112,9 @@ void cmn600_handle_s_faults(void)
 
 	for (i = 0; i < 5; i++) {
 		status[i] = __raw_readq(CMN_cfgm_errgsr(i + 5));
+		if (status[i] != 0) {
+			printf("status=0x%llx\n", status[i]);
+		}
 		for (j = 0; j < 64; j++) {
 			if (status[i] & _BV(j)) {
 				cmn600_ras_report(CMN_ras_nid(i, j));
@@ -124,6 +130,9 @@ void cmn600_handle_ns_errs(void)
 
 	for (i = 0; i < 5; i++) {
 		status[i] = __raw_readq(CMN_cfgm_errgsr_NS(i));
+		if (status[i] != 0) {
+			printf("status=0x%llx\n", status[i]);
+		}
 		for (j = 0; j < 64; j++) {
 			if (status[i] & _BV(j)) {
 				cmn600_ras_report(CMN_ras_nid(i, j));
@@ -139,6 +148,9 @@ void cmn600_handle_ns_faults(void)
 
 	for (i = 0; i < 5; i++) {
 		status[i] = __raw_readq(CMN_cfgm_errgsr_NS(i + 5));
+		if (status[i] != 0) {
+			printf("status=0x%llx\n", status[i]);
+		}
 		for (j = 0; j < 64; j++) {
 			if (status[i] & _BV(j)) {
 				cmn600_ras_report(CMN_ras_nid(i, j));
