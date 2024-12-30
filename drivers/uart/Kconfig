@@ -154,6 +154,12 @@ config ARCH_HAS_DW_UART_ADD_ENCODED_PARAMS
 	bool
 	select ARCH_HAS_DW_UART_ADDITIONAL_FEATURES
 
+config ARCH_HAS_DW_UART_DLF_SIZE_4
+	bool
+
+config ARCH_HAS_DW_UART_DLF_SIZE_6
+	bool
+
 menuconfig DW_UART
 	bool "Synopsys DesignWare APB UART support"
 	select CON_DW_UART if CONSOLE
@@ -232,10 +238,21 @@ config DW_UART_DLF
 	bool "Enable fractional baud rate divisor"
 	depends ARCH_HAS_DW_AMBA_ADVANCED
 
-config DW_UART_DLF_SIZE
-	int "Fractional divisor width"
+choice
+	prompt "Fractional divisor width"
+	default DW_UART_DLF_SIZE_4
+
+config DW_UART_DLF_SIZE_4
+	bool "4"
 	depends DW_UART_DLF
-	default 4
+	depends ARCH_HAS_DW_UART_DLF_SIZE_4
+
+config DW_UART_DLF_SIZE_6
+	bool "6"
+	depends DW_UART_DLF
+	depends ARCH_HAS_DW_UART_DLF_SIZE_6
+
+endchoice
 
 config DW_UART_16550_COMPATIBLE
 	bool "Enable 16550-compatible mode"

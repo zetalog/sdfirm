@@ -84,6 +84,17 @@
 #define DW_UART_FIFO_MODE	2048
 #endif
 
+#ifdef CONFIG_DW_UART_DLF_SIZE_4
+#define DW_UART_DLF_SIZE	4
+#endif
+#ifdef CONFIG_DW_UART_DLF_SIZE_6
+#define DW_UART_DLF_SIZE	6
+#endif
+#ifndef DW_UART_DLF_SIZE
+#define DW_UART_DLF_SIZE	4
+#endif
+#define DW_UART_DLF		(1 << DW_UART_DLF_SIZE)
+
 #ifndef DW_UART_REG
 #define DW_UART_REG(n, offset)	(DW_UART##n##_BASE + (offset))
 #endif
