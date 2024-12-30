@@ -46,18 +46,17 @@
 #ifdef CONFIG_DW_UART_DLF
 #define dw_uart_convert_baudrate(freq, baud, div, frac)	\
 	do {						\
-		div = (uint16_t)div32u(freq * 10,	\
-					(baud) << 4);	\
-		frac = div % 10;			\
-		div = div32u(div, 10);			\
-		frac = div32u(frac * 18, 10);		\
+		uint32_t __prediv;			\
+		__prediv = div32u((freq), (baud));	\
+		frac = mod32u(__prediv, DW_UART_DLF);	\
+		div = div32u(__prediv, 16);		\
 	} while (0)
 #define dw_uart_config_frac(n, frac)			\
 	__raw_writel(frac, UART_DLF(n))
 #else
 #define dw_uart_convert_baudrate(freq, baud, div, frac)	\
 	do {						\
-		div = (uint16_t)div32u(freq,		\
+		div = (uint16_t)div32u((freq),		\
 				       (baud) << 4);	\
 		frac = 0;				\
 	} while (0)
