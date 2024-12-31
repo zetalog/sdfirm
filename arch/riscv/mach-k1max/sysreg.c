@@ -57,7 +57,7 @@ void k1max_cpu_reset(void)
 				continue;
 			if (!(hart & BOOT_MASK))
 				continue;
-			reset |= SYS_CPU_RST(cpu);
+			reset |= SYS_CPU_RST(cpu, cluster);
 			if (cluster == BOOT_CLUSTER)
 				continue;
 			reset |= SYS_CLUSTER_RST(cluster);
