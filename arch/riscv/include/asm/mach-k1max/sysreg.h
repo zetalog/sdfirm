@@ -52,8 +52,8 @@
 #define SYS_DDR_RD_DLY_CNT	SYSREG_REG(0x0C)
 #define SYS_CPU_SOFTWARE_RST	SYSREG_REG(0x10)
 
-#define SYS_CPU_RST(cpu)		_BV((cpu) - 1)
-#define SYS_CLUSTER_RST(cluster)	_BV((cluster) + 6)
+#define SYS_CPU_RST(cpu, cluster)	_BV((cpu - 1 + ((cluster > 0 ? cluster : 1) - 1)))
+#define SYS_CLUSTER_RST(cluster)	_BV(2 + (cluster * 5))
 
 #define sysreg_soft_reset()		\
 	__raw_writel(0xAA55A5A5, SYS_GLB_SOFTWARE_RST)
