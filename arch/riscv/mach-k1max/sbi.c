@@ -65,7 +65,7 @@ static void fdt_cpu_riscv_isa_fixup(void *fdt)
 
 static void k1max_modify_dt_early(void *fdt)
 {
-//	fdt_cpu_riscv_isa_fixup(fdt);
+	fdt_cpu_riscv_isa_fixup(fdt);
 }
 
 static void k1max_modify_dt_late(void *fdt)
