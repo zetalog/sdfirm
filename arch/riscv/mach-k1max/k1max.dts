@@ -3,7 +3,7 @@
 
 /dts-v1/;
 
-/memreserve/ RAM_BASE 0x02000000;
+/memreserve/ RAM_BASE 0x00200000;
 
 / {
 	#address-cells = <0x2>;
@@ -64,6 +64,39 @@
 					cpu = <&cpu7>;
 				};
 			};
+#endif
+#endif
+#if CONFIG_K1M_SMP_CPUS >= 16
+#ifndef CONFIG_K1M_PARTIAL_GOOD
+			cluster2 {
+				core8 {
+					cpu = <&cpu8>;
+				};
+				core9 {
+					cpu = <&cpu9>;
+				};
+				core10 {
+					cpu = <&cpu10>;
+				};
+				core11 {
+					cpu = <&cpu11>;
+				};
+			};
+			cluster3 {
+				core12 {
+					cpu = <&cpu12>;
+				};
+				core13 {
+					cpu = <&cpu13>;
+				};
+				core14 {
+					cpu = <&cpu14>;
+				};
+				core15 {
+					cpu = <&cpu15>;
+				};
+			};
+
 #endif
 #endif
 		};
@@ -247,6 +280,138 @@
 		};
 #endif
 #endif
+#if CONFIG_K1M_SMP_CPUS >= 16
+#ifndef CONFIG_K1M_PARTIAL_GOOD
+		cpu8: cpu@8 {
+			device_type = "cpu";
+			reg = <8>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu8_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu9: cpu@9 {
+			device_type = "cpu";
+			reg = <9>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu9_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu10: cpu@10 {
+			device_type = "cpu";
+			reg = <10>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu10_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu11: cpu@11 {
+			device_type = "cpu";
+			reg = <11>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu11_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu12: cpu@12 {
+			device_type = "cpu";
+			reg = <12>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu12_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu13: cpu@13 {
+			device_type = "cpu";
+			reg = <13>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu13_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu14: cpu@14 {
+			device_type = "cpu";
+			reg = <14>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu14_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu15: cpu@15 {
+			device_type = "cpu";
+			reg = <15>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu15_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif
+#endif
 #endif
 	};
 
@@ -369,6 +534,18 @@
 						&cpu7_intc 11
 #endif
 #endif
+#if CONFIG_K1M_SMP_CPUS >= 16
+#ifndef CONFIG_K1M_PARTIAL_GOOD
+						&cpu8_intc 11
+						&cpu9_intc 11
+						&cpu10_intc 11
+						&cpu11_intc 11
+						&cpu12_intc 11
+						&cpu13_intc 11
+						&cpu14_intc 11
+						&cpu15_intc 11
+#endif
+#endif
 			>;
 			reg = <0x0 0x3C000000 0x0 0x2000>;
 			interrupt-controller;
@@ -397,8 +574,20 @@
 						&cpu7_intc 9
 #endif
 #endif
+#if CONFIG_K1M_SMP_CPUS >= 8
+#ifndef CONFIG_K1M_PARTIAL_GOOD
+						&cpu8_intc 9
+						&cpu9_intc 9
+						&cpu10_intc 9
+						&cpu11_intc 9
+						&cpu12_intc 9
+						&cpu13_intc 9
+						&cpu14_intc 9
+						&cpu15_intc 9
+#endif
+#endif
 			>;
-			reg = <0x0 0x3c400000 0x0 0x100000>;
+			reg = <0x0 0x3c400000 0x0 0x1000000>;
 			interrupt-controller;
 			#interrupt-cells = <0>;
 			#address-cells = <1>;
@@ -429,6 +618,18 @@
 				&cpu5_intc 0xb &cpu5_intc 0x9
 				&cpu6_intc 0xb &cpu6_intc 0x9
 				&cpu7_intc 0xb &cpu7_intc 0x9
+#endif
+#endif
+#if CONFIG_K1M_SMP_CPUS >= 16
+#ifndef CONFIG_K1M_PARTIAL_GOOD
+				&cpu8_intc 0xb &cpu8_intc 0x9
+				&cpu9_intc 0xb &cpu9_intc 0x9
+				&cpu10_intc 0xb &cpu10_intc 0x9
+				&cpu11_intc 0xb &cpu11_intc 0x9
+				&cpu12_intc 0xb &cpu12_intc 0x9
+				&cpu13_intc 0xb &cpu13_intc 0x9
+				&cpu14_intc 0xb &cpu14_intc 0x9
+				&cpu15_intc 0xb &cpu15_intc 0x9
 #endif
 #endif
 			>;
@@ -478,6 +679,18 @@
 				&cpu5_intc 0x3 &cpu5_intc 0x7
 				&cpu6_intc 0x3 &cpu6_intc 0x7
 				&cpu7_intc 0x3 &cpu7_intc 0x7
+#endif
+#endif
+#if CONFIG_K1M_SMP_CPUS >= 16
+#ifndef CONFIG_K1M_PARTIAL_GOOD
+				&cpu8_intc 0x3 &cpu8_intc 0x7
+				&cpu9_intc 0x3 &cpu9_intc 0x7
+				&cpu10_intc 0x3 &cpu10_intc 0x7
+				&cpu11_intc 0x3 &cpu11_intc 0x7
+				&cpu12_intc 0x3 &cpu12_intc 0x7
+				&cpu13_intc 0x3 &cpu13_intc 0x7
+				&cpu14_intc 0x3 &cpu14_intc 0x7
+				&cpu15_intc 0x3 &cpu15_intc 0x7
 #endif
 #endif
 			>;
