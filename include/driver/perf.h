@@ -47,6 +47,12 @@
 #endif
 
 #ifndef ARCH_HAVE_PMU
+#define pmu_hw_get_event_count(evt)	0
+#define pmu_hw_set_event_count(evt, cnt)	\
+					do { } while (0)
+#define pmu_hw_configure_event(evt)	do { } while (0)
+#define pmu_hw_enable_event(evt)	do { } while (0)
+#define pmu_hw_disable_event(evt)	do { } while (0)
 #define pmu_hw_ctrl_init()		do { } while (0)
 #define pmu_hw_task_start()		do { } while (0)
 #define pmu_hw_task_stop()		do { } while (0)

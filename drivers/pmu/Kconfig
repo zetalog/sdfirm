@@ -41,6 +41,7 @@ endif
 
 config CMN600_PMU
 	bool "CMN600 performance monitor unit (PMU) support"
+	select ARCH_HAS_PERF_EVENT_64BIT
 
 source "drivers/pmu/coresight/Kconfig"
 
