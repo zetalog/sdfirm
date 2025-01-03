@@ -181,9 +181,9 @@ bool cmn600_initialized = false;
 
 cmn_nid_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
 cmn_nid_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
-cmn_nid_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
-cmn_nid_t cmn_rni_ids[CMN_MAX_RND_COUNT];
 cmn_nid_t cmn_hni_ids[CMN_MAX_HNI_COUNT];
+cmn_nid_t cmn_rni_ids[CMN_MAX_RNI_COUNT];
+cmn_nid_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
 cmn_nid_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
 cmn_nid_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
 cmn_nid_t cmn_rn_sam_ext_ids[CMN_MAX_RN_SAM_EXT_COUNT];
@@ -210,6 +210,21 @@ void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i)
 	__raw_writeq(v, a);
 }
 #endif
+
+cmn_id_t cmn600_nid2xp(cmn_nid_t nid)
+{
+	cmn_id_t x, y;
+	cmn_id_t i;
+
+	x = CMN_X(nid);
+	y = CMN_Y(nid);
+
+	for (i = 0; i < cmn_xp_count; i++) {
+		if (cmn_node_id(cmn_bases[cmn_xp_ids[i]]) == CMN_NID(x, y, 0, 0))
+			return i;
+	}
+	return CMN_MAX_MXP_COUNT;
+}
 
 #ifdef CONFIG_CMN600_HNF_CAL
 static unsigned int cal_mode_factor = 1;

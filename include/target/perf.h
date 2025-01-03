@@ -44,7 +44,13 @@
 
 #include <target/generic.h>
 
+#if defined(CONFIG_ARCH_HAS_PERF_EVENT_64BIT)
+typedef uint64_t perf_evt_t;
+#elif defined(CONFIG_ARCH_HAS_PERF_EVENT_32BIT)
+typedef uint32_t perf_evt_t;
+#else
 typedef uint16_t perf_evt_t;
+#endif
 typedef uint64_t perf_cnt_t;
 
 #include <driver/perf.h>

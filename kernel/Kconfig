@@ -840,6 +840,12 @@ config RAS
 config ARCH_HAS_PMU
 	bool
 
+config ARCH_HAS_PERF_EVENT_64BIT
+	bool
+
+config ARCH_HAS_PERF_EVENT_32BIT
+	bool
+
 menuconfig PERF
 	bool "Performance counting (perf) support"
 

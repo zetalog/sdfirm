@@ -56,6 +56,7 @@
  * 3. CMN_MESH_DIMEN_Y: Y dimension
  * 4. CMN_HND_NID: NID of HN_D
  * 5. CMN_MAX_NODES: maximum mesh nodes
+ * 6. CMN_MAX_DTCS: maximum DTC domains
  */
 
 /* CMN node types */
@@ -96,6 +97,9 @@
 #define CMN_MXP_CXHA		0x11
 #define CMN_MXP_CXRA		0x12
 #define CMN_MXP_CXRH		0x13
+
+#define CMN_MAX_PORTS			2
+#define CMN_MAX_DIMENS			8
 
 #define CMN_MAX_MXP_COUNT		(CMN_MESH_DIMEN_X * CMN_MESH_DIMEN_Y)
 #ifdef CMN_CXG_COUNT
@@ -647,7 +651,7 @@ typedef uint8_t cmn_did_t;
 /* CMN_pmu_event_sel */
 #define CMN_pmu_event_id_OFFSET(n)	REG64_8BIT_OFFSET(n)
 #define CMN_pmu_event_id_MASK		REG_8BIT_MASK
-#define CMN_pmu_event_id(n, value)	_SET_FV_ULL(n, CMN_pmu_event_id, value)
+#define CMN_pmu_event_id(n, value)	_SET_FV_ULLn(n, CMN_pmu_event_id, value)
 #define CMN_pmu_occupl_id_OFFSET	32
 #define CMN_pmu_occupl_id_MASK		REG_3BIT_MASK
 #define CMN_pmu_occupl_id(value)	_SET_FV_ULL(CMN_pmu_occupl_id, value)
@@ -782,6 +786,12 @@ typedef uint8_t cmn_did_t;
 #define CMN_pmevcnt_global_num_OFFSET(n)	REG64_4BIT_OFFSET(n)
 #define CMN_pmevcnt_global_num_MASK		REG_4BIT_MASK
 #define CMN_pmevcnt_global_num(n, value)	_SET_FV_ULL(n, CMN_pmevcnt_global_num, value)
+#define CMN_pmevcnt_input_sel_OFFSET(n)		REG64_8BIT_OFFSET((n) + 4)
+#define CMN_pmevcnt_input_sel_MASK		REG_8BIT_MASK
+#define CMN_pmevcnt_input_sel(n, value)		_SET_FV_ULL(n, CMN_pmevcnt_input_sel, value)
+#define CMN_pmevcnt_input_sel_wp(n)		(n)
+#define CMN_pmevcnt_input_sel_xp(e)		(0x4 + (e))
+#define CMN_pmevcnt_input_sel_dev(p, d, e)	(0x10 + ((p) * 0x10) + ((d) * 0x04) + (e))
 /* CMN_dtm_pmevcnt/CMN_dtm_pmevcntsr */
 #define CMN_pmevcnt_OFFSET(n)		REG64_16BIT_OFFSET(n)
 #define CMN_pmevcnt_MASK		REG_16BIT_MASK
@@ -1379,29 +1389,29 @@ typedef uint8_t cmn_did_t;
 #define CMN_PMU_XP_PC_OFFSET			5
 #define CMN_PMU_XP_PC_MASK			REG_3BIT_MASK
 #define CMN_PMU_XP_PC(value)			_SET_FV(CMN_PMU_XP_PC, value)
-#define CMN_PMU_XP_PC_REQ			0x0
-#define CMN_PMU_XP_PC_RSP			0x1
-#define CMN_PMU_XP_PC_SNP			0x2
-#define CMN_PMU_XP_PC_DAT			0x3
+#define CMN_PMU_XP_REQ				0x0
+#define CMN_PMU_XP_RSP				0x1
+#define CMN_PMU_XP_SNP				0x2
+#define CMN_PMU_XP_DAT				0x3
 #define CMN_PMU_XP_IF_OFFSET			2
 #define CMN_PMU_XP_IF_MASK			REG_3BIT_MASK
 #define CMN_PMU_XP_IF(value)			_SET_FV(CMN_PMU_XP_IF, value)
-#define CMN_PMU_XP_IF_EAST			0x0
-#define CMN_PMU_XP_IF_WEST			0x1
-#define CMN_PMU_XP_IF_NORTH			0x2
-#define CMN_PMU_XP_IF_SOUTH			0x3
-#define CMN_PMU_XP_IF_P0			0x04
-#define CMN_PMU_XP_IF_P1			0x05
+#define CMN_PMU_XP_EAST				0x0
+#define CMN_PMU_XP_WEST				0x1
+#define CMN_PMU_XP_NORTH			0x2
+#define CMN_PMU_XP_SOUTH			0x3
+#define CMN_PMU_XP_P0				0x04
+#define CMN_PMU_XP_P1				0x05
 #define CMN_PMU_XP_SP_OFFSET			0
 #define CMN_PMU_XP_SP_MASK			REG_2BIT_MASK
 #define CMN_PMU_XP_SP(value)			_SET_FV(CMN_PMU_XP_SP, value)
-#define CMN_PMU_XP_SP_TXFLIT_VALID		1
-#define CMN_PMU_XP_SP_TXFLIT_STALL		2
+#define CMN_PMU_XP_TXFLIT_VALID			1
+#define CMN_PMU_XP_TXFLIT_STALL			2
 /* Partial DAT flit:
  * 1. signaled when 128-bit DAT flits could not be merged into a 256-bit DAT flit;
  * 2. only applicable on the DAT PC on RN-F CHIA and RN-F CHIA ESAM ports.
  */
-#define CMN_PMU_XP_SP_PARTIAL_DAT_FLIT_VALID	3
+#define CMN_PMU_XP_PARTIAL_DAT_FLIT_VALID	3
 #define CMN_PMU_XP_EVENT(spec, intf, PC)	\
 	(CMN_PMU_XP_SP(spec) |			\
 	 CMN_PMU_XP_IF(intf) |			\
@@ -1487,9 +1497,9 @@ struct cmn600_ccix_ha_mmap {
 extern caddr_t cmn_bases[NR_CMN_NODES];
 extern cmn_nid_t cmn_xp_ids[CMN_MAX_MXP_COUNT];
 extern cmn_nid_t cmn_hnf_ids[CMN_MAX_HNF_COUNT];
-extern cmn_nid_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
-extern cmn_nid_t cmn_rni_ids[CMN_MAX_RND_COUNT];
 extern cmn_nid_t cmn_hni_ids[CMN_MAX_HNI_COUNT];
+extern cmn_nid_t cmn_rni_ids[CMN_MAX_RNI_COUNT];
+extern cmn_nid_t cmn_rnd_ids[CMN_MAX_RND_COUNT];
 extern cmn_nid_t cmn_dtc_ids[CMN_MAX_DTC_COUNT];
 extern cmn_nid_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
 extern cmn_nid_t cmn_cxra_ids[CMN_MAX_CXG_COUNT];
@@ -1497,9 +1507,10 @@ extern cmn_nid_t cmn_cxla_ids[CMN_MAX_CXG_COUNT];
 extern cmn_nid_t cmn_cxha_ids[CMN_MAX_CXG_COUNT];
 extern cmn_id_t cmn_xp_count;
 extern cmn_id_t cmn_hnf_count;
+extern cmn_id_t cmn_hni_count;
 extern cmn_id_t cmn_rnf_count;
-extern cmn_id_t cmn_rnd_count;
 extern cmn_id_t cmn_rni_count;
+extern cmn_id_t cmn_rnd_count;
 extern cmn_id_t cmn_dtc_count;
 extern cmn_id_t cmn_sbsx_count;
 extern cmn_id_t cmn_snf_count;
@@ -1519,6 +1530,7 @@ const char *cmn600_revision_name(uint8_t revision);
 void cmn600_init(void);
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid);
 cmn_id_t cmn600_max_tgt_nodes(void);
+cmn_id_t cmn600_nid2xp(cmn_nid_t nid);
 #ifdef CONFIG_CMN600_CML
 void cmn600_cml_detect_mmap(void);
 int cmn600_cml_get_config(void);
@@ -1553,11 +1565,9 @@ void cmn600_ras_init(void);
 #define cmn600_hw_snf_hashed(hnf)			cmn_snf_table[0]
 #endif
 
-#ifdef CONFIG_CMN600_PMU
-extern irq_t cmn_dtc_irqs[];
-void cmn600_pmu_init(void);
-#else
-#define cmn600_pmu_init()		do { } while (0)
+#ifndef ARCH_HAVE_DTC_DOMAIN
+#define cmn600_hw_dtc_domain(nid)			0
+#define CMN_MAX_DTCS					1
 #endif
 
 #endif /* __CMN600_H_INCLUDE__ */
