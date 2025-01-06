@@ -1080,7 +1080,7 @@ void cmn600_init(void)
 	cmn600_initialized = true;
 }
 
-static uint16_t cmn600_node_type(cmn_nid_t nid)
+uint16_t cmn600_node_type(cmn_nid_t nid)
 {
 	cmn_id_t i;
 	caddr_t base;
@@ -1182,6 +1182,12 @@ bool cmn600_rnsam_is_rnf(cmn_nid_t nid)
 			return false;
 	}
 	return true;
+}
+
+static bool cmn_datacheck(cmn_nid_t nid)
+{
+	cmn_id_t xp = cmn600_nid2xp(nid);
+	return !!(cmn_mxp_datacheck(cmn_bases[cmn_xp_ids[xp]], CMN_PID(nid)));
 }
 
 static int do_cmn600_dump(int argc, char *argv[])
@@ -1296,15 +1302,17 @@ static int do_cmn600_dump(int argc, char *argv[])
 				base = cmn_bases[cmn_rn_sam_int_ids[i]];
 				if (!cmn600_rnsam_is_rnf(cmn_node_id(base)))
 					continue;
-				printf("RN-F-%d SAM: %03d, %016llx I\n",
-				       cmn_logical_id(base), cmn_node_id(base), base);
+				printf("RN-F-%d SAM: %03d, %016llx I %s\n",
+				       cmn_logical_id(base), cmn_node_id(base), base,
+				       cmn_datacheck(cmn_node_id(base)) ? "datacheck" : "\0");
 			}
 			for (i = 0; i < cmn_rn_sam_ext_count; i++) {
 				base = cmn_bases[cmn_rn_sam_ext_ids[i]];
 				if (!cmn600_rnsam_is_rnf(cmn_node_id(base)))
 					continue;
-				printf("RN-F-%d SAM: %03d, %016llx E\n",
-				       cmn_logical_id(base), cmn_node_id(base), base);
+				printf("RN-F-%d SAM: %03d, %016llx E %s\n",
+				       cmn_logical_id(base), cmn_node_id(base), base,
+				       cmn_datacheck(cmn_node_id(base)) ? "datacheck" : "\0");
 			}
 			return 0;
 		}
