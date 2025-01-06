@@ -574,7 +574,7 @@
 						&cpu7_intc 9
 #endif
 #endif
-#if CONFIG_K1M_SMP_CPUS >= 8
+#if CONFIG_K1M_SMP_CPUS >= 16
 #ifndef CONFIG_K1M_PARTIAL_GOOD
 						&cpu8_intc 9
 						&cpu9_intc 9
