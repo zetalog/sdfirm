@@ -410,6 +410,22 @@ typedef uint32_t cmn_id_t;
 #define CMN_mxp_p_info(base, n)		CMN_REG(base, 0x0900 + ((n) << 3))
 #define CMN_mxp_aux_ctl(base)		CMN_REG(base, 0x0A00)
 
+#define CMN_mxp_num_dev_OFFSET			0
+#define CMN_mxp_num_dev_MASK			REG_3BIT_MASK
+#define CMN_mxp_num_dev(value)			_GET_FV_ULL(CMN_mxp_num_dev, value)
+#define CMN_mxp_poison_en			_BV_ULL(4)
+#define CMN_mxp_datacheck_en			_BV_ULL(5)
+#define CMN_mxp_ext_sam_en			_BV_ULL(7)
+#define CMN_mxp_rxbuf_num_entries_OFFSET	8
+#define CMN_mxp_rxbuf_num_entries_MASK		REG_3BIT_MASK
+#define CMN_mxp_rxbuf_num_entries(value)	_GET_FV_ULL(CMN_mxp_rxbuf_num_entries, value)
+#define CMN_mxp_a4s_num_OFFSET			11
+#define CMN_mxp_a4s_num_MASK			REG_3BIT_MASK
+#define CMN_mxp_a4s_num(value)			_GET_FV_ULL(CMN_mxp_a4s_num, value)
+#define CMN_mxp_a4s_logicalid_base_OFFSET	16
+#define CMN_mxp_a4s_logicalid_base_MASK		REG_8BIT_MASK
+#define CMN_mxp_a4s_logicalid_base(value)	_GET_FV_ULL(CMN_mxp_a4s_logicalid_base, value)
+
 /* 3.2.9 RN SAM register summary */
 #define CMN_MAX_rnsam_sys_cache_groups		4
 #define CMN_MAX_rnsam_non_hash_mem_regions	20
@@ -1229,6 +1245,8 @@ typedef uint8_t cmn_did_t;
 
 #define cmn_mxp_device_type(base, pid)		\
 	CMN_device_type(__raw_readq(CMN_mxp_device_port_connect_info(base, pid)))
+#define cmn_mxp_datacheck(base, pid)		\
+	(__raw_readq(CMN_mxp_p_info(base, pid)) & CMN_mxp_datacheck_en)
 
 /* CXG capabilities */
 #define cmn_ccix_request_credits()		\
@@ -1530,6 +1548,7 @@ const char *cmn600_revision_name(uint8_t revision);
 #endif
 
 void cmn600_init(void);
+uint16_t cmn600_node_type(cmn_nid_t nid);
 bool cmn600_rnsam_is_rnd(cmn_nid_t nid);
 bool cmn600_rnsam_is_rni(cmn_nid_t nid);
 bool cmn600_rnsam_is_rnf(cmn_nid_t nid);
