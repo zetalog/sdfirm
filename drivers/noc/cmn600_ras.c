@@ -228,6 +228,10 @@ void cmn600_ras_mxp_par_err_inj(uint32_t id, uint32_t port, uint32_t lane)
 
 static int do_cmn_ras(int argc, char *argv[])
 {
+	cmn_nid_t nid;
+	cmn_id_t i;
+	caddr_t base;
+
 	if (argc < 2)
 		return -EINVAL;
 	if (strcmp(argv[1], "init") == 0) {
@@ -235,10 +239,33 @@ static int do_cmn_ras(int argc, char *argv[])
 		return 0;
 	}
 	if (strcmp(argv[1], "mxp") == 0) {
+		if (argc < 5)
+			return -EINVAL;
 		if (strcmp(argv[2], "errinj") == 0) {
-			cmn600_ras_mxp_par_err_inj((uint32_t)strtoull(argv[3], 0, 0), 
-				(uint32_t)strtoull(argv[4], 0, 0), 
-				(uint32_t)strtoull(argv[5], 0, 0));
+			nid = (uint16_t)strtoull(argv[3], 0, 0);
+			for (i = 0; i < cmn_rn_sam_int_count; i++) {
+				base = cmn_bases[cmn_rn_sam_int_ids[i]];
+				if (!cmn600_rnsam_is_rnf(cmn_node_id(base)))
+					continue;
+				if (cmn_node_id(base) == nid)
+					break;
+			}
+			if (i == cmn_rn_sam_int_count) {
+				for (i = 0; i < cmn_rn_sam_ext_count; i++) {
+					base = cmn_bases[cmn_rn_sam_ext_ids[i]];
+					if (!cmn600_rnsam_is_rnf(cmn_node_id(base)))
+						continue;
+					if (cmn_node_id(base) == nid)
+						break;
+				}
+				if (i == cmn_rn_sam_ext_count) {
+					printf("Invalid RN-F nid %d\n", nid);
+					return -EINVAL;
+				}
+			}
+			cmn600_ras_mxp_par_err_inj(cmn600_nid2xp(nid),
+						   CMN_PID(nid),
+						   (uint8_t)strtoull(argv[4], 0, 0));
 			return 0;
 		}
 		return -EINVAL;
@@ -248,5 +275,5 @@ static int do_cmn_ras(int argc, char *argv[])
 
 DEFINE_COMMAND(cmn_ras, do_cmn_ras, "SpacemiT CMN RAS Debug commands",
 	"cmn_ras init\n"
-	"cmn_ras mxp errinj <id> <port> <lane>\n"
+	"cmn_ras mxp errinj <rnf> <lane>\n"
 );

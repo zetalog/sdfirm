@@ -1132,7 +1132,7 @@ static uint16_t cmn600_node_type(cmn_nid_t nid)
 	return CMN_INVAL;
 }
 
-static bool cmn600_rnsam_is_rnd(cmn_nid_t nid)
+bool cmn600_rnsam_is_rnd(cmn_nid_t nid)
 {
 	cmn_id_t i;
 
@@ -1143,7 +1143,7 @@ static bool cmn600_rnsam_is_rnd(cmn_nid_t nid)
 	return false;
 }
 
-static bool cmn600_rnsam_is_rni(cmn_nid_t nid)
+bool cmn600_rnsam_is_rni(cmn_nid_t nid)
 {
 	cmn_id_t i;
 
@@ -1154,7 +1154,7 @@ static bool cmn600_rnsam_is_rni(cmn_nid_t nid)
 	return false;
 }
 
-static bool cmn600_rnsam_is_cxha(cmn_nid_t nid)
+bool cmn600_rnsam_is_cxha(cmn_nid_t nid)
 {
 	cmn_id_t i;
 
@@ -1165,7 +1165,7 @@ static bool cmn600_rnsam_is_cxha(cmn_nid_t nid)
 	return false;
 }
 
-static bool cmn600_rnsam_is_rnf(cmn_nid_t nid)
+bool cmn600_rnsam_is_rnf(cmn_nid_t nid)
 {
 	cmn_id_t i;
 
