@@ -1505,6 +1505,8 @@ extern cmn_nid_t cmn_sbsx_ids[CMN_MAX_SBSX_COUNT];
 extern cmn_nid_t cmn_cxra_ids[CMN_MAX_CXG_COUNT];
 extern cmn_nid_t cmn_cxla_ids[CMN_MAX_CXG_COUNT];
 extern cmn_nid_t cmn_cxha_ids[CMN_MAX_CXG_COUNT];
+extern cmn_nid_t cmn_rn_sam_ext_ids[CMN_MAX_RN_SAM_EXT_COUNT];
+extern cmn_nid_t cmn_rn_sam_int_ids[CMN_MAX_RN_SAM_INT_COUNT];
 extern cmn_id_t cmn_xp_count;
 extern cmn_id_t cmn_hnf_count;
 extern cmn_id_t cmn_hni_count;
@@ -1528,6 +1530,10 @@ const char *cmn600_revision_name(uint8_t revision);
 #endif
 
 void cmn600_init(void);
+bool cmn600_rnsam_is_rnd(cmn_nid_t nid);
+bool cmn600_rnsam_is_rni(cmn_nid_t nid);
+bool cmn600_rnsam_is_rnf(cmn_nid_t nid);
+bool cmn600_rnsam_is_cxha(cmn_nid_t nid);
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid);
 cmn_id_t cmn600_max_tgt_nodes(void);
 cmn_id_t cmn600_nid2xp(cmn_nid_t nid);
