@@ -1267,42 +1267,24 @@ typedef uint8_t cmn_did_t;
 	__raw_setq(CMN_errctlr_ED, CMN_errctlr(base))
 #define cmn_ras_disable_ed(base)		\
 	__raw_clearq(CMN_errctlr_ED, CMN_errctlr(base))
-#ifdef CONFIG_CMN600_RAS_DE
 #define cmn_ras_support_de(base)		\
 	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_DE_MASK))
 #define cmn_ras_enable_de(base)			\
 	__raw_setq(CMN_errctlr_DE, CMN_errctlr(base))
 #define cmn_ras_disable_de(base)		\
 	__raw_clearq(CMN_errctlr_DE, CMN_errctlr(base))
-#else
-#define cmn_ras_support_de(base)		false
-#define cmn_ras_enable_de(base)			do { } while (0)
-#define cmn_ras_disable_de(base)		do { } while (0)
-#endif
-#ifdef CONFIG_CMN600_RAS_UI
 #define cmn_ras_support_ui(base)		\
 	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_UI_MASK))
 #define cmn_ras_enable_ui(base)			\
 	__raw_setq(CMN_errctlr_UI, CMN_errctlr(base))
 #define cmn_ras_disable_ui(base)		\
 	__raw_clearq(CMN_errctlr_UI, CMN_errctlr(base))
-#else
-#define cmn_ras_support_ui(base)		false
-#define cmn_ras_enable_ui(base)			do { } while (0)
-#define cmn_ras_disable_ui(base)		do { } while (0)
-#endif
-#ifdef CONFIG_CMN600_RAS_FI
 #define cmn_ras_support_fi(base)		\
 	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_FI_MASK))
 #define cmn_ras_enable_fi(base)			\
 	__raw_setq(CMN_errctlr_FI, CMN_errctlr(base))
 #define cmn_ras_disable_fi(base)		\
 	__raw_clearq(CMN_errctlr_FI, CMN_errctlr(base))
-#else
-#define cmn_ras_support_fi(base)		false
-#define cmn_ras_enable_fi(base)			do { } while (0)
-#define cmn_ras_disable_fi(base)		do { } while (0)
-#endif
 #define cmn_ras_support_cfi(base)		\
 	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_CFI_MASK))
 #define cmn_ras_enable_cfi(base)		\
