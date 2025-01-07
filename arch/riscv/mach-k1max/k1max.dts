@@ -11,6 +11,30 @@
 	compatible = "riscv-spacemit";
 	model = "riscv-spacemit,k1max";
 
+	reserved-memory {
+		#address-cells = <0x02>;
+		#size-cells = <0x02>;
+		ranges;
+
+		mmode_pmp0@40000000 {
+			reg = <0x00 0x40000000 0x00 0x20000>;
+			no-map;
+		};
+
+		linux,cma {
+			compatible = "shared-dma-pool";
+			/* alloc memory from 0x40000000~0x80000000 */
+			alloc-ranges = <0 0xC0000000 0 0x40000000>;
+			/* size of cma buffer is 384MByte */
+			size = <0 0x18000000>;
+			/* start address is 1Mbyte aligned */
+			alignment = <0x0 0x100000>;
+			linux,cma-default;
+			/* besides hardware, dma for ex. buffer can be used by memory management */
+			reusable;
+		};
+	};
+
 	aliases {
 		uart0 = "/soc/uart@10010000";
 	};
@@ -465,6 +489,7 @@
 #endif
 
 #ifndef CONFIG_CPU_CVA6
+#ifdef CONFIG_RISCV_SMAIA
 		tcm: tcm@38000000 {
 			compatible = "spacemit,k1-pro-tcm";
 			reg = <0x0 0x38000000 0x0 0x180000>;
@@ -490,6 +515,33 @@
 				pool;
 			};
 		};
+#else
+		tcm: tcm@38000000 {
+			compatible = "spacemit,k1-pro-tcm";
+			reg = <0x0 0x38000000 0x0 0x80000>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges = <0x0 0x0 0x38000000 0x80000>;
+			no-memory-wc;
+
+			core0_tcm@0 {
+				reg = <0x00000 0x20000>;
+				pool;
+			};
+			core1_tcm@20000 {
+				reg = <0x20000 0x20000>;
+				pool;
+			};
+			core2_tcm@40000 {
+				reg = <0x40000 0x20000>;
+				pool;
+			};
+			core3_tcm@60000 {
+				reg = <0x60000 0x20000>;
+				pool;
+			};
+		};
+#endif
 #endif
 
 #ifdef CONFIG_RISCV_SMAIA
