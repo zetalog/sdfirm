@@ -697,8 +697,8 @@ void cmn600_discover_xp(caddr_t xp)
 					cmn600_discover_external(node, xp);
 				else
 					cmn600_discover_internal(node);
+				cmn600_ras_config(node);
 			}
-			cmn600_ras_config(nid);
 		}
 		node_count -= port_node_count;
 		node_index += port_node_count;

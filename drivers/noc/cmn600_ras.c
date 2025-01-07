@@ -2,37 +2,40 @@
 #include <target/irq.h>
 #include <target/cmdline.h>
 #include <target/console.h>
+#include <target/arch.h>
+
+#define CMN600_WLEN 256
 
 bh_t cmn600_ras_bh;
 
-void cmn600_ras_config(cmn_nid_t nid)
+void cmn600_ras_config(caddr_t base)
 {
-	uint64_t errfr = __raw_readq(CMN_errfr(cmn_bases[nid]));
+	uint64_t errfr = __raw_readq(CMN_errfr(base));
 	uint8_t ed = errfr & CMN_errfr_ED(CMN_errfr_ED_MASK);
 	uint8_t de = errfr & CMN_errfr_DE(CMN_errfr_DE_MASK);
 	uint8_t ui = errfr & CMN_errfr_UI(CMN_errfr_UI_MASK);
 	uint8_t fi = errfr & CMN_errfr_FI(CMN_errfr_FI_MASK);
 	uint8_t cfi = errfr & CMN_errfr_CFI(CMN_errfr_CFI_MASK);
 	uint8_t cec = errfr & CMN_errfr_CEC(CMN_errfr_CEC_MASK);
-	con_log("cmn_ras: nid=%d, ED=%d, DE=%d, UI=%d, FI=%d, CFI=%d, CEC=%d\n", nid, ed, de, ui, fi, cfi, cec);
-	if (cmn_ras_support_ed(nid))
-		cmn_ras_enable_ed(nid);
-	if (cmn_ras_support_de(nid))
-		cmn_ras_enable_de(nid);
-	if (cmn_ras_support_ui(nid))
-		cmn_ras_enable_ui(nid);
-	if (cmn_ras_support_fi(nid))
-		cmn_ras_enable_fi(nid);	
-	if (cmn_ras_support_cfi(nid))
-		cmn_ras_enable_cfi(nid);
+	con_log("cmn_ras: nid=%d, ED=%d, DE=%d, UI=%d, FI=%d, CFI=%d, CEC=%d\n", cmn_node_id(base), ed, de, ui, fi, cfi, cec);
+	if (cmn_ras_support_ed(base))
+		cmn_ras_enable_ed(base);
+	if (cmn_ras_support_de(base))
+		cmn_ras_enable_de(base);
+	if (cmn_ras_support_ui(base))
+		cmn_ras_enable_ui(base);
+	if (cmn_ras_support_fi(base))
+		cmn_ras_enable_fi(base);	
+	if (cmn_ras_support_cfi(base))
+		cmn_ras_enable_cfi(base);
 }
 
-void cmn600_ras_report(cmn_nid_t nid)
+void cmn600_ras_report(caddr_t base)
 {
-	uint64_t status = __raw_readq(CMN_errstatus(cmn_bases[nid]));
+	uint64_t status = __raw_readq(CMN_errstatus(base));
 	printf("ras_report: %llx\n", status);
 	if (status & CMN_errstatus_AV)
-		con_log("cmn_ras: AV Error: addr=%08llx\n", __raw_readq(CMN_erraddr(cmn_bases[nid])));
+		con_log("cmn_ras: AV Error: addr=%08llx\n", __raw_readq(CMN_erraddr(base)));
 	if (status & CMN_errstatus_V)
 		con_log("cmn_ras: V Error\n");
 	if (status & CMN_errstatus_UE)
@@ -46,10 +49,10 @@ void cmn600_ras_report(cmn_nid_t nid)
 	if (status & CMN_errstatus_DE)
 		con_log("cmn_ras: DE Error\n");
 
-	__raw_writeq(status, CMN_errstatus(cmn_bases[nid]));
+	__raw_writeq(status, CMN_errstatus(base));
 }
 
-cmn_nid_t CMN_ras_nid(uint8_t errg, uint8_t bit)
+caddr_t CMN_ras_nid(uint8_t errg, uint8_t bit)
 {
 	cmn_nid_t nid = 0;
 	unsigned long long base;
@@ -84,7 +87,7 @@ cmn_nid_t CMN_ras_nid(uint8_t errg, uint8_t bit)
 	default:
 		break;
 	}
-	return nid;
+	return base;
 }
 
 void cmn600_handle_s_errs(void)
@@ -207,23 +210,32 @@ void cmn600_ras_init(void)
 	cmn600_ras_poll_init();
 }
 
-void cmn600_ras_err_inj(uint32_t id, uint32_t srcid, uint32_t lpid)
+void cmn600_ras_hnf_err_inj(uint64_t id, uint64_t srcid, uint64_t lpid)
 {
-	uint32_t data = (srcid << CMN_hnf_err_inj_srcid_OFFSET & CMN_hnf_err_inj_srcid_MASK) | 
-		(lpid << CMN_hnf_err_inj_lpid_OFFSET & CMN_hnf_err_inj_lpid_MASK) | 
-		CMN_hnf_err_inj_en;
-	__raw_writel(data, cmn_bases[cmn_hnf_ids[id]]);
+	printf("hnf_errinj: hnf_id=%d, hnf_base=0x%llx, srcid=0x%llx, lpid=0x%llx\n", cmn_hnf_ids[id], cmn_bases[cmn_hnf_ids[id]], srcid, lpid);
+	cmn_writeq_mask(CMN_hnf_err_inj_srcid(srcid), 
+			CMN_hnf_err_inj_srcid(CMN_hnf_err_inj_srcid_MASK), 
+			CMN_hnf_err_inj(cmn_bases[cmn_hnf_ids[id]]), 
+			"CMN_hnf_err_inj", -1);
+	cmn_writeq_mask(CMN_hnf_err_inj_lpid(lpid), 
+			CMN_hnf_err_inj_lpid(CMN_hnf_err_inj_lpid_MASK), 
+			CMN_hnf_err_inj(cmn_bases[cmn_hnf_ids[id]]), 
+			"CMN_hnf_err_inj", -1);
+	cmn_setq(CMN_hnf_err_inj_en, 
+		 CMN_hnf_err_inj(cmn_bases[cmn_hnf_ids[id]]), 
+		 "CMN_hnf_err_inj", -1);
+}	
+
+void cmn600_ras_hnf_par_err_inj(uint64_t id, uint64_t lane)
+{
+	printf("hnf_par_errinj: hnf_id=%d, hnf_base=0x%llx, lane=0x%x\n", cmn_hnf_ids[id], cmn_bases[cmn_hnf_ids[id]], lane);
+	cmn_writeq(lane, CMN_hnf_byte_par_err_inj(cmn_bases[cmn_hnf_ids[id]]), "CMN_hnf_byte_par_err_inj", -1);
 }
 
-void cmn600_ras_hnf_par_err_inj(uint32_t id, uint32_t lane)
+void cmn600_ras_mxp_par_err_inj(uint64_t id, uint64_t port, uint64_t lane)
 {
-	__raw_writel(lane, CMN_mxp_byte_par_err_inj(cmn_bases[cmn_hnf_ids[id]], lane));
-}
-
-void cmn600_ras_mxp_par_err_inj(uint32_t id, uint32_t port, uint32_t lane)
-{
-	printf("mxp_errinj: xp_id=%d, xp_base=0x%lx, port=%d, lane=0x%x\n", cmn_xp_ids[id], cmn_bases[cmn_xp_ids[id]], port, lane);
-	__raw_writel(lane, CMN_mxp_byte_par_err_inj(cmn_bases[cmn_xp_ids[id]], port));
+	printf("mxp_par_errinj: xp_id=%d, xp_base=0x%llx, port=%d, lane=0x%x\n", cmn_xp_ids[id], cmn_bases[cmn_xp_ids[id]], port, lane);
+	cmn_writeq(lane, CMN_mxp_byte_par_err_inj(cmn_bases[cmn_xp_ids[id]], port), "CMN_mxp_byte_par_err_inj", -1);
 }
 
 static int do_cmn_ras(int argc, char *argv[])
@@ -238,11 +250,31 @@ static int do_cmn_ras(int argc, char *argv[])
 		cmn600_ras_init();
 		return 0;
 	}
-	if (strcmp(argv[1], "mxp") == 0) {
+	if (strcmp(argv[1], "einj") == 0) {
 		if (argc < 5)
 			return -EINVAL;
-		if (strcmp(argv[2], "errinj") == 0) {
-			nid = (uint16_t)strtoull(argv[3], 0, 0);
+
+		nid = (uint16_t)strtoull(argv[4], 0, 0);
+		if (strcmp(argv[2], "ecc") == 0) {
+			uint16_t type = cmn_node_type(cmn_bases[nid]);
+			printf("Base: 0x%llx type: %d\n", cmn_bases[nid], type);
+			if (type != CMN_RNI && type != CMN_RND && type != CMN_RNF) {
+				printf("Invalid RN nid %d\n", nid);
+				return -EINVAL;
+			}
+			uint16_t cpu = (uint16_t)strtoull(argv[3], 0, 0);
+			uint16_t clst = cpu / CPUS_PER_CLUSTER;
+			uint16_t lpid = cpu % CPUS_PER_CLUSTER;
+			for (i = 0; i < cmn_hnf_count; i++) {
+				base = cmn_bases[cmn_hnf_ids[i]];
+				if (cmn_logical_id(base) == clst) {
+					cmn600_ras_hnf_err_inj(i, nid, lpid);
+					return 0;
+				}
+			}
+			return -EINVAL;
+		}
+		if (strcmp(argv[2], "par") == 0) {
 			for (i = 0; i < cmn_rn_sam_int_count; i++) {
 				base = cmn_bases[cmn_rn_sam_int_ids[i]];
 				if (!cmn600_rnsam_is_rnf(cmn_node_id(base)))
@@ -263,9 +295,17 @@ static int do_cmn_ras(int argc, char *argv[])
 					return -EINVAL;
 				}
 			}
-			cmn600_ras_mxp_par_err_inj(cmn600_nid2xp(nid),
-						   CMN_PID(nid),
-						   (uint8_t)strtoull(argv[4], 0, 0));
+			uint64_t lane = (uint64_t)strtoull(argv[5], 0, 0);
+			if (lane >= (CMN600_WLEN / 8)) {
+				printf("Invalid lane %d >= %d\n", lane, (CMN600_WLEN / 8));
+				return -EINVAL;
+			}
+			if (strcmp(argv[3], "hnf") == 0)
+				cmn600_ras_hnf_par_err_inj(nid, lane);
+			else
+				cmn600_ras_mxp_par_err_inj(cmn600_nid2xp(nid),
+							   CMN_PID(nid),
+							   lane);
 			return 0;
 		}
 		return -EINVAL;
@@ -275,5 +315,8 @@ static int do_cmn_ras(int argc, char *argv[])
 
 DEFINE_COMMAND(cmn_ras, do_cmn_ras, "SpacemiT CMN RAS Debug commands",
 	"cmn_ras init\n"
-	"cmn_ras mxp errinj <rnf> <lane>\n"
+	"cmn_ras einj <type>\n"
+	"    type:\n"
+	"        - ecc <cpu> <rn>\n"
+	"        - par <hnf/mxp> <rnf> <lane>\n"
 );

@@ -1261,58 +1261,54 @@ typedef uint8_t cmn_did_t;
 	(!!(__raw_readq(CMN_cxla_ccix_prop_capabilities(CMN_CXLA_BASE)) & CMN_la_nomessagepack))
 
 /* RAS options */
-#define cmn_ras_support_ed(id)			\
-	(!!(__raw_readq(CMN_errfr(cmn_bases[nid])) & CMN_errfr_ED_MASK))
-#define cmn_ras_enable_ed(id)			\
-	__raw_setq(CMN_errctlr_ED, CMN_errctlr(cmn_bases[nid]))
-#define cmn_ras_disable_ed(id)			\
-	__raw_clearq(CMN_errctlr_ED, CMN_errctlr(cmn_bases[nid]))
+#define cmn_ras_support_ed(base)		\
+	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_ED_MASK))
+#define cmn_ras_enable_ed(base)			\
+	__raw_setq(CMN_errctlr_ED, CMN_errctlr(base))
+#define cmn_ras_disable_ed(base)		\
+	__raw_clearq(CMN_errctlr_ED, CMN_errctlr(base))
 #ifdef CONFIG_CMN600_RAS_DE
-#define cmn_ras_support_de(id)			\
-	(!!(__raw_readq(CMN_errfr(cmn_bases[nid])) & CMN_errfr_DE_MASK))
-#define cmn_ras_enable_de(id)			\
-	__raw_setq(CMN_errctlr_DE, CMN_errctlr(cmn_bases[nid]))
-#define cmn_ras_disable_de(id)			\
-	__raw_clearq(CMN_errctlr_DE, CMN_errctlr(cmn_bases[nid]))
+#define cmn_ras_support_de(base)		\
+	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_DE_MASK))
+#define cmn_ras_enable_de(base)			\
+	__raw_setq(CMN_errctlr_DE, CMN_errctlr(base))
+#define cmn_ras_disable_de(base)		\
+	__raw_clearq(CMN_errctlr_DE, CMN_errctlr(base))
 #else
-#define cmn_ras_support_de(id)			false
-#define cmn_ras_enable_de(id)			do { } while (0)
-#define cmn_ras_disable_de(id)			do { } while (0)
+#define cmn_ras_support_de(base)		false
+#define cmn_ras_enable_de(base)			do { } while (0)
+#define cmn_ras_disable_de(base)		do { } while (0)
 #endif
 #ifdef CONFIG_CMN600_RAS_UI
-#define cmn_ras_support_ui(id)			\
-	(!!(__raw_readq(CMN_errfr(cmn_bases[nid])) & CMN_errfr_UI_MASK))
-#define cmn_ras_enable_ui(id)			\
-	__raw_setq(CMN_errctlr_UI, CMN_errctlr(cmn_bases[nid]))
-#define cmn_ras_disable_ui(id)			\
-	__raw_clearq(CMN_errctlr_UI, CMN_errctlr(cmn_bases[nid]))
+#define cmn_ras_support_ui(base)		\
+	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_UI_MASK))
+#define cmn_ras_enable_ui(base)			\
+	__raw_setq(CMN_errctlr_UI, CMN_errctlr(base))
+#define cmn_ras_disable_ui(base)		\
+	__raw_clearq(CMN_errctlr_UI, CMN_errctlr(base))
 #else
-#define cmn_ras_support_ui(id)			false
-#define cmn_ras_enable_ui(id)			do { } while (0)
-#define cmn_ras_disable_ui(id)			do { } while (0)
+#define cmn_ras_support_ui(base)		false
+#define cmn_ras_enable_ui(base)			do { } while (0)
+#define cmn_ras_disable_ui(base)		do { } while (0)
 #endif
 #ifdef CONFIG_CMN600_RAS_FI
-#define cmn_ras_support_fi(id)			\
-	(!!(__raw_readq(CMN_errfr(cmn_bases[nid])) & CMN_errfr_FI_MASK))
-#define cmn_ras_enable_fi(id)			\
-	__raw_setq(CMN_errctlr_FI, CMN_errctlr(cmn_bases[nid]))
-#define cmn_ras_disable_fi(id)			\
-	__raw_clearq(CMN_errctlr_FI, CMN_errctlr(cmn_bases[nid]))
+#define cmn_ras_support_fi(base)		\
+	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_FI_MASK))
+#define cmn_ras_enable_fi(base)			\
+	__raw_setq(CMN_errctlr_FI, CMN_errctlr(base))
+#define cmn_ras_disable_fi(base)		\
+	__raw_clearq(CMN_errctlr_FI, CMN_errctlr(base))
 #else
-#define cmn_ras_support_fi(id)			false
-#define cmn_ras_enable_fi(id)			do { } while (0)
-#define cmn_ras_disable_fi(id)			do { } while (0)
+#define cmn_ras_support_fi(base)		false
+#define cmn_ras_enable_fi(base)			do { } while (0)
+#define cmn_ras_disable_fi(base)		do { } while (0)
 #endif
-#define cmn_ras_support_cfi(id)			\
-	(!!(__raw_readq(CMN_errfr(cmn_bases[nid])) & CMN_errfr_CFI_MASK))
-#define cmn_ras_enable_cfi(id)			\
-	__raw_setq(CMN_errctlr_CFI, CMN_errctlr(cmn_bases[nid]))
-#define cmn_ras_disable_cfi(id)			\
-	__raw_clearq(CMN_errctlr_CFI, CMN_errctlr(cmn_bases[nid]))
-
-#define CMN_ras_err_inj(id, srcid, lpid)
-#define CMN_ras_hnf_par_err_inj(id, lane)
-#define CMN_ras_mxp_par_err_inj(id, port, lane)
+#define cmn_ras_support_cfi(base)		\
+	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_CFI_MASK))
+#define cmn_ras_enable_cfi(base)		\
+	__raw_setq(CMN_errctlr_CFI, CMN_errctlr(base))
+#define cmn_ras_disable_cfi(base)		\
+	__raw_clearq(CMN_errctlr_CFI, CMN_errctlr(base))
 
 #define CMN_ERRG_XP				0
 #define CMN_ERRG_HNI				1
@@ -1575,8 +1571,8 @@ void cmn600_cml_init(void);
 #endif
 
 #ifdef CONFIG_CMN600_RAS
-void cmn600_ras_config(cmn_nid_t nid);
-void cmn600_ras_report(cmn_nid_t nid);
+void cmn600_ras_config(caddr_t base);
+void cmn600_ras_report(caddr_t base);
 void cmn600_ras_init(void);
 #else
 #define cmn600_ras_config(nid)		do { } while (0)
