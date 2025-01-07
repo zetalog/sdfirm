@@ -426,6 +426,9 @@ typedef uint32_t cmn_id_t;
 #define CMN_mxp_a4s_logicalid_base_MASK		REG_8BIT_MASK
 #define CMN_mxp_a4s_logicalid_base(value)	_GET_FV_ULL(CMN_mxp_a4s_logicalid_base, value)
 
+/* 3.2.8 RN-I register summary */
+#define CMN_rni_s_port_control(base, n)		CMN_REG(base, 0x0A10 + ((n) << 3))
+
 /* 3.2.9 RN SAM register summary */
 #define CMN_MAX_rnsam_sys_cache_groups		4
 #define CMN_MAX_rnsam_non_hash_mem_regions	20
