@@ -33,7 +33,7 @@ void cmn600_ras_config(caddr_t base)
 void cmn600_ras_report(caddr_t base)
 {
 	uint64_t status = __raw_readq(CMN_errstatus(base));
-	printf("ras_report: %llx\n", status);
+	//printf("ras_report: %llx\n", status);
 	if (status & CMN_errstatus_AV)
 		con_log("cmn_ras: AV Error: addr=%08llx\n", __raw_readq(CMN_erraddr(base)));
 	if (status & CMN_errstatus_V)
@@ -290,7 +290,7 @@ static int do_cmn_ras(int argc, char *argv[])
 					return -EINVAL;
 				}
 				cmn600_ras_hnf_par_err_inj(hnf, lane);
-
+				return 0;
 			}
 		}
 		if (strcmp(argv[2], "ecc") == 0) {

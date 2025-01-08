@@ -501,10 +501,10 @@ typedef uint32_t cmn_id_t;
 #define CMN_hnf_err_inj(base)		CMN_REG(base, 0x3030)
 #define CMN_hnf_err_inj_srcid_OFFSET		16
 #define CMN_hnf_err_inj_srcid_MASK		REG_11BIT_MASK
-#define CMN_hnf_err_inj_srcid(value)		_GET_FV_ULL(CMN_hnf_err_inj_srcid, value)
+#define CMN_hnf_err_inj_srcid(value)		_SET_FV_ULL(CMN_hnf_err_inj_srcid, value)
 #define CMN_hnf_err_inj_lpid_OFFSET		4
 #define CMN_hnf_err_inj_lpid_MASK		REG_5BIT_MASK
-#define CMN_hnf_err_inj_lpid(value)		_GET_FV_ULL(CMN_hnf_err_inj_lpid, value)
+#define CMN_hnf_err_inj_lpid(value)		_SET_FV_ULL(CMN_hnf_err_inj_lpid, value)
 #define CMN_hnf_err_inj_en			_BV(0)
 
 /* HN-F, XP */
