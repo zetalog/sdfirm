@@ -1141,10 +1141,13 @@ static int do_memtester_list(int argc, char **argv)
 	ul i;
 
 	printf("R case name\n");
-	for (i = 0; i < MEMTESTER_MASKABLE_CASES; i++)
+	for (i = 0; i < MEMTESTER_MASKABLE_CASES; i++) {
+		if (!tests[i].name)
+			break;
 		printf("%c %04ld %s\n",
-		       (1 << i) & __memtester_testmask ? '*' : '\0',
+		       (1 << i) & __memtester_testmask ? '*' : ' ',
 		       i, tests[i].name);
+	}
 	return 0;
 }
 
