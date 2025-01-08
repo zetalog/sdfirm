@@ -245,8 +245,10 @@ static void usage(void)
 		"Usage: memtester [-p physaddrbase] <mem>[B|K|M|G] [loops]\n");
 }
 
+extern ul __memtester_testmask;
+
 #define memtester_pagesize()				PAGE_SIZE
-#define memtester_testmask()				0
+#define memtester_testmask()				__memtester_testmask
 
 static int memtester_parseopt(int argc, char **argv, size_t pagesize)
 {
@@ -868,11 +870,12 @@ static struct test {
 #endif
 	{ NULL, NULL }
 };
+#define MEMTESTER_MASKABLE_CASES		ARRAY_SIZE(tests)
 
 #ifdef HOSTED
 int main(int argc, char **argv)
 #else
-static int do_memtester(int argc, char **argv)
+static int do_memtester_run(int argc, char **argv)
 #endif
 {
 	ul loops, loop, i;
@@ -912,14 +915,14 @@ static int do_memtester(int argc, char **argv)
 	argc -= opt;
 	argv += opt;
 
-	if (argc < 2) {
+	if (argc < 1) {
 		fprintf(stderr, "need memory argument, in MB\n");
 		usage();
 		return EXIT_FAIL_NONSTARTER;
 	}
 
 	errno = 0;
-	wantraw = (size_t)strtoul(argv[1], &memsuffix, 0);
+	wantraw = (size_t)strtoul(argv[0], &memsuffix, 0);
 	argc--;
 	argv++;
 	if (errno != 0) {
@@ -1104,8 +1107,13 @@ static int do_memtester(int argc, char **argv)
 			 * if the bit corresponding to this test was set
 			 * by the user.
 			 */
+#ifdef HOSTED
 			if (testmask && (!((1 << i) & testmask)))
+				continue
+#else
+			if (!((1 << i) & testmask))
 				continue;
+#endif
 			printf("  %-20s: ", tests[i].name);
 			if (!tests[i].fp(bufa, bufb, count))
 				printf("ok\n");
@@ -1126,7 +1134,85 @@ static int do_memtester(int argc, char **argv)
 }
 
 #ifndef HOSTED
+ul __memtester_testmask = ((UL(1) << MEMTESTER_MASKABLE_CASES) - 1);
+
+static int do_memtester_list(int argc, char **argv)
+{
+	ul i;
+
+	printf("R case name\n");
+	for (i = 0; i < MEMTESTER_MASKABLE_CASES; i++)
+		printf("%c %04ld %s\n",
+		       (1 << i) & __memtester_testmask ? '*' : '\0',
+		       i, tests[i].name);
+	return 0;
+}
+
+static int do_memtester_mask(int argc, char **argv)
+{
+	ul i;
+
+	if (argc < 3) {
+		printf("Missing case ID\n");
+		return -EINVAL;
+	}
+	if (strcmp(argv[2], "all") == 0)
+		__memtester_testmask = 0;
+	else {
+		i = strtoull(argv[2], 0, 0);
+		if (i >= MEMTESTER_MASKABLE_CASES) {
+			printf("Invalid case ID: %ld\n", i);
+			return -EINVAL;
+		}
+		__memtester_testmask &= ~(1 << i);
+	}
+	return 0;
+}
+
+static int do_memtester_unmask(int argc, char **argv)
+{
+	ul i;
+
+	if (argc < 3) {
+		printf("Missing case ID\n");
+		return -EINVAL;
+	}
+	if (strcmp(argv[2], "all") == 0)
+		__memtester_testmask = (UL(1) << MEMTESTER_MASKABLE_CASES) - 1;
+	else {
+		i = strtoull(argv[2], 0, 0);
+		if (i >= MEMTESTER_MASKABLE_CASES) {
+			printf("Invalid case ID: %ld\n", i);
+			return -EINVAL;
+		}
+		__memtester_testmask &= ~(1 << i);
+	}
+	return 0;
+}
+
+static int do_memtester(int argc, char **argv)
+{
+	if (argc < 2)
+		return -EINVAL;
+	if (strcmp(argv[1], "run") == 0)
+		return do_memtester_run(argc - 1, argv + 1);
+	if (strcmp(argv[1], "list") == 0)
+		return do_memtester_list(argc, argv);
+	if (strcmp(argv[1], "mask") == 0)
+		return do_memtester_mask(argc, argv);
+	if (strcmp(argv[1], "unmask") == 0)
+		return do_memtester_unmask(argc, argv);
+	return -EINVAL;
+}
+
 DEFINE_COMMAND(memtester, do_memtester, "Memory stress tests",
-	"memtester [-p physaddrbase] <mem>[B|K|M|G] [loops]\n"
+	"memtester run [-p physaddrbase] <mem>[B|K|M|G] [loops]\n"
+	"  - Run all or single memtester cases\n"
+	"memtester list\n"
+	"  - List memtester cases\n"
+	"memtester mask <case>\n"
+	"  - Mask memtester case (do not run it)\n"
+	"memtester unmask <case>\n"
+	"  - Unmask memtester case (run it)\n"
 );
 #endif
