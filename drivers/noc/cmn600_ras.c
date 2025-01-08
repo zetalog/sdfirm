@@ -248,6 +248,7 @@ void cmn600_ras_mxp_par_err_inj(cmn_nid_t id, uint16_t port, uint16_t lane)
 static int do_cmn_ras(int argc, char *argv[])
 {
 	uint32_t i;
+	uint16_t hnf, cpu, lane;
 
 	if (argc < 2)
 		return -EINVAL;
@@ -256,13 +257,13 @@ static int do_cmn_ras(int argc, char *argv[])
 		return 0;
 	}
 	if (strcmp(argv[1], "einj") == 0) {
-		if (argc < 6)
-			return -EINVAL;
 		if (strcmp(argv[2], "cpu") == 0) {
-			uint16_t hnf = (uint16_t)strtoull(argv[3], 0, 0);
-			uint16_t cpu = (uint16_t)strtoull(argv[4], 0, 0);
-			uint16_t lane = (uint16_t)strtoull(argv[5], 0, 0);
 			uint16_t clst, lpid, rnf;
+			if (argc < 6)
+				return -EINVAL;
+			hnf = (uint16_t)strtoull(argv[3], 0, 0);
+			cpu = (uint16_t)strtoull(argv[4], 0, 0);
+			lane = (uint16_t)strtoull(argv[5], 0, 0);
 			for (i = 0; i < CMN_MAX_HNF_COUNT; i++) {
 				if (hnf == cmn_hnf_table[i])
 					break;
@@ -287,11 +288,15 @@ static int do_cmn_ras(int argc, char *argv[])
 			return 0;
 		}
 		if (strcmp(argv[2], "dma") == 0) {
-			uint16_t hnf = (uint16_t)strtoull(argv[3], 0, 0);
-			uint16_t rni = (uint16_t)strtoull(argv[4], 0, 0);
-			uint16_t lane = (uint16_t)strtoull(argv[5], 0, 0);
-			uint16_t axid = 0, portid = 0, lpid = 0;
+			uint16_t axid, rni, portid;
+			uint16_t lpid = 0;
 			caddr_t base = 0;
+			if (argc < 7)
+				return -EINVAL;
+			hnf = (uint16_t)strtoull(argv[3], 0, 0);
+			rni = (uint16_t)strtoull(argv[4], 0, 0);
+			lane = (uint16_t)strtoull(argv[5], 0, 0);
+			portid = (uint16_t)strtoull(argv[6], 0, 0);
 			for (i = 0; i < CMN_MAX_HNF_COUNT; i++) {
 				if (hnf == cmn_hnf_table[i])
 					break;
@@ -309,13 +314,33 @@ static int do_cmn_ras(int argc, char *argv[])
 				return -EINVAL;
 			}
 			if (argc > 7) {
-				axid = (uint16_t)strtoull(argv[6], 0, 0);
-				portid = (uint16_t)strtoull(argv[7], 0, 0);
+				axid = (uint16_t)strtoull(argv[7], 0, 0);
 				base = cmn600_rni_base(rni);
-				lpid = (__raw_readq(CMN_rni_s_port_control(base, portid)) & axid & 0x1) | (portid << 1);
+				lpid = __raw_readq(CMN_rni_s_port_control(base, portid)) & axid & 0x1;
 			}
+			lpid |= portid << 1;
 			cmn600_ras_hnf_err_inj(hnf, rni, lpid);
 			cmn600_ras_hnf_par_err_inj(hnf, lane);
+			return 0;
+		}
+		if (strcmp(argv[2], "mxp") == 0) {
+			uint16_t clst, rnf;
+			if (argc < 5)
+				return -EINVAL;
+			cpu = (uint16_t)strtoull(argv[3], 0, 0);
+			lane = (uint64_t)strtoull(argv[4], 0, 0);
+			if (cpu > MAX_CPU_NUM) {
+				printf("Invalid cpu %d\n", cpu);
+			}
+			clst = cpu / CPUS_PER_CLUSTER;
+			rnf = cmn_rnf_table[clst];
+			if (lane >= (CMN600_WLEN / 8)) {
+				printf("Invalid lane %x >= %d\n", lane, (CMN600_WLEN / 8));
+				return -EINVAL;
+			}
+			cmn600_ras_mxp_par_err_inj(rnf,
+						CMN_PID(rnf),
+						lane);
 			return 0;
 		}
 		return -EINVAL;
@@ -327,6 +352,8 @@ DEFINE_COMMAND(cmn_ras, do_cmn_ras, "SpacemiT CMN RAS Debug commands",
 	"cmn_ras init\n"
 	"cmn_ras einj cpu <hnf> <cpu> <lane>\n"
 	"  - inject double-bit ECC error for SLC hit from given CPU\n"
-	"cmn_ras einj dma <hnf> <rni> <lane> [axid] [portid]\n"
+	"cmn_ras einj dma <hnf> <rni> <lane> <portid> [axid]\n"
 	"  - inject double-bit ECC error for SLC hit from give DMA\n"
+	"cmn_ras einj mxp <cpu> <lane>\n"
+	"  - inject parity error into XP from CPU\n"
 );
