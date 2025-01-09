@@ -472,8 +472,10 @@ typedef uint32_t cmn_id_t;
 					CMN_REG(base, 0x0F10)
 
 /* RAS register */
-#define CMN_cfgm_errgsr(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x3000, (n))
-#define CMN_cfgm_errgsr_NS(n)		CMN_32BIT_REG(CMN_CFGM_BASE, 0x3100, (n))
+#define CMN_cfgm_errgsr(n)		CMN_REG(CMN_CFGM_BASE, 0x3000 + ((n) << 3))
+#define CMN_cfgm_fltgsr(n)		CMN_REG(CMN_CFGM_BASE, 0x3080 + ((n) << 3))
+#define CMN_cfgm_errgsr_NS(n)		CMN_REG(CMN_CFGM_BASE, 0x3100 + ((n) << 3))
+#define CMN_cfgm_fltgsr_NS(n)		CMN_REG(CMN_CFGM_BASE, 0x3180 + ((n) << 3))
 #define ERRGSR_XP			0
 #define ERRGSR_HNI			1
 #define ERRGSR_HNF			2
@@ -1179,22 +1181,22 @@ typedef uint8_t cmn_did_t;
 
 #define CMN_errfr_ED_OFFSET				0
 #define CMN_errfr_ED_MASK				REG_2BIT_MASK
-#define CMN_errfr_ED(value)				_SET_FV_ULL(CMN_errfr_ED, value)
+#define CMN_errfr_ED(value)				_GET_FV_ULL(CMN_errfr_ED, value)
 #define CMN_errfr_DE_OFFSET				2
 #define CMN_errfr_DE_MASK				REG_2BIT_MASK
-#define CMN_errfr_DE(value)				_SET_FV_ULL(CMN_errfr_DE, value)
+#define CMN_errfr_DE(value)				_GET_FV_ULL(CMN_errfr_DE, value)
 #define CMN_errfr_UI_OFFSET				4
 #define CMN_errfr_UI_MASK				REG_2BIT_MASK
-#define CMN_errfr_UI(value)				_SET_FV_ULL(CMN_errfr_UI, value)
+#define CMN_errfr_UI(value)				_GET_FV_ULL(CMN_errfr_UI, value)
 #define CMN_errfr_FI_OFFSET				6
 #define CMN_errfr_FI_MASK				REG_2BIT_MASK
-#define CMN_errfr_FI(value)				_SET_FV_ULL(CMN_errfr_FI, value)
+#define CMN_errfr_FI(value)				_GET_FV_ULL(CMN_errfr_FI, value)
 #define CMN_errfr_CFI_OFFSET				10
 #define CMN_errfr_CFI_MASK				REG_2BIT_MASK
-#define CMN_errfr_CFI(value)				_SET_FV_ULL(CMN_errfr_CFI, value)
+#define CMN_errfr_CFI(value)				_GET_FV_ULL(CMN_errfr_CFI, value)
 #define CMN_errfr_CEC_OFFSET				12
 #define CMN_errfr_CEC_MASK				REG_3BIT_MASK
-#define CMN_errfr_CEC(value)				_SET_FV_ULL(CMN_errfr_CEC, value)
+#define CMN_errfr_CEC(value)				_GET_FV_ULL(CMN_errfr_CEC, value)
 
 #define CMN_errctlr_ED					_BV(0)
 #define CMN_errctlr_DE					_BV(1)
@@ -1202,13 +1204,13 @@ typedef uint8_t cmn_did_t;
 #define CMN_errctlr_FI					_BV(3)
 #define CMN_errctlr_CFI					_BV(8)
 
-#define CMN_errstatus_DE				_BV(23)
-#define CMN_errstatus_CE				_BV(24)
-#define CMN_errstatus_MV				_BV(26)
-#define CMN_errstatus_OF				_BV(27)
-#define CMN_errstatus_UE				_BV(29)
-#define CMN_errstatus_V					_BV(30)
-#define CMN_errstatus_AV				_BV(31)
+#define CMN_errstatus_DE				_BV_ULL(23)
+#define CMN_errstatus_CE				_BV_ULL(24)
+#define CMN_errstatus_MV				_BV_ULL(26)
+#define CMN_errstatus_OF				_BV_ULL(27)
+#define CMN_errstatus_UE				_BV_ULL(29)
+#define CMN_errstatus_V					_BV_ULL(30)
+#define CMN_errstatus_AV				_BV_ULL(31)
 
 /* CMN macros and APIs */
 #define cmn_node_type(base)			\
@@ -1265,35 +1267,69 @@ typedef uint8_t cmn_did_t;
 
 /* RAS options */
 #define cmn_ras_support_ed(base)		\
-	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_ED_MASK))
+	(!!(CMN_errfr_ED(__raw_readq(CMN_errfr(base)))))
 #define cmn_ras_enable_ed(base)			\
 	__raw_setq(CMN_errctlr_ED, CMN_errctlr(base))
 #define cmn_ras_disable_ed(base)		\
 	__raw_clearq(CMN_errctlr_ED, CMN_errctlr(base))
+#define cmn_ras_support_ed_NS(base)		\
+	(!!(CMN_errfr_ED(__raw_readq(CMN_errfr_NS(base)))))
+#define cmn_ras_enable_ed_NS(base)			\
+	__raw_setq(CMN_errctlr_ED, CMN_errctlr_NS(base))
+#define cmn_ras_disable_ed_NS(base)		\
+	__raw_clearq(CMN_errctlr_ED, CMN_errctlr_NS(base))
+
 #define cmn_ras_support_de(base)		\
-	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_DE_MASK))
+	(!!(CMN_errfr_DE(__raw_readq(CMN_errfr(base)))))
 #define cmn_ras_enable_de(base)			\
 	__raw_setq(CMN_errctlr_DE, CMN_errctlr(base))
 #define cmn_ras_disable_de(base)		\
 	__raw_clearq(CMN_errctlr_DE, CMN_errctlr(base))
+#define cmn_ras_support_de_NS(base)		\
+	(!!(CMN_errfr_DE(__raw_readq(CMN_errfr_NS(base)))))
+#define cmn_ras_enable_de_NS(base)			\
+	__raw_setq(CMN_errctlr_DE, CMN_errctlr_NS(base))
+#define cmn_ras_disable_de_NS(base)		\
+	__raw_clearq(CMN_errctlr_DE, CMN_errctlr_NS(base))
+
 #define cmn_ras_support_ui(base)		\
-	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_UI_MASK))
+	(!!(CMN_errfr_UI(__raw_readq(CMN_errfr(base)))))
 #define cmn_ras_enable_ui(base)			\
 	__raw_setq(CMN_errctlr_UI, CMN_errctlr(base))
 #define cmn_ras_disable_ui(base)		\
 	__raw_clearq(CMN_errctlr_UI, CMN_errctlr(base))
+#define cmn_ras_support_ui_NS(base)		\
+	(!!(CMN_errfr_UI(__raw_readq(CMN_errfr_NS(base)))))
+#define cmn_ras_enable_ui_NS(base)			\
+	__raw_setq(CMN_errctlr_UI, CMN_errctlr_NS(base))
+#define cmn_ras_disable_ui_NS(base)		\
+	__raw_clearq(CMN_errctlr_UI, CMN_errctlr_NS(base))
+
 #define cmn_ras_support_fi(base)		\
-	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_FI_MASK))
+	(!!(CMN_errfr_FI(__raw_readq(CMN_errfr(base)))))
 #define cmn_ras_enable_fi(base)			\
 	__raw_setq(CMN_errctlr_FI, CMN_errctlr(base))
 #define cmn_ras_disable_fi(base)		\
 	__raw_clearq(CMN_errctlr_FI, CMN_errctlr(base))
+#define cmn_ras_support_fi_NS(base)		\
+	(!!(CMN_errfr_FI(__raw_readq(CMN_errfr_NS(base)))))
+#define cmn_ras_enable_fi_NS(base)			\
+	__raw_setq(CMN_errctlr_FI, CMN_errctlr_NS(base))
+#define cmn_ras_disable_fi_NS(base)		\
+	__raw_clearq(CMN_errctlr_FI, CMN_errctlr_NS(base))
+
 #define cmn_ras_support_cfi(base)		\
-	(!!(__raw_readq(CMN_errfr(base)) & CMN_errfr_CFI_MASK))
+	(!!(CMN_errfr_CFI(__raw_readq(CMN_errfr(base)))))
 #define cmn_ras_enable_cfi(base)		\
 	__raw_setq(CMN_errctlr_CFI, CMN_errctlr(base))
 #define cmn_ras_disable_cfi(base)		\
 	__raw_clearq(CMN_errctlr_CFI, CMN_errctlr(base))
+#define cmn_ras_support_cfi_NS(base)		\
+	(!!(CMN_errfr_CFI(__raw_readq(CMN_errfr_NS(base)))))
+#define cmn_ras_enable_cfi_NS(base)		\
+	__raw_setq(CMN_errctlr_CFI, CMN_errctlr_NS(base))
+#define cmn_ras_disable_cfi_NS(base)		\
+	__raw_clearq(CMN_errctlr_CFI, CMN_errctlr_NS(base))
 
 #define CMN_ERRG_XP				0
 #define CMN_ERRG_HNI				1
@@ -1558,10 +1594,12 @@ void cmn600_cml_init(void);
 #ifdef CONFIG_CMN600_RAS
 void cmn600_ras_config(caddr_t base);
 void cmn600_ras_report(caddr_t base);
+void cmn600_ras_report_NS(caddr_t base);
 void cmn600_ras_init(void);
 #else
 #define cmn600_ras_config(nid)		do { } while (0)
 #define cmn600_ras_report(nid)		do { } while (0)
+#define cmn600_ras_report_NS(nid)	do { } while (0)
 #define cmn600_ras_init()		do { } while (0)
 #endif
 
