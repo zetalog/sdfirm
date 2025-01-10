@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ARCH=riscv
-MACH=k1max_soc
+MACH=k1max_plic
 BBLVAR=
 CROSS_COMPILE=riscv64-unknown-linux-gnu-
 
