@@ -45,4 +45,10 @@
 #include <target/generic.h>
 #include <driver/ras.h>
 
+#ifdef CONFIG_RAS
+void ras_init(void);
+#else
+#define ras_init()			do { } while (0)
+#endif
+
 #endif /* __RAS_H_INCLUDE__ */

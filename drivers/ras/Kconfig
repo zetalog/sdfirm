@@ -1,0 +1,7 @@
+menu "RAS drivers"
+
+config CMN600_RAS
+	bool "Enable CMN600 realiability availability serviceability (RAS) support"
+	depends RAS
+
+endmenu

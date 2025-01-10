@@ -50,6 +50,7 @@ obj-$(CONFIG_IOMMU) += iommu/
 obj-y += ddr/
 
 obj-$(CONFIG_PERF) += perf.rel
+obj-$(CONFIG_RAS) += ras.rel
 obj-$(CONFIG_FDT) += fdt/
 obj-$(CONFIG_UEFI) += uefi/
 obj-y += ipmi/

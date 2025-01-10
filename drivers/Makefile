@@ -32,3 +32,4 @@ obj-y += espi/
 obj-y += mctp/
 obj-y += kcs/
 obj-$(CONFIG_PERF) += pmu/
+obj-$(CONFIG_RAS) += ras/
