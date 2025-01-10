@@ -472,15 +472,16 @@ typedef uint32_t cmn_id_t;
 					CMN_REG(base, 0x0F10)
 
 /* RAS register */
-#define CMN_cfgm_errgsr(n)		CMN_REG(CMN_CFGM_BASE, 0x3000 + ((n) << 3))
-#define CMN_cfgm_fltgsr(n)		CMN_REG(CMN_CFGM_BASE, 0x3080 + ((n) << 3))
-#define CMN_cfgm_errgsr_NS(n)		CMN_REG(CMN_CFGM_BASE, 0x3100 + ((n) << 3))
-#define CMN_cfgm_fltgsr_NS(n)		CMN_REG(CMN_CFGM_BASE, 0x3180 + ((n) << 3))
-#define ERRGSR_XP			0
-#define ERRGSR_HNI			1
-#define ERRGSR_HNF			2
-#define ERRGSR_SBSX			3
-#define ERRGSR_CXHA			4
+#define CMN_cfgm_errgsr(ns, grp, rec)	CMN_REG(CMN_CFGM_BASE, 0x3000 + ((ns) << 8) + ((rec) << 3) + ((grp) << 7))
+#define CMN_error_ns_0			0
+#define CMN_error_ns_1			1
+#define CMN_error_group_error		0
+#define CMN_error_group_fault		1
+#define CMN_error_record_mxp		0
+#define CMN_error_record_hni		1
+#define CMN_error_record_hnf		2
+#define CMN_error_record_sbsx		3
+#define CMN_error_record_cxg		4
 
 /* HN-F, HN-I, XP, SBSX, CXG  */
 #define CMN_errfr(base)			CMN_REG(base, 0x3000)
@@ -1594,12 +1595,10 @@ void cmn600_cml_init(void);
 #ifdef CONFIG_CMN600_RAS
 void cmn600_ras_config(caddr_t base);
 void cmn600_ras_report(caddr_t base);
-void cmn600_ras_report_NS(caddr_t base);
 void cmn600_ras_init(void);
 #else
 #define cmn600_ras_config(nid)		do { } while (0)
 #define cmn600_ras_report(nid)		do { } while (0)
-#define cmn600_ras_report_NS(nid)	do { } while (0)
 #define cmn600_ras_init()		do { } while (0)
 #endif
 

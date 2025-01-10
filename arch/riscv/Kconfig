@@ -24,6 +24,7 @@ config RISCV
 	select RISCV_D if (FP && CPU_D)
 	select ARCH_HAS_THREAD
 	select ARCH_HAS_PMU if PERF
+	select ARCH_HAS_RAS if RAS
 	select STRING_STRNCMP if FDT
 	select PRINT_SNPRINTF if FDT
 	default y

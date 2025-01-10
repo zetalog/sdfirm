@@ -50,5 +50,6 @@ source drivers/espi/Kconfig
 source drivers/mctp/Kconfig
 
 source drivers/pmu/Kconfig
+source drivers/ras/Kconfig
 
 endmenu

@@ -3,8 +3,11 @@
 #include <target/cmdline.h>
 #include <target/console.h>
 #include <target/arch.h>
+#include <target/ras.h>
 
-#define CMN600_WLEN 256
+#define CMN_MODNAME	"cmn_ras"
+
+#define CMN600_WLEN			256
 
 bh_t cmn600_ras_bh;
 
@@ -24,8 +27,8 @@ void cmn600_ras_config(caddr_t base)
 	uint8_t fi_NS = CMN_errfr_FI(errfr_NS);
 	uint8_t cfi_NS = CMN_errfr_CFI(errfr_NS);
 	uint8_t cec_NS = CMN_errfr_CEC(errfr_NS);
-	con_log("cmn_ras: errfr=%llx, nid=%d, ED=%d, DE=%d, UI=%d, FI=%d, CFI=%d, CEC=%d\n", errfr, cmn_node_id(base), ed, de, ui, fi, cfi, cec);
-	con_log("cmn_ras: errfr_NS=%llx, ED=%d, DE=%d, UI=%d, FI=%d, CFI=%d, CEC=%d\n", errfr_NS, ed_NS, de_NS, ui_NS, fi_NS, cfi_NS, cec_NS);
+	con_dbg(CMN_MODNAME ": errfr=%llx, nid=%d, ED=%d, DE=%d, UI=%d, FI=%d, CFI=%d, CEC=%d\n", errfr, cmn_node_id(base), ed, de, ui, fi, cfi, cec);
+	con_dbg(CMN_MODNAME ": errfr_NS=%llx, ED=%d, DE=%d, UI=%d, FI=%d, CFI=%d, CEC=%d\n", errfr_NS, ed_NS, de_NS, ui_NS, fi_NS, cfi_NS, cec_NS);
 	if (cmn_ras_support_ed(base))
 		cmn_ras_enable_ed(base);
 	if (cmn_ras_support_ed_NS(base))
@@ -51,94 +54,72 @@ void cmn600_ras_config(caddr_t base)
 void cmn600_ras_report(caddr_t base)
 {
 	uint64_t status = __raw_readq(CMN_errstatus(base));
-	printf("ras_report: %llx\n", status);
+	con_dbg(CMN_MODNAME ": ras_report: %llx\n", status);
 	if (status & CMN_errstatus_AV)
-		con_log("cmn_ras: AV Error: addr=%08llx\n", __raw_readq(CMN_erraddr(base)));
+		con_dbg(CMN_MODNAME ": AV Error: addr=%08llx\n", __raw_readq(CMN_erraddr(base)));
 	if (status & CMN_errstatus_V)
-		con_log("cmn_ras: V Error\n");
+		con_log(CMN_MODNAME ": V Error\n");
 	if (status & CMN_errstatus_UE)
-		con_log("cmn_ras: UE Error\n");
+		con_log(CMN_MODNAME ": UE Error\n");
 	if (status & CMN_errstatus_OF)
-		con_log("cmn_ras: OF Error\n");
+		con_log(CMN_MODNAME ": OF Error\n");
 	if (status & CMN_errstatus_MV)
-		con_log("cmn_ras: MV Error\n");
+		con_log(CMN_MODNAME ": MV Error\n");
 	if (status & CMN_errstatus_CE)
-		con_log("cmn_ras: CE Error\n");
+		con_log(CMN_MODNAME ": CE Error\n");
 	if (status & CMN_errstatus_DE)
-		con_log("cmn_ras: DE Error\n");
+		con_log(CMN_MODNAME ": DE Error\n");
 
 	cmn_writeq(status, CMN_errstatus(base), "CMN_errstatus", -1);
 }
 
-void cmn600_ras_report_NS(caddr_t base)
-{
-	uint64_t status = __raw_readq(CMN_errstatus_NS(base));
-	printf("ras_report_NS: %llx\n", status);
-	if (status & CMN_errstatus_AV)
-		con_log("cmn_ras: AV Error: addr=%08llx\n", __raw_readq(CMN_erraddr_NS(base)));
-	if (status & CMN_errstatus_V)
-		con_log("cmn_ras: V Error\n");
-	if (status & CMN_errstatus_UE)
-		con_log("cmn_ras: UE Error\n");
-	if (status & CMN_errstatus_OF)
-		con_log("cmn_ras: OF Error\n");
-	if (status & CMN_errstatus_MV)
-		con_log("cmn_ras: MV Error\n");
-	if (status & CMN_errstatus_CE)
-		con_log("cmn_ras: CE Error\n");
-	if (status & CMN_errstatus_DE)
-		con_log("cmn_ras: DE Error\n");
-
-	cmn_writeq(status, CMN_errstatus_NS(base), "CMN_errstatus_NS", -1);
-}
-
-caddr_t CMN_ras_nid(uint8_t errg, uint8_t bit)
+caddr_t CMN_ras_nid(uint8_t ns, uint8_t grp, uint8_t rec, uint8_t idx)
 {
 	cmn_nid_t nid = 0;
 	uint64_t base = 0;
 	int i;
 
-	switch (errg)
+	switch (rec)
 	{
-	case ERRGSR_XP:
+	case CMN_error_record_mxp:
 		for (i = 0; i < CMN_MAX_MXP_COUNT; i++) {
-			if (cmn_logical_id(cmn_bases[cmn_xp_ids[i]]) == bit)
+			if (cmn_logical_id(cmn_bases[cmn_xp_ids[i]]) == idx)
 				break;
 		}
 		base = cmn_bases[cmn_xp_ids[i]];
 		nid = cmn_node_id(base);
 		break;
 
-	case ERRGSR_HNI:
+	case CMN_error_record_hni:
 		for (i = 0; i < CMN_MAX_HNI_COUNT; i++) {
-			if (cmn_logical_id(cmn_bases[cmn_hni_ids[i]]) == bit)
+			if (cmn_logical_id(cmn_bases[cmn_hni_ids[i]]) == idx)
 				break;
 		}
 		base = cmn_bases[cmn_hni_ids[i]];
 		nid = cmn_node_id(base);
 		break;
 
-	case ERRGSR_HNF:
+	case CMN_error_record_hnf:
 		for (i = 0; i < CMN_MAX_HNF_COUNT; i++) {
-			if (cmn_logical_id(cmn_bases[cmn_hnf_ids[i]]) == bit)
+			if (cmn_logical_id(cmn_bases[cmn_hnf_ids[i]]) == idx)
 				break;
 		}
 		base = cmn_bases[cmn_hnf_ids[i]];
 		nid = cmn_node_id(base);
 		break;
 
-	case ERRGSR_SBSX:
+	case CMN_error_record_sbsx:
 		for (i = 0; i < CMN_MAX_SBSX_COUNT; i++) {
-			if (cmn_logical_id(cmn_bases[cmn_sbsx_ids[i]]) == bit)
+			if (cmn_logical_id(cmn_bases[cmn_sbsx_ids[i]]) == idx)
 				break;
 		}
 		base = cmn_bases[cmn_sbsx_ids[i]];
 		nid = cmn_node_id(base);
 		break;
 
-	case ERRGSR_CXHA:
+	case CMN_error_record_cxg:
 		for (i = 0; i < CMN_MAX_CXG_COUNT; i++) {
-			if (cmn_logical_id(cmn_bases[cmn_cxha_ids[i]]) == bit)
+			if (cmn_logical_id(cmn_bases[cmn_cxha_ids[i]]) == idx)
 				break;
 		}
 		base = cmn_bases[cmn_cxha_ids[i]];
@@ -148,76 +129,30 @@ caddr_t CMN_ras_nid(uint8_t errg, uint8_t bit)
 	default:
 		break;
 	}
-	printf("errsrc = %d, errbit = %d, nid = %d\n", errg, bit, nid);
+	con_dbg(CMN_MODNAME ": errns = %d, errgrp = %d, errrec = %d, erridx = %d, errnid = %d\n", ns, grp, rec, idx, nid);
+	base += ns << 8;
 	return base;
-}
-
-void cmn600_handle_s_errs(void)
-{
-	uint64_t status[5];
-	int i, j;
-
-	for (i = 0; i < 5; i++) {
-		status[i] = __raw_readq(CMN_cfgm_errgsr(i));
-		for (j = 0; j < 64; j++) {
-			if (status[i] & _BV(j)) {
-				cmn600_ras_report(CMN_ras_nid(i, j));
-			}
-		}
-	}
-}
-
-void cmn600_handle_s_faults(void)
-{
-	uint64_t status[5];
-	int i, j;
-
-	for (i = 0; i < 5; i++) {
-		status[i] = __raw_readq(CMN_cfgm_fltgsr(i));
-		for (j = 0; j < 64; j++) {
-			if (status[i] & _BV(j)) {
-				cmn600_ras_report(CMN_ras_nid(i, j));
-			}
-		}
-	}
-}
-
-void cmn600_handle_ns_errs(void)
-{
-	uint64_t status[5];
-	int i, j;
-
-	for (i = 0; i < 5; i++) {
-		status[i] = __raw_readq(CMN_cfgm_errgsr_NS(i));
-		for (j = 0; j < 64; j++) {
-			if (status[i] & _BV(j)) {
-				cmn600_ras_report_NS(CMN_ras_nid(i, j));
-			}
-		}
-	}
-}
-
-void cmn600_handle_ns_faults(void)
-{
-	uint64_t status[5];
-	int i, j;
-
-	for (i = 0; i < 5; i++) {
-		status[i] = __raw_readq(CMN_cfgm_fltgsr_NS(i));
-		for (j = 0; j < 64; j++) {
-			if (status[i] & _BV(j)) {
-				cmn600_ras_report_NS(CMN_ras_nid(i, j));
-			}
-		}
-	}
 }
 
 void cmn600_handle_irq(void)
 {
-	cmn600_handle_s_errs();
-	cmn600_handle_s_faults();
-	cmn600_handle_ns_errs();
-	cmn600_handle_ns_faults();
+	uint64_t status[5];
+	int ns, grp, rec, idx;
+
+	for (ns = 0; ns < 2; ns++) {
+		for (grp = 0; grp < 2; grp++) {
+			for (rec = 0; rec < 5; rec++) {
+				status[rec] = __raw_readq(CMN_cfgm_errgsr(ns, grp, rec));
+				if (status[rec] != 0) {
+					for (idx = 0; idx < 64; idx++) {
+						if (status[rec] & _BV(idx)) {
+							cmn600_ras_report(CMN_ras_nid(ns, grp, rec, idx));
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 static void cmn600_ras_bh_handler(uint8_t events)
@@ -241,10 +176,10 @@ static void cmn600_ras_irq_init(void)
 	irqc_configure_irq(IRQ_N100_REQFLTS_NID0, 0, IRQ_LEVEL_TRIGGERED);
 	irqc_configure_irq(IRQ_N100_REQERRNS_NID0, 0, IRQ_LEVEL_TRIGGERED);
 	irqc_configure_irq(IRQ_N100_REQFLTNS_NID0, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_N100_REQERRS_NID0, cmn600_handle_s_errs);
-	irq_register_vector(IRQ_N100_REQFLTS_NID0, cmn600_handle_s_faults);
-	irq_register_vector(IRQ_N100_REQERRNS_NID0, cmn600_handle_ns_errs);
-	irq_register_vector(IRQ_N100_REQFLTNS_NID0, cmn600_handle_ns_faults);
+	irq_register_vector(IRQ_N100_REQERRS_NID0, cmn600_handle_irq);
+	irq_register_vector(IRQ_N100_REQFLTS_NID0, cmn600_handle_irq);
+	irq_register_vector(IRQ_N100_REQERRNS_NID0, cmn600_handle_irq);
+	irq_register_vector(IRQ_N100_REQFLTNS_NID0, cmn600_handle_irq);
 	irqc_enable_irq(IRQ_N100_REQERRS_NID0);
 	irqc_enable_irq(IRQ_N100_REQFLTS_NID0);
 	irqc_enable_irq(IRQ_N100_REQERRNS_NID0);
@@ -258,12 +193,11 @@ void cmn600_ras_init(void)
 	cmn600_ras_bh = bh_register_handler(cmn600_ras_bh_handler);
 	cmn600_ras_irq_init();
 	cmn600_ras_poll_init();
-	printf("cfgm_base = 0x%lx\n", CMN_CFGM_BASE);
 }
 
 void cmn600_ras_hnf_err_inj(cmn_nid_t id, cmn_nid_t srcid, uint16_t lpid)
 {
-	printf("hnf_errinj: hnf_id=%d, hnf_base=0x%lx, srcid=0x%x, lpid=0x%x\n", 
+	con_dbg(CMN_MODNAME ": hnf_errinj: hnf_id=%d, hnf_base=0x%lx, srcid=0x%x, lpid=0x%x\n", 
 		id, cmn600_hnf_base(id), srcid, lpid);
 	cmn_writeq_mask(CMN_hnf_err_inj_srcid(srcid), 
 			CMN_hnf_err_inj_srcid(CMN_hnf_err_inj_srcid_MASK), 
@@ -280,7 +214,7 @@ void cmn600_ras_hnf_err_inj(cmn_nid_t id, cmn_nid_t srcid, uint16_t lpid)
 
 void cmn600_ras_hnf_par_err_inj(cmn_nid_t id, uint16_t lane)
 {
-	printf("hnf_par_errinj: hnf_id=%d, hnf_base=0x%lx, lane=0x%x\n", 
+	con_dbg(CMN_MODNAME ": hnf_par_errinj: hnf_id=%d, hnf_base=0x%lx, lane=0x%x\n", 
 		id, cmn600_hnf_base(id), lane);
 	cmn_writeq(lane, 
 		   CMN_hnf_byte_par_err_inj(cmn600_hnf_base(id)), 
@@ -289,7 +223,7 @@ void cmn600_ras_hnf_par_err_inj(cmn_nid_t id, uint16_t lane)
 
 void cmn600_ras_mxp_par_err_inj(cmn_nid_t id, uint16_t port, uint16_t lane)
 {
-	printf("mxp_par_errinj: xp_id=%d, xp_base=0x%lx, port=%d, lane=0x%x\n", 
+	con_dbg(CMN_MODNAME ": mxp_par_errinj: xp_id=%d, xp_base=0x%lx, port=%d, lane=0x%x\n", 
 		id, cmn_bases[cmn600_nid2xp(id)], port, lane);
 	cmn_writeq(lane, 
 		   CMN_mxp_byte_par_err_inj(cmn600_nid2xp(id), port), 
@@ -303,10 +237,6 @@ static int do_cmn_ras(int argc, char *argv[])
 
 	if (argc < 2)
 		return -EINVAL;
-	if (strcmp(argv[1], "init") == 0) {
-		cmn600_ras_init();
-		return 0;
-	}
 	if (strcmp(argv[1], "einj") == 0) {
 		if (strcmp(argv[2], "cpu") == 0) {
 			uint16_t clst, lpid, rnf;
@@ -320,15 +250,15 @@ static int do_cmn_ras(int argc, char *argv[])
 					break;
 			}
 			if (i == CMN_MAX_HNF_COUNT) {
-				printf("Invalid hnf %d\n", hnf);
+				con_err(CMN_MODNAME ": Invalid hnf %d\n", hnf);
 				return -EINVAL;
 			}
 			if (cpu > MAX_CPU_NUM) {
-				printf("Invalid cpu %d\n", cpu);
+				con_err(CMN_MODNAME ": Invalid cpu %d\n", cpu);
 				return -EINVAL;
 			}
 			if (lane >= (CMN600_WLEN / 8)) {
-				printf("Invalid lane %x >= %d\n", lane, (CMN600_WLEN / 8));
+				con_err(CMN_MODNAME ": Invalid lane %x >= %d\n", lane, (CMN600_WLEN / 8));
 				return -EINVAL;
 			}
 			clst = cpu / CPUS_PER_CLUSTER;
@@ -353,15 +283,15 @@ static int do_cmn_ras(int argc, char *argv[])
 					break;
 			}
 			if (i == CMN_MAX_HNF_COUNT) {
-				printf("Invalid hnf %d\n", hnf);
+				con_err(CMN_MODNAME ": Invalid hnf %d\n", hnf);
 				return -EINVAL;
 			}
 			if (!cmn600_rnsam_is_rni(rni)) {
-				printf("Invalid rni %d\n", rni);
+				con_err(CMN_MODNAME ": Invalid rni %d\n", rni);
 				return -EINVAL;
 			}
 			if (lane >= (CMN600_WLEN / 8)) {
-				printf("Invalid lane %x >= %d\n", lane, (CMN600_WLEN / 8));
+				con_err(CMN_MODNAME ": Invalid lane %x >= %d\n", lane, (CMN600_WLEN / 8));
 				return -EINVAL;
 			}
 			if (argc > 7) {
@@ -381,12 +311,12 @@ static int do_cmn_ras(int argc, char *argv[])
 			cpu = (uint16_t)strtoull(argv[3], 0, 0);
 			lane = (uint64_t)strtoull(argv[4], 0, 0);
 			if (cpu > MAX_CPU_NUM) {
-				printf("Invalid cpu %d\n", cpu);
+				con_err(CMN_MODNAME ": Invalid cpu %d\n", cpu);
 			}
 			clst = cpu / CPUS_PER_CLUSTER;
 			rnf = cmn_rnf_table[clst];
 			if (lane >= (CMN600_WLEN / 8)) {
-				printf("Invalid lane %x >= %d\n", lane, (CMN600_WLEN / 8));
+				con_err(CMN_MODNAME ": Invalid lane %x >= %d\n", lane, (CMN600_WLEN / 8));
 				return -EINVAL;
 			}
 			cmn600_ras_mxp_par_err_inj(rnf,
@@ -400,7 +330,6 @@ static int do_cmn_ras(int argc, char *argv[])
 }
 
 DEFINE_COMMAND(cmn_ras, do_cmn_ras, "SpacemiT CMN RAS Debug commands",
-	"cmn_ras init\n"
 	"cmn_ras einj cpu <hnf> <cpu> <lane>\n"
 	"  - inject double-bit ECC error for SLC hit from given CPU\n"
 	"cmn_ras einj dma <hnf> <rni> <lane> <portid> [axid]\n"

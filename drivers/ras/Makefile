@@ -1,0 +1,1 @@
+obj-$(CONFIG_CMN600_RAS) += cmn600_ras.rel
