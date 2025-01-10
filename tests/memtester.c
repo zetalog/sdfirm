@@ -31,7 +31,7 @@ typedef long ptrdiff_t;
 #define fprintf(f, ...)			printf(__VA_ARGS__)
 #define fflush(f)			do { } while (0)
 #define malloc(size)			heap_alloc(size);
-#define free(ptr)			heap_free(ptr)
+#define free(ptr)			heap_free((caddr_t)ptr)
 #endif
 
 typedef unsigned long ul;
