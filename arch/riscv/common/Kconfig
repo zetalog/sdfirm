@@ -1007,6 +1007,21 @@ config HPM_MAX_EVENTS
 
 endif
 
+menuconfig RPMI
+	bool "RISC-V platform management interface (RPMI) support"
+
+if RPMI
+
+choice
+	prompt "Platform RPMI scheme"
+
+config RPMI_SHMEM
+	bool "SHMEM"
+
+endchoice
+
+endif
+
 menuconfig RI5CY_PC
 	bool "RI5CY performance counter support"
 	depends CPU_RI5CY

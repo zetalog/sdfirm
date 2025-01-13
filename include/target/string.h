@@ -6,5 +6,6 @@
 int text_strlen(const text_char_t *str);
 void memory_set(caddr_t s, uint8_t c, size_t count);
 void memory_copy(caddr_t dest, const caddr_t src, size_t count);
+int memory_cmp(const caddr_t cs, const caddr_t ct, size_t count);
 
 #endif	/* __STRING_H_INCLUDE__ */
