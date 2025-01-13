@@ -70,6 +70,11 @@ int memcmp(const void *cs, const void *ct, size_t count)
 	return res;
 }
 
+int memory_cmp(const caddr_t cs, const caddr_t ct, size_t count)
+{
+	return memcmp((void *)cs, (void *)ct, count);
+}
+
 size_t strlen(const char *s)
 {
 	const char *sc;

@@ -25,6 +25,7 @@ obj-$(CONFIG_PLIC) += plic.rel
 obj-${CONFIG_RISCV_SMAIA} += aplic.rel
 obj-${CONFIG_RISCV_SMAIA} += imsic.rel
 obj-$(CONFIG_HTIF) += htif.rel
+obj-$(CONFIG_RPMI_SHMEM) += rpmi_shmem.rel
 obj-$(CONFIG_RI5CY_PC) += ri5cy_pc.rel
 obj-$(CONFIG_VAISRA_TBOX) += tbox.rel
 obj-$(CONFIG_VAISRA_PMA) += vaisra_pma.rel
