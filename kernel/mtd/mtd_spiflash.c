@@ -322,8 +322,9 @@ void spiflash_init(void)
 	spiflash_cid = mtd_register_chip(&spiflash_chip);
 }
 
-static int spiflash_readid(int argc, char *argv[])
+static int spiflash_readid(spiflash_bid_t bid)
 {
+	spi_select_device(spiflash_privs[bid].spi);
 	spiflash_tx(SF_JEDEC_ID);
 	printf("0x%x\n", spiflash_rx());
 	return 0;
@@ -331,27 +332,43 @@ static int spiflash_readid(int argc, char *argv[])
 
 static int do_spiflash(int argc, char *argv[])
 {
+	spiflash_bid_t bid;
+	int i;
 	if (argc < 2)
 		return -EINVAL;
-	if (strcmp(argv[1], "readid") == 0)
-		return spiflash_readid(argc, argv);
-	if (strcmp(argv[1], "send") == 0) {
-		spiflash_tx((uint16_t)strtoull(argv[2], 0, 0));
+	if (strcmp(argv[1], "dump") == 0) {
+		for (i = 0; i < SPIFLASH_MAX_BANKS; i++) {
+			printf("spidevice %d: spi_id = %d, mtd_id = %d, offset = 0x%x, length = 0x%x, status = 0x%x\n", 
+				i,
+				spiflash_privs[i].spi, 
+				spiflash_privs[i].mtd, 
+				spiflash_privs[i].offset, 
+				spiflash_privs[i].length, 
+				spiflash_privs[i].status3);
+		}
 		return 0;
 	}
-	if (strcmp(argv[1], "recv") == 0) {
-		printf("0x%x\n", spiflash_rx());
+	if (strcmp(argv[1], "jedec") == 0) {
+		bid = (uint8_t)strtoull(argv[2], 0, 0);
+		return spiflash_readid(bid);
+	}
+	if (strcmp(argv[1], "xfer") == 0) {
+		uint32_t len = (uint32_t)strtoull(argv[3], 0, 0);
+		bid = (uint8_t)strtoull(argv[2], 0, 0);
+		spi_select_device(spiflash_privs[bid].spi);
+		for (i = 0; i < len; i++) {
+			printf("0x%x\n", spiflash_txrx((uint8_t)strtoull(argv[i + 4], 0, 0)));
+		}
 		return 0;
 	}
+	return -EINVAL;
 }
 
 DEFINE_COMMAND(spiflash, do_spiflash, "SPIflash commands",
-	"select <id>\n"
-	"    - select spi device\n"
-	"readid\n"
-	"    - read spi flash device ID\n"
-	"send <data>\n"
-	"    - spi flash send message\n"
-	"recv\n"
-	"    - spi flash receive message\n"
+	"dump\n"
+	"    - dump all spi flash device\n"
+	"jedec <id>\n"
+	"    - read spi flash JEDEC device ID\n"
+	"xfer <id> <len> <data>\n"
+	"    - transfer spi flash messages\n"
 );
