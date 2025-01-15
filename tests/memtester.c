@@ -312,12 +312,12 @@ static void memtester_badregion(ulv *p1, ulv *p2, size_t i)
 	if (use_phys) {
 		physaddr = physaddrbase + (i * sizeof(ul));
 		fprintf(stderr,
-			"FAILURE: 0x%08lx != 0x%08lx at physical address "
+			"\nFAILURE: 0x%08lx != 0x%08lx at physical address "
 			"0x%08lx.\n",
 			(ul)*p1, (ul)*p2, physaddr);
 	} else {
 		fprintf(stderr,
-			"FAILURE: 0x%08lx != 0x%08lx at offset 0x%08lx.\n",
+			"\nFAILURE: 0x%08lx != 0x%08lx at offset 0x%08lx.\n",
 			(ul)*p1, (ul)*p2, (ul)(i * sizeof(ul)));
 	}
 }
@@ -329,11 +329,11 @@ static void memtester_badaddr(size_t i)
 	if (use_phys) {
 		physaddr = physaddrbase + (i * sizeof(ul));
 		fprintf(stderr,
-			"FAILURE: possible bad address line at physical "
+			"\nFAILURE: possible bad address line at physical "
 			"address 0x%08lx.\n", physaddr);
 	} else {
 		fprintf(stderr,
-			"FAILURE: possible bad address line at offset "
+			"\nFAILURE: possible bad address line at offset "
 			"0x%08lx.\n", (ul)(i * sizeof(ul)));
 	}
 }
@@ -364,7 +364,8 @@ static int compare_regions(ulv *bufa, ulv *bufb, size_t count)
     for (i = 0; i < count; i++, p1++, p2++) {
         if (*p1 != *p2) {
             memtester_badregion(p1, p2, i);
-            /* printf("Skipping to next test..."); */
+            printf("Skipping to next test...\n");
+            fflush(stdout);
             r = -1;
         }
     }
@@ -382,14 +383,14 @@ static int test_stuck_address(ulv *bufa, size_t count)
     for (j = 0; j < 16; j++) {
         printf("\b\b\b\b\b\b\b\b\b\b\b");
         p1 = (ulv *) bufa;
-        printf("setting %3u\n", j);
+        printf("setting %3u", j);
         fflush(stdout);
         for (i = 0; i < count; i++) {
 		*p1 = ((j + i) % 2) == 0 ? (ul) p1 : ~((ul) p1);
         	*p1++;
         }
         printf("\b\b\b\b\b\b\b\b\b\b\b");
-        printf("testing %3u\n", j);
+        printf("testing %3u", j);
         fflush(stdout);
         p1 = (ulv *) bufa;
         for (i = 0; i < count; i++, p1++) {
@@ -1167,6 +1168,7 @@ static int do_memtester_mask(int argc, char **argv)
 			printf("Invalid case ID: %ld\n", i);
 			return -EINVAL;
 		}
+		printf("Masking %04ld...\n", i);
 		__memtester_testmask &= ~(1 << i);
 	}
 	return 0;
@@ -1188,7 +1190,8 @@ static int do_memtester_unmask(int argc, char **argv)
 			printf("Invalid case ID: %ld\n", i);
 			return -EINVAL;
 		}
-		__memtester_testmask &= ~(1 << i);
+		printf("Unmasking %04ld...\n", i);
+		__memtester_testmask |= (1 << i);
 	}
 	return 0;
 }
