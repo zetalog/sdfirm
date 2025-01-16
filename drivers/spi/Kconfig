@@ -638,18 +638,18 @@ config DW_SSI_CONCURRENT_XIP
 	bool "Enable concurrent XIP transfer mode"
 	depends ARCH_HAS_SSI_CONCURRENT_XIP
 
-config DW_SSI_CONT_XFER
+config DW_SSI_XIP_CONT_XFER
 	bool "Enable continuous transfer mode in XIP mode"
-	depends ARCH_HAS_SSI_CONT_XFER
+	depends ARCH_HAS_SSI_XIP_CONT_XFER
 
 config DW_SSI_CONT_XFER_TIMEOUT_CNT
 	bool "Enable time out counter for continuous transfer mode"
-	depends DW_SSI_CONT_XFER
+	depends DW_SSI_XIP_CONT_XFER
 	depends ARCH_HAS_SSI_CONT_XFER_TIMEOUT_CNT
 
-config DW_SSI_PREFETCH
+config DW_SSI_XIP_PREFETCH
 	bool "Enable XIP prefetch feature"
-	depends ARCH_HAS_SSI_PREFETCH
+	depends ARCH_HAS_SSI_XIP_PREFETCH
 
 endif
 
