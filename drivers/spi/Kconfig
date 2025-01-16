@@ -8,11 +8,59 @@ menu "SPI Master drivers"
 config DW_SSI_MASTER
 	bool
 
+config ARCH_HAS_SSI_SPI_BRIDGE
+	bool
+
 config ARCH_HAS_SSI_ENH_CLK_RATIO
 	bool
 
 config ARCH_HAS_SSI_RX_SAMPLE_DELAY
 	bool
+
+config ARCH_IS_SSI_RXD_NO
+	bool
+
+config ARCH_IS_SSI_RXD_POS
+	bool
+	select ARCH_HAS_SSI_RX_SAMPLE_DELAY
+
+config ARCH_IS_SSI_RXD_BOTH
+	bool
+	select ARCH_HAS_SSI_RX_SAMPLE_DELAY
+
+config ARCH_HAS_SSI_BOOT_MODE
+	bool
+
+config ARCH_HAS_SSI_EXT_RAM
+	bool
+
+config ARCH_HAS_SSI_TX_RX
+	bool
+	depends ARCH_HAS_SSI_EXT_RAM
+
+config ARCH_IS_SSI_RAM_DEPTH_8
+	bool
+	depends !ARCH_HAS_SSI_TX_RX
+
+config ARCH_IS_SSI_RAM_DEPTH_16
+	bool
+	depends !ARCH_HAS_SSI_TX_RX
+
+config ARCH_IS_SSI_RAM_DEPTH_32
+	bool
+	depends !ARCH_HAS_SSI_TX_RX
+
+config ARCH_IS_SSI_RAM_DEPTH_64
+	bool
+	depends !ARCH_HAS_SSI_TX_RX
+
+config ARCH_IS_SSI_RAM_DEPTH_128
+	bool
+	depends !ARCH_HAS_SSI_TX_RX
+
+config ARCH_IS_SSI_RAM_DEPTH_256
+	bool
+	depends !ARCH_HAS_SSI_TX_RX
 
 config ARCH_HAS_SSI_FIFO
 	bool
@@ -25,51 +73,99 @@ config ARCH_HAS_SSI_XFER_32
 
 config ARCH_IS_SSI_RX_FIFO_DEPTH_2
 	bool
+	depends ARCH_HAS_SSI_FIFO
 
 config ARCH_IS_SSI_RX_FIFO_DEPTH_4
 	bool
+	depends ARCH_HAS_SSI_FIFO
 
 config ARCH_IS_SSI_RX_FIFO_DEPTH_8
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_RX_FIFO_DEPTH_16
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_RX_FIFO_DEPTH_32
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_RX_FIFO_DEPTH_64
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_RX_FIFO_DEPTH_128
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_RX_FIFO_DEPTH_256
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_TX_FIFO_DEPTH_2
 	bool
+	depends ARCH_HAS_SSI_FIFO
+
+config ARCH_IS_SSI_TX_FIFO_DEPTH_3
+	bool
+	depends ARCH_HAS_SSI_FIFO
 
 config ARCH_IS_SSI_TX_FIFO_DEPTH_4
 	bool
+	depends ARCH_HAS_SSI_FIFO
+
+config ARCH_IS_SSI_TX_FIFO_DEPTH_5
+	bool
+	depends ARCH_HAS_SSI_FIFO
 
 config ARCH_IS_SSI_TX_FIFO_DEPTH_8
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_TX_FIFO_DEPTH_16
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_TX_FIFO_DEPTH_32
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_TX_FIFO_DEPTH_64
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_TX_FIFO_DEPTH_128
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
 
 config ARCH_IS_SSI_TX_FIFO_DEPTH_256
 	bool
+	depends ARCH_HAS_SSI_FIFO || ARCH_HAS_SSI_TX_RX
+
+config ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_4
+	bool
+	depends ARCH_HAS_SSI_CONCURRENT_XIP
+
+config ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_8
+	bool
+	depends ARCH_HAS_SSI_CONCURRENT_XIP
+
+config ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_16
+	bool
+	depends ARCH_HAS_SSI_CONCURRENT_XIP
+
+config ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_32
+	bool
+	depends ARCH_HAS_SSI_CONCURRENT_XIP
+
+config ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_64
+	bool
+	depends ARCH_HAS_SSI_CONCURRENT_XIP
+
+config ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_128
+	bool
+	depends ARCH_HAS_SSI_CONCURRENT_XIP
 
 config ARCH_IS_SSI_ENDCONV_NO
 	bool
@@ -81,6 +177,9 @@ config ARCH_IS_SSI_ENDCONV_REG
 	bool
 
 config ARCH_HAS_SSI_DMA
+	bool
+
+config ARCH_HAS_SSI_CLK_STRETCH
 	bool
 
 config ARCH_HAS_SSI_FRF
@@ -102,6 +201,9 @@ config ARCH_HAS_SSI_DFLT_SCPH
 	bool
 
 config ARCH_HAS_SSI_SCPH0_SSTOGGLE
+	bool
+
+config ARCH_HAS_SSI_CLK_STRETCH
 	bool
 
 config ARCH_HAS_SSI_DFLT_SECONV
@@ -144,8 +246,32 @@ config ARCH_HAS_SSI_DM
 	help
 	  Selects if data mask signal shall be included on SPI interface.
 
+config ARCH_HAS_SSI_HYPERBUS
+	bool
+	depends ARCH_HAS_SSI_SPI_8WIRE && ARCH_HAS_SSI_RXDS
+
 config ARCH_HAS_SSI_XIP
 	bool
+
+config ARCH_HAS_SSI_XIP_INST
+	bool
+	depends ARCH_HAS_SSI_XIP
+
+config ARCH_HAS_SSI_CONCURRENT_XIP
+	bool
+	depends ARCH_HAS_SSI_XIP
+
+config ARCH_HAS_SSI_XIP_CONT_XFER
+	bool
+	depends ARCH_HAS_SSI_XIP
+
+config ARCH_HAS_SSI_CONT_XFER_TIMEOUT_CNT
+	bool
+	depends ARCH_HAS_SSI_XIP_CONT_XFER
+
+config ARCH_HAS_SSI_XIP_PREFETCH
+	bool
+	depends ARCH_HAS_SSI_XIP
 
 menuconfig DW_SSI
 	bool "Synopsys DesignWare APB SSI support"
@@ -161,6 +287,14 @@ config DW_SSI_DEBUG
 	help
 	  Additional debugging messages including register accesses and
 	  driver states.
+
+menu "Device Configuration"
+
+config DW_SSI_SPI_BRIDGE
+	bool "Enable SPI bridge mode"
+	depends ARCH_HAS_SSI_SPI_BRIDGE
+
+endmenu
 
 menu "Top Level Parameters"
 
@@ -190,26 +324,177 @@ config DW_SSI_MAX_XFER_SIZE_32
 
 endchoice
 
+config DW_SSI_BOOT_MODE
+	bool "Enable boot mode"
+	depends ARCH_HAS_SSI_BOOT_MODE
+
+menu "Storage configuration"
+
+config DW_SSI_EXT_RAM
+	bool "Use external dual port RAM"
+	depends ARCH_HAS_SSI_EXT_RAM
+
+config DW_SSI_TX_RX
+	bool "Use seperate RAM interface for TX/RX FIFO"
+	depends ARCH_HAS_SSI_TX_RX
+
+choice
+	prompt "External RAM depth"
+	depends !DW_SSI_TX_RX
+	depends DW_SSI_EXT_RAM
+
+config DW_SSI_RAM_DEPTH_8
+	bool "8"
+	depends ARCH_IS_DW_SSI_RAM_DEPTH_8
+
+config DW_SSI_RAM_DEPTH_16
+	bool "16"
+	depends ARCH_IS_DW_SSI_RAM_DEPTH_16
+
+config DW_SSI_RAM_DEPTH_32
+	bool "32"
+	depends ARCH_IS_DW_SSI_RAM_DEPTH_32
+
+config DW_SSI_RAM_DEPTH_64
+	bool "64"
+	depends ARCH_IS_DW_SSI_RAM_DEPTH_64
+
+config DW_SSI_RAM_DEPTH_128
+	bool "128"
+	depends ARCH_IS_DW_SSI_RAM_DEPTH_128
+
+config DW_SSI_RAM_DEPTH_256
+	bool "256"
+	depends ARCH_IS_DW_SSI_RAM_DEPTH_256
+
+endchoice
+
 config DW_SSI_FIFO_DEPTH
 	bool "Use predefined FIFO buffer depth"
 	depends !ARCH_HAS_SSI_FIFO
 
 if DW_SSI_FIFO_DEPTH
 
-config DW_SSI_RX_FIFO_DEPTH
-	int "Receive FIFO buffer depth"
-	default 8
-	range 2 256 if DW_SSI_SPI_MODE_STD
-	range 4 256 if !DW_SSI_SPI_MODE_STD
+choice
+	prompt "Receive FIFO buffer depth"
+	default DW_SSI_RX_FIFO_DEPTH_8
 
-config DW_SSI_TX_FIFO_DEPTH
-	int "Transmit FIFO buffer depth"
-	default 8
-	range 2 256 if DW_SSI_SPI_MODE_STD
-	range 5 256 if (!DW_SSI_SPI_MODE_STD && DW_SSI_MAX_XFER_SIZE_16)
-	range 3 256 if (!DW_SSI_SPI_MODE_STD && DW_SSI_MAX_XFER_SIZE_32)
+config DW_SSI_RX_FIFO_DEPTH_2
+	bool "2"
+	depends ARCH_IS_SSI_RX_FIFO_DEPTH_2
+	depends DW_SSI_SPI_MODE_STD
+
+config DW_SSI_RX_FIFO_DEPTH_4
+	bool "4"
+	depends ARCH_IS_SSI_RX_FIFO_DEPTH_4
+
+config DW_SSI_RX_FIFO_DEPTH_8
+	bool "8"
+	depends ARCH_IS_SSI_RX_FIFO_DEPTH_8
+
+config DW_SSI_RX_FIFO_DEPTH_16
+	bool "16"
+	depends ARCH_IS_SSI_RX_FIFO_DEPTH_16
+
+config DW_SSI_RX_FIFO_DEPTH_32
+	bool "32"
+	depends ARCH_IS_SSI_RX_FIFO_DEPTH_32
+
+config DW_SSI_RX_FIFO_DEPTH_64
+	bool "64"
+	depends ARCH_IS_SSI_RX_FIFO_DEPTH_64
+
+config DW_SSI_RX_FIFO_DEPTH_128
+	bool "128"
+	depends ARCH_IS_SSI_RX_FIFO_DEPTH_128
+
+config DW_SSI_RX_FIFO_DEPTH_256
+	bool "256"
+	depends ARCH_IS_SSI_RX_FIFO_DEPTH_256
+
+endchoice
+
+choice
+	prompt "Transmit FIFO buffer depth"
+
+config DW_SSI_TX_FIFO_DEPTH_2
+	bool "2"
+	depends ARCH_IS_SSI_TX_FIFO_DEPTH_2
+	depends DW_SSI_SPI_MODE_STD
+
+config DW_SSI_TX_FIFO_DEPTH_3
+	bool "3"
+	depends ARCH_IS_SSI_TX_FIFO_DEPTH_3
+	depends DW_SSI_SPI_MODE_STD || !DW_SSI_MAX_XFER_SIZE_16
+
+config DW_SSI_TX_FIFO_DEPTH_4
+	bool "4"
+	depends ARCH_IS_SSI_TX_FIFO_DEPTH_4
+	depends DW_SSI_SPI_MODE_STD || !DW_SSI_MAX_XFER_SIZE_16
+
+config DW_SSI_TX_FIFO_DEPTH_5
+	bool "5"
+	depends ARCH_IS_SSI_TX_FIFO_DEPTH_5
+
+config DW_SSI_TX_FIFO_DEPTH_8
+	bool "8"
+	depends ARCH_IS_SSI_TX_FIFO_DEPTH_8
+
+config DW_SSI_TX_FIFO_DEPTH_16
+	bool "16"
+	depends ARCH_IS_SSI_TX_FIFO_DEPTH_16
+
+config DW_SSI_TX_FIFO_DEPTH_32
+	bool "32"
+	depends ARCH_IS_SSI_TX_FIFO_DEPTH_32
+
+config DW_SSI_TX_FIFO_DEPTH_64
+	bool "64"
+	depends ARCH_IS_SSI_TX_FIFO_DEPTH_64
+
+config DW_SSI_TX_FIFO_DEPTH_128
+	bool "128"
+	depends ARCH_IS_SSI_TX_FIFO_DEPTH_128
+
+config DW_SSI_TX_FIFO_DEPTH_256
+	bool "256"
+	depends ARCH_IS_SSI_TX_FIFO_DEPTH_256
+
+endchoice
 
 endif
+
+choice
+	prompt "XIP receive FIFO buffer depth"
+	depends DW_SSI_CONCURRENT_XIP
+
+config DW_SSI_XIP_RX_FIFO_DEPTH_4
+	bool "4"
+	depends ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_4
+
+config DW_SSI_XIP_RX_FIFO_DEPTH_8
+	bool "8"
+	depends ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_8
+
+config DW_SSI_XIP_RX_FIFO_DEPTH_16
+	bool "16"
+	depends ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_16
+
+config DW_SSI_XIP_RX_FIFO_DEPTH_32
+	bool "32"
+	depends ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_32
+
+config DW_SSI_XIP_RX_FIFO_DEPTH_64
+	bool "64"
+	depends ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_64
+
+config DW_SSI_XIP_RX_FIFO_DEPTH_128
+	bool "128"
+	depends ARCH_IS_SSI_XIP_RX_FIFO_DEPTH_128
+
+endchoice
+
+endmenu
 
 config DW_SSI_MAX_SLAVES
 	int "Number of slave select lines"
@@ -268,23 +553,6 @@ config DW_SSI_DFLT_SCPH
 	bool "Default serial clock phase"
 	depends ARCH_HAS_SSI_DFLT_SCPH
 	depends DW_SSI_DFLT_FRF_SPI
-
-config DW_SSI_SCPH0_SSTOGGLE
-	bool "Toggle slave select signal between frames"
-	depends DW_SSI_DFLT_FRF_SPI || !DW_SSI_HC_FRF
-	help
-	  When operating in SPI mode with clock phase (SCPH) set to 0,
-	  this parameter controls the behavior of the slave select line
-	  (ss_*_n) between data frames.
-	  1. If "Y" and CTRLR0.SSTE is "1" the "ss_*_n" line will
-	     toggle between consecutive data frames, with the serial
-	     clock (sclk) being held to its default value while "ss_*_n"
-	     is high.
-	  2. If "Y" and CTRLR0.SSTE is "0" the "ss_*_n" line will stay
-	     low and sclk will run continuously for the duration of the
-	     transfer.
-	  3. If "N", the ss_*_n will stay low and sclk will run
-	     continuously for the duration of the transfer.
 
 config DW_SSI_DFLT_SECONV
 	bool "Default Endianess Value"
@@ -348,11 +616,42 @@ config DW_SSI_DM
 	depends !DW_SSI_SPI_MODE_STD
 	depends ARCH_HAS_SSI_DM
 
+config DW_SSI_HYPERBUS
+	bool "Enable hyperbus transfer mode"
+	depends ARCH_HAS_SSI_HYPERBUS
+	depends DW_SSI_SPI_MODE_OCTAL
+	depends DW_SSI_RXDS
+
 config DW_SSI_XIP
 	bool "Include XIP feature in SPI mode"
 	depends ARCH_HAS_SSI_XIP
 	depends !DW_SSI_SPI_MODE_STD && !ARCH_HAS_APB_20 && \
 		ARCH_HAS_DW_AMBA_ADVANCED
+
+if DW_SSI_XIP
+
+config DW_SSI_XIP_INST
+	bool "Enable instruction phase in XIP mode"
+	depends ARCH_HAS_SSI_XIP_INST
+
+config DW_SSI_CONCURRENT_XIP
+	bool "Enable concurrent XIP transfer mode"
+	depends ARCH_HAS_SSI_CONCURRENT_XIP
+
+config DW_SSI_CONT_XFER
+	bool "Enable continuous transfer mode in XIP mode"
+	depends ARCH_HAS_SSI_CONT_XFER
+
+config DW_SSI_CONT_XFER_TIMEOUT_CNT
+	bool "Enable time out counter for continuous transfer mode"
+	depends DW_SSI_CONT_XFER
+	depends ARCH_HAS_SSI_CONT_XFER_TIMEOUT_CNT
+
+config DW_SSI_PREFETCH
+	bool "Enable XIP prefetch feature"
+	depends ARCH_HAS_SSI_PREFETCH
+
+endif
 
 endmenu
 
@@ -363,13 +662,27 @@ choice
 config DW_SSI_FC_SSTOGGLE
 	bool "Toggle CS (ss_*_n)"
 	depends ARCH_HAS_SSI_SCPH0_SSTOGGLE
+	depends DW_SSI_DFLT_FRF_SPI || !DW_SSI_HC_FRF
 	help
+	  When operating in SPI mode with clock phase (SCPH) set to 0,
+	  this parameter controls the behavior of the slave select line
+	  (ss_*_n) between data frames.
+	  1. If "Y" and CTRLR0.SSTE is "1" the "ss_*_n" line will
+	     toggle between consecutive data frames, with the serial
+	     clock (sclk) being held to its default value while "ss_*_n"
+	     is high.
+	  2. If "Y" and CTRLR0.SSTE is "0" the "ss_*_n" line will stay
+	     low and sclk will run continuously for the duration of the
+	     transfer.
+	  3. If "N", the ss_*_n will stay low and sclk will run
+	     continuously for the duration of the transfer.
 	  Toggle ss_*_n line between consecutive data frames, with the
 	  serial clock (sclk) being hold to its default value while
 	  (ss_*_n) is high.
 
 config DW_SSI_FC_SCSTRETCH
 	bool "Stretch CLK (sclk)"
+	depends ARCH_HAS_SSI_CLK_STRETCH
 	help
 	  The ss_*_n line stay low and sclk run continuously for the
 	  duration of the transfer.

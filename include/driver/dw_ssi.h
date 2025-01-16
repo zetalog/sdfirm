@@ -274,8 +274,60 @@ void dw_ssi_start_ctrl(int n);
 #define dw_ssi_stop_ctrl(n)		dw_ssi_disable_ctrl(n)
 
 #ifdef CONFIG_DW_SSI_FIFO_DEPTH
-#define DW_SSI_TX_FIFO_DEPTH		CONFIG_DW_SSI_TX_FIFO_DEPTH
-#define DW_SSI_RX_FIFO_DEPTH		CONFIG_DW_SSI_RX_FIFO_DEPTH
+#ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_2
+#define DW_SSI_TX_FIFO_DEPTH		2
+#endif
+#ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_3
+#define DW_SSI_TX_FIFO_DEPTH		3
+#endif
+#ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_4
+#define DW_SSI_TX_FIFO_DEPTH		4
+#endif
+#ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_5
+#define DW_SSI_TX_FIFO_DEPTH		5
+#endif
+#ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_8
+#define DW_SSI_TX_FIFO_DEPTH		8
+#endif
+#ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_16
+#define DW_SSI_TX_FIFO_DEPTH		16
+#endif
+#ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_32
+#define DW_SSI_TX_FIFO_DEPTH		32
+#endif
+#ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_64
+#define DW_SSI_TX_FIFO_DEPTH		64
+#endif
+#ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_128
+#define DW_SSI_TX_FIFO_DEPTH		128
+#endif
+#ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_256
+#define DW_SSI_TX_FIFO_DEPTH		256
+#endif
+#ifdef CONFIG_DW_SSI_RX_FIFO_DEPTH_2
+#define DW_SSI_RX_FIFO_DEPTH		2
+#endif
+#ifdef CONFIG_DW_SSI_RX_FIFO_DEPTH_4
+#define DW_SSI_RX_FIFO_DEPTH		4
+#endif
+#ifdef CONFIG_DW_SSI_RX_FIFO_DEPTH_8
+#define DW_SSI_RX_FIFO_DEPTH		8
+#endif
+#ifdef CONFIG_DW_SSI_RX_FIFO_DEPTH_16
+#define DW_SSI_RX_FIFO_DEPTH		16
+#endif
+#ifdef CONFIG_DW_SSI_RX_FIFO_DEPTH_32
+#define DW_SSI_RX_FIFO_DEPTH		32
+#endif
+#ifdef CONFIG_DW_SSI_RX_FIFO_DEPTH_64
+#define DW_SSI_RX_FIFO_DEPTH		64
+#endif
+#ifdef CONFIG_DW_SSI_RX_FIFO_DEPTH_128
+#define DW_SSI_RX_FIFO_DEPTH		128
+#endif
+#ifdef CONFIG_DW_SSI_RX_FIFO_DEPTH_256
+#define DW_SSI_RX_FIFO_DEPTH		256
+#endif
 #else
 /* Allow probe */
 #define DW_SSI_TX_FIFO_DEPTH		0
