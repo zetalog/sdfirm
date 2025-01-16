@@ -519,8 +519,8 @@ static int do_mtd_core(int argc, char *argv[])
 		mtd_t mid = (uint8_t)strtoull(argv[2], 0, 0);
 		mtd_addr_t addr = (uint32_t)strtoull(argv[3], 0, 0);
 		mtd_size_t size = (uint32_t)strtoull(argv[4], 0, 0);
-		uint8_t buf[64];
-		mtd_load(mid, *buf, addr, size);
+		uint8_t buf[64] = {0};
+		mtd_load(mid, buf, addr, size);
 		for (i = 0; i < size; i++)
 			printf("0x%x ", buf[i]);
 		printf("\n");
@@ -532,10 +532,10 @@ static int do_mtd_core(int argc, char *argv[])
 		mtd_t mid = (uint8_t)strtoull(argv[2], 0, 0);
 		mtd_addr_t addr = (uint32_t)strtoull(argv[3], 0, 0);
 		mtd_size_t size = (uint32_t)strtoull(argv[4], 0, 0);
-		uint8_t buf[64];
+		uint8_t buf[64] = {0};
 		for (i = 0; i < size; i++)
 			buf[i] = (uint8_t)strtoull(argv[i + 5], 0, 0);
-		mtd_store(mid, *buf, addr, size);
+		mtd_store(mid, buf, addr, size);
 		return 0;
 	}
 	return -EINVAL;
