@@ -1,4 +1,5 @@
 #include <target/mtd.h>
+#include <target/cmdline.h>
 
 mtd_chip_t *mtd_chips[NR_MTD_CHIPS];
 struct mtd_dev mtd_devs[NR_MTD_DEVS];
@@ -495,3 +496,56 @@ void mtd_init(void)
 {
 	mtd_concat_init();
 }
+
+static int do_mtd_core(int argc, char *argv[])
+{
+	int i;
+	if (argc < 2)
+		return -EINVAL;
+	if (strcmp(argv[1], "dump") == 0) {
+		for (i = 0; i < NR_MTD_DEVS; i++) {
+			printf("mtddevice %d: cid = %d, pageorder = %x, nr_pages = %d, eraseorder = %x\n", 
+				i,
+				mtd_devs[i].info->cid, 
+				mtd_devs[i].info->pageorder, 
+				mtd_devs[i].info->nr_pages, 
+				mtd_devs[i].info->eraseorder);
+		}
+		return 0;
+	}
+	if (strcmp(argv[1], "load") == 0) {
+		if (argc < 5)
+			return -EINVAL;
+		mtd_t mid = (uint8_t)strtoull(argv[2], 0, 0);
+		mtd_addr_t addr = (uint32_t)strtoull(argv[3], 0, 0);
+		mtd_size_t size = (uint32_t)strtoull(argv[4], 0, 0);
+		uint8_t buf[64];
+		mtd_load(mid, *buf, addr, size);
+		for (i = 0; i < size; i++)
+			printf("0x%x ", buf[i]);
+		printf("\n");
+		return 0;
+	}
+	if (strcmp(argv[1], "store") == 0) {
+		if (argc < 6)
+			return -EINVAL;
+		mtd_t mid = (uint8_t)strtoull(argv[2], 0, 0);
+		mtd_addr_t addr = (uint32_t)strtoull(argv[3], 0, 0);
+		mtd_size_t size = (uint32_t)strtoull(argv[4], 0, 0);
+		uint8_t buf[64];
+		for (i = 0; i < size; i++)
+			buf[i] = (uint8_t)strtoull(argv[i + 5], 0, 0);
+		mtd_store(mid, *buf, addr, size);
+		return 0;
+	}
+	return -EINVAL;
+}
+
+DEFINE_COMMAND(mtd_core, do_mtd_core, "MTD Core commands",
+	"dump\n"
+	"    - dump all mtd device\n"
+	"load <mid> <addr> <size>\n"
+	"    - load data from mtd device\n"
+	"store <mid> <addr> <size> <data1> [data2] ... [dataN]\n"
+	"    - store data from mtd device\n"
+);
