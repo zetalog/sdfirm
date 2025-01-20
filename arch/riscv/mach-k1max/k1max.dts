@@ -130,10 +130,11 @@
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu0_intc: interrupt-controller {
@@ -149,10 +150,11 @@
 			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu1_intc: interrupt-controller {
@@ -169,10 +171,11 @@
 			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu2_intc: interrupt-controller {
@@ -186,10 +189,11 @@
 			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu3_intc: interrupt-controller {
@@ -206,10 +210,11 @@
 			reg = <2>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu2_intc: interrupt-controller {
@@ -223,10 +228,11 @@
 			reg = <3>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu3_intc: interrupt-controller {
@@ -243,9 +249,10 @@
 			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu4_intc: interrupt-controller {
@@ -259,9 +266,10 @@
 			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu5_intc: interrupt-controller {
@@ -275,9 +283,10 @@
 			reg = <6>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu6_intc: interrupt-controller {
@@ -291,9 +300,10 @@
 			reg = <7>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu7_intc: interrupt-controller {
@@ -311,9 +321,10 @@
 			reg = <8>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu8_intc: interrupt-controller {
@@ -327,9 +338,10 @@
 			reg = <9>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu9_intc: interrupt-controller {
@@ -343,9 +355,10 @@
 			reg = <10>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu10_intc: interrupt-controller {
@@ -359,9 +372,10 @@
 			reg = <11>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu11_intc: interrupt-controller {
@@ -375,9 +389,10 @@
 			reg = <12>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu12_intc: interrupt-controller {
@@ -391,9 +406,10 @@
 			reg = <13>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu13_intc: interrupt-controller {
@@ -407,9 +423,10 @@
 			reg = <14>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu14_intc: interrupt-controller {
@@ -423,9 +440,10 @@
 			reg = <15>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			riscv,isa = "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
 			mmu-type = "riscv,sv48";
 			riscv,cbom-block-size = <64>;
+			riscv,cboz-block-size = <64>;
 			cpu-cacheline = "64Bytes";
 
 			cpu15_intc: interrupt-controller {
