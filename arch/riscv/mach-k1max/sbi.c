@@ -23,7 +23,7 @@ static void fdt_cpu_riscv_isa_fixup(void *fdt)
 	int err, cpu_offset, cpus_offset;
 	uint32_t hartid;
 
-	strcpy((char *)&riscv_isa_str, "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc");
+	strcpy((char *)&riscv_isa_str, "rv64imafdcsu_zicbom_zicboz_sscofpmf_svpbmt_sstc");
 
 #ifdef CONFIG_RISCV_V
 	strcat((char *)&riscv_isa_str, "_v");
