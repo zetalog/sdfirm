@@ -78,7 +78,7 @@
 			reg = <0>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicboz_sscofpmf_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			numa-node-id = <0>;
@@ -95,7 +95,7 @@
 			reg = <1>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicboz_sscofpmf_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			cpu-ai = "true";
 			numa-node-id = <0>;
@@ -115,7 +115,7 @@
 			reg = <4>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicboz_sscofpmf_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <0>;
 
@@ -130,7 +130,7 @@
 			reg = <5>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicboz_sscofpmf_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <0>;
 
@@ -148,7 +148,7 @@
 			reg = <32>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicboz_sscofpmf_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -163,7 +163,7 @@
 			reg = <33>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicboz_sscofpmf_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -178,7 +178,7 @@
 			reg = <36>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicboz_sscofpmf_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
@@ -193,7 +193,7 @@
 			reg = <37>;
 			status = "okay";
 			compatible = "riscv";
-			riscv,isa = "rv64imafdcvhsu_sscofpmf_svpbmt_sstc";
+			riscv,isa = "rv64imafdcvhsu_zicboz_sscofpmf_svpbmt_sstc";
 			mmu-type = "riscv,sv48";
 			numa-node-id = <1>;
 
