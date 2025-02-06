@@ -274,6 +274,32 @@ config ARCH_K1MAX
 	help
 	  This enables support for spacemit k1max IoT platform.
 
+config ARCH_STEV20
+	bool "Spacemit STEV20"
+	select CPU_X60
+	select ARCH_IS_TICKLESS
+	select ARCH_HAS_NOVEC
+	select ARCH_HAS_TSC
+	select ARCH_HAS_TSC_CONST
+	select ARCH_HAS_GPT
+	select ARCH_HAS_IRQC
+	select ARCH_HAS_CLINT
+	select ARCH_HAS_PLIC
+	select ARCH_HAS_FDT
+	select ARCH_HAS_UART
+	select ARCH_HAS_CLK
+	select ARCH_HAS_CLK_GENERIC
+	select ARCH_HAS_BOOT0 if !CPU_CVA6
+	select ARCH_HAS_BOOT1 if !CPU_CVA6
+	select ARCH_HAS_BOOT2 if !CPU_CVA6
+	select CLINT
+	select PLIC if !SYS_NOIRQ
+	select ARCH_HAS_NOC if STEV20_SOC || STEV20_K1X
+	select STEV20_UART if CONSOLE || DEBUG_PRINT
+	select ARCH_HAS_IMSIC if CPU_SMAIA_IMSIC
+	help
+	  This enables support for spacemit stev20 IoT platform.
+
 config ARCH_K1X
 	bool "Spacemit K1X"
 	select CPU_X60
@@ -404,6 +430,7 @@ source "arch/riscv/mach-unleashed/Kconfig"
 source "arch/riscv/mach-k210/Kconfig"
 source "arch/riscv/mach-vega/Kconfig"
 source "arch/riscv/mach-k1max/Kconfig"
+source "arch/riscv/mach-stev20/Kconfig"
 source "arch/riscv/mach-k1x/Kconfig"
 source "arch/riscv/mach-k1mxlite/Kconfig"
 source "arch/riscv/mach-corev/Kconfig"

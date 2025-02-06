@@ -1,0 +1,61 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+/*
+ *  Copyright (C) 2022 CAS SmartCore Co., Ltd.
+ *    Author: 2022 Lv Zheng <zhenglv@smart-core.cn>
+ */
+
+#ifndef __DT_BINDINGS_CLOCK_SBI_K1MAX_H
+#define __DT_BINDINGS_CLOCK_SBI_K1MAX_H
+
+#include <dt-bindings/clock/sbi-clock.h>
+
+#ifdef CONFIG_STEV20_CPU
+#define CPU_CLK_FREQ		2000000000
+#define APB_CLK_FREQ		2000000000
+#define PIC_CLK_FREQ		2000000000
+#endif /* CONFIG_STEV20_CPU */
+
+#ifdef CONFIG_STEV20_SOC
+#ifdef CONFIG_STEV20_S2C
+#define PAD_CLK_FREQ		50000000
+#define APB_CLK_FREQ		PAD_CLK_FREQ
+#ifdef CONFIG_STEV20_S2C_SPEEDUP
+#define CPU_CLK_FREQ		100000000
+#else /* CONFIG_STEV20_S2C_SPEEDUP */
+#define CPU_CLK_FREQ		PAD_CLK_FREQ
+#endif /* CONFIG_STEV20_S2C_SPEEDUP */
+#define PIC_CLK_FREQ		PAD_CLK_FREQ
+#else /* CONFIG_STEV20_S2C */
+#ifdef CONFIG_STEV20_K1X
+#define CPU_CLK_FREQ		2400000000
+#define CPU_CLK_FREQ		2400000000
+#define PIC_CLK_FREQ		(2*(CPU_CLK_FREQ)/5)
+#define APB_CLK_FREQ		(2*(CPU_CLK_FREQ)/5)
+#endif /* CONFIG_STEV20_K1X */
+#ifdef CONFIG_STEV20_K1PRO
+/* Unknown, use CPU bench */
+#define CPU_CLK_FREQ		2000000000
+#define APB_CLK_FREQ		2000000000
+#define PIC_CLK_FREQ		2000000000
+#endif /* CONFIG_STEV20_K1PRO */
+#ifdef CONFIG_STEV20_K1MAX
+/* Unknown, use CPU bench */
+#define CPU_CLK_FREQ		2000000000
+#define APB_CLK_FREQ		2000000000
+#define PIC_CLK_FREQ		2000000000
+#endif /* CONFIG_STEV20_K1MAX */
+#endif /* CONFIG_STEV20_S2C */
+#endif /* CONFIG_STEV20_SOC */
+
+#ifdef CONFIG_K1X_S2C
+#define S2CCLK1_FREQ		20000000
+#define S2CCLK2_FREQ		29000000
+#define S2CCLK3_FREQ		20000000
+#define S2CCLK4_FREQ		24000000
+#define CPU_CLK_FREQ		S2CCLK4_FREQ
+#define APB_CLK_FREQ		(S2CCLK2_FREQ/2)
+#define DDR_CLK_FREQ		(S2CCLK3_FREQ/4)
+#define PIC_CLK_FREQ		S2CCLK4_FREQ
+#endif
+
+#endif /* __DT_BINDINGS_CLOCK_SBI_K1MAX_H */

@@ -1,0 +1,886 @@
+#include <target/arch.h>
+#include <dt-bindings/clock/sbi-clock-stev20.h>
+
+/dts-v1/;
+
+/memreserve/ RAM_BASE 0x00200000;
+
+/ {
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+	compatible = "riscv-spacemit";
+	model = "riscv-spacemit,k1max";
+
+	reserved-memory {
+		#address-cells = <0x02>;
+		#size-cells = <0x02>;
+		ranges;
+
+		mmode_pmp0@40000000 {
+			reg = <0x00 0x40000000 0x00 0x20000>;
+			no-map;
+		};
+#if 1
+		linux,cma {
+			compatible = "shared-dma-pool";
+			/* alloc memory from 0x40000000~0x80000000 */
+			alloc-ranges = <0 0xC0000000 0 0x40000000>;
+			/* size of cma buffer is 384MByte */
+			size = <0 0x18000000>;
+			/* start address is 1Mbyte aligned */
+			alignment = <0x0 0x100000>;
+			linux,cma-default;
+			/* besides hardware, dma for ex. buffer can be used by memory management */
+			reusable;
+		};
+#endif
+	};
+
+	aliases {
+		uart0 = "/soc/uart@10010000";
+	};
+
+	chosen {
+#ifdef CONFIG_STEV20_UART_DTS_CON
+		bootargs = "earlycon=sbi console=ttyS0,115200n8 debug loglevel=8,initcall_debug=1 rdinit=/sdfirm_init";
+		stdout-path = "uart0:115200n8";
+#else
+		bootargs = "console=hvc0 earlycon=sbi rdinit=/sdfirm_init";
+#endif
+	};
+
+	cpus {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		timebase-frequency = <PIC_CLK_FREQ>;
+
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <&cpu0>;
+				};
+#ifdef CONFIG_SMP
+				core1 {
+					cpu = <&cpu1>;
+				};
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 4
+				core2 {
+					cpu = <&cpu2>;
+				};
+				core3 {
+					cpu = <&cpu3>;
+				};
+#endif
+			};
+#if CONFIG_STEV20_SMP_CPUS >= 8
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+			cluster1 {
+				core4 {
+					cpu = <&cpu4>;
+				};
+				core5 {
+					cpu = <&cpu5>;
+				};
+				core6 {
+					cpu = <&cpu6>;
+				};
+				core7 {
+					cpu = <&cpu7>;
+				};
+			};
+#endif
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 16
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+			cluster2 {
+				core8 {
+					cpu = <&cpu8>;
+				};
+				core9 {
+					cpu = <&cpu9>;
+				};
+				core10 {
+					cpu = <&cpu10>;
+				};
+				core11 {
+					cpu = <&cpu11>;
+				};
+			};
+			cluster3 {
+				core12 {
+					cpu = <&cpu12>;
+				};
+				core13 {
+					cpu = <&cpu13>;
+				};
+				core14 {
+					cpu = <&cpu14>;
+				};
+				core15 {
+					cpu = <&cpu15>;
+				};
+			};
+
+#endif
+#endif
+		};
+
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			reg = <0>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu0_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				#address-cells = <1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#ifdef CONFIG_SMP
+		cpu1: cpu@1 {
+			device_type = "cpu";
+			reg = <1>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu1_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif
+#ifdef CONFIG_STEV20_PARTIAL_GOOD
+#if CONFIG_STEV20_SMP_CPUS == 8
+		cpu2: cpu@2 {
+			device_type = "cpu";
+			reg = <4>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu2_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu3: cpu@3 {
+			device_type = "cpu";
+			reg = <5>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu3_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif
+#else
+#if CONFIG_STEV20_SMP_CPUS >= 4
+		cpu2: cpu@2 {
+			device_type = "cpu";
+			reg = <2>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu2_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu3: cpu@3 {
+			device_type = "cpu";
+			reg = <3>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			cpu-ai = "true";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu3_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 8
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+		cpu4: cpu@4 {
+			device_type = "cpu";
+			reg = <4>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu4_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu5: cpu@5 {
+			device_type = "cpu";
+			reg = <5>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu5_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu6: cpu@6 {
+			device_type = "cpu";
+			reg = <6>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu6_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu7: cpu@7 {
+			device_type = "cpu";
+			reg = <7>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_h_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu7_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 16
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+		cpu8: cpu@8 {
+			device_type = "cpu";
+			reg = <8>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu8_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu9: cpu@9 {
+			device_type = "cpu";
+			reg = <9>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu9_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu10: cpu@10 {
+			device_type = "cpu";
+			reg = <10>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu10_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu11: cpu@11 {
+			device_type = "cpu";
+			reg = <11>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu11_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu12: cpu@12 {
+			device_type = "cpu";
+			reg = <12>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu12_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu13: cpu@13 {
+			device_type = "cpu";
+			reg = <13>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu13_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu14: cpu@14 {
+			device_type = "cpu";
+			reg = <14>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu14_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+		cpu15: cpu@15 {
+			device_type = "cpu";
+			reg = <15>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu_zicbom_sscofpmf_svpbmt_sstc_v_smaia_ssaia_smstateen";
+			mmu-type = "riscv,sv48";
+			riscv,cbom-block-size = <64>;
+			cpu-cacheline = "64Bytes";
+
+			cpu15_intc: interrupt-controller {
+				#interrupt-cells = <0x1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+#endif
+#endif
+#endif
+	};
+
+	memory@40000000 {
+		device_type = "memory";
+		reg = <DT_REGHI(RAM_BASE) DT_REGLO(RAM_BASE)
+		       DT_REGHI(RAM_SIZE) DT_REGLO(RAM_SIZE)
+		>;
+	};
+
+	soc {
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		compatible = "simple-bus";
+		ranges;
+
+#ifdef CONFIG_DW_UART
+		uart@10010000 {
+#ifdef CONFIG_RISCV_SMAIA
+			interrupt-parent = <&saplic>;
+			interrupts = <16 4>;
+#else
+			interrupt-parent = <&plic>;
+			interrupts = <16>;
+#endif
+			clock-frequency = <APB_CLK_FREQ>;
+			reg = <DT_REGHI(UART_BASE) DT_REGLO(UART_BASE)
+			       0x0 0x1000
+			>;
+			reg-io-width = <4>;
+			reg-shift = <2>;
+			hw-flow-control = "unsupport";
+			compatible = "snps,dw-apb-uart";
+#ifdef CONFIG_STEV20_UART_DTS_CON
+			status = "okay";
+#else
+			status = "disabled";
+#endif
+		};
+#endif
+
+#ifdef CONFIG_NS16550
+		serial@d4017000 {
+			compatible = "mrvl,pxa-uart";
+			reg = <0x00 0xd4017000 0x00 0x100>;
+			interrupt-parent = <0x02>;
+			interrupts = <0x2a>;
+			clocks = <0x04>;
+			status = "ok";
+		};
+#endif
+
+#ifndef CONFIG_CPU_CVA6
+#ifdef CONFIG_RISCV_SMAIA
+		tcm: tcm@38000000 {
+			compatible = "spacemit,k1-pro-tcm";
+			reg = <0x0 0x38000000 0x0 0x180000>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges = <0x0 0x0 0x38000000 0x180000>;
+			no-memory-wc;
+
+			core0_tcm@0 {
+				reg = <0x00000 0x60000>;
+				pool;
+			};
+			core1_tcm@60000 {
+				reg = <0x60000 0x60000>;
+				pool;
+			};
+			core2_tcm@c0000 {
+				reg = <0xc0000 0x60000>;
+				pool;
+			};
+			core3_tcm@120000 {
+				reg = <0x120000 0x60000>;
+				pool;
+			};
+		};
+#else
+		tcm: tcm@38000000 {
+			compatible = "spacemit,k1-pro-tcm";
+			reg = <0x0 0x38000000 0x0 0x80000>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges = <0x0 0x0 0x38000000 0x80000>;
+			no-memory-wc;
+
+			core0_tcm@0 {
+				reg = <0x00000 0x20000>;
+				pool;
+			};
+			core1_tcm@20000 {
+				reg = <0x20000 0x20000>;
+				pool;
+			};
+			core2_tcm@40000 {
+				reg = <0x40000 0x20000>;
+				pool;
+			};
+			core3_tcm@60000 {
+				reg = <0x60000 0x20000>;
+				pool;
+			};
+		};
+#endif
+#endif
+
+#ifdef CONFIG_RISCV_SMAIA
+		maplic: interrupt-controller@c32200000 {
+			compatible = "riscv,aplic";
+			msi-parent = <&mimsic>;
+			reg = <0x0c 0x32200000 0x0 0x4000>;
+			interrupt-controller;
+			#interrupt-cells = <2>;
+			#address-cells = <1>;
+			riscv,num-sources = <96>;
+			riscv,children = <&saplic>;
+			riscv,delegate = <&saplic 1 90>;
+			status = "disabled";
+		};
+
+		saplic: interrupt-controller@c30504000 {
+			compatible = "riscv,aplic";
+			msi-parent = <&simsic>;
+			reg = <0x0c 0x30504000 0x0 0x4000>;
+			interrupt-controller;
+			#interrupt-cells = <2>;
+			#address-cells = <1>;
+			riscv,num-sources = <96>;
+		};
+
+		mimsic: interrupt-controller@c32300000 {
+			compatible = "riscv,imsics";
+			interrupts-extended = <&cpu0_intc 11
+#ifdef CONFIG_SMP
+						&cpu1_intc 11
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 4
+						&cpu2_intc 11
+						&cpu3_intc 11
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 8
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+						&cpu4_intc 11
+						&cpu5_intc 11
+						&cpu6_intc 11
+						&cpu7_intc 11
+#endif
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 16
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+						&cpu8_intc 11
+						&cpu9_intc 11
+						&cpu10_intc 11
+						&cpu11_intc 11
+						&cpu12_intc 11
+						&cpu13_intc 11
+						&cpu14_intc 11
+						&cpu15_intc 11
+#endif
+#endif
+			>;
+			reg = <0xc 0x32300000 0x0 0x2000>;
+			interrupt-controller;
+			#interrupt-cells = <0>;
+			#address-cells = <1>;
+			msi-controller;
+			riscv,num-ids = <255>;
+			status = "disabled";
+		};
+
+		simsic: interrupt-controller@c30600000 {
+			compatible = "riscv,imsics";
+			interrupts-extended = <&cpu0_intc 9
+#ifdef CONFIG_SMP
+						&cpu1_intc 9
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 4
+						&cpu2_intc 9
+						&cpu3_intc 9
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 8
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+						&cpu4_intc 9
+						&cpu5_intc 9
+						&cpu6_intc 9
+						&cpu7_intc 9
+#endif
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 16
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+						&cpu8_intc 9
+						&cpu9_intc 9
+						&cpu10_intc 9
+						&cpu11_intc 9
+						&cpu12_intc 9
+						&cpu13_intc 9
+						&cpu14_intc 9
+						&cpu15_intc 9
+#endif
+#endif
+			>;
+			reg = <0x0c 0x30600000 0x0 0x1000000>;
+			interrupt-controller;
+			#interrupt-cells = <0>;
+			#address-cells = <1>;
+			msi-controller;
+			riscv,num-ids = <255>;
+			riscv,group-index-bits = <1>;
+			riscv,group-index-shift = <32>;
+			riscv,hart-index-bits = <4>;
+			riscv,guest-index-bits = <4>;
+		};
+#else
+		plic: interrupt-controller@30000000 {
+			reg = <DT_REGHI(PLIC_REG_BASE) DT_REGLO(PLIC_REG_BASE)
+			       0x0 0x08000000
+			>;
+			interrupts-extended = <
+				&cpu0_intc 0xb &cpu0_intc 0x9
+#ifdef CONFIG_SMP
+				&cpu1_intc 0xb &cpu1_intc 0x9
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 4
+				&cpu2_intc 0xb &cpu2_intc 0x9
+				&cpu3_intc 0xb &cpu3_intc 0x9
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 8
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+				&cpu4_intc 0xb &cpu4_intc 0x9
+				&cpu5_intc 0xb &cpu5_intc 0x9
+				&cpu6_intc 0xb &cpu6_intc 0x9
+				&cpu7_intc 0xb &cpu7_intc 0x9
+#endif
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 16
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+				&cpu8_intc 0xb &cpu8_intc 0x9
+				&cpu9_intc 0xb &cpu9_intc 0x9
+				&cpu10_intc 0xb &cpu10_intc 0x9
+				&cpu11_intc 0xb &cpu11_intc 0x9
+				&cpu12_intc 0xb &cpu12_intc 0x9
+				&cpu13_intc 0xb &cpu13_intc 0x9
+				&cpu14_intc 0xb &cpu14_intc 0x9
+				&cpu15_intc 0xb &cpu15_intc 0x9
+#endif
+#endif
+			>;
+			interrupt-controller;
+			riscv,ndev = <160>;
+			riscv,max-priority = <7>;
+			compatible = "riscv,plic0";
+			#interrupt-cells = <0x1>;
+			#address-cells = <0x0>;
+		};
+#endif
+
+		dmac_core_clk: dmac-core-clk {
+			compatible = "fixed-clock";
+			clock-frequency = <APB_CLK_FREQ>;
+			#clock-cells = <0>;
+		};
+
+		dmac_cfg_clk: dmac-cfg-clk {
+			compatible = "fixed-clock";
+			clock-frequency = <APB_CLK_FREQ>;
+			#clock-cells = <0>;
+		};
+
+		dma: dma@10030000 {
+			compatible = "snps,axi-dma-1.01a";
+			reg = < 0x0 0x10030000 0x0 0x100000 >;
+			interrupt-parent = <&saplic>;
+			interrupts = <21 4>;
+			interrupts-names = "dma";
+			clocks = <&dmac_core_clk>, <&dmac_cfg_clk>;
+			clock-names = "core-clk", "cfgr-clk";
+			dma-channels = <8>;
+			snps,dma-masters = <1>;
+			snps,data-width = <4>;
+			snps,block-size = <0x10000 0x10000 0x10000 0x10000
+						0x10000 0x10000 0x10000 0x10000>;
+			snps,priority = <0 1 2 3 4 5 6 7>;
+			snps,axi-max-burst-len = <255 255 255 255 255 255 255 255>;
+			#dma-cells = <1>;
+			status = "okay";
+		};
+#if 0
+		dma: dma-controller@10030000{
+			compatible = "snps,dma-spear1340";
+			reg = <0x0 0x10030000 0x0 0x1000>;
+#ifdef CONFIG_RISCV_SMAIA
+			interrupt-parent = <&saplic>;
+			interrupts = <21 4>;
+#else
+			interrupt-parent = <&plic>;
+			interrupts = <21>;
+#endif
+			dma-masters = <1>;
+			dma-channels = <8>;
+			chan_allocation_order = <0>;
+			chan_priority = <0>;
+			block_size = <2047>;
+			data-width = <4 4 4 4>;
+			snps,dma-protection-control = <1>;
+			snps,max-burst-len = <16 16 16 16 16 16 16 16>;
+			status = "okay";
+		};
+#endif
+		clint: clint@c30400000 {
+			interrupts-extended = <
+				&cpu0_intc 0x3 &cpu0_intc 0x7
+#ifdef CONFIG_SMP
+				&cpu1_intc 0x3 &cpu1_intc 0x7
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 4
+				&cpu2_intc 0x3 &cpu2_intc 0x7
+				&cpu3_intc 0x3 &cpu3_intc 0x7
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 8
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+				&cpu4_intc 0x3 &cpu4_intc 0x7
+				&cpu5_intc 0x3 &cpu5_intc 0x7
+				&cpu6_intc 0x3 &cpu6_intc 0x7
+				&cpu7_intc 0x3 &cpu7_intc 0x7
+#endif
+#endif
+#if CONFIG_STEV20_SMP_CPUS >= 16
+#ifndef CONFIG_STEV20_PARTIAL_GOOD
+				&cpu8_intc 0x3 &cpu8_intc 0x7
+				&cpu9_intc 0x3 &cpu9_intc 0x7
+				&cpu10_intc 0x3 &cpu10_intc 0x7
+				&cpu11_intc 0x3 &cpu11_intc 0x7
+				&cpu12_intc 0x3 &cpu12_intc 0x7
+				&cpu13_intc 0x3 &cpu13_intc 0x7
+				&cpu14_intc 0x3 &cpu14_intc 0x7
+				&cpu15_intc 0x3 &cpu15_intc 0x7
+#endif
+#endif
+			>;
+			reg = <DT_REGHI(0xc30400000) DT_REGLO(0xc30400000)
+			       0x0 0x00010000
+			>;
+			compatible = "riscv,clint0";
+#ifdef CONFIG_ARCH_IS_MMIO_32BIT
+			clint,has-no-64bit-mmio;
+#endif
+		};
+
+		ethernet@1003a000 {
+			compatible = "spacemit,k1-pro-mac";
+			reg = <0x00 0x1003a000 0x00 0x10000>;
+			reg-names = "gmac";
+#ifdef CONFIG_RISCV_SMAIA
+			interrupt-parent = <&saplic>;
+			interrupts = <0x1a 4>;
+#else
+			interrupt-parent = <&plic>;
+			interrupts = <0x1a>;
+#endif
+			interrupt-names = "macirq";
+			snps,pbl = <0x20>;
+			snps,fixed-burst;
+			snps,axi-config = <0x06>;
+			phy-mode = "rmii";
+			rx-clk-delay = <0x00>;
+			tx-clk-delay = <0x00>;
+			phy-handle = <&phy_88E1111_0>;
+			status = "okay";
+
+			stmmac-axi-config {
+				snps,wr_osr_lmt = <0x03>;
+				snps,rd_osr_lmt = <0x03>;
+				snps,blen = <0x10 0x08 0x04 0x00 0x00 0x00 0x00>;
+				phandle = <0x06>;
+			};
+
+			mdio0 {
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				compatible = "snps,dwmac-mdio";
+
+				phy_88E1111_0:ethernet-phy@0 {
+					reg = <0x07>;
+				};
+
+				 phy_88E1111_1: ethernet-phy@1 {
+					reg = <0x02>;
+				};
+			};
+		};
+	};
+	pmu {
+		compatible = "riscv,pmu";
+
+		riscv,event-to-mhpmevent =
+			/* BRANCH_INSTRUCTIONS */
+			<0x00005 0x0 0x01>,
+			/* BRANCH_MISSES */
+			<0x00006 0x0 0x02>,
+			/* STALLED_CYCLES_FRONTEND */
+			<0x00008 0x0 0x03>,
+			/* STALLED_CYCLES_BACKEND */
+			<0x00009 0x0 0x04>,
+			/* L1D_READ_ACCESS */
+			<0x10000 0x0 0x06>,
+			/* L1D_READ_MISS */
+			<0x10001 0x0 0x05>,
+			/* L1D_WRITE_ACCESS */
+			<0x10002 0x0 0x0a>,
+			/* L1D_WRITE_MISS */
+			<0x10003 0x0 0x09>,
+			/* L1I_READ_ACCESS */
+			<0x10008 0x0 0x0c>,
+			/* L1I_READ_MISS */
+			<0x10009 0x0 0x0b>,
+			/* L1I_PREFETCH_ACCESS */
+			<0x1000c 0x0 0x0e>,
+			/* L1I_PREFETCH_MISS */
+			<0x1000d 0x0 0x0d>,
+			/* DTLB_READ_MISS */
+			<0x10019 0x0 0x15>,
+			/* DTLB_WRITE_MISS */
+			<0x1001b 0x0 0x19>,
+			/* ITLB_READ_MISS */
+			<0x10021 0x0 0x1b>;
+
+		/* 16 valid counters: mhpmcounter3 ~ mhpmcounter18 */
+		riscv,event-to-mhpmcounters =
+			<0x00005 0x00006 0x0007fff8>,
+			<0x00008 0x00009 0x0007fff8>,
+			<0x10000 0x10003 0x0007fff8>,
+			<0x10008 0x10009 0x0007fff8>,
+			<0x1000c 0x1000d 0x0007fff8>,
+			<0x10019 0x10019 0x0007fff8>,
+			<0x1001b 0x1001b 0x0007fff8>,
+			<0x10021 0x10021 0x0007fff8>;
+
+		riscv,raw-event-to-mhpmcounters =
+			/*
+			 * For convenience, we treat 0x1~0xff as valid indexes,
+			 * but actually in hardware the valid indexes are 0x1~0xbd.
+			 */
+			<0x0 0x0 0xffffffff 0xffffff00 0x0007fff8>;
+	};
+};

@@ -1,0 +1,221 @@
+if ARCH_STEV20
+
+menu "Spacemit STEV20 board options"
+
+config STEV20_SOC
+	bool
+
+choice
+	prompt "Simulation chip"
+
+config STEV20_CPU
+	bool "CPU verification TB (X60/X100)"
+	help
+	  This configuration contains only CPU subsystem running in RTL
+	  environment.
+
+config STEV20_PZ1
+	bool "Palladium Z1 verification TB (STEV10)"
+	select STEV20_SOC
+	help
+	  This configuration contains SoC configuration running in RTL
+	  environment or on palladium Z1 platform.
+
+config STEV20_S2C
+	bool "S2C FPGA verification TB (STEV10)"
+	select STEV20_SOC
+	help
+	  This configuration contains S2C FPGA bit related information
+	  where pad_clk is fed by S2CCLK1 and cpu_clk might be fed by
+	  S2CCLK2.
+
+endchoice
+
+config STEV20_S2C_SPEEDUP
+	bool "Speed up configuration on S2C FPGA"
+	depends STEV20_S2C && STEV20_SOC_K1X
+	help
+	  This configuration is only applied on SPACET_K1X, where S2CCLK2
+	  is used as CPU clock, when it is configured as 50MHz, CPU clock
+	  gets a doubled rate, that is to say, 100MHz.
+
+config STEV20_S2C_SPEEDUP_QUIRK_RDTIME
+	bool "Enable RDTIME quirk on S2C FPGA"
+	depends STEV20_S2C_SPEEDUP
+	depends !RISCV_SSTC
+
+if STEV20_SOC
+
+choice
+	prompt "SoC evaluation (STEV10) chip model"
+
+config STEV20_K1PRO
+	bool "K1Pro"
+
+config STEV20_K1MAX
+	bool "K1Max"
+
+endchoice
+
+endif
+
+config STEV20_SMP_CPUS
+	int "Number of cores"
+	depends SMP_BOOT
+	range 1 32
+	default 4
+
+config STEV20_SMP_SPARSE_HART_ID
+	bool "Enable sparse hart ID support"
+	depends STEV20_SOC
+	depends EXPERIMENTAL
+	help
+	 Requires lots of changes to the software to determine if the ID
+	 is a hart ID or a CPU ID.
+
+menuconfig STEV20_PARTIAL_GOOD
+	bool "Partial goods"
+	select ARCH_HAS_CLINT_CTX
+
+if STEV20_PARTIAL_GOOD
+
+config STEV20_BOOT_HART_ID
+	int "Boot hart ID"
+	range 0 7
+	default 0
+
+config STEV20_PARTIAL_GOOD_MASK
+	hex "Good hart mask"
+	default 0x0033
+
+endif
+
+choice
+	prompt "Program type"
+
+config STEV20_TB
+	bool "Test bench"
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SYS_EXIT_S
+
+config STEV20_ZSBL
+	bool "ZSBL loader"
+	select ARCH_HAS_BOOT_LOAD
+	select LOAD_DATA
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select XIP
+	select STEV20_BOOT
+
+config STEV20_FSBL
+	bool "FSBL loader"
+	select ARCH_HAS_BOOT_LOAD
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select XIP
+	select STEV20_BOOT
+
+config STEV20_BBL
+	bool "SBI loader"
+	select ARCH_HAS_BOOT_LOAD
+	select SYS_ENTR_M
+	select SYS_EXIT_M
+	select SBI
+	select SBI_PAYLOAD
+	select XIP
+
+endchoice
+
+choice
+	prompt "Program residency"
+
+config STEV20_SRAM
+	bool "SRAM"
+	depends STEV20_TB || STEV20_BBL
+
+config STEV20_DDR
+	bool "DDR"
+	depends STEV20_TB || STEV20_BBL
+
+endchoice
+
+config STEV20_DDR_SIZE_CUSTOM
+	bool "Enable customized DRAM size"
+	depends STEV20_DDR
+
+config STEV20_MEM_SIZE
+	hex "Memory size"
+	default 0x2000000
+	depends STEV20_CPU || STEV20_DDR_SIZE_CUSTOM
+
+config STEV20_BOOT
+	bool
+
+if STEV20_BOOT
+
+menu "Bootloader options"
+
+choice
+	prompt "Boot mode"
+
+config STEV20_BOOT_DDR
+	bool "DDR"
+	help
+	  Boot to the DDR base address, useful for FSBL. Note, depending
+	  on the configurations, program may be loaded via back doors, and
+	  FSBL may just directly jump to the DDR base address.
+
+endchoice
+
+endmenu
+
+endif
+
+menuconfig STEV20_CCI
+	bool "K1MAX cache coherent interconnect support"
+	select CCI550
+	depends ARCH_HAS_NOC
+
+menuconfig STEV20_TIMER
+	bool "K1MAX timer controller support"
+	select ARCH_HAS_SBI_TIMER
+
+if STEV20_TIMER
+
+endif
+
+menuconfig STEV20_UART
+	bool "K1MAX UART controller support"
+	select STEV20_UART_DW if !STEV20_K1X
+	select STEV20_K1X_UART if STEV20_K1X
+
+if STEV20_UART
+
+config STEV20_UART_ACCEL
+	bool "Enable K1MAX UART acceleration support"
+	depends SIMULATION
+	help
+	  When this is selected, the UART baudrate generator frequency will
+	  be Fsrc/80, making things happening quicker.
+	  In case your are using a UART master DPI VIP, selecting this is
+	  safe as the VIP cares no about the baudrate.
+	  This option is also useful for simulation acceleration.
+	  If unsure, say 'N'.
+
+endif
+
+config STEV20_UART_DW
+	bool
+	select DW_UART
+	select ARCH_HAS_NS16550_FIFO_64
+	select ARCH_HAS_DW_UART_FIFO_MEM_USER
+	select ARCH_HAS_DW_UART_AFCE_MODE
+	select ARCH_HAS_DW_UART_FIFO_ACCESS
+	select ARCH_HAS_DW_UART_FIFO_STAT
+	select ARCH_HAS_DW_UART_SHADOW
+	select ARCH_HAS_DW_UART_ADD_ENCODED_PARAMS
+
+endmenu
+
+endif
