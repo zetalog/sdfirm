@@ -1,0 +1,10 @@
+obj-y += mach.rel
+obj-$(CONFIG_STEV20_SOC) += sysreg.rel
+obj-$(CONFIG_MEM) += mem.rel
+obj-$(CONFIG_SBI) += sbi.rel
+obj-$(CONFIG_MMU) += mmu.rel
+obj-$(CONFIG_TIMER) += gpt.rel
+obj-$(CONFIG_STEV20_CCI) += cci.rel
+obj-$(CONFIG_STEV20_TIMER) += timer.rel
+obj-$(CONFIG_STEV20_UART) += uart.rel
+obj-$(CONFIG_PCIEPORTBUS) += pcie.rel
