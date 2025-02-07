@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)uart.c: K1MAX machine specific UART implementation
+ * @(#)uart.c: STEV20 machine specific UART implementation
  * $Id: uart.c,v 1.1 2022-10-15 14:41:00 zhenglv Exp $
  */
 

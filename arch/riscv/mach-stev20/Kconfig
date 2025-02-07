@@ -173,12 +173,12 @@ endmenu
 endif
 
 menuconfig STEV20_CCI
-	bool "K1MAX cache coherent interconnect support"
+	bool "STEV20 cache coherent interconnect support"
 	select CCI550
 	depends ARCH_HAS_NOC
 
 menuconfig STEV20_TIMER
-	bool "K1MAX timer controller support"
+	bool "STEV20 timer controller support"
 	select ARCH_HAS_SBI_TIMER
 
 if STEV20_TIMER
@@ -186,14 +186,14 @@ if STEV20_TIMER
 endif
 
 menuconfig STEV20_UART
-	bool "K1MAX UART controller support"
+	bool "STEV20 UART controller support"
 	select STEV20_UART_DW if !STEV20_K1X
-	select STEV20_K1X_UART if STEV20_K1X
+	select STEV20_NS16550_UART if STEV20_K1X
 
 if STEV20_UART
 
 config STEV20_UART_ACCEL
-	bool "Enable K1MAX UART acceleration support"
+	bool "Enable STEV20 UART acceleration support"
 	depends SIMULATION
 	help
 	  When this is selected, the UART baudrate generator frequency will
@@ -216,6 +216,11 @@ config STEV20_UART_DW
 	select ARCH_HAS_DW_UART_SHADOW
 	select ARCH_HAS_DW_UART_ADD_ENCODED_PARAMS
 
+config STEV20_NS16550_UART
+	bool
+	select NS16550
+	select ARCH_HAS_NS16550
+	select ARCH_HAS_NS16550_MEM32
 endmenu
 
 endif

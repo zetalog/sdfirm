@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)gpt.c: K1MAX specific generic timer implementation
+ * @(#)gpt.c: STEV20 specific generic timer implementation
  * $Id: gpt.c,v 1.1 2022-10-15 14:39:00 zhenglv Exp $
  */
 

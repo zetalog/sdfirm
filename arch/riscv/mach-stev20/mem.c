@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)mem.c: K1MAX specific memory resource implementation
+ * @(#)mem.c: STEV20 specific memory resource implementation
  * $Id: mem.c,v 1.1 2022-10-15 14:37:00 zhenglv Exp $
  */
 
