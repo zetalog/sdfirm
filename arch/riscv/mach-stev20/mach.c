@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)mach.c: K1MAX specific board initialization
+ * @(#)mach.c: STEV20 specific board initialization
  * $Id: mach.c,v 1.1 2022-10-15 14:36:00 zhenglv Exp $
  */
 
@@ -218,9 +218,9 @@ static int do_k1max(int argc, char *argv[])
 	return -EINVAL;
 }
 
-DEFINE_COMMAND(k1max, do_k1max, "K1MAX SoC global commands",
-	"k1max aia prio\n"
+DEFINE_COMMAND(stev20, do_k1max, "STEV SoC global commands",
+	"stev20 aia prio\n"
 	"	-AIA MIPRIO register test\n"
-	"k1max aia msi\n"
+	"stev20 aia msi\n"
 	"	-AIA IMSIC register test\n"
 );

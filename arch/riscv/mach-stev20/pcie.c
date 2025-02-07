@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)pcie.c: K1MAX specific PCIe implementation
+ * @(#)pcie.c: STEV20 specific PCIe implementation
  * $Id: pcie.c,v 1.1 2023-08-01 11:41:01 zhenglv Exp $
  */
 
