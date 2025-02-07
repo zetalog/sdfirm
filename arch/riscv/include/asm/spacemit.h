@@ -107,7 +107,11 @@
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	spacemit_smp_init
 	/* spacemit specific */
+#ifdef CONFIG_SPACEMIT_SPECULATIVE
 	li	t0, STP_DE | STP_IE | STP_BPE | STP_PRFE | STP_MM
+#else
+	li	t0, STP_DE | STP_IE | STP_MM
+#endif
 #ifdef CONFIG_SPACEMIT_RAS
 	or	t0, t0, STP_ECC
 #endif

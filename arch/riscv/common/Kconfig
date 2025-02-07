@@ -666,6 +666,22 @@ config RISCV_SPINLOCK_GENERIC
 
 endchoice
 
+menu "CPU options"
+
+if CPU_SPACEMIT
+
+config SPACEMIT_SPECULATIVE
+	bool "Enable speculative prefetching and prediction"
+	default y
+	help
+	  Speculative prefetching and prediction may cause bootloaders to
+	  fetch wrong data from uninitialized address space and risk SoC
+	  bus hang. Disabling this may cause performance downgrade.
+
+endif
+
+endmenu
+
 endif
 
 menu "Debugging options"
