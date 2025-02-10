@@ -89,6 +89,9 @@ struct sbi_platform_operations {
 	/** Initialize platform timer for current HART */
 	int (*timer_init)(bool cold_boot);
 
+	/** Initialize the platform Message Proxy(MPXY) driver */
+	int (*mpxy_init)(void);
+
 	/** Bringup the given hart from previous stage **/
 	int (*hart_start)(uint32_t hartid, uint64_t saddr, uint64_t priv);
 	/**
@@ -577,6 +580,20 @@ static inline bool sbi_platform_cold_boot_allowed(
 	if (plat && sbi_platform_ops(plat)->cold_boot_allowed)
 		return sbi_platform_ops(plat)->cold_boot_allowed(hartid);
 	return true;
+}
+
+/**
+ * Initialize the platform Message Proxy drivers
+ *
+ * @param plat pointer to struct sbi_platform
+ *
+ * @return 0 on success and negative error code on failure
+ */
+static inline int sbi_platform_mpxy_init(const struct sbi_platform *plat)
+{
+	if (plat && sbi_platform_ops(plat)->mpxy_init)
+		return sbi_platform_ops(plat)->mpxy_init();
+	return 0;
 }
 
 #endif

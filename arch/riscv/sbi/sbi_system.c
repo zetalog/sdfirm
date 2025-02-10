@@ -9,6 +9,9 @@
  */
 
 #include <target/sbi.h>
+#include <sbi/sbi_system.h>
+
+static SBI_LIST_HEAD(reset_devices_list);
 
 int sbi_system_early_init(struct sbi_scratch *scratch, bool cold_boot)
 {
@@ -48,3 +51,22 @@ sbi_system_finish(struct sbi_scratch *scratch, uint32_t code)
 			  SBI_IPI_EVENT_HALT, NULL);
 	bh_panic();
 }
+
+void sbi_system_reset_add_device(struct sbi_system_reset_device *dev)
+{
+	if (!dev || !dev->system_reset_check)
+		return;
+
+	sbi_list_add(&(dev->node), &(reset_devices_list));
+}
+
+static const struct sbi_system_suspend_device *suspend_dev = NULL;
+
+void sbi_system_suspend_set_device(struct sbi_system_suspend_device *dev)
+{
+	if (!dev || suspend_dev)
+		return;
+
+	suspend_dev = dev;
+}
+

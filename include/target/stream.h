@@ -189,6 +189,8 @@
 # define MAX(x,y) ((x)>(y)?(x):(y))
 # endif
 
+#define ROUNDUP(a, b) ((((a)-1) / (b) + 1) * (b))
+
 #ifndef STREAM_TYPE
 #define STREAM_TYPE double
 #endif

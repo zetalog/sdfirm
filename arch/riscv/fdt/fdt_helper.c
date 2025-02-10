@@ -67,6 +67,53 @@ int fdt_find_match(void *fdt, int startoff,
 	return -ENODEV;
 }
 
+int fdt_parse_phandle_with_args(const void *fdt, int nodeoff,
+				const char *prop, const char *cells_prop,
+				int index, struct fdt_phandle_args *out_args)
+{
+	u32 i, pcells;
+	int len, pnodeoff;
+	const fdt32_t *list, *list_end, *val;
+
+	if (!fdt || (nodeoff < 0) || !prop || !cells_prop || !out_args)
+		return SBI_EINVAL;
+
+	list = fdt_getprop(fdt, nodeoff, prop, &len);
+	if (!list)
+		return SBI_ENOENT;
+	list_end = list + (len / sizeof(*list));
+
+	while (list < list_end) {
+		pnodeoff = fdt_node_offset_by_phandle(fdt,
+						fdt32_to_cpu(*list));
+		if (pnodeoff < 0)
+			return pnodeoff;
+		list++;
+
+		val = fdt_getprop(fdt, pnodeoff, cells_prop, &len);
+		if (!val)
+			return SBI_ENOENT;
+		pcells = fdt32_to_cpu(*val);
+		if (FDT_MAX_PHANDLE_ARGS < pcells)
+			return SBI_EINVAL;
+		if (list + pcells > list_end)
+			return SBI_ENOENT;
+
+		if (index > 0) {
+			list += pcells;
+			index--;
+		} else {
+			out_args->node_offset = pnodeoff;
+			out_args->args_count = pcells;
+			for (i = 0; i < pcells; i++)
+				out_args->args[i] = fdt32_to_cpu(list[i]);
+			return 0;
+		}
+	}
+
+	return SBI_ENOENT;
+}
+
 int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
 			   unsigned long *size)
 {
@@ -105,6 +152,24 @@ int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
 	}
 
 	return 0;
+}
+
+bool fdt_node_is_enabled(const void *fdt, int nodeoff)
+{
+	int len;
+	const void *prop;
+
+	prop = fdt_getprop(fdt, nodeoff, "status", &len);
+	if (!prop)
+		return true;
+
+	if (!strncmp(prop, "okay", strlen("okay")))
+		return true;
+
+	if (!strncmp(prop, "ok", strlen("ok")))
+		return true;
+
+	return false;
 }
 
 int fdt_parse_hart_id(void *fdt, int cpu_offset, uint32_t *hartid)

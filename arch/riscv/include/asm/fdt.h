@@ -79,6 +79,13 @@ struct fdt_match {
 	void *data;
 };
 
+#define FDT_MAX_PHANDLE_ARGS 16
+struct fdt_phandle_args {
+	int node_offset;
+	int args_count;
+	u32 args[FDT_MAX_PHANDLE_ARGS];
+};
+
 struct platform_uart_data {
 	unsigned long addr;
 	unsigned long freq;
@@ -110,6 +117,10 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
 			 struct clint_data *clint);
 int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
 			  const char *compatible);
+bool fdt_node_is_enabled(const void *fdt, int nodeoff);
+int fdt_parse_phandle_with_args(const void *fdt, int nodeoff,
+				const char *prop, const char *cells_prop,
+				int index, struct fdt_phandle_args *out_args);
 #ifdef CONFIG_RISCV_SMAIA
 int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic);
 int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic);
