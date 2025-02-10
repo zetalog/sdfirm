@@ -8,6 +8,9 @@
  */
 
 #include <target/sbi.h>
+#include <target/stream.h>
+#include <sbi/riscv_asm.h>
+#include <sbi/sbi_math.h>
 
 static __unused uint8_t sbi_mode_switched = PRV_M;
 
@@ -320,6 +323,59 @@ static int pmp_init(struct sbi_scratch *scratch, uint32_t hartid)
 	return 0;
 }
 #endif
+
+#define SBI_SMEPMP_RESV_ENTRY           0
+
+unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch)
+{
+	struct sbi_hart_features *hfeatures =
+			sbi_scratch_offset_ptr(scratch, hart_features_offset);
+
+	return hfeatures->pmp_log2gran;
+}
+
+int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
+{
+	/* shared R/W access for M and S/U mode */
+	unsigned int pmp_flags = (PMP_W | PMP_X);
+	unsigned long order, base = 0;
+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+
+	/* If Smepmp is not supported no special mapping is required */
+	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+		return SBI_OK;
+
+	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
+		return SBI_ENOSPC;
+
+	for (order = MAX(sbi_hart_pmp_log2gran(scratch), log2roundup(size));
+	     order <= __riscv_xlen; order++) {
+		if (order < __riscv_xlen) {
+			base = addr & ~((1UL << order) - 1UL);
+			if ((base <= addr) &&
+			    (addr < (base + (1UL << order))) &&
+			    (base <= (addr + size - 1UL)) &&
+			    ((addr + size - 1UL) < (base + (1UL << order))))
+				break;
+		} else {
+			return SBI_EFAIL;
+		}
+	}
+
+	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
+
+	return SBI_OK;
+}
+
+int sbi_hart_unmap_saddr(void)
+{
+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+
+	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+		return SBI_OK;
+
+	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
+}
 
 int sbi_hart_priv_version(struct sbi_scratch *scratch)
 {

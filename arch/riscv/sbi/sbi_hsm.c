@@ -14,6 +14,8 @@
 
 static unsigned long hart_data_offset;
 
+static const struct sbi_hsm_device *hsm_dev = NULL;
+
 /** Per hart specific data to manage state transition **/
 struct sbi_hsm_data {
 	atomic_t state;
@@ -242,3 +244,12 @@ int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
 
 	return 0;
 }
+
+void sbi_hsm_set_device(const struct sbi_hsm_device *dev)
+{
+	if (!dev || hsm_dev)
+		return;
+
+	hsm_dev = dev;
+}
+

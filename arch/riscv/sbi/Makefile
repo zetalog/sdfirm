@@ -12,6 +12,10 @@ obj-y += sbi_hart.rel
 obj-y += sbi_init.rel
 obj-y += sbi_scratch.rel
 obj-y += sbi_system.rel
+obj-y += sbi_mpxy.rel
+obj-y += sbi_heap.rel
+obj-y += sbi_math.rel
+obj-$(CONFIG_SBI_ECALL_CPPC) += sbi_cppc.rel
 obj-$(CONFIG_SBI_PMU) += sbi_pmu.rel
 
 obj-y += sbi_trap.rel

@@ -42,6 +42,8 @@
 #ifndef __TYPES_RISCV_H_INCLUDE__
 #define __TYPES_RISCV_H_INCLUDE__
 
+#include <stdint.h>
+
 #define __text__	const
 #define __near__
 #define __far__
@@ -69,5 +71,29 @@ typedef long			ssize_t;
 typedef caddr_t			uintptr_t;
 #define ARCH_HAVE_UINTPTR_T	1
 typedef unsigned long long	phys_addr_t;
+
+typedef char			s8;
+typedef unsigned char		u8;
+
+typedef short			s16;
+typedef unsigned short		u16;
+
+typedef int			s32;
+typedef unsigned int		u32;
+
+#if __riscv_xlen == 64
+typedef long			s64;
+typedef unsigned long		u64;
+#elif __riscv_xlen == 32
+typedef long long		s64;
+typedef unsigned long long	u64;
+#endif
+
+typedef uint16_t		le16_t;
+typedef uint16_t		be16_t;
+typedef uint32_t		le32_t;
+typedef uint32_t		be32_t;
+typedef uint64_t		le64_t;
+typedef uint64_t		be64_t;
 
 #endif /* __TYPES_RISCV_H_INCLUDE__ */

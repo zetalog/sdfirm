@@ -36,4 +36,14 @@
 #define be16_to_cpu(x)		__be16_to_cpu(x)
 #define cpu_to_be16(x)		__cpu_to_be16(x)
 
+#if __riscv_xlen == 64
+#define cpu_to_lle		cpu_to_le64
+#define lle_to_cpu		le64_to_cpu
+#elif __riscv_xlen == 32
+#define cpu_to_lle		cpu_to_le32
+#define lle_to_cpu		le32_to_cpu
+#else
+#error "Unknown __riscv_xlen"
+#endif
+
 #endif /* __ENDIAN_H_INCLUDE__ */

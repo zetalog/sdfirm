@@ -40,6 +40,8 @@
  */
 
 #include <target/arch.h>
+#include <target/sbi.h>
+#include <sbi/riscv_asm.h>
 
 static inline unsigned long csr_read_pmpcfg(int n)
 {
@@ -197,6 +199,49 @@ void csr_write_pmpaddr(int n, unsigned long val)
 	default:
 		break;
 	};
+}
+
+int pmp_disable(unsigned int n)
+{
+	int pmpcfg_csr, pmpcfg_shift;
+	unsigned long cfgmask, pmpcfg;
+
+	if (n >= PMP_COUNT)
+		return SBI_EINVAL;
+
+#if __riscv_xlen == 32
+	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
+	pmpcfg_shift = (n & 3) << 3;
+#elif __riscv_xlen == 64
+	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
+	pmpcfg_shift = (n & 7) << 3;
+#else
+# error "Unexpected __riscv_xlen"
+#endif
+
+	/* Clear the address matching bits to disable the pmp entry */
+	cfgmask = ~(0xffUL << pmpcfg_shift);
+	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
+
+	csr_write_num(pmpcfg_csr, pmpcfg);
+
+	return SBI_OK;
+}
+
+int is_pmp_entry_mapped(unsigned long entry)
+{
+	unsigned long prot;
+	unsigned long addr;
+	unsigned long log2len;
+
+	if (pmp_get(entry, &prot, (phys_addr_t *)&addr, &log2len) != 0)
+		return false;
+
+	/* If address matching bits are non-zero, the entry is enable */
+	if (prot & PMP_A)
+		return true;
+
+	return false;
 }
 
 #if __riscv_xlen == 32

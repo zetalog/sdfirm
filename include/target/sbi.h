@@ -375,6 +375,11 @@ enum sbi_cppc_reg_id {
 #define SBI_ERR_ALREADY_AVAILABLE		-6
 #define SBI_ERR_ALREADY_STARTED			-7
 #define SBI_ERR_ALREADY_STOPPED			-8
+#define SBI_ERR_NO_SHMEM			-9
+#define SBI_ERR_INVALID_STATE			-10
+#define SBI_ERR_BAD_RANGE			-11
+#define SBI_ERR_TIMEOUT				-12
+#define SBI_ERR_IO				-13
 
 #define SBI_LAST_ERR				SBI_ERR_ALREADY_STOPPED
 
@@ -387,6 +392,10 @@ enum sbi_cppc_reg_id {
 #define SBI_EALREADY		SBI_ERR_ALREADY_AVAILABLE
 #define SBI_EALREADY_STARTED	SBI_ERR_ALREADY_STARTED
 #define SBI_EALREADY_STOPPED	SBI_ERR_ALREADY_STOPPED
+#define SBI_ENO_SHMEM		SBI_ERR_NO_SHMEM
+#define SBI_EINVALID_STATE	SBI_ERR_INVALID_STATE
+#define SBI_EBAD_RANGE		SBI_ERR_BAD_RANGE
+#define SBI_ETIMEOUT		SBI_ERR_TIMEOUT
 
 #define SBI_ENODEV		-1000
 #define SBI_ENOSYS		-1001
@@ -434,6 +443,12 @@ struct sbi_scratch {
 	unsigned long fw_start;
 	/** Size (in bytes) of firmware linked to OpenSBI library */
 	unsigned long fw_size;
+	/** Offset (in bytes) of the R/W section */
+	unsigned long fw_rw_offset;
+	/** Offset (in bytes) of the heap area */
+	unsigned long fw_heap_offset;
+	/** Size (in bytes) of the heap area */
+	unsigned long fw_heap_size;
 	/** Arg1 (or 'a1' register) of next booting stage for this HART */
 	unsigned long next_arg1;
 	/** Address of next booting stage for this HART */
@@ -564,6 +579,7 @@ struct sbi_hart_features {
 	unsigned long extensions;
 	unsigned int pmp_count;
 	unsigned int pmp_addr_bits;
+	unsigned int pmp_log2gran;
 	unsigned long pmp_gran;
 	unsigned int mhpm_count;
 	unsigned int mhpm_bits;
@@ -767,6 +783,8 @@ void sbi_hart_set_trap_info(struct sbi_scratch *scratch, void *data);
 void sbi_hart_pmp_dump(struct sbi_scratch *scratch);
 int  sbi_hart_pmp_check_addr(struct sbi_scratch *scratch, unsigned long daddr,
 			     unsigned long attr);
+int sbi_hart_map_saddr(unsigned long base, unsigned long size);
+int sbi_hart_unmap_saddr(void);
 unsigned int sbi_hart_mhpm_count(struct sbi_scratch *scratch);
 unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
 __noreturn void sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,

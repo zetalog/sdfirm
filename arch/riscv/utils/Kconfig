@@ -1,0 +1,152 @@
+# SPDX-License-Identifier: BSD-2-Clause
+
+menu "CPPC Device Support"
+
+config FDT_CPPC
+	bool "FDT based CPPC drivers"
+	depends on FDT
+	default n
+
+if FDT_CPPC
+
+config FDT_CPPC_RPMI
+	bool "FDT RPMI CPPC driver"
+	depends on FDT_MAILBOX && RPMI_MAILBOX
+	default n
+
+endif
+
+endmenu
+# SPDX-License-Identifier: BSD-2-Clause
+
+menu "HSM Device Support"
+
+config FDT_HSM
+	bool "FDT based HSM drivers"
+	depends on FDT
+	default n
+
+if FDT_HSM
+
+config FDT_HSM_RPMI
+	bool "FDT RPMI HSM driver"
+	depends on FDT_MAILBOX && RPMI_MAILBOX
+	default n
+
+endif
+
+endmenu
+# SPDX-License-Identifier: BSD-2-Clause
+
+menu "Mailbox Support"
+
+config FDT_MAILBOX
+	bool "FDT based mailbox drivers"
+	depends on FDT
+	select MAILBOX
+	default n
+
+config RPMI_MAILBOX
+	bool "RPMI based mailbox drivers"
+	select MAILBOX
+	default n
+
+config MAILBOX
+	bool "Mailbox support"
+	default n
+
+if FDT_MAILBOX
+
+config FDT_MAILBOX_RPMI_SHMEM
+	bool "RPMI Shared Memory Mailbox Controller"
+	depends on RPMI_MAILBOX
+	default n
+
+endif
+
+endmenu
+# SPDX-License-Identifier: BSD-2-Clause
+
+menu "MPXY Device Support"
+
+config FDT_MPXY
+	bool "FDT based MPXY drivers"
+	depends on FDT
+	default n
+
+if FDT_MPXY
+
+config FDT_MPXY_RPMI_MBOX
+	bool "FDT MPXY mailbox client driver"
+	depends on FDT_MAILBOX
+	default n
+
+endif
+
+endmenu
+# SPDX-License-Identifier: BSD-2-Clause
+
+menu "System Reset Support"
+
+config FDT_RESET
+	bool "FDT based reset drivers"
+	depends on FDT
+	default n
+
+if FDT_RESET
+
+config FDT_RESET_ATCWDT200
+	bool "Andes WDT FDT reset driver"
+	depends on SYS_ATCSMU
+	default n
+
+config FDT_RESET_GPIO
+	bool "GPIO FDT reset driver"
+	depends on FDT_GPIO
+	default n
+
+config FDT_RESET_HTIF
+	bool "Host transfer interface (HTIF) FDT reset driver"
+	select SYS_HTIF
+	default n
+
+config FDT_RESET_RPMI
+	bool "RPMI FDT reset driver"
+	depends on FDT_MAILBOX && RPMI_MAILBOX
+	default n
+
+config FDT_RESET_SG2042_HWMON_MCU
+	bool "Sophgo SG2042 hwmon MCU FDT reset driver"
+	default n
+
+config FDT_RESET_SUNXI_WDT
+	bool "Sunxi WDT FDT reset driver"
+	default n
+
+config FDT_RESET_SYSCON
+	bool "Syscon FDT reset driver"
+	depends on FDT_REGMAP
+	default n
+
+endif
+
+endmenu
+# SPDX-License-Identifier: BSD-2-Clause
+
+menu "System Suspend Support"
+
+config FDT_SUSPEND
+	bool "FDT based suspend drivers"
+	depends on FDT
+	default n
+
+if FDT_SUSPEND
+
+config FDT_SUSPEND_RPMI
+	bool "FDT RPMI suspend driver"
+	depends on FDT_MAILBOX && RPMI_MAILBOX
+	default n
+
+endif
+
+endmenu

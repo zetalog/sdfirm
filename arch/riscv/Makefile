@@ -153,6 +153,7 @@ machdirs := $(patsubst %,arch/riscv/mach-%/,$(machine-y))
 platdirs := $(patsubst %,arch/riscv/plat-%/,$(plat-y))
 
 core-y				+= arch/riscv/common/
+core-y				+= arch/riscv/utils/
 core-$(CONFIG_SBI)		+= arch/riscv/sbi/
 core-$(CONFIG_FDT)		+= arch/riscv/fdt/
 drivers-y			+= $(MACHINE)

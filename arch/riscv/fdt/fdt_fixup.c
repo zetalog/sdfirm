@@ -9,6 +9,7 @@
 
 #include <target/fdt.h>
 #include <target/sbi.h>
+#include <sbi_utils/fdt/fdt_fixup.h>
 
 #ifdef CONFIG_FDT_FIXUP_RESIZE
 #define FDT_FIXUP_SIZE			(6 * NR_CPUS) /* 6 = disabled - ok */
@@ -17,6 +18,91 @@
 #define FDT_FIXUP_SIZE			0
 #define FDT_FIXUP_STATUS_UNAVAILABLE	""
 #endif
+
+int fdt_add_cpu_idle_states(void *fdt, const struct sbi_cpu_idle_state *state)
+{
+	int cpu_node, cpus_node, err, idle_states_node;
+	uint32_t count, phandle;
+
+	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 1024);
+	if (err < 0)
+		return err;
+
+	err = fdt_find_max_phandle(fdt, &phandle);
+	phandle++;
+	if (err < 0)
+		return err;
+
+	cpus_node = fdt_path_offset(fdt, "/cpus");
+	if (cpus_node < 0)
+		return cpus_node;
+
+	/* Do nothing if the idle-states node already exists. */
+	idle_states_node = fdt_subnode_offset(fdt, cpus_node, "idle-states");
+	if (idle_states_node >= 0)
+		return 0;
+
+	/* Create the idle-states node and its child nodes. */
+	idle_states_node = fdt_add_subnode(fdt, cpus_node, "idle-states");
+	if (idle_states_node < 0)
+		return idle_states_node;
+
+	for (count = 0; state->name; count++, phandle++, state++) {
+		int idle_state_node;
+
+		idle_state_node = fdt_add_subnode(fdt, idle_states_node,
+						  state->name);
+		if (idle_state_node < 0)
+			return idle_state_node;
+
+		fdt_setprop_string(fdt, idle_state_node, "compatible",
+				   "riscv,idle-state");
+		fdt_setprop_u32(fdt, idle_state_node,
+				"riscv,sbi-suspend-param",
+				state->suspend_param);
+		if (state->local_timer_stop)
+			fdt_setprop_empty(fdt, idle_state_node,
+					  "local-timer-stop");
+		fdt_setprop_u32(fdt, idle_state_node, "entry-latency-us",
+				state->entry_latency_us);
+		fdt_setprop_u32(fdt, idle_state_node, "exit-latency-us",
+				state->exit_latency_us);
+		fdt_setprop_u32(fdt, idle_state_node, "min-residency-us",
+				state->min_residency_us);
+		if (state->wakeup_latency_us)
+			fdt_setprop_u32(fdt, idle_state_node,
+					"wakeup-latency-us",
+					state->wakeup_latency_us);
+		fdt_setprop_u32(fdt, idle_state_node, "phandle", phandle);
+	}
+
+	if (count == 0)
+		return 0;
+
+	/* Link each cpu node to the idle state nodes. */
+	fdt_for_each_subnode(cpu_node, fdt, cpus_node) {
+		const char *device_type;
+		fdt32_t *value;
+
+		/* Only process child nodes with device_type = "cpu". */
+		device_type = fdt_getprop(fdt, cpu_node, "device_type", NULL);
+		if (!device_type || strcmp(device_type, "cpu"))
+			continue;
+
+		/* Allocate space for the list of phandles. */
+		err = fdt_setprop_placeholder(fdt, cpu_node, "cpu-idle-states",
+					      count * sizeof(phandle),
+					      (void **)&value);
+		if (err < 0)
+			return err;
+
+		/* Fill in the phandles of the idle state nodes. */
+		for (uint32_t i = 0; i < count; ++i)
+			value[i] = cpu_to_fdt32(phandle - count + i);
+	}
+
+	return 0;
+}
 
 static bool fdt_cpu_disabled(void *fdt, int cpu_offset)
 {
@@ -301,6 +387,34 @@ int fdt_reserved_memory_nomap_fixup(void *fdt)
 	}
 
 	return 0;
+}
+
+static SBI_LIST_HEAD(fixup_list);
+
+int fdt_register_general_fixup(struct fdt_general_fixup *fixup)
+{
+	struct fdt_general_fixup *f;
+
+	if (!fixup || !fixup->name || !fixup->do_fixup)
+		return SBI_EINVAL;
+
+	sbi_list_for_each_entry(f, &fixup_list, head) {
+		if (f == fixup)
+			return SBI_EALREADY;
+	}
+
+	SBI_INIT_LIST_HEAD(&fixup->head);
+	sbi_list_add_tail(&fixup->head, &fixup_list);
+
+	return 0;
+}
+
+void fdt_unregister_general_fixup(struct fdt_general_fixup *fixup)
+{
+	if (!fixup)
+		return;
+
+	sbi_list_del(&fixup->head);
 }
 
 void fdt_fixups(void *fdt)
