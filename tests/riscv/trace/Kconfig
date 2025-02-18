@@ -1,0 +1,10 @@
+#
+# RISCV Trace Tests
+#
+
+menuconfig TESTS_TRACE_RISCV
+	bool "RISC-V Trace tests"
+
+if TESTS_TRACE_RISCV
+
+endif
