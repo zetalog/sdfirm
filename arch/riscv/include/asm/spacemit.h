@@ -61,8 +61,16 @@
 #define CSR_SL2PART	0x5F1
 
 /* MSETUP */
+#ifdef CONFIG_SPACEMIT_DCACHE
 #define STP_DE		_AC(0x00000001, UL) /* D-cache enable */
+#else
+#define STP_DE		0
+#endif
+#ifdef CONFIG_SPACEMIT_ICACHE
 #define STP_IE		_AC(0x00000002, UL) /* I-cache enable */
+#else
+#define STP_IE		0
+#endif
 #define STP_BPE		_AC(0x00000010, UL) /* branch predictor enable */
 #define STP_PRFE	_AC(0x00000020, UL) /* prefetcher enable */
 #define STP_MM		_AC(0x00000040, UL) /* unalignment memory access */
