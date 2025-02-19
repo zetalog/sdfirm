@@ -334,11 +334,31 @@ int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata)
 }
 #endif
 
-void dw_ssi_handle_irq(void)
+void dw_ssi_handle_irq(irq_t irq)
 {
 	/* dw_spi_transfer_handler */
+	int n = irq - IRQ_SPI;
+
+	uint16_t irq_status = dw_ssi_readl(SSI_ISR(n));
+
+	if (dw_reader(n)) {
+		dw_spi_mask_intr(n, 0xff);
+	}
+
+	/*
+	 * Send data out if Tx FIFO Empty IRQ is received. The IRQ will be
+	 * disabled after the data transmission is finished so not to
+	 * have the TXE IRQ flood at the final stage of the transfer.
+	 */
+	if (irq_status & SSI_TXEI) {
+		dw_writer(n);
+		dw_spi_mask_intr(n, SSI_TXEI);
+	}
 }
 
 void dw_ssi_irq_init(void)
 {
+	irqc_configure_irq(IRQ_SPI, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(IRQ_SPI, dw_ssi_handle_irq);
+	irqc_enable_irq(IRQ_SPI);
 }

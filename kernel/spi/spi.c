@@ -1,6 +1,15 @@
 #include <target/panic.h>
 #include <target/spi.h>
 
+#ifdef SYS_REALTIME
+#define spi_poll_init()		__spi_poll_init()
+#define spi_irq_init()		do { } while (0)
+#else
+#define spi_poll_init()		do { } while (0)
+#define spi_irq_init()		__spi_irq_init()
+#endif
+
+static bh_t spi_bh;
 spi_device_t *spi_devices[NR_SPI_DEVICES];
 spi_t spi_last_id = 0;
 uint8_t spi_last_mode = INVALID_SPI_MODE;
@@ -61,7 +70,31 @@ void spi_select_device(spi_t spi)
 }
 #endif
 
+static void spi_bh_handler(uint8_t events)
+{
+	if (events == BH_POLLIRQ) {
+		spi_hw_handle_irq();
+		return;
+	}
+}
+
+#ifdef SYS_REALTIME
+void __spi_poll_init(void)
+{
+	irq_register_poller(spi_bh);
+}
+#else
+void __spi_irq_init(void)
+{
+	spi_hw_irq_init();
+}
+#endif
+
+
 void spi_init(void)
 {
+	spi_bh = bh_register_handler(spi_bh_handler);
+	spi_irq_init();
+	spi_poll_init();
 	spi_hw_ctrl_init();
 }
