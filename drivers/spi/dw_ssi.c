@@ -166,6 +166,13 @@ void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 	dw_ssi_enable_ctrl(n);
 }
 
+void dw_ssi_init_slave(int n, uint8_t frf, uint8_t tmod,
+		       uint16_t txfifo, uint16_t rxfifo)
+{
+	if (n >= NR_DW_SSIS)
+		return;
+}
+
 void dw_ssi_init_spi(int n, uint8_t spi_frf,
 		     uint8_t inst_l, uint8_t addr_l,
 		     uint8_t wait_cycles)
