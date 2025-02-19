@@ -326,3 +326,12 @@ int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata)
 	return poll_transfer(n);
 }
 #endif
+
+void dw_ssi_handle_irq(void)
+{
+	/* dw_spi_transfer_handler */
+}
+
+void dw_ssi_irq_init(void)
+{
+}

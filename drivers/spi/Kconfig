@@ -3,10 +3,15 @@
 # see scripts/kbuild/config-language.txt.
 #
 
-menu "SPI Master drivers"
+menu "SPI controller drivers"
 
 config DW_SSI_MASTER
 	bool
+	depends SPI_MASTER
+
+config DW_SSI_SLAVE
+	bool
+	depends SPI_SLAVE
 
 config ARCH_HAS_SSI_SPI_BRIDGE
 	bool
@@ -278,6 +283,7 @@ menuconfig DW_SSI
 	select MATH_DIV32
 	select DW_SSI_HC_FRF if !ARCH_HAS_SSI_FRF
 	select DW_SSI_MASTER if SPI_MASTER
+	select DW_SSI_SLAVE if SPI_SLAVE
 
 if DW_SSI
 
@@ -301,7 +307,7 @@ menu "Top Level Parameters"
 config DW_SSI_ENH_CLK_RATIO
 	bool "Include Enhanced Clock Ratio Architecture"
 	depends ARCH_HAS_SSI_ENH_CLK_RATIO
-	depends !DW_SSI_MASTER
+	depends DW_SSI_SLAVE
 	help
 	  Enable device to work in clock ratio of 4 and 6 between ssi_clk
 	  and sclk_in signals.

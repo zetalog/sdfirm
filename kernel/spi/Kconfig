@@ -10,17 +10,11 @@ menuconfig SPI
 
 if SPI
 
-choice
-	prompt "SPI bus type"
-	default SPI_MASTER
-
 config SPI_MASTER
-	bool "Master"
+	bool "Enable bus master support"
 
 config SPI_SLAVE
-	bool "Slave"
-
-endchoice
+	bool "Enable bus slave support"
 
 config SPI_MAX_DEVICES
 	int "Number of SPI slave devices (1~8)"

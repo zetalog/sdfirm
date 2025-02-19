@@ -3,7 +3,7 @@
 # see scripts/kbuild/config-language.txt.
 #
 
-menu "I2C host drivers"
+menu "I2C controller drivers"
 
 config ARCH_IS_DW_I2C_REG_TIMEOUT_WIDTH_0
 	bool
