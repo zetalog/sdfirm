@@ -59,8 +59,14 @@ uint8_t spi_read_byte(void);
 #define spi_rx()		spi_read_byte()
 uint8_t spi_txrx(uint8_t byte);
 
+#ifdef CONFIG_SPI_MASTER
 spi_t spi_register_device(spi_device_t *dev);
 void spi_select_device(spi_t spi);
 #define spi_deselect_device()	spi_hw_deselect_chips();
+#else
+#define spi_register_device(dev)	(-1)
+#define spi_select_device(spi)		do { } while (0)
+#define spi_deselect_device(spi)	do { } while (0)
+#endif
 
 #endif /* __SPI_H_INCLUDE__ */
