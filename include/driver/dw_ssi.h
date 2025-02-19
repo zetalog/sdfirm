@@ -367,5 +367,22 @@ int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata);
 	} while (0)
 uint32_t dw_ssi_readl(caddr_t reg);
 void dw_ssi_writel(uint32_t val, caddr_t reg);
+#ifdef CONFIG_DW_SSI_XFER
+static bool dw_reader(int n);
+static void dw_writer(int n);
+#else
+#define dw_reader(n)			1
+#define dw_writer(n)			do { } while (0)
+#endif
+void dw_ssi_handle_irq(irq_t irq);
+void dw_ssi_irq_init(void);
+
+static inline void dw_spi_mask_intr(int n, u32 mask)
+{
+	u32 new_mask;
+
+	new_mask = dw_ssi_readl(SSI_IMR(n)) & ~mask;
+	dw_ssi_writel(new_mask, SSI_IMR(n));
+}
 
 #endif /* __DW_SSI_H_INCLUDE__ */
