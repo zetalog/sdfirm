@@ -22,6 +22,7 @@ uint8_t spi_txrx(uint8_t byte)
 	return spi_rx();
 }
 
+#ifdef CONFIG_SPI_MASTER
 spi_t spi_register_device(spi_device_t *dev)
 {
 	spi_t spi;
@@ -58,6 +59,7 @@ void spi_select_device(spi_t spi)
 			  spi_devices[spi]->mode);
 	spi_hw_chip_select(spi_devices[spi]->chip);
 }
+#endif
 
 void spi_init(void)
 {

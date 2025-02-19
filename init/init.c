@@ -56,6 +56,11 @@ void espi_init(void);
 #else
 #define espi_init()
 #endif
+#ifdef CONFIG_PECI
+void peci_init(void);
+#else
+#define peci_init()
+#endif
 #ifdef CONFIG_MTD
 void mtd_init(void);
 #else
@@ -179,6 +184,7 @@ void modules_init(void)
 	uart_init();
 	i2c_init();
 	spi_init();
+	peci_init();
 	net_init();
 	mmcsd_init();
 	ddr_init();

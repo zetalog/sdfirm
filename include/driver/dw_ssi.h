@@ -267,6 +267,8 @@ void dw_ssi_config_mode(int n, uint8_t mode);
 void dw_ssi_config_freq(int n, uint32_t freq);
 void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 			uint16_t txfifo, uint16_t rxfifo);
+void dw_ssi_init_slave(int n, uint8_t frf, uint8_t tmod,
+		       uint16_t txfifo, uint16_t rxfifo);
 void dw_ssi_init_spi(int n, uint8_t spi_frf,
 		     uint8_t inst_l, uint8_t addr_l,
 		     uint8_t wait_cycles);

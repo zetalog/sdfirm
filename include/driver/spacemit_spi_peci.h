@@ -1,0 +1,5 @@
+#ifndef __PECI_SPACEMIT_SPI_H_INCLUDE__
+#define __PECI_SPACEMIT_SPI_H_INCLUDE__
+
+
+#endif /* __PECI_SPACEMIT_SPI_H_INCLUDE__ */

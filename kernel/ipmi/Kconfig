@@ -70,6 +70,9 @@ config ARCH_HAS_KCS
 config ARCH_HAS_MCTP
 	bool
 
+config ARCH_HAS_PECI
+	bool
+
 menu "Mangement interfaces support"
 
 menuconfig IPMI
@@ -286,6 +289,13 @@ endif
 config ESPI_DEBUG
 	bool "Enabling debugging messages"
 	depends CONSOLE_DEBUG
+
+endif
+
+menuconfig PECI
+	bool "Platform environment control interface (PECI) support"
+
+if PECI
 
 endif
 
