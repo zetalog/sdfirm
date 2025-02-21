@@ -646,7 +646,7 @@ void mem_ap_write(uint32_t data, uint32_t addr);
 
 #ifdef CONFIG_CORESIGHT_MEM_AP
 #define coresight_read(addr)				mem_ap_read(addr)
-#define coresight_write(data, addr)			mem_ap_write(data, addt)
+#define coresight_write(data, addr)			mem_ap_write(data, addr)
 #else
 #define coresight_read(addr)				__raw_readl(addr)
 #define coresight_write(data, addr)			__raw_writel(data, addr)
@@ -710,11 +710,13 @@ static inline int coresight_etb_init(void)
 #endif
 #ifdef CONFIG_CORESIGHT_ETR
 int coresight_etr_init(void);
+void etr_handle_irq(uint32_t n);
 #else
 static inline int coresight_etr_init(void)
 {
 	return 0;
 }
+#define etr_handle_irq()	do { } while (0)
 #endif
 #ifdef CONFIG_CORESIGHT_FUNNEL
 int coresight_funnel_init(void);

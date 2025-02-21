@@ -1,4 +1,7 @@
 #include <target/dts.h>
+#include <target/cmdline.h>
+#include <target/panic.h>
+#include <target/console.h>
 
 uint32_t etr_base[32];
 uint32_t etr_num = 0;
@@ -14,7 +17,7 @@ static int coresight_etr_handler(struct coresight_rom_device *device)
 struct coresight_device coresight_etr = {
 	.name = "CoreSight ETR",
 	.jep106_ident = CORESIGHT_JEP106_ARM,
-	.arch_id = CORESIGHT_ARCH_ETR,
+	.arch_id = CORESIGHT_TYPE_ETR,
 	.handler = coresight_etr_handler,
 };
 
