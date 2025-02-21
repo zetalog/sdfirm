@@ -1,4 +1,7 @@
 #include <target/dts.h>
+#include <target/cmdline.h>
+#include <target/panic.h>
+#include <target/console.h>
 
 uint32_t cti_base[32];
 uint32_t cti_num = 0;
@@ -65,6 +68,7 @@ static int do_coresight_cti(int argc, char *argv[])
 		}
 		return 0;
 	}
+	return -EINVAL;
 }
 
 DEFINE_COMMAND(coresight_cti, do_coresight_cti, "Coresight CTI commands",
