@@ -640,14 +640,17 @@ int coresight_visit_table(uintptr_t rom_table_base);
 int coresight_visit_device(uintptr_t rom_table_base);
 int __coresight_visit_device(struct coresight_rom_device *device);
 
+#ifdef CONFIG_CORESIGHT_MEM_AP
 int coresight_mem_ap_init(void);
 uint32_t mem_ap_read(uint32_t address);
 void mem_ap_write(uint32_t data, uint32_t addr);
-
-#ifdef CONFIG_CORESIGHT_MEM_AP
 #define coresight_read(addr)				mem_ap_read(addr)
 #define coresight_write(data, addr)			mem_ap_write(data, addr)
 #else
+static inline int coresight_mem_ap_init(void)
+{
+	return 0;
+}
 #define coresight_read(addr)				__raw_readl(addr)
 #define coresight_write(data, addr)			__raw_writel(data, addr)
 #endif
