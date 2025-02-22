@@ -339,20 +339,31 @@ void dw_ssi_handle_irq(irq_t irq)
 	/* dw_spi_transfer_handler */
 	int n = irq - IRQ_SPI;
 
-	uint16_t irq_status = dw_ssi_readl(SSI_ISR(n));
+	uint32_t status = dw_ssi_readl(SSI_ISR(n));
+	uint32_t mask = dw_ssi_readl(SSI_IMR(n));
+	status &= mask;
 
-	if (dw_reader(n)) {
-		dw_spi_mask_intr(n, 0xff);
+	if (status & SSI_MSTI) {
+		dw_ssi_dbg("dw_ssi: SSI_MSTI\n");
+		dw_ssi_readl(SSI_MSTICR(n));
 	}
-
-	/*
-	 * Send data out if Tx FIFO Empty IRQ is received. The IRQ will be
-	 * disabled after the data transmission is finished so not to
-	 * have the TXE IRQ flood at the final stage of the transfer.
-	 */
-	if (irq_status & SSI_TXEI) {
-		dw_writer(n);
-		dw_spi_mask_intr(n, SSI_TXEI);
+	if (status & SSI_RXFI) {
+		dw_ssi_dbg("dw_ssi: SSI_RXFI\n");
+	}
+	if (status & SSI_RXOI) {
+		dw_ssi_dbg("dw_ssi: SSI_RXOI\n");
+		dw_ssi_readl(SSI_RXOICR(n));
+	}
+	if (status & SSI_RXUI) {
+		dw_ssi_dbg("dw_ssi: SSI_RXUI\n");
+		dw_ssi_readl(SSI_RXUICR(n));
+	}
+	if (status & SSI_TXOI) {
+		dw_ssi_dbg("dw_ssi: SSI_TXOI\n");
+		dw_ssi_readl(SSI_TXOICR(n));
+	}
+	if (status & SSI_TXEI) {
+		dw_ssi_dbg("dw_ssi: SSI_TXEI\n");
 	}
 }
 
