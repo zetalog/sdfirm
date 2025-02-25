@@ -721,7 +721,7 @@
 			snps,block-size = <0x10000 0x10000 0x10000 0x10000
 						0x10000 0x10000 0x10000 0x10000>;
 			snps,priority = <0 1 2 3 4 5 6 7>;
-			snps,axi-max-burst-len = <255 255 255 255 255 255 255 255>;
+			snps,axi-max-burst-len = <127 127 127 127 127 127 127 127>;
 			#dma-cells = <1>;
 			status = "okay";
 		};

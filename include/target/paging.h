@@ -210,6 +210,8 @@ extern pgd_t mmu_pg_dir[PTRS_PER_PGD];
 #else
 #define __pa(x)			((phys_addr_t)(caddr_t)(x))
 #define __va(x)			((caddr_t)(x))
+#define virt_to_phys(x)		__pa(x)
+#define phys_to_virt(x)		__va(x)
 #endif /* CONFIG_ARCH_HAS_MMU */
 
 #include <driver/mmu.h>

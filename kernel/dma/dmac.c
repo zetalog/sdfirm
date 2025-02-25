@@ -193,6 +193,7 @@ void dma_register_channel(dma_t dma, dma_caps_t caps)
 	dma_nr_regs++;
 	chan = dma2chan(dma);
 	chan->caps = caps;
+	chan->id = dma;
 	/* Default __dma_to_phys, can be set by dma_config_range() */
 #if 0
 	chan->phys_base = DMA_PHYS_OFFSET;
@@ -224,6 +225,16 @@ void dma_request_channel(dma_t dma, uint8_t direction, dma_handler h)
 		return;
 	}
 	BUG();
+}
+
+void dma_release_channel(dma_t dma)
+{
+	struct dma_channel *chan;
+	BUG_ON(dma < 0 || dma >= NR_DMAS);
+	
+	chan = dma2chan(dma);
+	chan->direction = DMA_NONE;
+	return;
 }
 
 #ifdef SYS_REALTIME
@@ -265,6 +276,24 @@ static void dma_bh_handler(uint8_t event)
 
 static void dmac_reset_channel(void)
 {
+}
+
+int dma_prep_memcpy(dma_t dma, dma_addr_t dst, dma_addr_t src, size_t len, unsigned long flags)
+{
+	BUG_ON(dma < 0 || dma >= NR_DMAS);
+	// struct dma_channel *chan = dma2chan(dma);
+
+	return 0;
+}
+
+int dma_memcpy_sync(dma_t dma, dma_addr_t dst, dma_addr_t src, size_t len, unsigned long flags)
+{
+	BUG_ON(dma < 0 || dma >= NR_DMAS);
+	struct dma_channel *chan = dma2chan(dma);	
+
+	int ret = dma_hw_memcpy_sync(chan, dst, src, len, flags);
+
+	return ret;
 }
 
 void dma_init(void)

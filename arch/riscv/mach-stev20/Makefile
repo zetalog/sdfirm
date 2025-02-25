@@ -8,3 +8,4 @@ obj-$(CONFIG_STEV20_CCI) += cci.rel
 obj-$(CONFIG_STEV20_TIMER) += timer.rel
 obj-$(CONFIG_STEV20_UART) += uart.rel
 obj-$(CONFIG_PCIEPORTBUS) += pcie.rel
+obj-$(CONFIG_DMA) += dmac.rel

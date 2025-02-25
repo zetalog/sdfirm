@@ -174,6 +174,11 @@ void term_init(void);
 #define term_init()
 #endif
 
+#ifdef CONFIG_DMA
+void dma_init(void);
+#else
+#define dma_init()
+#endif
 void modules_init(void)
 {
 	/* buses */
@@ -190,6 +195,7 @@ void modules_init(void)
 	ddr_init();
 	usb_init();
 	mtd_init();
+	dma_init();
 	iommu_init();
 
 	/* subsys */

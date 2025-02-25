@@ -46,7 +46,6 @@
 #include <target/irq.h>
 #include <target/heap.h>
 
-#include <asm/dma.h>
 
 #ifndef INVALID_DMA
 #define INVALID_DMA		NR_DMAS
@@ -83,7 +82,20 @@ typedef uint8_t dma_t;
 typedef uint16_t dma_t;
 #endif
 #define DMA_DEFAULT		INVALID_DMA
+typedef uint8_t dma_dir_t;
 
+
+#include <asm/dma.h>
+typedef void (*dma_handler)(dma_t dma, bool success);
+struct dma_channel {
+	dma_caps_t caps;
+	bool indirect;
+	phys_addr_t phys_base;
+	dma_addr_t dma_base;
+	uint8_t direction;
+	uint8_t id;
+	dma_handler handler;
+};
 /* SoC specific DMA offset, should be defined in asm/mach/dma.h */
 #ifdef DMA_HW_PHYS_OFFSET
 #define DMA_PHYS_OFFSET		DMA_HW_PHYS_OFFSET
@@ -96,18 +108,6 @@ typedef uint16_t dma_t;
 #else
 #define MAX_CHANNELS		CONFIG_MAX_CHANNELS
 #endif
-
-typedef uint8_t dma_dir_t;
-typedef void (*dma_handler)(dma_t dma, bool success);
-
-struct dma_channel {
-	dma_caps_t caps;
-	bool indirect;
-	phys_addr_t phys_base;
-	dma_addr_t dma_base;
-	uint8_t direction;
-	dma_handler handler;
-};
 
 #include <driver/dmac.h>
 
@@ -142,6 +142,9 @@ phys_addr_t dma_to_phys(dma_t dma, dma_addr_t addr);
 dma_addr_t phys_to_dma(dma_t dma, phys_addr_t phys);
 
 void dma_request_channel(dma_t dma, uint8_t direction, dma_handler h);
+void dma_release_channel(dma_t dma);
+int dma_prep_memcpy(dma_t dma, dma_addr_t dst, dma_addr_t src, size_t len, unsigned long flags);
+int dma_memcpy_sync(dma_t dma, dma_addr_t dst, dma_addr_t src, size_t len, unsigned long flags);
 dma_t dma_current(void);
 bool do_DMA(dma_t dma, bool success);
 
@@ -162,6 +165,7 @@ void dma_free_coherent(dma_t dma, size_t size,
 		       caddr_t cpu_addr, dma_addr_t dma_handle);
 void dma_sync_cpu(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
 void dma_sync_dev(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir);
+
 #endif /* __ASSEMBLY__ */
 
 #endif /* __DMA_H_INCLUDE__ */
