@@ -1,3 +1,3 @@
 obj-y :=
 
-obj-$(CONFIG_DW_DMA) += dw_axi_dma.rel
+obj-y += dw_axi_dma.rel

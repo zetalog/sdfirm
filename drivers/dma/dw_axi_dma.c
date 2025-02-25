@@ -44,336 +44,664 @@
 #include <target/console.h>
 #include <target/cmdline.h>
 #include <target/panic.h>
+#include <target/heap.h>
+#include <target/spinlock.h>
+#include <driver/axi_dw_dma.h>
 
-#define BUF_LEN 32
-static uint8_t src_buf[BUF_LEN];
-static uint8_t dst_buf[BUF_LEN];
-volatile static int ch2_done = 0;
-static uint64_t base_addr = 0;
+typedef struct axi_dma {
+	phys_addr_t regs;
+	uint8_t chan_num;
+	uint16_t busrt_len;
+	bool reg_map_8_channels;
+	uint32_t inited;
+	struct dw_axi_dma_hcfg	hdata;
+	struct axi_dma_chan	*chan;
+	bool	use_cfg2;
+} axi_dma_t;
 
-#define SYS_DMAC_BADDR 0x100000
+static axi_dma_t g_axi_dma;
 
-#define DMAC_IDREG_BLK0_OFFSET 0x0
-#define DMAC_COMPVERREG_BLK0_OFFSET 0x8
-#define DMAC_CFGREG_BLK0_OFFSET 0x10
-#define DMAC_CHENREG_BLK0_OFFSET 0x18
-#define DMAC_INTSTATUSREG_BLK0_OFFSET 0x30
-#define DMAC_COMMONREG_INTCLEARREG_BLK0_OFFSET 0x38
-#define DMAC_COMMONREG_INTSTATUS_ENABLEREG_BLK0_OFFSET 0x40
-#define DMAC_COMMONREG_INTSIGNAL_ENABLEREG_BLK0_OFFSET 0x48
-#define DMAC_COMMONREG_INTSTATUSREG_BLK0_OFFSET 0x50
-#define DMAC_RESETREG_BLK0_OFFSET 0x58
-#define DMAC_LOWPOWER_CFGREG_BLK0_OFFSET 0x60
-#define CH1_SAR_BLK1_OFFSET 0x100
-#define CH1_DAR_BLK1_OFFSET 0x108
-#define CH1_BLOCK_TS_BLK1_OFFSET 0x110
-#define CH1_CTL_BLK1_OFFSET 0x118
-#define CH1_CFG_BLK1_OFFSET 0x120
-#define CH1_LLP_BLK1_OFFSET 0x128
-#define CH1_STATUSREG_BLK1_OFFSET 0x130
-#define CH1_SWHSSRCREG_BLK1_OFFSET 0x138
-#define CH1_SWHSDSTREG_BLK1_OFFSET 0x140
-#define CH1_BLK_TFR_RESUMEREQREG BLK1 OFFSET 0x148
-#define CH1_AXI_IDREG_BLK1 OFFSET 0x150
-#define CH1_AXI_QOSREG_BLK1_OFFSEI 0x158
-#define CH1_INTSTATUS_ENABLEREG_BLK1_OFFSET 0x180
-#define CH1_INTSTATUS_BLK1_OFFSET 0x188
-#define CH1_INTSIGNAL_ENABLEREG_BLK1_OFFSET 0x190
-#define CH1_INTCLEARREG_BLK1_OFFSET 0x198
-#define CH2_SAR_BLK2_OFFSET 0x200
-#define CH2_DAR_BLK2_OFFSET 0x208
-#define CH2_BLOCK_TS_BLK2_OFFSET 0x210
-#define CH2_CTL_BLK2_OFFSET 0x218
-#define CH2_CFG_BLK2_OFFSET 0x220
-#define CH2_LLP_BLK2_OFFSET 0x228
-#define CH2_STATUSREG_BLK2_OFFSET 0x230
-#define CH2_SWHSSRCREG_BLK2_OFFSET 0x238
-#define CH2_SWHSDSTREG_BLK2_OFFSET 0x240
-#define CH2_BLK_TFR RESUMEREQREG_BLK2_OFFSET 0x248
-#define CH2_AXI_IDREG_BLK2_OFFSET 0x250
-#define CH2_AXI_QOSREG_BLK2_OFFSET 0x258
-#define CH2_INTSTATUS_ENABLEREG_BLK2_OFFSET 0x280
-#define CH2_INTSTATUS_BLK2_OFFSET 0x288
-#define CH2_INTSIGNAL_ENABLEREG_BLK2_OFFSET 0x290
-#define CH2_INTCLEARREG_BLK2_OFFSET 0x298
+#define AXI_DMA_BUSWIDTHS		  \
+	(DMA_SLAVE_BUSWIDTH_1_BYTE	| \
+	DMA_SLAVE_BUSWIDTH_2_BYTES	| \
+	DMA_SLAVE_BUSWIDTH_4_BYTES	| \
+	DMA_SLAVE_BUSWIDTH_8_BYTES	| \
+	DMA_SLAVE_BUSWIDTH_16_BYTES	| \
+	DMA_SLAVE_BUSWIDTH_32_BYTES	| \
+	DMA_SLAVE_BUSWIDTH_64_BYTES)
 
-#define sbi_printf printf
+#define AXI_DMA_FLAG_HAS_APB_REGS	BIT(0)
+#define AXI_DMA_FLAG_HAS_RESETS		BIT(1)
+#define AXI_DMA_FLAG_USE_CFG2		BIT(2)
 
-volatile int g_wr_cnt;
 
-static __inline void writel(uint32_t v, caddr_t a)
+
+static axi_dma_chan_t *chan_to_axi_dma_chan(axi_dma_t *axi_dma, struct dma_channel *chan);
+
+
+
+static inline void
+axi_dma_iowrite32(axi_dma_t *axi_dma, uint32_t reg, uint32_t val)
 {
-	sbi_printf("wr32 addr:0x%lx, val:%lx\n", a, v);
-	asm volatile("sw %0, 0(%1)" : : "r" (v), "r" (a));
+	__raw_writel(val, axi_dma->regs + reg);
 }
 
-static __inline void writeq(uint64_t v, caddr_t a)
+static inline uint32_t axi_dma_ioread32(axi_dma_t *axi_dma, uint32_t reg)
 {
-	sbi_printf("wr64(%d) addr:0x%lx val:0x%llx\n", g_wr_cnt++, a, v);
-	asm volatile("sd %0, 0(%1)" : : "r" (v), "r" (a));
+	return __raw_readl(axi_dma->regs + reg);
 }
 
-static __inline uint32_t readl(const caddr_t a)
+static inline void
+axi_dma_iowrite64(axi_dma_t *axi_dma, uint32_t reg, uint64_t val)
 {
-	uint32_t v;
-
-	asm volatile("lw %0, 0(%1)" : "=r" (v) : "r" (a));
-	return v;
+	__raw_writeq(val, axi_dma->regs + reg);
 }
 
-static __inline uint64_t readq(const caddr_t a)
+static inline uint64_t axi_dma_ioread64(axi_dma_t *axi_dma, uint32_t reg)
 {
-	uint64_t v;
-
-	asm volatile("ld %0, 0(%1)" : "=r" (v) : "r" (a));
-	return v;
+	return __raw_readq(axi_dma->regs + reg);
 }
 
-#define wr64(addr, val) writeq(val, addr)
-#define wr(addr, val) writel(val, addr)
-#define rd64(addr) readl(addr)
-
-typedef union {
-	struct {
-		uint64_t SRC_MULTBLK_TYPE  : 2;
-		uint64_t DST_MULTBLK_TYPE  : 2;
-		uint64_t RSVD_DMAC_CHx_CFG_4to31 : 28;
-		uint64_t TT_FC : 3;
-		uint64_t HS_SEL_SRC  : 1;
-		uint64_t HS_SEL_DST  : 1;
-		uint64_t SRC_HWHS_POL  : 1;
-		uint64_t DST_HWHS_POL : 1;
-		uint64_t SRC_PER  : 2;
-		uint64_t RSVD_DMAC_CHx_CFG_42_39  : 2;
-		uint64_t RSVD_DMAC_CHx_CFG_43  : 1;
-		uint64_t DST_PER  : 2;
-		uint64_t RSVD_DMAC_CHx_CFG_47_44  : 2;
-		uint64_t RSVD_DMAC_CHx_CFG_48  : 1;
-		uint64_t CH_PRIOR  : 3;
-		uint64_t L0CK_CH  : 1;
-		uint64_t LOCK_CH_L  : 2;
-		uint64_t SRC_OSR_LMT  : 4;
-		uint64_t DST_OSR_LMT  : 4;
-		uint64_t RSVD_DMAC_CHx_CFG_63  : 1;
-	}bits;
-	uint64_t value;
-} DW_AXI_DMAC_CH2_CFG_BLK2;
-
-typedef union {
-	struct {
-		uint64_t SMS : 1;
-		uint64_t RSVD_DMAC_CHx_CTL_1 : 1;
-		uint64_t DMS : 1;
-		uint64_t RSVD_DMAC_CHx_CTL_3 : 1;
-		uint64_t SINC : 1;
-		uint64_t RSVD_DMAC_CHx_CTL_5 : 1;
-		uint64_t DINC : 1;
-		uint64_t RSVD_DMAC_CHx_CTL_7 : 1;
-		uint64_t SRC_TR_WIDTH : 3;
-		uint64_t DST_TR_WIDTH : 3;
-		uint64_t SRC_MSIZE : 4;
-		uint64_t DST_MSIZE : 4;
-		uint64_t AR_CACHE : 4;
-		uint64_t AW_CACHE : 4;
-		uint64_t NonPosted_LastWrite_En : 1;
-		uint64_t RSVD_DMAC_CHx_CTL_31 : 1;
-		uint64_t AR_PROT : 3;
-		uint64_t AW_PROT : 3;
-		uint64_t ARLEN_EN : 1;
-		uint64_t ARLEN : 8;
-		uint64_t AWLEN_EN : 1;
-		uint64_t AWLEN : 8;
-		uint64_t SRC_STAT_EN : 1;
-		uint64_t DST_STAT_EN : 1;
-		uint64_t IOC_BlkTfr : 1;
-		uint64_t RSVD_DMAC_CHx_CTL_59to61 : 3;
-		uint64_t SHADOWREG_OR_LLI_LAST : 1;
-		uint64_t SHADOWREG_OR_LLI_VALID  : 1;
-	} bits;
-	uint64_t value;
-} DW_AXI_DMAC_CH2_CTL_BLK2;
-
-typedef union {
-	struct {
-		uint64_t BLOCK_TS : 22;
-		uint64_t RSVD_DMAC_CHx_BLOCK_TSREG_63to22 : 42;
-	} bits;
-	uint64_t value;
-} DW_AXI_DMAC_CH2_BLOCK_TS_BLK2;
-
-static void dw_dma_irq_handler(void)
+static inline void
+axi_chan_iowrite32(struct axi_dma_chan *chan, uint32_t reg, uint32_t val)
 {
-	int state = __raw_readl(base_addr + SYS_DMAC_BADDR + DMAC_INTSTATUSREG_BLK0_OFFSET);
+	__raw_writel(val, chan->chan_regs + reg);
+}
 
-	if (state & 0x02 == 0x02) {
-		int ch_int_stat = __raw_readl(base_addr + SYS_DMAC_BADDR + CH2_INTSTATUS_BLK2_OFFSET);
-		__raw_writel(ch_int_stat, base_addr + SYS_DMAC_BADDR + CH2_INTCLEARREG_BLK2_OFFSET);
-	}
+static inline uint32_t axi_chan_ioread32(struct axi_dma_chan *chan, uint32_t reg)
+{
+	return __raw_readl(chan->chan_regs + reg);
+}
 
-	__raw_writel(state, base_addr + SYS_DMAC_BADDR + DMAC_COMMONREG_INTCLEARREG_BLK0_OFFSET);
+static inline void
+axi_chan_iowrite64(struct axi_dma_chan *chan, uint32_t reg, uint64_t val)
+{
+	/*
+	 * We split one 64 bit write for two 32 bit write as some HW doesn't
+	 * support 64 bit access.
+	 */
+	__raw_writeq(val, chan->chan_regs + reg);
+}
 
-	if((state & 0x2)==0x2){
-		ch2_done = 0x1;
+
+static inline void axi_dma_disable(axi_dma_t *chip)
+{
+	uint32_t val;
+
+	val = axi_dma_ioread32(chip, DMAC_CFG);
+	val &= ~DMAC_EN_MASK;
+	axi_dma_iowrite32(chip, DMAC_CFG, val);
+}
+
+static inline void axi_dma_enable(axi_dma_t *chip)
+{
+	uint32_t val;
+
+	val = axi_dma_ioread32(chip, DMAC_CFG);
+	val |= DMAC_EN_MASK;
+	axi_dma_iowrite32(chip, DMAC_CFG, val);
+}
+
+static inline void axi_dma_irq_disable(axi_dma_t *chip)
+{
+	uint32_t val;
+
+	val = axi_dma_ioread32(chip, DMAC_CFG);
+	val &= ~INT_EN_MASK;
+	axi_dma_iowrite32(chip, DMAC_CFG, val);
+}
+
+static inline void axi_dma_irq_enable(axi_dma_t *chip)
+{
+	uint32_t val;
+
+	val = axi_dma_ioread32(chip, DMAC_CFG);
+	val |= INT_EN_MASK;
+	axi_dma_iowrite32(chip, DMAC_CFG, val);
+}
+
+static inline void axi_chan_irq_disable(struct axi_dma_chan *chan, uint32_t irq_mask)
+{
+	uint32_t val;
+
+	if (likely(irq_mask == DWAXIDMAC_IRQ_ALL)) {
+		axi_chan_iowrite32(chan, CH_INTSTATUS_ENA, DWAXIDMAC_IRQ_NONE);
+	} else {
+		val = axi_chan_ioread32(chan, CH_INTSTATUS_ENA);
+		val &= ~irq_mask;
+		axi_chan_iowrite32(chan, CH_INTSTATUS_ENA, val);
 	}
 }
 
-static void dma_trans_ch(uint64_t src_addr, uint64_t dst_addr, int trans_len,int ch)
+static inline void axi_chan_disable(struct axi_dma_chan *chan)
 {
-	DW_AXI_DMAC_CH2_CFG_BLK2 ch_cfg;
-	DW_AXI_DMAC_CH2_CTL_BLK2 ch_ctl;
-	DW_AXI_DMAC_CH2_BLOCK_TS_BLK2 blk_ts;
-	uint64_t offset;
-	printf("ch%d:src_addr:%llx,dst_addr:%llx\n",ch, src_addr, dst_addr);
-	if(ch == 1)
-		offset = CH1_CTL_BLK1_OFFSET;
-	else if(ch == 2)
-		offset = CH2_CTL_BLK2_OFFSET;
+	uint64_t val;
 
-	ch_ctl.value = rd64(base_addr + SYS_DMAC_BADDR + offset);
-	ch_ctl.bits.AWLEN = 16;
-	ch_ctl.bits.AWLEN_EN = 1;
-	ch_ctl.bits.ARLEN = 16;
-	ch_ctl.bits.ARLEN_EN = 1;
-	ch_ctl.bits.AR_PROT = 0x0;
-	ch_ctl.bits.AW_PROT = 0x0;
-	ch_ctl.bits.SRC_TR_WIDTH = 0x4;//axsize
-	ch_ctl.bits.DST_TR_WIDTH = 0x4;
-	ch_ctl.bits.SRC_STAT_EN = 0x1;
-	ch_ctl.bits.DST_STAT_EN = 0x1;
-	ch_ctl.bits.SRC_MSIZE = 0x3;//16
-	ch_ctl.bits.DST_MSIZE = 0x3;
-	ch_ctl.bits.DMS = 0x0;
-	ch_ctl.bits.SMS = 0x0;
-	wr64(base_addr + SYS_DMAC_BADDR + offset, ch_ctl.value);
-	
-	if(ch == 1)
-		offset = CH1_CFG_BLK1_OFFSET;
-	else if(ch == 2)
-		offset = CH2_CFG_BLK2_OFFSET;
-	
-	ch_cfg.value = rd64(base_addr + SYS_DMAC_BADDR +offset);
-	ch_cfg.bits.TT_FC = 0;
-	ch_cfg.bits.HS_SEL_SRC = 0;
-	ch_cfg.bits.HS_SEL_DST = 0;
-	ch_cfg.bits.SRC_HWHS_POL = 0;
-	ch_cfg.bits.DST_HWHS_POL = 0;
-	ch_cfg.bits.SRC_OSR_LMT = 0x4;
-	ch_cfg.bits.DST_OSR_LMT = 0x4;
-	ch_cfg.bits.CH_PRIOR = 0x7;
-	wr64(base_addr+ SYS_DMAC_BADDR + offset, ch_cfg.value);
-	if(ch == 1)
-		offset = CH1_BLOCK_TS_BLK1_OFFSET;
-	else if(ch == 2)
-		offset = CH2_BLOCK_TS_BLK2_OFFSET;
-
-	blk_ts.value = rd64(base_addr + SYS_DMAC_BADDR + offset);
-	blk_ts.bits.BLOCK_TS = trans_len;
-	// wr64(base_addr + SYS_DMAC_BADDR + offset, blk_ts.value);
-	wr64(base_addr + SYS_DMAC_BADDR + offset, 0x100);
-
-	//Config DSP DMA, CHANNEL2--------- DRAM --> Shared RAM
-	printf("Configure DMA CH%d\n",ch);
-
-	if (ch == 1){ 
-		wr(base_addr + SYS_DMAC_BADDR + CH1_SAR_BLK1_OFFSET, src_addr);
-		wr(base_addr + SYS_DMAC_BADDR + CH1_SAR_BLK1_OFFSET +0x4, src_addr >> 32);
-		wr(base_addr + SYS_DMAC_BADDR + CH1_DAR_BLK1_OFFSET, dst_addr);
-		wr(base_addr + SYS_DMAC_BADDR + CH1_DAR_BLK1_OFFSET +0x4, dst_addr >> 32);
-	} else if (ch == 2) {
-		wr(base_addr + SYS_DMAC_BADDR + CH2_SAR_BLK2_OFFSET, src_addr);
-		wr(base_addr + SYS_DMAC_BADDR + CH2_SAR_BLK2_OFFSET +0x4, src_addr >> 32);
-		wr(base_addr + SYS_DMAC_BADDR + CH2_DAR_BLK2_OFFSET, dst_addr);
-		wr(base_addr + SYS_DMAC_BADDR + CH2_DAR_BLK2_OFFSET +0x4, dst_addr >> 32);		
+	if (chan->axi_dma->chan_num >= DMAC_CHAN_16) {
+		val = axi_dma_ioread64(chan->axi_dma, DMAC_CHEN);
+		if (chan->id >= DMAC_CHAN_16) {
+			val &= ~((uint64_t)(BIT(chan->id) >> DMAC_CHAN_16)
+				<< (DMAC_CHAN_EN_SHIFT + DMAC_CHAN_BLOCK_SHIFT));
+			val |=   (uint64_t)(BIT(chan->id) >> DMAC_CHAN_16)
+				<< (DMAC_CHAN_EN2_WE_SHIFT + DMAC_CHAN_BLOCK_SHIFT);
+		} else {
+			val &= ~(BIT(chan->id) << DMAC_CHAN_EN_SHIFT);
+			val |=   BIT(chan->id) << DMAC_CHAN_EN2_WE_SHIFT;
+		}
+		axi_dma_iowrite64(chan->axi_dma, DMAC_CHEN, val);
+	} else {
+		val = axi_dma_ioread32(chan->axi_dma, DMAC_CHEN);
+		val &= ~(BIT(chan->id) << DMAC_CHAN_EN_SHIFT);
+		if (chan->axi_dma->reg_map_8_channels)
+			val |=   BIT(chan->id) << DMAC_CHAN_EN_WE_SHIFT;
+		else
+			val |=   BIT(chan->id) << DMAC_CHAN_EN2_WE_SHIFT;
+		axi_dma_iowrite32(chan->axi_dma, DMAC_CHEN, (uint32_t)val);
 	}
 }
 
-static void dma_test(void)
+static void axi_dma_hw_init(axi_dma_t *chip)
 {
-	int i , j;
-	uint64_t dst_base_addr, src_addr, dst_addr;
+	uint32_t i;
 
-	sbi_printf("1111111111111\n");
-	// dma_master_init();
-	sbi_printf("222222222222\n");
-	ch2_done = 0;
+	for (i = 0; i < chip->chan_num; i++) {
+		axi_chan_irq_disable(&chip->chan[i], DWAXIDMAC_IRQ_ALL);
+		axi_chan_disable(&chip->chan[i]);
+	}
+}
+static inline bool axi_chan_is_hw_enable(struct axi_dma_chan *chan)
+{
+	uint64_t val;
 
-	memset(src_buf, 0xa5, BUF_LEN);
-	memset(dst_buf, 0x11, BUF_LEN);
+	if (chan->axi_dma->chan_num >= DMAC_CHAN_16)
+		val = axi_dma_ioread64(chan->axi_dma, DMAC_CHEN);
+	else
+		val = axi_dma_ioread32(chan->axi_dma, DMAC_CHEN);
 
-#if 1
-	printf('srcbuf:');
-	for(i = 0; i < BUF_LEN; i++) {
-		if (i % 10 == 0) printf("\n");
-		printf("0x%lx ", src_buf[i]);
+	if (chan->id >= DMAC_CHAN_16)
+		return !!(val & ((uint64_t)(BIT(chan->id) >> DMAC_CHAN_16) << DMAC_CHAN_BLOCK_SHIFT));
+	else
+		return !!(val & (BIT(chan->id) << DMAC_CHAN_EN_SHIFT));
+}
+
+static inline void axi_chan_config_write(struct axi_dma_chan *chan,
+					 struct axi_dma_chan_config *config)
+{
+	uint32_t cfg_lo, cfg_hi;
+
+	cfg_lo = (config->dst_multblk_type << CH_CFG_L_DST_MULTBLK_TYPE_POS |
+		  config->src_multblk_type << CH_CFG_L_SRC_MULTBLK_TYPE_POS);
+	if (chan->axi_dma->reg_map_8_channels &&
+	    !chan->axi_dma->use_cfg2) {
+		cfg_hi = config->tt_fc << CH_CFG_H_TT_FC_POS |
+			 config->hs_sel_src << CH_CFG_H_HS_SEL_SRC_POS |
+			 config->hs_sel_dst << CH_CFG_H_HS_SEL_DST_POS |
+			 config->src_per << CH_CFG_H_SRC_PER_POS |
+			 config->dst_per << CH_CFG_H_DST_PER_POS |
+			 config->prior << CH_CFG_H_PRIORITY_POS;
+	} else {
+		cfg_lo |= config->src_per << CH_CFG2_L_SRC_PER_POS |
+			  config->dst_per << CH_CFG2_L_DST_PER_POS;
+		cfg_hi = config->tt_fc << CH_CFG2_H_TT_FC_POS |
+			 config->hs_sel_src << CH_CFG2_H_HS_SEL_SRC_POS |
+			 config->hs_sel_dst << CH_CFG2_H_HS_SEL_DST_POS |
+			 config->prior << CH_CFG2_H_PRIORITY_POS;
+	}
+	axi_chan_iowrite32(chan, CH_CFG_L, cfg_lo);
+	axi_chan_iowrite32(chan, CH_CFG_H, cfg_hi);
+}
+
+static void write_chan_llp(struct axi_dma_chan *chan, dma_addr_t adr)
+{
+	axi_chan_iowrite64(chan, CH_LLP, adr);
+}
+
+static inline void axi_chan_irq_sig_set(struct axi_dma_chan *chan, uint32_t irq_mask)
+{
+	axi_chan_iowrite32(chan, CH_INTSIGNAL_ENA, irq_mask);
+}
+
+static inline void axi_chan_irq_set(struct axi_dma_chan *chan, uint32_t irq_mask)
+{
+	axi_chan_iowrite32(chan, CH_INTSTATUS_ENA, irq_mask);
+}
+
+static inline void axi_chan_enable(struct axi_dma_chan *chan)
+{
+	uint64_t val;
+
+	if (chan->axi_dma->chan_num >= DMAC_CHAN_16) {
+		val = axi_dma_ioread64(chan->axi_dma, DMAC_CHEN);
+		if (chan->id >= DMAC_CHAN_16) {
+			val |= (uint64_t)(BIT(chan->id) >> DMAC_CHAN_16)
+				<< (DMAC_CHAN_EN_SHIFT + DMAC_CHAN_BLOCK_SHIFT) |
+				(uint64_t)(BIT(chan->id) >> DMAC_CHAN_16)
+				<< (DMAC_CHAN_EN2_WE_SHIFT + DMAC_CHAN_BLOCK_SHIFT);
+		} else {
+			val |= BIT(chan->id) << DMAC_CHAN_EN_SHIFT |
+			BIT(chan->id) << DMAC_CHAN_EN2_WE_SHIFT;
+		}
+		axi_dma_iowrite64(chan->axi_dma, DMAC_CHEN, val);
+	} else {
+		val = axi_dma_ioread32(chan->axi_dma, DMAC_CHEN);
+		if (chan->axi_dma->reg_map_8_channels) {
+			val |= BIT(chan->id) << DMAC_CHAN_EN_SHIFT |
+			BIT(chan->id) << DMAC_CHAN_EN_WE_SHIFT;
+		} else {
+			val |= BIT(chan->id) << DMAC_CHAN_EN_SHIFT |
+				BIT(chan->id) << DMAC_CHAN_EN2_WE_SHIFT;
+		}
+		axi_dma_iowrite32(chan->axi_dma, DMAC_CHEN, (uint32_t)val);
+	}
+}
+static void dw_axi_dma_set_byte_halfword(struct axi_dma_chan *chan, bool set)
+{
+	return;
+	// uint32_t offset = DMAC_APB_BYTE_WR_CH_EN;
+	// uint32_t reg_width, val;
+
+	// if (!chan->axi_dma->apb_regs) {
+	// 	dev_dbg(chan->axi_dma->dev, "apb_regs not initialized\n");
+	// 	return;
+	// }
+
+	// reg_width = __ffs(chan->config.dst_addr_width);
+	// if (reg_width == DWAXIDMAC_TRANS_WIDTH_16)
+	// 	offset = DMAC_APB_HALFWORD_WR_CH_EN;
+
+	// val = ioread32(chan->axi_dma->apb_regs + offset);
+
+	// if (set)
+	// 	val |= BIT(chan->id);
+	// else
+	// 	val &= ~BIT(chan->id);
+
+	// iowrite32(val, chan->axi_dma->apb_regs + offset);
+}
+
+static void axi_chan_block_xfer_start(struct axi_dma_chan *chan,
+				      struct axi_dma_desc *first)
+{
+	uint32_t priority = chan->priority[chan->id];
+	struct axi_dma_chan_config config = {};
+	uint32_t irq_mask;
+	uint8_t lms = 0; /* Select AXI0 master for LLI fetching */
+
+	if (unlikely(axi_chan_is_hw_enable(chan))) {
+		con_err("channel%d is non-idle!\n", chan->id);
+		return;
 	}
 
-	printf('\ndstbuf:');
-	for(i = 0; i < BUF_LEN; i++) {
-		if (i % 10 == 0) printf("\n");
-		printf("0x%lx ", dst_buf[i]);
+	axi_dma_enable(chan->axi_dma);
+
+	config.dst_multblk_type = DWAXIDMAC_MBLK_TYPE_LL;
+	config.src_multblk_type = DWAXIDMAC_MBLK_TYPE_LL;
+	config.tt_fc = DWAXIDMAC_TT_FC_MEM_TO_MEM_DMAC;
+	config.prior = priority;
+	config.hs_sel_dst = DWAXIDMAC_HS_SEL_HW;
+	config.hs_sel_src = DWAXIDMAC_HS_SEL_HW;
+	switch (chan->direction) {
+	case DMA_MEM_TO_DEV:
+		dw_axi_dma_set_byte_halfword(chan, true);
+		// config.tt_fc = chan->config.device_fc ?
+		// 		DWAXIDMAC_TT_FC_MEM_TO_PER_DST :
+		// 		DWAXIDMAC_TT_FC_MEM_TO_PER_DMAC;
+		// if (chan->axi_dma->apb_regs)
+		// 	config.dst_per = chan->id;
+		// else
+			// config.dst_per = chan->hw_handshake_num;
+		break;
+	case DMA_DEV_TO_MEM:
+		// config.tt_fc = chan->config.device_fc ?
+		// 		DWAXIDMAC_TT_FC_PER_TO_MEM_SRC :
+		// 		DWAXIDMAC_TT_FC_PER_TO_MEM_DMAC;
+		// if (chan->axi_dma->apb_regs)
+			// config.src_per = chan->id;
+		// else
+			// config.src_per = chan->hw_handshake_num;
+		break;
+	default:
+		break;
 	}
-	printf("\n");
-#endif
-#if 1
-	src_addr = src_buf;
-	dst_addr = dst_buf;
+	axi_chan_config_write(chan, &config);
 
-	irqc_configure_irq(26, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(26, dw_dma_irq_handler);
-	irqc_enable_irq(26);
+	write_chan_llp(chan, first->hw_desc[0].llp | lms);
 
-	dma_trans_ch(src_addr, dst_addr, BUF_LEN, 0x02);
-	// dma_trans_ch(0x0000000110001000, 0x0000000110001000+128, 128, 0x02);
+	irq_mask = DWAXIDMAC_IRQ_DMA_TRF | DWAXIDMAC_IRQ_ALL_ERR;
+	axi_chan_irq_sig_set(chan, irq_mask);
 
+	/* Generate 'suspend' status but don't generate interrupt */
+	irq_mask |= DWAXIDMAC_IRQ_SUSPENDED;
+	axi_chan_irq_set(chan, irq_mask);
 
-	// __raw_writel(0x202, base_addr + SYS_DMAC_BADDR + DMAC_COMMONREG_INTCLEARREG_BLK0_OFFSET);
-	// __raw_writel(0x3, base_addr + SYS_DMAC_BADDR+DMAC_CFGREG_BLK0_OFFSET); // [0]:dma_en [1]:int_en
+	axi_chan_enable(chan);
+}
 
-	// __raw_writel(0x202, DMAC_CHENREG_BLK0_0FFSET);
+static void axi_chan_start_first_queued(struct axi_dma_chan *chan)
+{
+	axi_chan_block_xfer_start(chan, chan->desc);
+}
 
-	//Enable DMA0 and block interrupt at LAST!!!
-	wr(base_addr + SYS_DMAC_BADDR + DMAC_COMMONREG_INTSTATUS_ENABLEREG_BLK0_OFFSET, 0x0202);
-	wr(base_addr + SYS_DMAC_BADDR + DMAC_CFGREG_BLK0_OFFSET, 0x3);//[1]:int_en [0]:dma_en
-	//enable dma ch2
-	wr(base_addr + SYS_DMAC_BADDR + DMAC_CHENREG_BLK0_OFFSET,0x000000202);
+static void dma_chan_issue_pending(struct dma_channel *dchan)
+{
+	struct axi_dma_chan *chan = chan_to_axi_dma_chan(&g_axi_dma, dchan);
 
-	while(!ch2_done) {
-		int ch_int_stat = __raw_readl(base_addr + SYS_DMAC_BADDR + CH2_INTSTATUS_BLK2_OFFSET);
-		// sbi_printf("!!!!!!!!!!(%lx)\n", ch_int_stat);
-		if (ch_int_stat == 0x02) {
-			printf("copy done");
-			break;
+	axi_chan_start_first_queued(chan);
+}
+
+static void set_desc_src_master(struct axi_dma_hw_desc *desc)
+{
+	uint32_t val;
+
+	/* Select AXI0 for source master */
+	val = le32_to_cpu(desc->lli->ctl_lo);
+	val &= ~CH_CTL_L_SRC_MAST;
+	desc->lli->ctl_lo = cpu_to_le32(val);
+}
+
+static void set_desc_dest_master(struct axi_dma_hw_desc *hw_desc,
+				 struct axi_dma_desc *desc)
+{
+	uint32_t val;
+
+	/* Select AXI1 for source master if available */
+	val = le32_to_cpu(hw_desc->lli->ctl_lo);
+	if (desc->chan->nr_masters > 1) {
+		val |= CH_CTL_L_DST_MAST;
+	}
+	else {
+		val &= ~CH_CTL_L_DST_MAST;
+	}
+
+	hw_desc->lli->ctl_lo = cpu_to_le32(val);
+}
+
+static axi_dma_chan_t *chan_to_axi_dma_chan(axi_dma_t *axi_dma, struct dma_channel *chan)
+{
+	for (int i = 0; i < axi_dma->chan_num; i++) {
+		if (chan->id == i) {
+			return &axi_dma->chan[i];
 		}
 	}
-#if 1
-	printf('srcbuf:');
-	for(i = 0; i < BUF_LEN; i++) {
-		if (i % 10 == 0) printf("\n");
-		printf("0x%lx ", src_buf[i]);
+	return NULL;
+}
+
+static struct axi_dma_desc *axi_desc_alloc(uint32_t num)
+{
+	struct axi_dma_desc *desc;
+
+	desc = (struct axi_dma_desc*)heap_calloc(sizeof(*desc));
+	if (!desc)
+		return NULL;
+
+	desc->hw_desc = (struct axi_dma_hw_desc	*)heap_calloc(num * sizeof(*desc->hw_desc));
+	if (!desc->hw_desc) {
+		heap_free((caddr_t)desc);
+		return NULL;
+	}
+	desc->nr_hw_descs = num;
+
+	return desc;
+}
+
+static uint32_t axi_chan_get_xfer_width(struct axi_dma_chan *chan, dma_addr_t src,
+				   dma_addr_t dst, size_t len)
+{
+// fixme
+	uint32_t max_width = chan->m_data_width;
+
+	// return __ffs_unit(src | dst | len | BIT(max_width));
+
+	return max_width;
+}
+
+static struct axi_dma_lli *axi_desc_get(struct axi_dma_chan *chan, dma_addr_t *addr)
+{
+	struct axi_dma_lli *lli;
+
+	lli = (struct axi_dma_lli *)page_alloc_pages(1);
+	if (unlikely(!lli)) {
+		con_err("channel%d: not enough descriptors available\n", chan->id);
+		return NULL;
 	}
 
-	printf('\ndstbuf:');
-	for(i = 0; i < BUF_LEN; i++) {
-		if (i % 10 == 0) printf("\n");
-		printf("0x%lx ", dst_buf[i]);
+	*addr = __pa(lli);
+
+	return lli;
+}
+
+static void write_desc_sar(struct axi_dma_hw_desc *desc, dma_addr_t adr)
+{
+	desc->lli->sar = cpu_to_le64(adr);
+}
+
+static void write_desc_dar(struct axi_dma_hw_desc *desc, dma_addr_t adr)
+{
+	desc->lli->dar = cpu_to_le64(adr);
+}
+
+static void set_desc_last(struct axi_dma_hw_desc *desc)
+{
+	uint32_t val;
+
+	val = le32_to_cpu(desc->lli->ctl_hi);
+	val |= CH_CTL_H_LLI_LAST;
+	desc->lli->ctl_hi = cpu_to_le32(val);
+}
+
+static void write_desc_llp(struct axi_dma_hw_desc *desc, dma_addr_t adr)
+{
+	desc->lli->llp = cpu_to_le64(adr);
+}
+
+static void axi_chan_dump_lli(struct axi_dma_hw_desc *desc)
+{
+	printf("SAR: 0x%llx DAR: 0x%llx LLP: 0x%llx BTS 0x%x CTL: 0x%x:%08x\n",
+		le64_to_cpu(desc->lli->sar),
+		le64_to_cpu(desc->lli->dar),
+		le64_to_cpu(desc->lli->llp),
+		le32_to_cpu(desc->lli->block_ts_lo),
+		le32_to_cpu(desc->lli->ctl_hi),
+		le32_to_cpu(desc->lli->ctl_lo));
+}
+int axi_dma_prep_memcpy(struct dma_channel *dchan, dma_addr_t dst_adr,
+			 dma_addr_t src_adr, size_t len, unsigned long flags)
+{
+	struct axi_dma_chan *chan = chan_to_axi_dma_chan(&g_axi_dma, dchan);
+	size_t block_ts, max_block_ts, xfer_len;
+	struct axi_dma_hw_desc *hw_desc = NULL;
+	struct axi_dma_desc *desc = NULL;
+	uint32_t xfer_width, reg, num;
+	uint64_t llp = 0;
+	uint8_t lms = 0;
+
+	max_block_ts = chan->block_size[chan->id];
+	xfer_width = axi_chan_get_xfer_width(chan, src_adr, dst_adr, len);
+	num = DIV_ROUND_UP(len, max_block_ts << xfer_width);
+// printf("max_block_ts: %d  xfer_width: %d  num: %d\n", max_block_ts, xfer_width, num);
+	desc = axi_desc_alloc(num);
+	if (unlikely(!desc))
+		goto err_desc_get;
+	
+	chan->desc = desc;
+	num = 0;
+	desc->length = 0;
+	while (len) {
+		xfer_len = len;
+
+		hw_desc = &desc->hw_desc[num];
+		/*
+		 * Take care for the alignment.
+		 * Actually source and destination widths can be different, but
+		 * make them same to be simpler.
+		 */
+		xfer_width = axi_chan_get_xfer_width(chan, src_adr, dst_adr, xfer_len);
+
+		desc->chan = chan;
+		/*
+		 * block_ts indicates the total number of data of width
+		 * to be transferred in a DMA block transfer.
+		 * BLOCK_TS register should be set to block_ts - 1
+		 */
+		block_ts = xfer_len >> xfer_width;
+		if (block_ts > max_block_ts) {
+			block_ts = max_block_ts;
+			xfer_len = max_block_ts << xfer_width;
+		}
+
+		hw_desc->lli = axi_desc_get(chan, &hw_desc->llp);
+		if (unlikely(!hw_desc->lli))
+			goto err_desc_get;
+
+		write_desc_sar(hw_desc, src_adr);
+		write_desc_dar(hw_desc, dst_adr);
+		hw_desc->lli->block_ts_lo = cpu_to_le32(block_ts - 1);
+
+		reg = CH_CTL_H_LLI_VALID;
+		if (chan->restrict_axi_burst_len) {
+			uint32_t burst_len = chan->axi_rw_burst_len;
+
+			reg |= (CH_CTL_H_ARLEN_EN |
+				burst_len << CH_CTL_H_ARLEN_POS |
+				CH_CTL_H_AWLEN_EN |
+				burst_len << CH_CTL_H_AWLEN_POS);
+		}
+		hw_desc->lli->ctl_hi = cpu_to_le32(reg);
+		reg = (DWAXIDMAC_BURST_TRANS_LEN_4 << CH_CTL_L_DST_MSIZE_POS |
+		       DWAXIDMAC_BURST_TRANS_LEN_4 << CH_CTL_L_SRC_MSIZE_POS |
+		       xfer_width << CH_CTL_L_DST_WIDTH_POS |
+		       xfer_width << CH_CTL_L_SRC_WIDTH_POS |
+		       DWAXIDMAC_CH_CTL_L_INC << CH_CTL_L_DST_INC_POS |
+		       DWAXIDMAC_CH_CTL_L_INC << CH_CTL_L_SRC_INC_POS);
+		hw_desc->lli->ctl_lo = cpu_to_le32(reg);
+
+		set_desc_src_master(hw_desc);
+		set_desc_dest_master(hw_desc, desc);
+
+		hw_desc->len = xfer_len;
+		desc->length += hw_desc->len;
+		/* update the length and addresses for the next loop cycle */
+		len -= xfer_len;
+		dst_adr += xfer_len;
+		src_adr += xfer_len;
+		num++;
 	}
-	printf("\n");
-#endif
-	sbi_printf("!!!!!!!!!!");
-#endif
+	/* Set end-of-link to the last link descriptor of list */
+	set_desc_last(&desc->hw_desc[num - 1]);
+	chan->descs_allocated = num;
+	/* Managed transfer list */
+	do {
+		hw_desc = &desc->hw_desc[--num];
+		write_desc_llp(hw_desc, llp | lms);
+		llp = hw_desc->llp;
+	} while (num);
+	
+
+	return 0;
+err_desc_get:
+	// if (desc)
+		// axi_desc_put(desc);
+	return -1;
 }
 
-void dw_dma_init(void)
+static inline void axi_chan_irq_clear(struct axi_dma_chan *chan, uint32_t irq_mask)
 {
-	dma_test();
+	axi_chan_iowrite32(chan, CH_INTCLEAR, irq_mask);
 }
 
-static int do_dmatest(int argc, char *argv[])
+static inline uint32_t axi_chan_irq_read(struct axi_dma_chan *chan)
 {
-	dw_dma_init();
+	return axi_chan_ioread32(chan, CH_INTSTATUS);
 }
 
-DEFINE_COMMAND(dmatest, do_dmatest, "K1MXLite SoC global commands",
-	"dmatest\n"
-	"    -simulation/boot mode information\n"
-);
+static void axi_chan_list_dump_lli(struct axi_dma_chan *chan,
+				   struct axi_dma_desc *desc_head)
+{
+	int count = chan->descs_allocated;
+	int i;
+
+	for (i = 0; i < count; i++)
+		axi_chan_dump_lli(&desc_head->hw_desc[i]);
+}
+
+static void axi_chan_handle_err(struct axi_dma_chan *chan, uint32_t status)
+{
+	axi_chan_disable(chan);
+
+	/* WARN about bad descriptor */
+	con_err("Bad descriptor submitted for chan%d, irq: 0x%08x\n",
+		chan->id, status);
+	axi_chan_list_dump_lli(chan, chan->desc);
+}
+
+static void axi_chan_block_xfer_complete(struct axi_dma_chan *chan)
+{
+	con_dbg("xfer complete submitted for chan%d\n", chan->id);		
+}
+static int axi_dma_chan_poll(struct dma_channel *dchan)
+{
+	struct axi_dma_chan *chan = chan_to_axi_dma_chan(&g_axi_dma, dchan);
+
+	while (1) {
+		
+		uint32_t status = axi_chan_irq_read(chan);
+		axi_chan_irq_clear(chan, status);
+
+		if (status & DWAXIDMAC_IRQ_ALL_ERR) {
+			axi_chan_handle_err(chan, status);
+			return -1;
+		}
+		else if (status & DWAXIDMAC_IRQ_DMA_TRF) {
+			axi_chan_block_xfer_complete(chan);
+			return 0;
+		}
+	}
+}
+int dma_hw_memcpy_sync(void *chan, dma_addr_t dst, dma_addr_t src, size_t len, unsigned long flags)
+{
+	axi_dma_prep_memcpy((struct dma_channel *)chan, dst, src, len, flags);
+	dma_chan_issue_pending((struct dma_channel *)chan);
+	axi_dma_chan_poll((struct dma_channel *)chan);
+
+	return 0;
+}
+
+static int axi_dma_init2(axi_dma_t *axi_dma, phys_addr_t base, uint8_t chan_num, uint16_t busrt_len)
+{
+	if (axi_dma->inited) return 0;
+
+	axi_dma->regs = base;
+	axi_dma->chan_num = chan_num;
+	axi_dma->busrt_len = busrt_len;
+
+	axi_dma->chan = (struct axi_dma_chan*)heap_calloc(sizeof(*axi_dma->chan) * chan_num);
+	if (!axi_dma->chan) {
+		return -1;
+	}
+	for (int i = 0; i < chan_num; i++) {
+		axi_dma_chan_t *chan = &axi_dma->chan[i];
+		chan->id = i;
+		chan->chan_regs = axi_dma->regs + COMMON_REG_LEN + i * CHAN_REG_LEN;
+		chan->axi_dma = axi_dma;
+		chan->block_size[chan->id] = 65536;
+		chan->m_data_width = 4; //snps,data-width
+		chan->axi_rw_burst_len = 127; // snps,axi-max-burst-len
+		chan->restrict_axi_burst_len = true;
+		chan->nr_masters = 1; // snps,dma-masters
+	}
+
+	axi_dma->inited = 1;
+	axi_dma->use_cfg2 = 0;
+	if (chan_num <= DMA_REG_MAP_CH_REF)
+		axi_dma->reg_map_8_channels = true;
+	axi_dma_enable(axi_dma);
+	axi_dma_irq_enable(axi_dma);
+	axi_dma_hw_init(axi_dma);
+
+	return 0;
+}
+
+int axi_dma_init(phys_addr_t base, uint8_t chan_num, uint16_t busrt_len)
+{
+	return axi_dma_init2(&g_axi_dma, base, chan_num, busrt_len);
+}

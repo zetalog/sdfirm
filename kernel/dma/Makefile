@@ -6,3 +6,4 @@ obj-y:=
 
 obj-y += dmac.rel
 obj-y += dmar.rel
+obj-y += dma_test.rel
