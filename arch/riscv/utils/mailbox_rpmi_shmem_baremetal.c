@@ -322,7 +322,7 @@ static int smq_rx(struct rpmi_shmem_mbox_controller *mctl,
 	struct smq_queue_ctx *qctx;
 
 	if (mctl->queue_count < queue_id) {
-		sbi_printf("%s: invalid queue_id or service_group_id\n",
+		printf("%s: invalid queue_id or service_group_id\n",
 			   __func__);
 		return SBI_EINVAL;
 	}
@@ -357,7 +357,7 @@ static int smq_tx(struct rpmi_shmem_mbox_controller *mctl,
 	struct smq_queue_ctx *qctx;
 
 	if (mctl->queue_count < queue_id) {
-		sbi_printf("%s: invalid queue_id or service_group_id\n",
+		printf("%s: invalid queue_id or service_group_id\n",
 			   __func__);
 		return SBI_EINVAL;
 	}
@@ -464,7 +464,7 @@ int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl)
 
 	mctl->slot_size = 0x800;
 	if (mctl->slot_size < RPMI_SLOT_SIZE_MIN) {
-		sbi_printf("%s: slot_size < mimnum required message size\n",
+		printf("%s: slot_size < mimnum required message size\n",
 			   __func__);
 		mctl->slot_size = RPMI_SLOT_SIZE_MIN;
 	}

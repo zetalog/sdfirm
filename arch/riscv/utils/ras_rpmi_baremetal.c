@@ -13,7 +13,7 @@ static struct rpmi_ras ras = {
 };
 
 int rpmi_ras_sync_hart_errs(u32 *pending_vectors, u32 *nr_pending,
-				   u32 *nr_remaining)
+			    u32 *nr_remaining)
 {
 	int rc = 0;
 	struct rpmi_ras_sync_hart_err_req req;
