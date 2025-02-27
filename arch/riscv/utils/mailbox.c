@@ -116,7 +116,7 @@ int mbox_chan_xfer(struct mbox_chan *chan, struct mbox_xfer *xfer)
 
 	if (!(xfer->flags & MBOX_XFER_SEQ))
 		mbox_xfer_set_sequence(xfer,
-			atomic_add_return((atomic_count_t)&chan->mbox->xfer_next_seq, (atomic_t *)1));
+			atomic_add_return(1, &chan->mbox->xfer_next_seq));
 
 	return chan->mbox->xfer(chan, xfer);
 }

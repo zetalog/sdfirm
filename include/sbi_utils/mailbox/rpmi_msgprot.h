@@ -177,7 +177,7 @@ enum rpmi_error {
 	RPMI_ERR_VENDOR_START	= -128,
 };
 
-/** RPMI Message Arguments */
+/** RPMI Mailbox Message Arguments */
 struct rpmi_message_args {
 	u32 flags;
 #define RPMI_MSG_FLAGS_NO_TX		(1U << 0)
@@ -191,6 +191,17 @@ struct rpmi_message_args {
 	u32 rx_data_len;
 };
 
+/** RPMI Mailbox Channel Attribute IDs */
+enum rpmi_channel_attribute_id {
+	RPMI_CHANNEL_ATTR_PROTOCOL_VERSION = 0,
+	RPMI_CHANNEL_ATTR_MAX_DATA_LEN,
+	RPMI_CHANNEL_ATTR_TX_TIMEOUT,
+	RPMI_CHANNEL_ATTR_RX_TIMEOUT,
+	RPMI_CHANNEL_ATTR_SERVICEGROUP_ID,
+	RPMI_CHANNEL_ATTR_SERVICEGROUP_VERSION,
+	RPMI_CHANNEL_ATTR_MAX,
+};
+
 /*
  * RPMI SERVICEGROUPS AND SERVICES
  */
@@ -199,11 +210,12 @@ struct rpmi_message_args {
 enum rpmi_servicegroup_id {
 	RPMI_SRVGRP_ID_MIN = 0,
 	RPMI_SRVGRP_BASE = 0x0001,
-	RPMI_SRVGRP_SYSTEM_RESET = 0x0002,
-	RPMI_SRVGRP_SYSTEM_SUSPEND = 0x0003,
-	RPMI_SRVGRP_HSM = 0x0004,
-	RPMI_SRVGRP_CPPC = 0x0005,
-	RPMI_SRVGRP_CLOCK = 0x0007,
+	RPMI_SRVGRP_SYSTEM_MSI = 0x0002,
+	RPMI_SRVGRP_SYSTEM_RESET = 0x0003,
+	RPMI_SRVGRP_SYSTEM_SUSPEND = 0x0004,
+	RPMI_SRVGRP_HSM = 0x0005,
+	RPMI_SRVGRP_CPPC = 0x0006,
+	RPMI_SRVGRP_CLOCK = 0x0008,
 	RPMI_SRVGRP_ID_MAX_COUNT,
 
 	/* Reserved range for service groups */
@@ -234,12 +246,10 @@ enum rpmi_base_service_id {
 	RPMI_BASE_SRV_GET_PLATFORM_INFO = 0x05,
 	RPMI_BASE_SRV_PROBE_SERVICE_GROUP = 0x06,
 	RPMI_BASE_SRV_GET_ATTRIBUTES = 0x07,
-	RPMI_BASE_SRV_SET_MSI = 0x08,
 };
 
-#define RPMI_BASE_FLAGS_F0_PRIVILEGE		(1U << 2)
-#define RPMI_BASE_FLAGS_F0_EV_NOTIFY		(1U << 1)
-#define RPMI_BASE_FLAGS_F0_MSI_EN		(1U)
+#define RPMI_BASE_FLAGS_F0_PRIVILEGE		(1U << 1)
+#define RPMI_BASE_FLAGS_F0_EV_NOTIFY		(1U << 0)
 
 enum rpmi_base_context_priv_level {
 	RPMI_BASE_CONTEXT_PRIV_S_MODE,
@@ -258,6 +268,93 @@ struct rpmi_base_get_platform_info_resp {
 	s32 status;
 	u32 plat_info_len;
 	char plat_info[];
+};
+
+/** RPMI System MSI ServiceGroup Service IDs */
+enum rpmi_sysmsi_service_id {
+	RPMI_SYSMSI_SRV_ENABLE_NOTIFICATION = 0x01,
+	RPMI_SYSMSI_SRV_GET_ATTRIBUTES = 0x2,
+	RPMI_SYSMSI_SRV_GET_MSI_ATTRIBUTES = 0x3,
+	RPMI_SYSMSI_SRV_SET_MSI_STATE = 0x4,
+	RPMI_SYSMSI_SRV_GET_MSI_STATE = 0x5,
+	RPMI_SYSMSI_SRV_SET_MSI_TARGET = 0x6,
+	RPMI_SYSMSI_SRV_GET_MSI_TARGET = 0x7,
+	RPMI_SYSMSI_SRV_ID_MAX_COUNT,
+};
+
+/** Response for system MSI service group attributes */
+struct rpmi_sysmsi_get_attributes_resp {
+	s32 status;
+	u32 sys_num_msi;
+	u32 p2a_db_index;
+	u32 flag0;
+	u32 flag1;
+};
+
+/** Request for system MSI attributes */
+struct rpmi_sysmsi_get_msi_attributes_req {
+	u32 sys_msi_index;
+};
+
+/** Response for system MSI attributes */
+struct rpmi_sysmsi_get_msi_attributes_resp {
+	s32 status;
+	u32 flag0;
+	u32 flag1;
+	u8 name[16];
+};
+
+#define RPMI_SYSMSI_MSI_ATTRIBUTES_FLAG0_PREF_PRIV	(1U << 0)
+
+/** Request for system MSI set state */
+struct rpmi_sysmsi_set_msi_state_req {
+	u32 sys_msi_index;
+	u32 sys_msi_state;
+};
+
+#define RPMI_SYSMSI_MSI_STATE_ENABLE			(1U << 0)
+#define RPMI_SYSMSI_MSI_STATE_PENDING			(1U << 1)
+
+/** Response for system MSI set state */
+struct rpmi_sysmsi_set_msi_state_resp {
+	s32 status;
+};
+
+/** Request for system MSI get state */
+struct rpmi_sysmsi_get_msi_state_req {
+	u32 sys_msi_index;
+};
+
+/** Response for system MSI get state */
+struct rpmi_sysmsi_get_msi_state_resp {
+	s32 status;
+	u32 sys_msi_state;
+};
+
+/** Request for system MSI set target */
+struct rpmi_sysmsi_set_msi_target_req {
+	u32 sys_msi_index;
+	u32 sys_msi_address_low;
+	u32 sys_msi_address_high;
+	u32 sys_msi_data;
+};
+
+/** Response for system MSI set target */
+struct rpmi_sysmsi_set_msi_target_resp {
+	s32 status;
+};
+
+/** Request for system MSI get target */
+struct rpmi_sysmsi_get_msi_target_req {
+	u32 sys_msi_index;
+};
+
+/** Response for system MSI get target */
+struct rpmi_sysmsi_get_msi_target_resp {
+	s32 status;
+	u32 sys_msi_address_low;
+	u32 sys_msi_address_high;
+	u32 sys_msi_data;
 };
 
 /** RPMI System Reset ServiceGroup Service IDs */
@@ -604,6 +701,54 @@ struct rpmi_clock_get_rate_resp {
 	s32 status;
 	u32 clock_rate_low;
 	u32 clock_rate_high;
+};
+
+/** RPMI RAS-Agent ServiceGroup Service IDs */
+enum rpmi_ras_service_id {
+	RPMI_RAS_SRV_PROBE_REQ = 0x01,
+	RPMI_RAS_SRV_SYNC_HART_ERR_REQ,
+	RPMI_RAS_SRV_SYNC_DEV_ERR_REQ,
+	RPMI_RAS_SRV_GET_PEND_VECS_REQ,
+	RPMI_RAS_SRV_SYNC_ERR_RESP,
+	RPMI_RAS_SRV_MAX_COUNT,
+};
+
+struct rpmi_ras_probe_req {
+	u32 dummy;
+};
+
+struct rpmi_ras_probe_resp {
+	s32 status;
+	u32 version;
+};
+
+struct rpmi_ras_sync_hart_err_req {
+	u32 hart_id;
+};
+
+struct rpmi_ras_sync_dev_err_req {
+	u32 dummy;
+};
+
+struct rpmi_ras_pend_vecs_req {
+#define INVALID_LAST_VEC 0xFFFFFFFFUL
+	u32 last_vec;
+};
+
+/*
+ * List of vectors needing attention. These might be
+ * more than that can be sent in single message.
+ *
+ * `remaining` will contain the number of vectors
+ * remaining. SBI implementation should request
+ * remaining vectors by GET_PEND_VECS request.
+ */
+struct rpmi_ras_sync_err_resp {
+	s32 status;
+	u32 remaining;
+	u32 returned;
+#define MAX_PEND_VECS	((RPMI_MSG_DATA_SIZE(RPMI_SLOT_SIZE_MIN) - (sizeof(u32) * 3)) / sizeof(u32))
+	u32 pending_vecs[MAX_PEND_VECS];
 };
 
 #endif /* !__RPMI_MSGPROT_H__ */

@@ -64,6 +64,11 @@ config FDT_MAILBOX_RPMI_SHMEM
 
 endif
 
+config MAILBOX_RPMI_SHMEM
+	bool "RPMI Shared Memory Mailbox Controller baremetal drivers"
+	depends on RPMI_MAILBOX
+	default n
+
 endmenu
 # SPDX-License-Identifier: BSD-2-Clause
 
@@ -148,5 +153,15 @@ config FDT_SUSPEND_RPMI
 	default n
 
 endif
+
+endmenu
+
+# SPDX-License-Identifier: BSD-2-Clause
+
+menu "RAS Agent Driver Support"
+
+config RAS_RPMI
+	bool "RPMI RAS baremetal driver"
+	default n
 
 endmenu
