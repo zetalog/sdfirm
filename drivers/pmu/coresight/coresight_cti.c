@@ -3,14 +3,14 @@
 #include <target/panic.h>
 #include <target/console.h>
 
-uint32_t cti_base[32];
+caddr_t cti_base[32];
 uint32_t cti_num = 0;
 
 static int coresight_cti_handler(struct coresight_rom_device *device)
 {
 	coresight_log("CoreSight CTI (%016llx)\n",
 		      (uint64_t)device->base);
-	cti_base[cti_num++] = device->base;
+	cti_base[cti_num++] = (uint64_t)device->base;
 	return 0;
 }
 
@@ -29,7 +29,7 @@ int coresight_cti_init(void)
 void cti_list(void)
 {
 	for (int i = 0; i < cti_num; i++) {
-		printf("Coresight CTI %d: 0x%x\n", i, cti_base[i]);
+		printf("Coresight CTI %d: 0x%lx\n", i, cti_base[i]);
 	}
 }
 

@@ -579,6 +579,21 @@
 #define ETR_ITATBCTR0_ATVALIDS		_BV(0)
 
 /* ======================================================================
+ * FUNNEL Registers
+ * ====================================================================== */
+
+#define FUNNEL_CTL(base)		CORESIGHT_REG(base, 0x000)
+#define FUNNEL_PRCTL(base)		CORESIGHT_REG(base, 0x004)
+#define FUNNEL_ITATBDATA0(base)		CORESIGHT_REG(base, 0xEEC)
+#define FUNNEL_ITATBCTR3(base)		CORESIGHT_REG(base, 0xEF0)
+#define FUNNEL_ITATBCTR2(base)		CORESIGHT_REG(base, 0xEF4)
+#define FUNNEL_ITATBCTR1(base)		CORESIGHT_REG(base, 0xEF8)
+#define FUNNEL_ITATBCTR0(base)		CORESIGHT_REG(base, 0xEFC)
+
+extern uint32_t cluster_table[];
+extern uint32_t cluster_to_id[];
+
+/* ======================================================================
  * Interfaces
  * ====================================================================== */
 
@@ -642,17 +657,35 @@ int __coresight_visit_device(struct coresight_rom_device *device);
 
 #ifdef CONFIG_CORESIGHT_MEM_AP
 int coresight_mem_ap_init(void);
-uint32_t mem_ap_read(uint32_t address);
-void mem_ap_write(uint32_t data, uint32_t addr);
-#define coresight_read(addr)				mem_ap_read(addr)
-#define coresight_write(data, addr)			mem_ap_write(data, addr)
+uint32_t mem_ap_read(caddr_t address);
+void mem_ap_write(uint32_t data, caddr_t addr);
+static inline uint32_t coresight_read(caddr_t addr)
+{
+	uint32_t data = mem_ap_read(addr);;
+	coresight_log("coresight: R: 0x%lx=%x\n", addr, data);
+	return data;
+}
+#define coresight_write(data, addr)							\
+	do {										\
+		mem_ap_write(data, addr);						\
+		coresight_log("coresight: W: 0x%lx=%x\n", addr, data);			\
+	} while (0)
 #else
 static inline int coresight_mem_ap_init(void)
 {
 	return 0;
 }
-#define coresight_read(addr)				__raw_readl(addr)
-#define coresight_write(data, addr)			__raw_writel(data, addr)
+static inline uint32_t coresight_read(caddr_t addr)
+{
+	uint32_t data = __raw_readl(addr);
+	coresight_log("coresight: R: 0x%lx=%x\n", addr, data);
+	return data;
+}
+#define coresight_write(data, addr)							\
+	do {										\
+		__raw_writel(data, addr);						\
+		coresight_log("coresight: W: 0x%lx=%x\n", addr, data);			\
+	} while (0)
 #endif
 
 #ifdef CONFIG_CORESIGHT_ETM

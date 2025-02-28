@@ -60,8 +60,6 @@ int coresight_visit_table(caddr_t rom_table_base)
 	table.part = coresight_get_part(rom_table_base);
 
 	for (i = 0; i < coresight_nr_tables; i++) {
-		printf("ROM (%016llx): class_expect=%02x, class=%02x\n",
-		       	(uint64_t)table.base, coresight_tables[i]->clazz, table.clazz);
 		if (coresight_tables[i]->clazz == table.clazz) {
 			coresight_tables[i]->handler(&table);
 			handled = true;
@@ -84,11 +82,10 @@ int __coresight_visit_device(struct coresight_rom_device *device)
 	bool handled = false;
 
 	for (i = 0; i < coresight_nr_devices; i++) {
-		printf("DEV (%016llx): jep106_expect=%04x jep106=%04x arch_expect=%04x, arch=%04x\n",
-		       (uint64_t)device->base, coresight_devices[i]->jep106_ident, device->jep106_ident,
-		       coresight_devices[i]->arch_id, device->arch_id);
 		if (coresight_devices[i]->jep106_ident == device->jep106_ident &&
 		    coresight_devices[i]->arch_id == device->arch_id) {
+			printf("DEV (%016llx): jep106=%04x, arch=%04x\n",
+				(uint64_t)device->base, device->jep106_ident, device->arch_id);
 			coresight_devices[i]->handler(device);
 			coresight_devices[i]->nr_devs++;
 			handled = true;
@@ -322,7 +319,7 @@ int coresight_init(caddr_t *rom_table_base, uint32_t rom_table_num, caddr_t *bla
 
 	/* DEVTYPE enumerated devices */
 	coresight_tpiu_init();
-	coresight_etb_init();
+	//coresight_etb_init();
 	coresight_etr_init();
 	coresight_funnel_init();
 	coresight_replicator_init();
@@ -340,7 +337,7 @@ int coresight_init(caddr_t *rom_table_base, uint32_t rom_table_num, caddr_t *bla
 	coresight_register_table(&coresight_class9_rom_table);
 	coresight_register_table(&coresight_class15_rom_table);
 	for (int i = 0; i < rom_table_num; i++)
-		coresight_visit_table(rom_table_base[i]);
+		coresight_visit_device(rom_table_base[i]);
 	return 0;
 }
 

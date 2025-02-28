@@ -1,7 +1,7 @@
 #include <target/dts.h>
 #include <target/cmdline.h>
 
-uint32_t mem_ap_base[32];
+caddr_t mem_ap_base[32];
 uint32_t mem_ap_num = 0;
 
 static int coresight_mem_ap_handler(struct coresight_rom_device *device)
@@ -24,7 +24,7 @@ int coresight_mem_ap_init(void)
 	return coresight_register_device(&coresight_mem_ap);
 }
 
-uint32_t mem_ap_read(uint32_t addr)
+uint32_t mem_ap_read(caddr_t addr)
 {
 	if ((addr & 0xffff0000) != CORESIGHT_ROM_TABLE_0_BASE) {
 		__raw_writel(addr, CORESIGHT_MEM_AP_TAR(mem_ap_base[0]));
@@ -34,7 +34,7 @@ uint32_t mem_ap_read(uint32_t addr)
 		return __raw_readl(addr);
 }
 
-void mem_ap_write(uint32_t data, uint32_t addr)
+void mem_ap_write(uint32_t data, caddr_t addr)
 {
 	if ((addr & 0xffff0000) != CORESIGHT_ROM_TABLE_0_BASE) {
 		__raw_writel(addr, CORESIGHT_MEM_AP_TAR(mem_ap_base[0]));
