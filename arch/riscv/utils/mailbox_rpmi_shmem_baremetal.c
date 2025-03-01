@@ -526,7 +526,7 @@ void rpmi_shmem_init(void)
 {
 	g_mctl.mb_regs = &g_mb_regs;
 	g_mbox_ptr->xfer = rpmi_shmem_mbox_xfer;
-	g_mbox_ptr->max_xfer_len = mctl->slot_size - sizeof(struct rpmi_message_header);
+	g_mbox_ptr->max_xfer_len = g_mctl.slot_size - sizeof(struct rpmi_message_header);
 	g_chan.mbox = g_mbox_ptr;
 
 	rpmi_shmem_transport_init(&g_mctl);
