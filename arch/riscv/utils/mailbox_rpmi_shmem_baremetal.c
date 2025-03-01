@@ -33,6 +33,10 @@
 #define QUEUE_SIZE ULL(0x1000)
 #endif
 
+#ifndef SLOT_SIZE
+#define SLOT_SIZE ULL(0x40)
+#endif
+
 /** Minimum Base group version required */
 #define RPMI_BASE_VERSION_MIN		RPMI_VERSION(1, 0)
 
@@ -462,7 +466,7 @@ int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl)
 	uint64_t reg_addr, reg_size;
 	struct smq_queue_ctx *qctx;
 
-	mctl->slot_size = 0x800;
+	mctl->slot_size = SLOT_SIZE;
 	if (mctl->slot_size < RPMI_SLOT_SIZE_MIN) {
 		printf("%s: slot_size < mimnum required message size\n",
 			   __func__);
@@ -522,7 +526,7 @@ void rpmi_shmem_init(void)
 {
 	g_mctl.mb_regs = &g_mb_regs;
 	g_mbox_ptr->xfer = rpmi_shmem_mbox_xfer;
-	g_mbox_ptr->max_xfer_len = 0x800;
+	g_mbox_ptr->max_xfer_len = mctl->slot_size - sizeof(struct rpmi_message_header);
 	g_chan.mbox = g_mbox_ptr;
 
 	rpmi_shmem_transport_init(&g_mctl);
