@@ -16,7 +16,7 @@
 #define FDT_FIXUP_STATUS_UNAVAILABLE	"disabled"
 #else
 #define FDT_FIXUP_SIZE			0
-#define FDT_FIXUP_STATUS_UNAVAILABLE	""
+#define FDT_FIXUP_STATUS_UNAVAILABLE	"ng"
 #endif
 
 int fdt_add_cpu_idle_states(void *fdt, const struct sbi_cpu_idle_state *state)
@@ -216,7 +216,6 @@ static int fdt_resv_memory_update_node(void *fdt, unsigned long addr,
 	else
 		snprintf(name, sizeof(name), "mmode_pmp%d@%x", index,
 			 addr_low);
-
 	subnode = fdt_add_subnode(fdt, parent, name);
 	if (subnode < 0)
 		return subnode;
