@@ -169,6 +169,10 @@ build_litmus()
 		cp -f ${SDFIRM_ROOT}/tests/litmus_dump.c \
 		      ${LITMUS_DIR}/litmus_dump.c
 		rm -f ${LITMUS_DIR}/utils.o
+		if [ ! -f "${LITMUS_DIR}/run_all.c" ] || [ ! -s "${LITMUS_DIR}/run_all.c" ]; then
+			echo "Error: ${LITMUS_DIR}/run_all.c does not exist or is empty!"
+			exit 1
+		fi
 		if [ "x${LITMUS_CASES}" = "x" ]; then
 			LITMUS_CASES=`\
 				cat ${LITMUS_DIR}/run_all.c | \
@@ -575,7 +579,7 @@ backup_elfs()
 					${BACKUP_ROOT}/linpack
 				cp -f ${SDFIRM_ROOT}/tests/bench/coremark.debug \
 					${BACKUP_ROOT}/coremark
-				cp -f ${SDFIRM_ROOT}/tests/bench/loopback.debug \
+				cp -f ${SDFIRM_ROOT}/tests/net/loopback.debug \
 					${BACKUP_ROOT}/loopback
 			fi
 			if [ "x${TEST_EARLY}" = "xlitmus" ]; then
