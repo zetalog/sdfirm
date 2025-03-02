@@ -518,13 +518,10 @@ int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl)
 struct rpmi_shmem_mbox_controller g_mctl;
 struct mbox_controller *g_mbox_ptr = &g_mctl.controller;
 struct mbox_chan g_chan;
-struct rpmi_mb_regs g_mb_regs = {
-	.db_reg = DOORBELL_BASE
-};
 
 void rpmi_shmem_init(void)
 {
-	g_mctl.mb_regs = &g_mb_regs;
+	g_mctl.mb_regs = (struct rpmi_mb_regs *)DOORBELL_BASE;
 	g_mbox_ptr->xfer = rpmi_shmem_mbox_xfer;
 	g_mbox_ptr->max_xfer_len = g_mctl.slot_size - sizeof(struct rpmi_message_header);
 	g_chan.mbox = g_mbox_ptr;
