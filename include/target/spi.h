@@ -19,8 +19,16 @@ struct spi_device {
 	uint8_t mode;
 	uint32_t max_freq_khz;
 	uint8_t chip;
+	uint16_t iocb;
 };
+typedef uint16_t spi_event_t;
 typedef struct spi_device spi_device_t;
+
+#ifdef SPI_HW_FREQ
+#define SPI_FREQ		SPI_HW_FREQ
+#else
+#define SPI_FREQ		300
+#endif
 
 #define SPI_LSB			0x01
 #define SPI_MSB			0x00
@@ -87,10 +95,29 @@ typedef struct spi_device spi_device_t;
 #define SPI_SET_DIR(x, d)	(x &= ~SPI_DIR_MASK, x |= d)
 #define SPI_CALL(x)		(x & SPI_MODE_CALL)
 
+#define SPI_ADDR_LEN		sizeof(uint8_t)
+
 #define SPI_MODE_SLAVE_TX	(SPI_MODE_SLAVE | SPI_MODE_TX)
 #define SPI_MODE_MASTER_TX	(SPI_MODE_MASTER | SPI_MODE_TX)
 #define SPI_MODE_SLAVE_RX	(SPI_MODE_SLAVE | SPI_MODE_RX)
 #define SPI_MODE_MASTER_RX	(SPI_MODE_MASTER | SPI_MODE_RX)
+
+#define spi_addr_mode(addr, mode)	(((addr) << 1) | (mode))
+
+extern spi_addr_t spi_target;
+extern spi_addr_t spi_address;
+extern uint16_t spi_freq;
+extern uint8_t spi_mode;
+extern spi_len_t spi_txsubmit;
+extern spi_len_t spi_rxsubmit;
+extern spi_len_t spi_limit;
+extern spi_len_t spi_current;
+extern spi_len_t spi_commit;
+extern uint8_t spi_status;
+extern uint8_t spi_state;
+extern spi_event_t spi_event;
+extern spi_device_t *spi_device;
+extern spi_addr_t spi_abrt_slave;
 
 void spi_write_byte(uint8_t byte);
 uint8_t spi_read_byte(void);
@@ -98,14 +125,31 @@ uint8_t spi_read_byte(void);
 #define spi_rx()		spi_read_byte()
 uint8_t spi_txrx(uint8_t byte);
 
+bool spi_first_byte(void);
+bool spi_prev_byte(void);
+bool spi_last_byte(void);
+
+void spi_set_status(uint8_t status);
+
+void spi_raise_event(uint8_t event);
+void spi_enter_state(uint8_t state);
+
 #ifdef CONFIG_SPI_MASTER
 spi_t spi_register_device(spi_device_t *dev);
 void spi_select_device(spi_t spi);
+void spi_apply_frequency(void);
 #define spi_deselect_device()	spi_hw_deselect_chips();
+#define spi_set_address(addr, call)
+#define spi_apply_address()
 #else
 #define spi_register_device(dev)	(-1)
 #define spi_select_device(spi)		do { } while (0)
 #define spi_deselect_device(spi)	do { } while (0)
+void spi_set_address(uint8_t addr, boolean call);
+void spi_apply_address(void);
+#define spi_apply_frequency()
 #endif
+
+void spi_config_mode(uint8_t mode, bool freq);
 
 #endif /* __SPI_H_INCLUDE__ */
