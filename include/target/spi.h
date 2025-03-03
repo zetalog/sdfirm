@@ -53,6 +53,45 @@ typedef struct spi_device spi_device_t;
 #define SPI_MAX_FREQ		SPI_HW_MAX_FREQ
 #define SPI_MAX_FREQ_MHZ	(UL(1000) * SPI_MAX_FREQ)
 
+#define SPI_MODE_CALL		0x80
+#define SPI_MODE_SLAVE		0x00
+#define SPI_MODE_MASTER		0x02
+#define SPI_BUS_MASK		0x02
+#define SPI_MODE_TX		0x00
+#define SPI_MODE_RX		0x01
+#define SPI_DIR_MASK		0x01
+
+#define SPI_STATUS_IDLE		0x00
+#define SPI_STATUS_START	0x01
+#define SPI_STATUS_ACK		0x02
+#define SPI_STATUS_NACK		0x03
+#define SPI_STATUS_ARBI		0x04
+#define SPI_STATUS_STOP		0x05
+
+#define SPI_STATE_IDLE		0x00
+#define SPI_STATE_WAIT		0x01
+#define SPI_STATE_READ		0x02
+#define SPI_STATE_WRITE		0x03
+
+#define SPI_EVENT_IDLE		_BV(SPI_STATUS_IDLE)
+#define SPI_EVENT_START		_BV(SPI_STATUS_START)
+#define SPI_EVENT_PAUSE		_BV(SPI_STATUS_ACK)
+#define SPI_EVENT_ABORT		_BV(SPI_STATUS_NACK)
+#define SPI_EVENT_ARB		_BV(SPI_STATUS_ARBI)
+#define SPI_EVENT_STOP		_BV(SPI_STATUS_STOP)
+
+#define SPI_BUS(x)		(x & SPI_BUS_MASK)
+#define SPI_DIR(x)		(x & SPI_DIR_MASK)
+#define SPI_BUS_DIR(x)		(x & (SPI_BUS_MASK | SPI_DIR_MASK))
+#define SPI_SET_BUS(x, b)	(x &= ~SPI_BUS_MASK, x |= b)
+#define SPI_SET_DIR(x, d)	(x &= ~SPI_DIR_MASK, x |= d)
+#define SPI_CALL(x)		(x & SPI_MODE_CALL)
+
+#define SPI_MODE_SLAVE_TX	(SPI_MODE_SLAVE | SPI_MODE_TX)
+#define SPI_MODE_MASTER_TX	(SPI_MODE_MASTER | SPI_MODE_TX)
+#define SPI_MODE_SLAVE_RX	(SPI_MODE_SLAVE | SPI_MODE_RX)
+#define SPI_MODE_MASTER_RX	(SPI_MODE_MASTER | SPI_MODE_RX)
+
 void spi_write_byte(uint8_t byte);
 uint8_t spi_read_byte(void);
 #define spi_tx(byte)		spi_write_byte(byte)
