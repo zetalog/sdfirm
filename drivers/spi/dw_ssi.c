@@ -49,6 +49,8 @@
 #define dw_ssi_dbg(...)		do { } while (0)
 #endif
 
+#define dw_ssid				0
+
 /* Only 8 Bits transfers are allowed */
 #define DW_SSI_XFER_SIZE		8
 typedef uint8_t dw_ssi_data;
@@ -111,6 +113,32 @@ void dw_ssi_switch_xfer(int n, uint8_t tmod)
 		dw_ssi_config_xfer(n, tmod);
 		dw_ssis[n].tmod = tmod;
 	}
+}
+
+void dw_ssi_submit_write(uint8_t byte)
+{
+	/*
+	uint32_t val = byte;
+
+	if ((ssi_rxsubmit == 0) && ssi_prev_byte()) {
+		val |= SPI_DATA_CMD_STOP;
+	}
+	if (ssi_first_byte()) {
+		dw_ssi_setl(SPI_INTR_TX, SSI_IMR(dw_ssid));
+		val |= SPI_DATA_CMD_RESTART;
+	} else {
+		dw_ssi_setl(SPI_INTR_IDL, SSI_IMR(dw_ssid));
+	}
+	dw_ssi.last_tx_byte = byte;
+	while (!(dw_ssi_get_status() & SSI_TFNF));
+	dw_ssi_writel(val, SPI_DATA_CMD(dw_ssid));
+	*/
+}
+
+void dw_ssi_commit_write(void)
+{
+	if (ssi_last_byte())
+		dw_ssi_clearl(IC_INTR_TX, SSI_IMR(dw_ssid));
 }
 
 void dw_ssi_write_byte(int n, uint8_t byte)

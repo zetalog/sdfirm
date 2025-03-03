@@ -1,6 +1,8 @@
 #ifndef __SPI_DRIVER_H_INCLUDE__
 #define __SPI_DRIVER_H_INCLUDE__
 
+typedef uint16_t spi_len_t;
+
 #ifdef CONFIG_ARCH_HAS_SPI
 #include <asm/mach/spi.h>
 #endif
