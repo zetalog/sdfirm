@@ -189,17 +189,17 @@
 #define SPI_INTR_TX_MASTER			\
 	(SSI_MSTI | SSI_TXEI | SSI_TXOI)
 #define SPI_INTR_TX_SLAVE			\
-	(SPI_INTR_TX_ABRT | SSI_TXEI | SSI_TXOI)
+	(SSI_TXEI | SSI_TXOI)
 #define SPI_INTR_IDL_MASTER			\
 	(SSI_MSTI | SSI_TXEI)
 #define SPI_INTR_IDL_SLAVE	SSI_TXEI
-#ifdef CONFIG_I2C_MASTER
+#ifdef CONFIG_SPI_MASTER
 #define SPI_INTR_DEF		SPI_INTR_DEF_MASTER
 #define SPI_INTR_IDL		SPI_INTR_IDL_MASTER
 #define SPI_INTR_RX		SPI_INTR_RX_MASTER
 #define SPI_INTR_TX		SPI_INTR_TX_MASTER
 #endif
-#ifdef CONFIG_I2C_SLAVE
+#ifdef CONFIG_SPI_SLAVE
 #define SPI_INTR_DEF		SPI_INTR_DEF_SLAVE
 #define SPI_INTR_IDL		SPI_INTR_IDL_SLAVE
 #define SPI_INTR_RX		SPI_INTR_RX_SLAVE
@@ -237,6 +237,15 @@
 #define DW_SPI_CS			1
 #define DW_SPI_FREQ_SPEED		50
 
+enum dw_ssi_driver_state {
+	DW_SSI_DRIVER_INIT = 0,
+	DW_SSI_DRIVER_START,
+	DW_SSI_DRIVER_ADDRESS,
+	DW_SSI_DRIVER_DATA,
+	DW_SSI_DRIVER_STOP,
+	DW_SSI_DRIVER_INVALID
+};
+
 struct dw_ssi_ctx {
 	uint8_t frf;		/* SPI/SSP/MicroWire */
 	uint8_t tmod;		/* TR/TO/RO/EEPROM */
@@ -248,6 +257,10 @@ struct dw_ssi_ctx {
 	uint8_t eeprom_addr_len;
 	uint8_t spi_wait;	/* wait cycles */
 	uint16_t sckdv;		/* sck divisor */
+	uint8_t addr_mode;
+	uint8_t last_tx_byte;
+	int state;
+	uint8_t status;
 #ifdef CONFIG_DW_SSI_XFER
 	void *tx;
 	void *tx_end;
@@ -285,6 +298,8 @@ struct dw_ssi_ctx {
 #define dw_ssi_irqs_status(n)		dw_ssi_readl(SSI_ISR(n))
 #define dw_ssi_clear_irqs(n, irqs)	dw_ssi_clearl(irqs, SSI_ISR(n))
 
+void dw_ssi_start_condition(bool sr);
+void dw_ssi_stop_condition(void);
 uint8_t dw_ssi_read_byte(int n);
 void dw_ssi_write_byte(int n, uint8_t byte);
 void dw_ssi_config_mode(int n, uint8_t mode);

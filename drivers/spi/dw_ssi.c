@@ -54,6 +54,7 @@
 /* Only 8 Bits transfers are allowed */
 #define DW_SSI_XFER_SIZE		8
 typedef uint8_t dw_ssi_data;
+static struct dw_ssi_ctx dw_ssi;
 
 struct dw_ssi_ctx dw_ssis[NR_DW_SSIS];
 
@@ -117,28 +118,42 @@ void dw_ssi_switch_xfer(int n, uint8_t tmod)
 
 void dw_ssi_submit_write(uint8_t byte)
 {
-	/*
 	uint32_t val = byte;
 
-	if ((ssi_rxsubmit == 0) && ssi_prev_byte()) {
-		val |= SPI_DATA_CMD_STOP;
+	if ((spi_rxsubmit == 0) && spi_prev_byte()) {
+		//val |= SPI_DATA_CMD_STOP;
 	}
-	if (ssi_first_byte()) {
+	if (spi_first_byte()) {
 		dw_ssi_setl(SPI_INTR_TX, SSI_IMR(dw_ssid));
-		val |= SPI_DATA_CMD_RESTART;
+		//val |= SPI_DATA_CMD_RESTART;
 	} else {
 		dw_ssi_setl(SPI_INTR_IDL, SSI_IMR(dw_ssid));
 	}
 	dw_ssi.last_tx_byte = byte;
-	while (!(dw_ssi_get_status() & SSI_TFNF));
-	dw_ssi_writel(val, SPI_DATA_CMD(dw_ssid));
-	*/
+	while (!(dw_ssi_irqs_status(dw_ssid) & SSI_TFNF));
+	//dw_ssi_writel(val, SPI_DATA_CMD(dw_ssid));
 }
 
 void dw_ssi_commit_write(void)
 {
-	if (ssi_last_byte())
-		dw_ssi_clearl(IC_INTR_TX, SSI_IMR(dw_ssid));
+	if (spi_last_byte())
+		dw_ssi_clearl(SPI_INTR_TX, SSI_IMR(dw_ssid));
+}
+
+void dw_ssi_start_condition(bool sr)
+{
+	if (sr) {
+		dw_ssi_stop_condition();
+	}
+	spi_set_status(SPI_STATUS_START);
+	dw_ssi_dbg("dw_ssi: DW_SSI_DRIVER_START\n");
+	dw_ssi.state = DW_SSI_DRIVER_START;
+}
+
+void dw_ssi_stop_condition(void)
+{
+	dw_ssi_dbg("dw_ssi: DW_SSI_DRIVER_STOP\n");
+	dw_ssi.state = DW_SSI_DRIVER_STOP;
 }
 
 void dw_ssi_write_byte(int n, uint8_t byte)
@@ -364,7 +379,7 @@ int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata)
 
 void dw_ssi_handle_irq(irq_t irq)
 {
-	/* dw_spi_transfer_handler */
+	/* dw_ssi_transfer_handler */
 	int n = irq - IRQ_SPI;
 
 	uint32_t status = dw_ssi_readl(SSI_ISR(n));
