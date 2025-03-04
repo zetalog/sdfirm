@@ -61,4 +61,4 @@ CFLAGS =-DHOSTED -DCONFIG_FP=1 \
 %.elf: %.unstrip
 	@echo " STRIP  $<"
 	@$(STRIP) -s --remove-section=.note --remove-section=.comment $< -o $@
-	#@cp -f $< $@
+	@cp -f $< $@

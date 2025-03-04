@@ -7,6 +7,16 @@ extern int litmus_dummy_test(int argc,char **argv);
 #else
 #define litmus_dummy_test(argc,argv) do { } while (0)
 #endif
+#ifdef CONFIG_LB_2B_amoadd_2D_data_2D_amoadd_2E_rl_2B_amoadd_2E_aq_2D_data_2D_amoadd
+extern int LB_2B_amoadd_2D_data_2D_amoadd_2E_rl_2B_amoadd_2E_aq_2D_data_2D_amoadd(int argc, char **argv);
+#else
+#define LB_2B_amoadd_2D_data_2D_amoadd_2E_rl_2B_amoadd_2E_aq_2D_data_2D_amoadd(argc, argv)  do {} while(0)
+#endif
+#ifdef CONFIG_WRC_2B_fence_2E_rw_2E_rws_2B_fence_2E_rw_2E_rwsxx
+extern int WRC_2B_fence_2E_rw_2E_rws_2B_fence_2E_rw_2E_rwsxx(int argc, char **argv);
+#else
+#define CONFIG_WRC_2B_fence_2E_rw_2E_rws_2B_fence_2E_rw_2E_rwsxx(argc, argv)  do {} while(0)
+#endif
 
 /* Date function */
 static void my_date(FILE *out) {
@@ -48,9 +58,15 @@ static void end_report(int argc,char **argv,FILE *out) {
 static void run(int argc,char **argv) {
   litmus_finishing = false;
   my_date(stderr);
+#ifdef CONFIG_LITMUS_RISCV_DUMMY
   litmus_dummy_test(argc,argv);
+#endif
+#ifdef CONFIG_LB_2B_amoadd_2D_data_2D_amoadd_2E_rl_2B_amoadd_2E_aq_2D_data_2D_amoadd
   litmus_dummy_test(argc,argv);
+#endif
+#ifdef CONFIG_WRC_2B_fence_2E_rw_2E_rws_2B_fence_2E_rw_2E_rwsxx
   litmus_dummy_test(argc,argv);
+#endif
   end_report(argc,argv,stderr);
   my_date(stderr);
   litmus_finishing = true;
