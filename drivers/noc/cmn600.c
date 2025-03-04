@@ -399,7 +399,7 @@ uint8_t cmn_hnf_mapping(void)
 
 static void cmn_configure_hnf_sam_hashed(caddr_t hnf)
 {
-	cmn_nid_t nodeid=0;
+	cmn_nid_t nodeid = 0;
 
 	nodeid = cmn600_hw_snf_hashed(cmn_node_id(hnf));
 	switch (cmn_hnf_mapping()) {
