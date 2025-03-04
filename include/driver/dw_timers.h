@@ -68,6 +68,7 @@
 #define TIMER_MODE(value)	_SET_FV(TIMER_MODE, value)
 #define TIMER_USER_DEFINED	1
 #define TIMER_FREE_RUNNING	0
+#define TIMER_INTSTAT		_BV(0)
 #define TIMER_INTERRUPT_MASK	_BV(2)
 #define TIMER_PWM		_BV(3)
 #define TIMER_PWM_EN		_BV(4)
@@ -96,6 +97,10 @@
 	__raw_writel(counter, TIMERLOADCOUNT(n))
 #define dw_timers_get_counter(n)			\
 	(DW_TIMERS_MAX - __raw_readl(TIMERCURRENTVAL(n)))
+#define dw_timers_irq_raised(n)				\
+	(__raw_readl(TIMERINTSTAT(n)) & TIMER_INTSTAT)
+#define dw_timers_eoi(n)				\
+	__raw_readl(TIMEREOI(n))
 
 #ifndef __ASSEMBLY__
 void dw_timers_tsc_init(int n);

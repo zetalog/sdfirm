@@ -54,8 +54,8 @@ void dw_timers_tsc_init(int n)
 void dw_timers_gpt_init(int n)
 {
 	dw_timers_disable(n);
+	dw_timers_set_counter(n, DW_TIMERS_MAX);
 	dw_timers_set_mode(n, TIMER_FREE_RUNNING);
 	dw_timers_unmask_irq(n);
-	dw_timers_set_counter(n, DW_TIMERS_MAX);
 	dw_timers_enable(n);
 }
