@@ -8,9 +8,20 @@ menuconfig TESTS_LITMUS_RISCV
 
 if TESTS_LITMUS_RISCV
 
+choice
+	prompt "Select a LITMUS_RISCV test"
+	default LITMUS_RISCV_DUMMY
+
 config LITMUS_RISCV_DUMMY
 	bool "Dummy"
 
+config LB_2B_amoadd_2D_data_2D_amoadd_2E_rl_2B_amoadd_2E_aq_2D_data_2D_amoadd
+        bool "LB_2B_amoadd_2D_data_2D_amoadd_2E_rl_2B_amoadd_2E_aq_2D_data_2D_amoadd"
+
+config WRC_2B_fence_2E_rw_2E_rws_2B_fence_2E_rw_2E_rwsxx
+        bool "WRC_2B_fence_2E_rw_2E_rws_2B_fence_2E_rw_2E_rwsxx"
+
+endchoice
 source tests/riscv/litmus/Kconfig.litmus
 
 endif
