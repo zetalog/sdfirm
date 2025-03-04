@@ -1131,3 +1131,11 @@ menuconfig SPACEMIT_RAS
 	depends !SYS_NOIRQ || SBI
 
 endmenu
+
+menu "System tests"
+
+menuconfig RISCV_ATOMIC_TEST
+	bool "Atomic and LR/SC instruction tests"
+	depends RISCV_A
+
+endmenu

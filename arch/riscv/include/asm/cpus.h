@@ -76,4 +76,10 @@ struct scratch {
 #define HART_ALL		CPU_ALL
 #endif
 
+#ifdef CONFIG_RISCV_ATOMIC_TEST
+void __atomic_test_addr(void *addr);
+#else
+#define __atomic_test_addr(addr)	do { } while (0)
+#endif
+
 #endif /* __RISCV_CPUS_H_INCLUDE__ */
