@@ -30,5 +30,6 @@ obj-$(CONFIG_RI5CY_PC) += ri5cy_pc.rel
 obj-$(CONFIG_VAISRA_TBOX) += tbox.rel
 obj-$(CONFIG_VAISRA_PMA) += vaisra_pma.rel
 obj-$(CONFIG_VAISRA_RAS) += vaisra_ras.rel
+obj-$(CONFIG_RISCV_ATOMIC_TEST) += atomic_test.rel
 
 extra-y := $(head-y) sdfirm.lds
