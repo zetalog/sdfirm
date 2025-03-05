@@ -1087,6 +1087,10 @@ menuconfig VAISRA_PMA
 	help
 	  Vaisra SoC PMA driver.
 
+menuconfig RISCV_TRACE
+	bool "Nexus Trace Support"
+	depends CORESIGHT
+
 if VAISRA_PMA
 
 menu "Default normal memory attributes"

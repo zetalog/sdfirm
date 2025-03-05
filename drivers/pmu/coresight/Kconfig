@@ -53,16 +53,6 @@ config CORESIGHT_FUNNEL
 	help
 	  DEVTYPE.major=2, DEVTYPE.sub=1.
 
-config CORESIGHT_ENCODER
-	bool "CoreSight Encoder support"
-	help
-	  DEVTYPE.major=2, DEVTYPE.sub=1.
-
-config CORESIGHT_ATBBRIDGE
-	bool "CoreSight ATB Bridge support"
-	help
-	  DEVTYPE.major=2, DEVTYPE.sub=1.
-
 config CORESIGHT_REPLICATOR
 	bool "ARM CoreSight Replicator support"
 	help
