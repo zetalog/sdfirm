@@ -3,5 +3,6 @@
 
 #include <target/generic.h>
 #include <asm/mach/dts.h>
+#include <asm/nexus_trace.h>
 
 #endif

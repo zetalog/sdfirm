@@ -579,21 +579,6 @@
 #define ETR_ITATBCTR0_ATVALIDS		_BV(0)
 
 /* ======================================================================
- * FUNNEL Registers
- * ====================================================================== */
-
-#define FUNNEL_CTL(base)		CORESIGHT_REG(base, 0x000)
-#define FUNNEL_PRCTL(base)		CORESIGHT_REG(base, 0x004)
-#define FUNNEL_ITATBDATA0(base)		CORESIGHT_REG(base, 0xEEC)
-#define FUNNEL_ITATBCTR3(base)		CORESIGHT_REG(base, 0xEF0)
-#define FUNNEL_ITATBCTR2(base)		CORESIGHT_REG(base, 0xEF4)
-#define FUNNEL_ITATBCTR1(base)		CORESIGHT_REG(base, 0xEF8)
-#define FUNNEL_ITATBCTR0(base)		CORESIGHT_REG(base, 0xEFC)
-
-extern uint32_t cluster_table[];
-extern uint32_t cluster_to_id[];
-
-/* ======================================================================
  * Interfaces
  * ====================================================================== */
 
@@ -667,8 +652,8 @@ static inline uint32_t coresight_read(caddr_t addr)
 }
 #define coresight_write(data, addr)							\
 	do {										\
-		mem_ap_write(data, addr);						\
 		coresight_log("coresight: W: 0x%lx=%x\n", addr, data);			\
+		mem_ap_write(data, addr);						\
 	} while (0)
 #else
 static inline int coresight_mem_ap_init(void)
@@ -683,8 +668,8 @@ static inline uint32_t coresight_read(caddr_t addr)
 }
 #define coresight_write(data, addr)							\
 	do {										\
-		__raw_writel(data, addr);						\
 		coresight_log("coresight: W: 0x%lx=%x\n", addr, data);			\
+		__raw_writel(data, addr);						\
 	} while (0)
 #endif
 
