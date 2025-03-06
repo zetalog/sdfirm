@@ -647,12 +647,12 @@ void mem_ap_write(uint32_t data, caddr_t addr);
 static inline uint32_t coresight_read(caddr_t addr)
 {
 	uint32_t data = mem_ap_read(addr);;
-	coresight_log("coresight: R: 0x%lx=%x\n", addr, data);
+	coresight_log("coresight: R: 0x%lx=%x\n", (caddr_t)addr, (uint32_t)data);
 	return data;
 }
 #define coresight_write(data, addr)							\
 	do {										\
-		coresight_log("coresight: W: 0x%lx=%x\n", addr, data);			\
+		coresight_log("coresight: W: 0x%lx=%x\n", (caddr_t)addr, (uint32_t)data);\
 		mem_ap_write(data, addr);						\
 	} while (0)
 #else
@@ -663,12 +663,12 @@ static inline int coresight_mem_ap_init(void)
 static inline uint32_t coresight_read(caddr_t addr)
 {
 	uint32_t data = __raw_readl(addr);
-	coresight_log("coresight: R: 0x%lx=%x\n", addr, data);
+	coresight_log("coresight: R: 0x%lx=%x\n", (caddr_t)addr, (uint32_t)data);
 	return data;
 }
 #define coresight_write(data, addr)							\
 	do {										\
-		coresight_log("coresight: W: 0x%lx=%x\n", addr, data);			\
+		coresight_log("coresight: W: 0x%lx=%x\n", (caddr_t)addr, (uint32_t)data);\
 		__raw_writel(data, addr);						\
 	} while (0)
 #endif

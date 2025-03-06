@@ -67,10 +67,29 @@
 #define TENCODER_INSTFEAT(base)		TRACE_REG(base, 0x008)
 #define TENCODER_INSTFILTER(base)	TRACE_REG(base, 0x00C)
 
+/* TENCODER_INSTFEAT */
+#define TEINST_NOADDRDIFF		_BV(0)
+#define TEINST_NOTRAPADDR		_BV(1)
+#define TEINST_ENSEQJMP			_BV(2)
+#define TEINST_ENIMPRET			_BV(3)
+#define TEINST_ENBRANCHPRE		_BV(4)
+#define TEINST_ENJMPTGTCACHE		_BV(5)
+#define TEINST_IMPRETMODE_OFFSET	6
+#define TEINST_IMPRETMODE_MASK		REG_2BIT_MASK
+#define TEINST_IMPRETMODE(value)	_SET_FV(TEINST_IMPRETMODE, value)
+#define TEINST_ENRPTHISTORY		_BV(8)
+#define TEINST_ENALLJMP			_BV(9)
+#define TEINST_EXTADDRMSB		_BV(10)
+#define TEINST_SRCID_OFFSET		16
+#define TEINST_SRCID_MASK		REG_12BIT_MASK
+#define TEINST_SRCID(value)		_SET_FV(TEINST_SRCID, value)
+#define TEINST_SRCBIT_OFFSET		28
+#define TEINST_SRCBIT_MASK		REG_4BIT_MASK
+#define TEINST_SRCBIT(value)		_SET_FV(TEINST_SRCBIT, value)
+
 /* ======================================================================
  * Funnel Registers
  * ====================================================================== */
-
 
 extern uint32_t cluster_table[];
 extern uint32_t cluster_to_id[];
