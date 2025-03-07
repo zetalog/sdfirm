@@ -787,16 +787,16 @@
 #endif
 		};
 
-		ethernet@1003a000 {
+		ethernet@10040000 {
 			compatible = "spacemit,k1-pro-mac";
-			reg = <0x00 0x1003a000 0x00 0x10000>;
+			reg = <0x00 0x10040000 0x00 0x10000>;
 			reg-names = "gmac";
 #ifdef CONFIG_RISCV_SMAIA
 			interrupt-parent = <&saplic>;
-			interrupts = <0x1a 4>;
+			interrupts = <0x19 4>;
 #else
 			interrupt-parent = <&plic>;
-			interrupts = <0x1a>;
+			interrupts = <0x19>;
 #endif
 			interrupt-names = "macirq";
 			snps,pbl = <0x20>;
