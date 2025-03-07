@@ -1067,6 +1067,18 @@ void cmn600_init(void)
 	if (cmn600_initialized)
 		return;
 
+	con_log("CPU_MASK: %016llx\n", CPU_MASK);
+	con_log("DDR_MASK: %016x\n", DDR_MASK);
+	con_log("LLC_MASK: %016x\n", LLC_MASK);
+	con_log("HW_CPU_MASK: %016x\n", __raw_readl(HW_CPU_MASK));
+	con_log("HW_DDR_MASK: %016x\n", __raw_readl(HW_DDR_MASK));
+	con_log("HW_LLC_MASK: %016x\n", __raw_readl(HW_LLC_MASK));
+	con_log("SW_CPU_MASK: %016x\n", __raw_readl(SW_CPU_MASK));
+	con_log("SW_DDR_MASK: %016x\n", __raw_readl(SW_DDR_MASK));
+	con_log("SW_LLC_MASK: %016x\n", __raw_readl(SW_LLC_MASK));
+	con_log("XP_MASK_0: %016x\n", __raw_readl(0x00420730A2C));
+	con_log("XP_MASK_1: %016x\n", __raw_readl(0x00420730A30));
+	con_log("XP_MASK_2: %016x\n", __raw_readl(0x00420730A34));
 	con_dbg(CMN_MODNAME ": cmn_mmap_count is %d.\n", cmn_mmap_count);
 	cmn_debug_init();
 	root_node_pointer = CMN_ROOT_NODE_POINTER(CMN_HND_NID);
@@ -1122,7 +1134,7 @@ uint16_t cmn600_node_type(cmn_nid_t nid)
 	}
 	for (i = 0; i < cmn_rn_sam_ext_count; i++) {
 		base = cmn_bases[cmn_rn_sam_ext_ids[i]];
-		if (nid == cmn_node_id(base)
+		if (nid == cmn_node_id(base))
 			return CMN_RNF;
 	}
 	for (i = 0; i < cmn_snf_count; i++) {
