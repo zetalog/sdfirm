@@ -1122,7 +1122,7 @@ uint16_t cmn600_node_type(cmn_nid_t nid)
 	}
 	for (i = 0; i < cmn_rn_sam_ext_count; i++) {
 		base = cmn_bases[cmn_rn_sam_ext_ids[i]];
-		if (nid == cmn_node_id(cmn_rn_sam_ext_ids[i]))
+		if (nid == cmn_node_id(base)
 			return CMN_RNF;
 	}
 	for (i = 0; i < cmn_snf_count; i++) {
