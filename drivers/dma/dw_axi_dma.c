@@ -113,6 +113,9 @@ static inline uint32_t axi_chan_ioread32(struct axi_dma_chan *chan, uint32_t reg
 	return __raw_readl(chan->chan_regs + reg);
 }
 
+#define upper_32_bits(n) ((uint32_t)(((n) >> 16) >> 16))
+#define lower_32_bits(n) ((uint32_t)(n))
+
 static inline void
 axi_chan_iowrite64(struct axi_dma_chan *chan, uint32_t reg, uint64_t val)
 {
@@ -120,7 +123,9 @@ axi_chan_iowrite64(struct axi_dma_chan *chan, uint32_t reg, uint64_t val)
 	 * We split one 64 bit write for two 32 bit write as some HW doesn't
 	 * support 64 bit access.
 	 */
-	__raw_writeq(val, chan->chan_regs + reg);
+	__raw_writel(lower_32_bits(val), chan->chan_regs + reg);
+	__raw_writel(upper_32_bits(val), chan->chan_regs + reg + 4);
+	
 }
 
 
@@ -496,7 +501,7 @@ static void write_desc_llp(struct axi_dma_hw_desc *desc, dma_addr_t adr)
 
 static void axi_chan_dump_lli(struct axi_dma_hw_desc *desc)
 {
-	printf("SAR: 0x%llx DAR: 0x%llx LLP: 0x%llx BTS 0x%x CTL: 0x%x:%08x\n",
+	printf("SAR: 0x%llx DAR: 0x%llx LLP: 0x%llx BTS: 0x%x CTL: 0x%x:%08x\n",
 		le64_to_cpu(desc->lli->sar),
 		le64_to_cpu(desc->lli->dar),
 		le64_to_cpu(desc->lli->llp),
@@ -594,6 +599,7 @@ int axi_dma_prep_memcpy(struct dma_channel *dchan, dma_addr_t dst_adr,
 		hw_desc = &desc->hw_desc[--num];
 		write_desc_llp(hw_desc, llp | lms);
 		llp = hw_desc->llp;
+		// axi_chan_dump_lli(hw_desc);
 	} while (num);
 	
 
@@ -657,11 +663,37 @@ static int axi_dma_chan_poll(struct dma_channel *dchan)
 		}
 	}
 }
+
+static void axi_desc_put(struct axi_dma_desc *desc)
+{
+	struct axi_dma_chan *chan = desc->chan;
+	int count = desc->nr_hw_descs;
+	struct axi_dma_hw_desc *hw_desc;
+	int descs_put;
+
+	for (descs_put = 0; descs_put < count; descs_put++) {
+		hw_desc = &desc->hw_desc[descs_put];
+		page_free(hw_desc->lli);
+	}
+
+	heap_free(desc->hw_desc);
+	heap_free(desc);
+}
+
+static int axi_dma_release(struct dma_channel *dchan)
+{
+	struct axi_dma_chan *chan = chan_to_axi_dma_chan(&g_axi_dma, dchan);
+
+	axi_desc_put(chan->desc);
+
+	return 0;
+}
 int dma_hw_memcpy_sync(void *chan, dma_addr_t dst, dma_addr_t src, size_t len, unsigned long flags)
 {
-	axi_dma_prep_memcpy((struct dma_channel *)chan, dst, src, len, flags);
+	if(axi_dma_prep_memcpy((struct dma_channel *)chan, dst, src, len, flags) < 0) return -1;
 	dma_chan_issue_pending((struct dma_channel *)chan);
-	axi_dma_chan_poll((struct dma_channel *)chan);
+	if(axi_dma_chan_poll((struct dma_channel *)chan) < 0) return -1;
+	axi_dma_release((struct dma_channel *)chan);
 
 	return 0;
 }
@@ -674,7 +706,7 @@ static int axi_dma_init2(axi_dma_t *axi_dma, phys_addr_t base, uint8_t chan_num,
 	axi_dma->chan_num = chan_num;
 	axi_dma->busrt_len = busrt_len;
 
-	axi_dma->chan = (struct axi_dma_chan*)heap_calloc(sizeof(*axi_dma->chan) * chan_num);
+	axi_dma->chan = (struct axi_dma_chan*)page_alloc_pages(PAGE_ALIGN(sizeof(*axi_dma->chan) * chan_num)/PAGE_SIZE);
 	if (!axi_dma->chan) {
 		return -1;
 	}
@@ -683,9 +715,11 @@ static int axi_dma_init2(axi_dma_t *axi_dma, phys_addr_t base, uint8_t chan_num,
 		chan->id = i;
 		chan->chan_regs = axi_dma->regs + COMMON_REG_LEN + i * CHAN_REG_LEN;
 		chan->axi_dma = axi_dma;
-		chan->block_size[chan->id] = 65536;
+		chan->block_size[chan->id] = 0x200000;
+		// chan->block_size[chan->id] = 65536;
 		chan->m_data_width = 4; //snps,data-width
-		chan->axi_rw_burst_len = 127; // snps,axi-max-burst-len
+		chan->axi_rw_burst_len = 15; // snps,axi-max-burst-len
+		// chan->axi_rw_burst_len = 127; // snps,axi-max-burst-len
 		chan->restrict_axi_burst_len = true;
 		chan->nr_masters = 1; // snps,dma-masters
 	}
@@ -696,6 +730,7 @@ static int axi_dma_init2(axi_dma_t *axi_dma, phys_addr_t base, uint8_t chan_num,
 		axi_dma->reg_map_8_channels = true;
 	axi_dma_enable(axi_dma);
 	axi_dma_irq_enable(axi_dma);
+	axi_dma_irq_disable(axi_dma);
 	axi_dma_hw_init(axi_dma);
 
 	return 0;

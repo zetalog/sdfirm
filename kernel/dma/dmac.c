@@ -254,15 +254,16 @@ static void dma_async_handler(void)
 
 	for (dma = 0; dma < NR_DMAS; dma++) {
 		sdma = dma_channel_save(dma);
-		dmac_hw_irq_handle();
+		// dmac_hw_irq_handle();
 		dma_channel_restore(sdma);
 	}
 }
 
 static void dma_bh_handler(uint8_t event)
 {
-	if (event == BH_POLLIRQ)
-		dmac_irq_poll(event);
+	if (event == BH_POLLIRQ) {
+		// dmac_irq_poll(event);
+	}
 	else {
 		switch (event) {
 		case BH_WAKEUP:
