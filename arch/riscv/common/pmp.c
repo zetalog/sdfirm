@@ -203,16 +203,18 @@ void csr_write_pmpaddr(int n, unsigned long val)
 
 int pmp_disable(unsigned int n)
 {
-	int pmpcfg_csr, pmpcfg_shift;
+	int pmpcfg_csr, pmpcfg_index, pmpcfg_shift;
 	unsigned long cfgmask, pmpcfg;
 
 	if (n >= PMP_COUNT)
 		return SBI_EINVAL;
 
 #if __riscv_xlen == 32
+	pmpcfg_index = n >> 2;
 	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
 	pmpcfg_shift = (n & 3) << 3;
 #elif __riscv_xlen == 64
+	pmpcfg_index = (n >> 2) & ~1;
 	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
 	pmpcfg_shift = (n & 7) << 3;
 #else
@@ -221,9 +223,9 @@ int pmp_disable(unsigned int n)
 
 	/* Clear the address matching bits to disable the pmp entry */
 	cfgmask = ~(0xffUL << pmpcfg_shift);
-	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
+	pmpcfg	= (csr_read_pmpcfg(pmpcfg_index) & cfgmask);
 
-	csr_write_num(pmpcfg_csr, pmpcfg);
+	csr_write_pmpcfg(pmpcfg_index, pmpcfg);
 
 	return SBI_OK;
 }

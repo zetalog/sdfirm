@@ -134,7 +134,9 @@ int linpack(caddr_t percpu_area)
 	}
 #endif
 #else
+#ifdef CONFIG_LINPACK_BENCH_PERCPU
 	get_linpack = (struct linpack_context *)percpu_area;
+#endif
 #endif
 	__fprintf(outfile, "\n");
 
