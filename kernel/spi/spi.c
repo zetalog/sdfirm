@@ -113,10 +113,10 @@ void spi_slave_submit(uint8_t slave, spi_len_t txlen, spi_len_t rxlen)
 		spi_rxsubmit = rxlen;
 		if (spi_txsubmit > 0) {
 			spi_limit = spi_txsubmit;
-			spi_config_mode(SPI_MODE_MASTER_TX, true);
+			spi_config_mode(SPI_MODE_MASTER_TX);
 		} else if (spi_rxsubmit > 0) {
 			spi_limit = spi_rxsubmit;
-			spi_config_mode(SPI_MODE_MASTER_RX, true);
+			spi_config_mode(SPI_MODE_MASTER_RX);
 		}
 	} else if (spi_state == SPI_STATE_WRITE) {
 		spi_txsubmit += txlen;
@@ -196,11 +196,6 @@ void spi_select_device(spi_t spi)
 			  spi_devices[spi]->mode);
 	spi_hw_chip_select(spi_devices[spi]->chip);
 }
-
-void spi_apply_frequency(void)
-{
-	spi_hw_set_frequency(SPI_FREQ);
-}
 #endif
 
 void spi_raise_event(uint8_t event)
@@ -238,14 +233,9 @@ void spi_enter_state(uint8_t state)
 	}
 }
 
-void spi_config_mode(uint8_t mode, bool freq)
+void spi_config_mode(uint8_t mode)
 {
 	spi_mode = mode;
-
-	if (SPI_BUS(spi_mode) == SPI_MODE_MASTER) {
-		if (freq)
-			spi_apply_frequency();
-	}
 }
 
 static void spi_bh_handler(uint8_t events)
