@@ -137,7 +137,6 @@ void spi_enter_state(uint8_t state);
 #ifdef CONFIG_SPI_MASTER
 spi_t spi_register_device(spi_device_t *dev);
 void spi_select_device(spi_t spi);
-void spi_apply_frequency(void);
 #define spi_deselect_device()	spi_hw_deselect_chips();
 #define spi_set_address(addr, call)
 #define spi_apply_address()
@@ -147,9 +146,8 @@ void spi_apply_frequency(void);
 #define spi_deselect_device(spi)	do { } while (0)
 void spi_set_address(uint8_t addr, boolean call);
 void spi_apply_address(void);
-#define spi_apply_frequency()
 #endif
 
-void spi_config_mode(uint8_t mode, bool freq);
+void spi_config_mode(uint8_t mode);
 
 #endif /* __SPI_H_INCLUDE__ */
