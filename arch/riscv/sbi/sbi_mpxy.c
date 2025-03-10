@@ -19,6 +19,7 @@
 #include <sbi/sbi_bitops.h>
 //#include <sbi/sbi_console.h>
 //#include <sbi/sbi_byteorder.h>
+#include <target/page.h>
 
 /** Offset of pointer to MPXY state in scratch space */
 static unsigned long mpxy_state_offset;

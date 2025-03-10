@@ -95,6 +95,10 @@ int stream(caddr_t percpu_area)
     double		t, times[4][NTIMES];
     int ret;
 
+#ifdef CONFIG_STREAM_BENCH_PERCPU
+    get_stream = (struct stream_context *)percpu_area;
+#endif
+
     initSTREAMcontext();
 
     /* --- SETUP --- determine precision and check timing --- */
