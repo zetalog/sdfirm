@@ -115,7 +115,6 @@ static int k1max_pmp_region_info(uint32_t hartid, uint32_t index,
 
 static int k1max_early_init(bool cold_boot)
 {
-	*(volatile unsigned long *)&_start = 0;
 	struct csr_trap_info trap = {0};
 	
 	csr_read_allowed(CSR_TCMCFG, (unsigned long)&trap);
