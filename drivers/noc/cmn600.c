@@ -49,7 +49,7 @@
 #include <target/panic.h>
 #include <target/cmdline.h>
 
-#define CMN_MODNAME	"n100"
+#define CMN_MODNAME	"cmn600"
 
 #define CMN_HNF_MAPPING_RANGE_BASED	0
 #define CMN_HNF_MAPPING_HASHED_3SN	1
@@ -307,36 +307,16 @@ static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_id_t id)
 	cmn_hnf_scgs[id] = cmn_node_id(hnf);
 }
 #endif
-/*
-static void cmn_hnf_cal_config_ocm(caddr_t hnf)
-{
-	cmn_writeq(hnf_cfg_ctl(hnf) |
-		CMN_hnf_ocm_en(0x1) |
-		CMN_hnf_ocm_always_en(0x0),
-		CMN_hnf_cfg_ctl(hnf),
-		"CMN_hnf_cfg_ctl", -1);
-}
 
-static void cmn_hnf_cal_disable_ocm(caddr_t hnf)
-{
-	cmn_writeq(hnf_cfg_ctl(hnf) |
-		CMN_hnf_ocm_en(0x0) |
-		CMN_hnf_ocm_always_en(0x0),
-		CMN_hnf_cfg_ctl(hnf),
-		"CMN_hnf_cfg_ctl", -1);
-}
-
+#ifdef CONFIG_CMN600_OCM
+#if 0
 static void cmn_hnf_cfg_slc_lockways(caddr_t hnf, uint64_t ways, uint64_t num_hnf)
 {
 	cmn_writeq(hnf_slc_lock_ways(hnf) |
-		CMN_hnf_slc_lockways_ways(ways) |
-		CMN_hnf_slc_lockways_num_hnf(num_hnf),
-		CMN_hnf_slc_lock_ways(hnf),
+		CMN_hnf_slc_lock_ways_ways(ways) |
+		CMN_hnf_slc_lock_ways_num_hnf(num_hnf),
+		CMN_hnf_slc_lock_ways_ways(hnf),
 		"CMN_hnf_cfg_ctl", -1);
-	cmn_writeq(hnf_slc_lock_base0(hnf) |
-		CMN_hnf_slc_base0(),
-		CMN_hnf_slc_lock_base(hnf,0),
-		"CMN_hnf_slc_lock_base", -1);
 }
 
 static void cmn_hnf_slc_lock_enable(caddr_t hnf)
@@ -356,6 +336,83 @@ static void cmn_hnf_slc_lock_disable(caddr_t hnf)
 		CMN_hnf_cfg_ctl(hnf),
 		"CMN_hnf_cfg_ctl", -1);
 }
+#endif
+static void cmn_hnf_cal_enable_ocm(caddr_t hnf)
+{
+	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
+		CMN_ppu_op_mode(CMN_ppu_op_mode_SFONLY) |
+		CMN_ppu_dyn_en,
+		CMN_hnf_ppu_pwpr(hnf),
+		"CMN_hnf_ppu_pwpr", -1);
+
+	cmn_writeq(CMN_ppu_pow_status(CMN_ppu_pow_status_ON) |
+		CMN_ppu_op_mode_status(CMN_ppu_op_mode_status_SFONLY),
+		CMN_hnf_ppu_pwsr(hnf),
+		"CMN_hnf_ppu_pwsr", -1);
+
+	cmn_writeq(CMN_hnf_ocm_en,
+		CMN_hnf_cfg_ctl(hnf),
+		"CMN_hnf_cfg_ctl", -1);
+
+	cmn_writeq(CMN_hnf_slc_lock_ways(4),
+		CMN_hnf_slc_lock_ways(hnf),
+		"CMN_hnf_slc_lock_ways", -1);
+
+	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cc000000) |
+		CMN_hnf_slc_lock_basen_vld,
+		CMN_hnf_slc_lock_base(hnf, 0),
+		"CMN_hnf_slc_lock_base", -1);
+	
+	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cd000000) |
+		CMN_hnf_slc_lock_basen_vld,
+		CMN_hnf_slc_lock_base(hnf, 1),
+		"CMN_hnf_slc_lock_base", -1);
+	
+	cmn_writeq(CMN_hnf_slc_lock_basen(0x5ce000000) |
+		CMN_hnf_slc_lock_basen_vld,
+		CMN_hnf_slc_lock_base(hnf, 2),
+		"CMN_hnf_slc_lock_base", -1);
+
+	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cf000000) |
+		CMN_hnf_slc_lock_basen_vld,
+		CMN_hnf_slc_lock_base(hnf, 3),
+		"CMN_hnf_slc_lock_base", -1);
+
+	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
+		CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
+		CMN_ppu_dyn_en,
+		CMN_hnf_ppu_pwpr(hnf),
+		"CMN_hnf_ppu_pwpr", -1);
+	
+	cmn_writeq(CMN_ppu_pow_status(CMN_ppu_pow_status_ON) |
+		CMN_ppu_op_mode_status(CMN_ppu_op_mode_status_FAM),
+		CMN_hnf_ppu_pwsr(hnf),
+		"CMN_hnf_ppu_pwsr", -1);
+
+}
+
+static void cmn_hnf_cal_config_ocm(caddr_t hnf)
+{
+	cmn_writeq(hnf_cfg_ctl(hnf) |
+		CMN_hnf_ocm_en |
+		CMN_hnf_ocm_always_en,
+		CMN_hnf_cfg_ctl(hnf),
+		"CMN_hnf_cfg_ctl", -1);
+}
+
+static void cmn_hnf_cal_disable_ocm(caddr_t hnf)
+{
+	cmn_writeq(hnf_cfg_ctl(hnf) |
+		CMN_hnf_ocm_en |
+		CMN_hnf_ocm_always_en,
+		CMN_hnf_cfg_ctl(hnf),
+		"CMN_hnf_cfg_ctl", -1);
+	cmn600_hw_disable_ocm();
+	cmn600_reconfigure();
+}
+#endif
+
+/*
 
 
 static void cmn_hnf_abf(uint64_t hnf, uint64_t abf_mode, uint64_t saddr, uint64_t eaddr)
@@ -1009,6 +1066,24 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		   "CMN_rnsam_status", -1);
 }
 
+void cmn600_reconfigure(void)
+{
+	cmn_id_t i;
+
+	BUG_ON(cmn_node_type(CMN_CFGM_BASE) != CMN_CFG);
+
+	con_dbg(CMN_MODNAME ": reconfigure: revision=%s\n",
+		cmn600_revision_name(cmn_revision()));
+	/* Setup internal RN-SAM nodes */
+	for (i = 0; i < cmn_rn_sam_int_count; i++)
+		cmn600_configure_rn_sam(CMN_RN_SAM_INT_BASE(cmn_rn_sam_int_ids[i]));
+	con_dbg(CMN_MODNAME ": Setup internal RN-SAM nodes\n");
+	/* Setup external RN-SAM nodes */
+	for (i = 0; i < cmn_rn_sam_ext_count; i++)
+		cmn600_configure_rn_sam(CMN_RN_SAM_EXT_BASE(cmn_rn_sam_ext_ids[i]));
+	con_dbg(CMN_MODNAME ": Setup external RN-SAM nodes\n");
+}
+
 void cmn600_configure(void)
 {
 	cmn_id_t i;
@@ -1033,14 +1108,6 @@ void cmn600_configure(void)
 	con_dbg(CMN_MODNAME ": Setup external RN-SAM nodes\n");
 }
 /*
-void cmn600_disable_ocm()
-{
-	cmn_id_t i;
-
-	for (i = 0; i < cmn_hnf_count; i++)
-		cmn_hnf_cal_disable_ocm(CMN_HNF_BASE(cmn_hnf_ids[i]));
-}
-
 void cmn600_flush_hnfs_slc(uint64_t abf_mode,caddr_t saddr, caddr_t eaddr)
 {
 	cmn_id_t i;
@@ -1405,6 +1472,31 @@ static int do_cmn600_dump(int argc, char *argv[])
 	}
 	return -EINVAL;
 }
+#ifdef CONFIG_CMN600_OCM
+static int do_cmn600_ocm(int argc, char *argv[])
+{
+	int i;
+
+	if (argc < 3)
+		return -EINVAL;
+	if (strcmp(argv[2], "enable") == 0) {
+		for (i = 0; i < cmn_hnf_count; i++)
+			cmn_hnf_cal_enable_ocm(CMN_HNF_BASE(cmn_hnf_ids[i]));
+		return 0;
+	}
+	if (strcmp(argv[2], "config") == 0) {
+		for (i = 0; i < cmn_hnf_count; i++)
+			cmn_hnf_cal_config_ocm(CMN_HNF_BASE(cmn_hnf_ids[i]));
+		return 0;
+	}
+	if (strcmp(argv[2], "disable") == 0) {
+		for (i = 0; i < cmn_hnf_count; i++)
+			cmn_hnf_cal_disable_ocm(CMN_HNF_BASE(cmn_hnf_ids[i]));
+		return 0;
+	}
+	return -EINVAL;
+}
+#endif
 
 static int do_cmn600(int argc, char *argv[])
 {
@@ -1415,6 +1507,12 @@ static int do_cmn600(int argc, char *argv[])
 		do_cmn600_dump(argc, argv);
 		return 0;
 	}
+#ifdef CONFIG_CMN600_OCM
+	if (strcmp(argv[1], "ocm") == 0) {
+		do_cmn600_ocm(argc, argv);
+		return 0;
+	}
+#endif
 	return -EINVAL;
 }
 
@@ -1423,4 +1521,10 @@ DEFINE_COMMAND(cmn600, do_cmn600, "Coherent mesh network (" CMN_MODNAME ") comma
 	"    - dump CMN mesh network\n"
 	CMN_MODNAME " dump [hnf|rnd|rnf|rni|snf|xp|dtc|sbsx|rnsam|cxg]\n"
 	"    - dump CMN ndoe information\n"
+	CMN_MODNAME "ocm enable\n"
+	"    - ocm initial configuration\n"
+	CMN_MODNAME "ocm config <size>\n"
+	"    - configure size of ocm\n"
+	CMN_MODNAME "ocm disable\n"
+	"    - disable ocm\n"
 );
