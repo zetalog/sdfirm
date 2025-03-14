@@ -377,7 +377,8 @@ typedef uint32_t cmn_id_t;
 #define CMN_hnf_abf_sr(base)		CMN_REG(base, 0xF68)
 
 #define hnf_cfg_ctl(base)		(__raw_readq(CMN_hnf_cfg_ctl(base)))
-//slc
+#define hnf_ppu_pwpr(base)		(__raw_readq(CMN_hnf_ppu_pwpr(base)))
+#define hnf_ppu_pwsr(base)		(__raw_readq(CMN_hnf_ppu_pwsr(base)))
 #define hnf_slc_lock_ways(base)		(__raw_readq(CMN_hnf_slc_lock_ways(base)))
 
 #define CMN_abf_mode_OFFSET		1
@@ -392,12 +393,17 @@ typedef uint32_t cmn_id_t;
 #define CMN_abf_hi_addr_OFFSET		0
 #define CMN_abf_hi_addr_MASK		REG_48BIT_MASK
 #define CMN_abf_hi_addr(value)		_SET_FV_ULL(CMN_abf_hi_addr, value)
-#define CMN_hnf_ocm_en_MASK		REG_1BIT_MASK
-#define CMN_hnf_ocm_en_OFFSET		9
-#define CMN_hnf_ocm_en(value)		_SET_FV_ULL(CMN_hnf_ocm_en, value)
-#define CMN_hnf_ocm_always_en_MASK		REG_1BIT_MASK
-#define CMN_hnf_ocm_always_en_OFFSET		10
-#define CMN_hnf_ocm_always_en(value)	_SET_FV_ULL(CMN_hnf_ocm_always_en, value)
+
+/* CMN_hnf_cfg_ctl */
+#define CMN_hnf_ecc_disable			_BV_ULL(0)
+#define CMN_hnf_pois_dis			_BV_ULL(2)
+#define CMN_hnf_slc_tag_ecc_scrub_disable	_BV_ULL(4)
+#define CMN_hnf_sf_ecc_scrub_disable		_BV_ULL(6)
+#define CMN_hnf_ncdevcmo_mc_comp		_BV_ULL(8)
+#define CMN_hnf_ocm_en				_BV_ULL(9)
+#define CMN_hnf_ocm_always_en			_BV_ULL(10)
+#define CMN_hnf_dmt_disable			_BV_ULL(11)
+
 
 /* 3.2.6 XP register summary */
 #define CMN_MAX_mxp_device_ports		2
@@ -782,29 +788,59 @@ typedef uint8_t cmn_did_t;
 #define CMN_scg_hnf_num_MASK		REG_8BIT_MASK
 #define CMN_scg_hnf_num(n, value)	_SET_FV_ULLn(n, CMN_scg_hnf_num, value)
 
+/* CMN_hnf_slc_lock_ways */
+#define CMN_hnf_slc_lock_ways_ways_OFFSET		0
+#define CMN_hnf_slc_lock_ways_ways_MASK			REG_4BIT_MASK
+#define CMN_hnf_slc_lock_ways_ways(value)		_SET_FV_ULL(CMN_hnf_slc_lock_ways_ways, value)
+#define CMN_hnf_slc_lock_ways_num_hnf_OFFSET		8
+#define CMN_hnf_slc_lock_ways_num_hnf_MASK		REG_7BIT_MASK
+#define CMN_hnf_slc_lock_ways_num_hnf(value)		_SET_FV_ULL(CMN_hnf_slc_lock_num_hnf, value)
+
+/* CMN_hnf_slc_lock_base(base, n) */
+#define CMN_hnf_slc_lock_basen_OFFSET		0
+#define CMN_hnf_slc_lock_basen_MASK		REG_48BIT_MASK
+#define CMN_hnf_slc_lock_basen(value)		_SET_FV_ULL(CMN_hnf_slc_lock_basen, value)
+#define CMN_hnf_slc_lock_basen_vld		_BV_ULL(63)
 /* CMN_hnf_ppu_pwpr */
-#define CMN_ppu_policy_OFFSET		0
-#define CMN_ppu_policy_MASK		REG_4BIT_MASK
-#define CMN_ppu_policy(value)		_SET_FV_ULL(CMN_ppu_policy, value)
-#define CMN_ppu_policy_OFF		0
-#define CMN_ppu_policy_MEM_RET		2
-#define CMN_ppu_policy_FUNC_RET		7
-#define CMN_ppu_policy_ON		8
-#define CMN_ppu_op_mode_OFFSET		4
-#define CMN_ppu_op_mode_MASK		REG_4BIT_MASK
-#define CMN_ppu_op_mode(value)		_SET_FV_ULL(CMN_ppu_op_mode, value)
-#define CMN_ppu_op_mode_NOSFSLC		0
-#define CMN_ppu_op_mode_SFONLY		1
-#define CMN_ppu_op_mode_HAM		2
-#define CMN_ppu_op_mode_FAM		3
-#define CMN_ppu_dyn_en			_BV_ULL(8)
+#define CMN_ppu_policy_OFFSET			0
+#define CMN_ppu_policy_MASK			REG_4BIT_MASK
+#define CMN_ppu_policy(value)			_SET_FV_ULL(CMN_ppu_policy, value)
+#define CMN_ppu_policy_OFF			0
+#define CMN_ppu_policy_MEM_RET			2
+#define CMN_ppu_policy_FUNC_RET			7
+#define CMN_ppu_policy_ON			8
+#define CMN_ppu_op_mode_OFFSET			4
+#define CMN_ppu_op_mode_MASK			REG_4BIT_MASK
+#define CMN_ppu_op_mode(value)			_SET_FV_ULL(CMN_ppu_op_mode, value)
+#define CMN_ppu_op_mode_NOSFSLC			0
+#define CMN_ppu_op_mode_SFONLY			1
+#define CMN_ppu_op_mode_HAM			2
+#define CMN_ppu_op_mode_FAM			3
+#define CMN_ppu_dyn_en				_BV_ULL(8)
+
+/* CMN_hnf_ppu_pwsr */
+#define CMN_ppu_pow_status_OFFSET		0
+#define CMN_ppu_pow_status_MASK			REG_4BIT_MASK
+#define CMN_ppu_pow_status(value)		_SET_FV_ULL(CMN_ppu_pow_status, value)
+#define CMN_ppu_pow_status_OFF			0
+#define CMN_ppu_pow_status_MEM_RET		2
+#define CMN_ppu_pow_status_FUNC_RET		7
+#define CMN_ppu_pow_status_ON			8
+#define CMN_ppu_op_mode_status_OFFSET		4
+#define CMN_ppu_op_mode_status_MASK		REG_4BIT_MASK
+#define CMN_ppu_op_mode_status(value)		_SET_FV_ULL(CMN_ppu_op_mode_status, value)
+#define CMN_ppu_op_mode_status_NOSFSLC		0
+#define CMN_ppu_op_mode_status_SFONLY		1
+#define CMN_ppu_op_mode_status_HAM		2
+#define CMN_ppu_op_mode_status_FAM		3
+#define CMN_ppu_dyn_en_status			_BV_ULL(8)	
 
 /* CMN_dtm_pmu_config */
-#define CMN_pmu_en			_BV_ULL(0)
-#define CMN_pmevcnt01_combined		_BV_ULL(1)
-#define CMN_pmevcnt23_combined		_BV_ULL(2)
-#define CMN_pmevcntall_combined		_BV_ULL(3)
-#define CMN_pmevcnt_paired(n)		_BV_ULL(4 + (n))
+#define CMN_pmu_en				_BV_ULL(0)
+#define CMN_pmevcnt01_combined			_BV_ULL(1)
+#define CMN_pmevcnt23_combined			_BV_ULL(2)
+#define CMN_pmevcntall_combined			_BV_ULL(3)
+#define CMN_pmevcnt_paired(n)			_BV_ULL(4 + (n))
 #define CMN_pmevcnt_global_num_OFFSET(n)	REG64_4BIT_OFFSET(n)
 #define CMN_pmevcnt_global_num_MASK		REG_4BIT_MASK
 #define CMN_pmevcnt_global_num(n, value)	_SET_FV_ULL(n, CMN_pmevcnt_global_num, value)
