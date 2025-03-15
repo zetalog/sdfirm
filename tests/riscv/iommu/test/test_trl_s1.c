@@ -18,6 +18,7 @@ static int tlb_inv_all(void)
             iodir(INVAL_PDT, 1, ddi, pdi);
         }
     }
+    iofence(IOFENCE_C, 0, 0, 0, 0, 0, 0);
     return 0;
 }
 
@@ -35,7 +36,7 @@ static int s1_case_init(void)
     if(!case_s1_data.ddtp.ppn){
         return -1;
     }
-    case_s1_data.ddtp.iommu_mode = DDT_1LVL;
+    case_s1_data.ddtp.iommu_mode = DDT_3LVL;
     config_ddtp(case_s1_data.ddtp);
     
     case_s1_data.ddi_max = 1;
@@ -49,9 +50,9 @@ static int s1_case_init(void)
     for(pdi = 0; pdi < case_s1_data.pdi_max; pdi ++) {
         for(ddi = 0; ddi < case_s1_data.ddi_max; ddi ++) {
             int offset = pdi * case_s1_data.ddi_max + ddi;
-            case_s1_data.data[offset].ddi = 0x80000;
+            case_s1_data.data[offset].ddi = 0xc0000;
             case_s1_data.data[offset].pdi = 0;
-            add_dc_pc_s1(0x80000, 0, &case_s1_data.data[offset].iova, &case_s1_data.data[offset].iopa);
+            add_dc_pc_s1(0xc0000, 0, &case_s1_data.data[offset].iova, &case_s1_data.data[offset].iopa);
         }
     }
 

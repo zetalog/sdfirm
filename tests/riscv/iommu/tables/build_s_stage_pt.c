@@ -5,12 +5,12 @@
 #include "iommu.h"
 #include "tables_api.h"
 
-uint64_t add_s_stage_pte(iosatp_t satp, uint64_t va, pte_t pte, uint8_t add_level)
+uint64_t add_s_stage_pte(iosatp_t satp, uint64_t va, rvos_pte_t pte, uint8_t add_level)
 {
     uint16_t vpn[5] = {0};
     uint64_t a;
     uint8_t i, PTESIZE, LEVELS;
-    pte_t nl_pte;
+    rvos_pte_t nl_pte;
 
     PTESIZE = 8;
     if ( satp.MODE == IOSATP_Sv32 ) {
@@ -63,8 +63,8 @@ uint64_t translate_s1(iosatp_t satp, uint64_t va)
     uint16_t vpn[5] = {0};
     uint64_t a;
     uint8_t i, PTESIZE, LEVELS;
-    pte_t nl_pte;
-    pte_t pte;
+    rvos_pte_t nl_pte;
+    rvos_pte_t pte;
 
     PTESIZE = 8;
     if ( satp.MODE == IOSATP_Sv32 ) {

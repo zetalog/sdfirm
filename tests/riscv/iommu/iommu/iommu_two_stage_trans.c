@@ -13,11 +13,11 @@ two_stage_address_translation(
     iosatp_t iosatp, uint8_t priv, uint8_t SUM, uint8_t SADE,
     uint8_t GV, uint32_t GSCID, iohgatp_t iohgatp, uint8_t GADE, uint8_t SXL,
     uint32_t *cause, uint64_t *iotval2, uint64_t *pa, 
-    uint64_t *page_sz, pte_t *pte) {
+    uint64_t *page_sz, rvos_pte_t *pte) {
 
     uint16_t vpn[5];
     uint16_t ppn[5];
-    pte_t amo_pte;
+    rvos_pte_t amo_pte;
     gpte_t gpte;
     uint8_t NL_G = 1;
     uint8_t PTESIZE, LEVELS, status, pte_changed, gst_fault;

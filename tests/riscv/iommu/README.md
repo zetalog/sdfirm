@@ -170,7 +170,7 @@ The function may invoke the get_ppn function to request pages to build the page 
 returns the address, in test memory space, where the leaf entry was inserted.
 
 
-4. **`uint64_t add_s_stage_pte(iosatp_t satp, uint64_t va, pte_t pte, uint8_t add_level)`**
+4. **`uint64_t add_s_stage_pte(iosatp_t satp, uint64_t va, rvos_pte_t pte, uint8_t add_level)`**
 
 This function is used to build the S-stage page table by adding non-leaf entries when needed
 and inserting the leaf entry at the requested level. The level value of 0 indicates that the entry
@@ -179,7 +179,7 @@ Larger mappings may be created, as appropriate for the mode in satp, by specifyi
 The function may invoke the get_ppn function to request pages to build the page table. The function
 returns the address, in test memory space, where the leaf entry was inserted.
 
-5. **`uint64_t add_vs_stage_pte(iosatp_t satp, uint64_t va, pte_t pte, uint8_t add_level, iohgatp_t iohgatp)`**
+5. **`uint64_t add_vs_stage_pte(iosatp_t satp, uint64_t va, rvos_pte_t pte, uint8_t add_level, iohgatp_t iohgatp)`**
 
 This function is used to build the VS-stage page table by adding non-leaf entries when needed
 and inserting the leaf entry at the requested level. The level value of 0 indicates that the entry

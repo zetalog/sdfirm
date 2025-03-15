@@ -77,7 +77,7 @@ int add_dc_pc_s1(int ddi, int pdi, uint64_t *iova, uint64_t *spa)
     uint64_t gva, PC_addr;
     device_context_t DC;
     process_context_t PC;
-    pte_t pte;
+    rvos_pte_t pte;
 
     DC_addr = get_dc(ddi);
     if (DC_addr == (uint64_t)-1) {
@@ -140,7 +140,7 @@ int add_dc_pc_s1_s2(int ddi, int pdi, uint64_t *iova, uint64_t *iopa)
     device_context_t DC;
     process_context_t PC;
     pdte_t pdte;
-    pte_t pte;
+    rvos_pte_t pte;
     gpte_t gpte;
 
     DC_addr = get_dc(ddi);
@@ -252,31 +252,32 @@ int dma_msg_send(void *src, void *dst, size_t size)
 #define DWAXIDMAC_IRQ_DMA_TRF BIT(1)
     uint64_t src_addr = (uint64_t)src;
     uint64_t dst_addr = (uint64_t)dst;
-    uint32_t status = __raw_readl(0x424c00000+0x188); //get irq status
+    uint32_t status = __raw_readl(0x554C00000+0x188); //get irq status
     if (status) {
-        __raw_writel(status , 0x424c00000+0x198); // clean irq status
+        __raw_writel(status , 0x554C00000+0x198); // clean irq status
     }
 
-    // printf("src: 0x%lx dst: 0x%lx\n", src_addr, dst_addr);
+    printf("src: 0x%lx dst: 0x%lx\n", src_addr, dst_addr);
     // __raw_writel(0x01,          0x4780000000+0x10); //iommu bare
-    __raw_writel(src_addr,      0x424c00000+0x100);
-    __raw_writel(dst_addr,      0x424c00000+0x108);
-    __raw_writel(0xcd200,       0x424c00000+0x118);
-    __raw_writel(0x3108840,     0x424c00000+0x11c);
-    __raw_writel(0x0,           0x424c00000+0x120);
-    __raw_writel(0x8818000,     0x424c00000+0x124);
-    __raw_writel(0x1,           0x424c00000+0x110);
-    __raw_writel(0x3,           0x424c00000+0x010);
-    __raw_writel(0x10001,       0x424c00000+0x018);
+    __raw_writel(src_addr,      0x554C00000+0x100);
+    __raw_writel(dst_addr,      0x554C00000+0x108);
+    __raw_writel(0xcd200,       0x554C00000+0x118);
+    __raw_writel(0x3108840,     0x554C00000+0x11c);
+    __raw_writel(0x0,           0x554C00000+0x120);
+    __raw_writel(0x8818000,     0x554C00000+0x124);
+    __raw_writel(0x1,           0x554C00000+0x110);
+    __raw_writel(0x3,           0x554C00000+0x010);
+    __raw_writel(0x10001,       0x554C00000+0x018);
 
-    while (1) {
-        status = __raw_readl(0x424c00000+0x188); //get irq status
+    int count = 100;
+    while (count--) {
+        status = __raw_readl(0x554C00000+0x188); //get irq status
         if (status) {
-            // printf("get dma irq status: 0x%x\n", status);
-            // if(status & DWAXIDMAC_IRQ_DMA_TRF) {
-            //     printf("dma xfer complete\n");
-            // }
-             __raw_writel(status , 0x424c00000+0x198); // clean irq status
+            printf("get dma irq status: 0x%x\n", status);
+            if(status & DWAXIDMAC_IRQ_DMA_TRF) {
+                printf("dma xfer complete\n");
+            }
+             __raw_writel(status , 0x554C00000+0x198); // clean irq status
              break;
         }
     }
@@ -380,10 +381,10 @@ static int do_iommu(int argc, char **argv)
         trl_s1_s2_case();
     } else if (!strcmp(argv[1], "dc")) {
         // iommu_get_dc(atoi(argv[2]));
-        iommu_get_dc(0x80000);
+        iommu_get_dc(0xc0000);
     } else if (!strcmp(argv[1], "pc")) {
         // iommu_get_pc(strtoull(argv[2],0,0), strtoull(argv[3],0,0));
-        iommu_get_pc(0x80000, 0);
+        iommu_get_pc(0xc0000, 0);
     } else if (!strcmp(argv[1], "s1")) {
 #if 0
         access_s1_case();
@@ -393,7 +394,7 @@ static int do_iommu(int argc, char **argv)
         trl_s1_case();
 #endif    
     } else if (!strcmp(argv[1], "trl")) {
-        iommu_translate_s1_s2(0x80000, 0, 0x100000);
+        iommu_translate_s1_s2(0xc0000, 0, 0x100000);
     } else if (!strcmp(argv[1], "fq")) {
         iommu_get_fq();
     }
