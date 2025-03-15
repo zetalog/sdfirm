@@ -710,8 +710,13 @@
 		dma: dma@10030000 {
 			compatible = "snps,axi-dma-1.01a";
 			reg = < 0x0 0x10030000 0x0 0x100000 >;
+#ifdef CONFIG_RISCV_SMAIA
 			interrupt-parent = <&saplic>;
 			interrupts = <21 4>;
+#else
+			interrupt-parent = <&plic>;
+			interrupts = <21>;
+#endif
 			interrupts-names = "dma";
 			clocks = <&dmac_core_clk>, <&dmac_cfg_clk>;
 			clock-names = "core-clk", "cfgr-clk";
@@ -778,7 +783,7 @@
 #endif
 #endif
 			>;
-			reg = <DT_REGHI(0xc30400000) DT_REGLO(0xc30400000)
+			reg = <DT_REGHI(0xc32000000) DT_REGLO(0xc32000000)
 			       0x0 0x00010000
 			>;
 			compatible = "riscv,clint0";
