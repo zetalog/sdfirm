@@ -4,23 +4,6 @@
 
 #include <target/bitops.h>
 #include <target/iommu-pgtable.h>
-/*
- * Public API for use by IOMMU drivers
- */
-// enum io_pgtable_fmt {
-// 	ARM_32_LPAE_S1,
-// 	ARM_32_LPAE_S2,
-// 	ARM_64_LPAE_S1,
-// 	ARM_64_LPAE_S2,
-// 	ARM_V7S,
-// 	ARM_MALI_LPAE,
-// 	AMD_IOMMU_V1,
-// 	AMD_IOMMU_V2,
-// 	APPLE_DART,
-// 	APPLE_DART2,
-// 	RISCV_IOMMU,
-// 	IO_PGTABLE_NUM_FMTS,
-// };
 
 /**
  * struct iommu_flush_ops - IOMMU callbacks for TLB and page table management.
@@ -46,108 +29,6 @@ struct iommu_flush_ops {
 			     unsigned long iova, size_t granule, void *cookie);
 };
 
-/**
- * struct io_pgtable_cfg - Configuration data for a set of page tables.
- *
- * @quirks:        A bitmap of hardware quirks that require some special
- *                 action by the low-level page table allocator.
- * @pgsize_bitmap: A bitmap of page sizes supported by this set of page
- *                 tables.
- * @ias:           Input address (iova) size, in bits.
- * @oas:           Output address (paddr) size, in bits.
- * @coherent_walk  A flag to indicate whether or not page table walks made
- *                 by the IOMMU are coherent with the CPU caches.
- * @tlb:           TLB management callbacks for this set of tables.
- * @iommu_dev:     The device representing the DMA configuration for the
- *                 page table walker.
- */
-#if 0
-struct io_pgtable_cfg {
-	/*
-	 * IO_PGTABLE_QUIRK_ARM_NS: (ARM formats) Set NS and NSTABLE bits in
-	 *	stage 1 PTEs, for hardware which insists on validating them
-	 *	even in	non-secure state where they should normally be ignored.
-	 *
-	 * IO_PGTABLE_QUIRK_NO_PERMS: Ignore the IOMMU_READ, IOMMU_WRITE and
-	 *	IOMMU_NOEXEC flags and map everything with full access, for
-	 *	hardware which does not implement the permissions of a given
-	 *	format, and/or requires some format-specific default value.
-	 *
-	 * IO_PGTABLE_QUIRK_ARM_MTK_EXT: (ARM v7s format) MediaTek IOMMUs extend
-	 *	to support up to 35 bits PA where the bit32, bit33 and bit34 are
-	 *	encoded in the bit9, bit4 and bit5 of the PTE respectively.
-	 *
-	 * IO_PGTABLE_QUIRK_ARM_MTK_TTBR_EXT: (ARM v7s format) MediaTek IOMMUs
-	 *	extend the translation table base support up to 35 bits PA, the
-	 *	encoding format is same with IO_PGTABLE_QUIRK_ARM_MTK_EXT.
-	 *
-	 * IO_PGTABLE_QUIRK_ARM_TTBR1: (ARM LPAE format) Configure the table
-	 *	for use in the upper half of a split address space.
-	 *
-	 * IO_PGTABLE_QUIRK_ARM_OUTER_WBWA: Override the outer-cacheability
-	 *	attributes set in the TCR for a non-coherent page-table walker.
-	 */
-	#define IO_PGTABLE_QUIRK_ARM_NS			BIT(0)
-	#define IO_PGTABLE_QUIRK_NO_PERMS		BIT(1)
-	#define IO_PGTABLE_QUIRK_ARM_MTK_EXT		BIT(3)
-	#define IO_PGTABLE_QUIRK_ARM_MTK_TTBR_EXT	BIT(4)
-	#define IO_PGTABLE_QUIRK_ARM_TTBR1		BIT(5)
-	#define IO_PGTABLE_QUIRK_ARM_OUTER_WBWA		BIT(6)
-	unsigned long			quirks;
-	unsigned long			pgsize_bitmap;
-	unsigned int			ias;
-	unsigned int			oas;
-	bool				coherent_walk;
-	const struct iommu_flush_ops	*tlb;
-	struct device			*iommu_dev;
-
-	/* Low-level data specific to the table format */
-	union {
-		struct {
-			uint64_t	ttbr;
-			struct {
-				uint32_t	ips:3;
-				uint32_t	tg:2;
-				uint32_t	sh:2;
-				uint32_t	orgn:2;
-				uint32_t	irgn:2;
-				uint32_t	tsz:6;
-			}	tcr;
-			uint64_t	mair;
-		} arm_lpae_s1_cfg;
-
-		struct {
-			uint64_t	vttbr;
-			struct {
-				uint32_t	ps:3;
-				uint32_t	tg:2;
-				uint32_t	sh:2;
-				uint32_t	orgn:2;
-				uint32_t	irgn:2;
-				uint32_t	sl:2;
-				uint32_t	tsz:6;
-			}	vtcr;
-		} arm_lpae_s2_cfg;
-
-		struct {
-			uint32_t	ttbr;
-			uint32_t	tcr;
-			uint32_t	nmrr;
-			uint32_t	prrr;
-		} arm_v7s_cfg;
-
-		struct {
-			uint64_t	transtab;
-			uint64_t	memattr;
-		} arm_mali_lpae_cfg;
-
-		struct {
-			uint64_t ttbr[4];
-			uint32_t n_ttbrs;
-		} apple_dart_cfg;
-	};
-};
-#endif
 /**
  * struct io_pgtable_ops - Page table manipulation API for IOMMU drivers.
  *

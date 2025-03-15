@@ -78,6 +78,7 @@
 
 #define _PAGE_SPECIAL	_PAGE_SOFT1
 #define _PAGE_TABLE	_PAGE_PRESENT
+#define _PAGE_LEAF 	(_PAGE_READ | _PAGE_WRITE | _PAGE_EXEC)
 
 /* _PAGE_PROT_NONE is set on not-present pages (and ignored by the
  * hardware) to distinguish them from swapped out pages

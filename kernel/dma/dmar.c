@@ -101,7 +101,7 @@ dma_addr_t dma_map_single(dma_t dma, caddr_t ptr, size_t size,
 			  dma_dir_t dir)
 {
 	if (dma_is_direct(dma))
-		return dma_direct_map(dma, virt_to_phys(ptr), size, dir);
+		return dma_direct_map(dma, ptr, size, dir);
 	else
 		return dma_hw_map_single(dma, virt_to_phys(ptr), size, dir);
 }

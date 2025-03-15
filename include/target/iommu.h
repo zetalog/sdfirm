@@ -43,7 +43,7 @@
 #define __IOMMU_H_INCLUDE__
 
 #include <target/generic.h>
-#include <target/dma.h>
+#include <driver/iommu.h>
 
 #ifdef CONFIG_IOMMU_MAX_DEVICES
 #define NR_IOMMU_DEVICES	CONFIG_IOMMU_MAX_DEVICES
@@ -71,6 +71,8 @@
 typedef uint8_t iommu_dev_t;
 typedef uint8_t iommu_dom_t;
 typedef uint8_t iommu_grp_t;
+typedef uint8_t iommu_mst_t;
+typedef uint32_t iommu_map_t;
 
 #define IOMMU_READ	(1 << 0)
 #define IOMMU_WRITE	(1 << 1)
@@ -126,7 +128,7 @@ typedef uint16_t iommu_rid_t;
 /* RID base and RID mask, RID map can be directly converted into RID if
  * mask is omitted.
  */
-typedef uint32_t iommu_map_t;
+// typedef uint32_t iommu_map_t;
 
 /* Define an IOMMU master */
 #define IOMMU(iommu, rid)		IOMMU_MASK(iommu, rid, 0)
@@ -151,7 +153,8 @@ typedef uint32_t iommu_map_t;
 #define MAX_IOMMU_RIDS			NR_DMAS
 #endif
 
-#include <driver/iommu.h>
+#include <target/dma.h>
+// #include <driver/iommu.h>
 
 typedef uint8_t iommu_state_t;
 typedef uint8_t iommu_event_t;
@@ -173,18 +176,25 @@ struct iommu_device {
 	unsigned long pgsize_bitmap;
 	iommu_state_t state;
 	iommu_event_t event;
+	void *iommu;
+};
+
+struct iommu_master {
+	iommu_mst_t id;
+	bool valid;
+	dma_t dma;		/* contain DMA_PHYS_OFFSET */
+	iommu_dom_t dom; //domain ctrl
+	bool is_pci;
+	iommu_map_t map;
 };
 
 struct iommu_group {
 	iommu_grp_t id;
 	bool valid;
-	iommu_dev_t dev;
+	iommu_dev_t dev; //iommu ctrl
 	iommu_dom_t default_dom;
-	iommu_dom_t dom;
+	iommu_dom_t dom; //domain ctrl
 
-	/* RID and RID map count */
-	int nr_iommus;
-	iommu_map_t iommus[MAX_IOMMU_RIDS];
 	bool is_pci;
 };
 
@@ -199,6 +209,8 @@ struct iommu_domain {
 	bool valid;
 	iommu_dev_t dev;
 	iommu_grp_t grp;
+	int nr_maps;
+	iommu_map_t maps[MAX_IOMMU_RIDS]; //device &iommu dma_ch_id
 	uint8_t type;
 #define IOMMU_DOMAIN_BLOCKED		0
 #define IOMMU_DOMAIN_IDENTITY		1
@@ -238,6 +250,21 @@ void iommu_device_restore(iommu_dev_t dev);
 #define iommu_device_restore(dev)
 extern struct iommu_device iommu_device_ctrl;
 #endif
+
+
+#if NR_DMAC_DMAS > 1
+extern iommu_mst_t iommu_mst;
+extern struct iommu_master iommu_masters[NR_DMAC_DMAS];
+iommu_mst_t iommu_master_save(iommu_mst_t mst);
+void iommu_master_restore(iommu_mst_t mst);
+#define iommu_master_ctrl		iommu_masters[iommu_mst]
+#else
+#define iommu_mst			0
+#define iommu_master_save(mst)		0
+#define iommu_master_restore(mst)
+extern struct iommu_master iommu_master_ctrl;
+#endif
+
 #define iommu_device_select(dev)	iommu_device_restore(dev)
 
 #if NR_IOMMU_GROUPS > 1
@@ -254,6 +281,7 @@ extern struct iommu_group iommu_group_ctrl;
 #endif
 #define iommu_group_select(dev)		iommu_group_restore(dev)
 
+int iommu_set_dev_pasid(uint32_t pasid);
 #if NR_IOMMU_DOMAINS > 1
 extern iommu_dom_t iommu_dom;
 extern struct iommu_domain iommu_domains[NR_IOMMU_DOMAINS];
@@ -268,7 +296,7 @@ extern struct iommu_domain iommu_domain_ctrl;
 #endif
 #define iommu_domain_select(dev)	iommu_domain_restore(dev)
 
-iommu_dom_t iommu_get_domain(iommu_grp_t grp);
+iommu_dom_t iommu_get_domain(iommu_map_t map);
 iommu_dom_t iommu_get_dma_domain(iommu_grp_t grp);
 
 int dma_info_to_prot(uint8_t dir, bool coherent, unsigned long attrs);
@@ -287,5 +315,7 @@ iommu_event_t iommu_event_save(void);
 void iommu_event_restore(iommu_event_t event);
 iommu_state_t iommu_state_get(void);
 void iommu_state_set(iommu_state_t state);
+
+void iommu_init(void);
 
 #endif /* __IOMMU_H_INCLUDE__ */
