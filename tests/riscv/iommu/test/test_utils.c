@@ -222,7 +222,7 @@ printf("-------PC.fsc.iosatp.MODE: %d (addr: %llx)\n", pc.fsc.iosatp.MODE, pc_ad
     return pc_addr;
 }
 
-static int pte_init(pte_t *pte)
+static int pte_init(rvos_pte_t *pte)
 {
     pte->raw = 0;
     pte->V = 1;
@@ -241,10 +241,10 @@ int dc_pc_s1_s2(void)
 {
 #if 0
     iommu_case_t i_case;
-    pte_t pte;
+    rvos_pte_t pte;
 
     i_case.s1_enabled = i_case.s2_enabled = 1;
-    i_case.ddi = 0x80000;
+    i_case.ddi = 0xc0000;
     i_case.pdi = 0;
 
     i_case.gscid = 0x1234;

@@ -28,7 +28,7 @@ typedef union {
         uint64_t N:1;
     };
     uint64_t raw;
-} pte_t;
+} rvos_pte_t;
 typedef union {
     struct {
         uint64_t V:1;
@@ -98,7 +98,7 @@ two_stage_address_translation(
     iosatp_t iosatp, uint8_t priv, uint8_t SUM, uint8_t SADE,
     uint8_t GV, uint32_t GSCID, iohgatp_t iohgatp, uint8_t GADE, uint8_t SXL,
     uint32_t *cause, uint64_t *iotval2, uint64_t *pa, 
-    uint64_t *page_sz, pte_t *vs_pte);
+    uint64_t *page_sz, rvos_pte_t *vs_pte);
 
 extern uint8_t
 second_stage_address_translation(

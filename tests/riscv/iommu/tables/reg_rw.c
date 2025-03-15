@@ -6,7 +6,7 @@
 #include <target/io.h>
 #include "iommu.h"
 
-#define RV_IOMMU_BASE(n)	ULL(0x04780000000)
+#define RV_IOMMU_BASE(n)	ULL(0x4780000000)
 
 uint64_t read_register(uint16_t offset, uint8_t num_bytes)
 {
