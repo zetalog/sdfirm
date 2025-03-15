@@ -42,11 +42,17 @@
 #include <target/iommu.h>
 #include <target/panic.h>
 #include <target/bh.h>
+#include <target/dma.h>
 
 bh_t iommu_bh;
 
 #define iommu_debug_event(event)	do { } while (0)
 #define iommu_debug_state(event)	do { } while (0)
+
+static dma_t iommu_master_dma(iommu_map_t map)
+{
+	return iommu_hw_master_dma(map);
+}
 
 void iommu_event_raise(iommu_event_t event)
 {
@@ -79,6 +85,29 @@ void iommu_state_set(iommu_state_t state)
 	iommu_device_ctrl.state = state;
 	iommu_hw_handle_seq();
 }
+
+/* ======================================================================
+ * IOMMU Devices
+ * ====================================================================== */
+#if NR_DMAC_DMAS > 1
+struct iommu_master iommu_masters[NR_DMAC_DMAS];
+iommu_mst_t iommu_mst;
+
+void iommu_master_restore(iommu_mst_t mst)
+{
+	iommu_mst = mst;
+}
+
+iommu_mst_t iommu_master_save(iommu_mst_t mst)
+{
+	iommu_mst_t rmst = iommu_mst;
+
+	iommu_master_restore(mst);
+	return rmst;
+}
+#else
+struct iommu_master iommu_master_ctrl;
+#endif
 
 /* ======================================================================
  * IOMMU Devices
@@ -156,8 +185,10 @@ void iommu_free_group(iommu_grp_t grp)
 	}
 }
 
+static int iova_cnt;
 dma_addr_t iommu_iova_alloc(iommu_dom_t dom, size_t size)
 {
+	// return (((uint64_t)(CONFIG_VA_VPN_2 + iova_cnt++)<<30) | ((uint64_t)CONFIG_VA_VPN_1<<21) | ((uint64_t)CONFIG_VA_VPN_0<<12));
 	return 0;
 }
 
@@ -180,6 +211,10 @@ int dma_info_to_prot(uint8_t dir, bool coherent, unsigned long attrs)
 /* ======================================================================
  * IOMMU Domains
  * ====================================================================== */
+int iommu_set_dev_pasid(uint32_t pasid)
+{
+	return iommu_hw_set_dev_pasid(pasid);
+}
 #if NR_IOMMU_DOMAINS > 1
 struct iommu_domain iommu_domains[NR_IOMMU_DOMAINS];
 iommu_dom_t iommu_dom;
@@ -193,7 +228,6 @@ void iommu_domain_restore(iommu_dom_t dom)
 iommu_dom_t iommu_domain_save(iommu_dom_t dom)
 {
 	iommu_dom_t rdom = iommu_dom;
-
 	iommu_domain_restore(dom);
 	return rdom;
 }
@@ -238,16 +272,30 @@ void iommu_free_domain(iommu_dom_t dom)
 	}
 }
 
-iommu_dom_t iommu_get_domain(iommu_grp_t grp)
+iommu_dom_t iommu_get_domain(iommu_map_t map)
 {
-	__unused iommu_grp_t rgrp;
-	iommu_dom_t dom;
+	iommu_grp_t grp, sgrp;
+	iommu_dom_t dom, sdom;
+	int i;
 
-	rgrp = iommu_group_save(grp);
-	dom = iommu_group_ctrl.dom;
-	iommu_group_restore(rgrp);
+	for (grp = 0; grp < NR_IOMMU_GROUPS; grp++) {
+		sgrp = iommu_group_save(grp);
+		if (iommu_group_ctrl.valid) {
+			dom = iommu_group_ctrl.default_dom;
+			sdom = iommu_domain_save(dom);
+			for (i = 0; i < iommu_domain_ctrl.nr_maps; i++) {
+				if (iommu_domain_ctrl.maps[i] == map) {
+					iommu_domain_restore(sdom);
+					iommu_group_restore(sgrp);
+					return iommu_dom;
+				}
+			}
+			iommu_domain_restore(sdom);
+		}
+		iommu_group_restore(sgrp);
+	}
 
-	return dom;
+	return INVALID_IOMMU_DOM;
 }
 
 iommu_dom_t iommu_get_dma_domain(iommu_grp_t grp)
@@ -413,30 +461,31 @@ void iommu_pgtable_free(void)
 /* ======================================================================
  * IOMMU Initializers
  * ====================================================================== */
-bool iommu_dma_mapped(iommu_map_t iommu)
+bool iommu_dma_mapped(iommu_map_t map)
 {
 	int i;
 
-	for (i = 0; i < iommu_group_ctrl.nr_iommus; i++) {
-		if (iommu_group_ctrl.iommus[i] == iommu)
+	for (i = 0; i < iommu_domain_ctrl.nr_maps; i++) {
+		if (iommu_domain_ctrl.maps[i] == map)
 			return true;
 	}
 	return false;
 }
 
-void __iommu_register_dma(int nr_iommus, iommu_t *iommus, bool is_pci)
+void __iommu_register_dma(int nr_maps, iommu_t *iommus, bool is_pci)
 {
 	__unused iommu_dev_t dev, sdev;
 	__unused iommu_map_t map;
 	__unused iommu_grp_t grp, sgrp;
 	__unused iommu_dom_t dom;
+	__unused iommu_mst_t mst;
 	int i;
 
 	grp = iommu_alloc_group();
 	BUG_ON(grp == INVALID_IOMMU_GRP);
 
 	sgrp = iommu_group_save(grp);
-	for (i = 0; i < nr_iommus; i++) {
+	for (i = 0; i < nr_maps; i++) {
 		iommu_t iommu = iommus[i];
 
 		dev = IOMMU_DEV(iommu);
@@ -456,13 +505,19 @@ void __iommu_register_dma(int nr_iommus, iommu_t *iommus, bool is_pci)
 			iommu_group_ctrl.dom = INVALID_IOMMU_DOM;
 			iommu_group_ctrl.default_dom = dom;
 		}
-		BUG_ON(iommu_group_ctrl.dev != dev);
-		map = IOMMU_MAP(iommu);
+		// BUG_ON(iommu_domain_ctrl.dev != dev);
+		map = IOMMU_MAP(iommu); //0,1,2,3 lo(iommu)
 		if (!iommu_dma_mapped(map)) {
-			BUG_ON(iommu_group_ctrl.nr_iommus >= MAX_IOMMU_RIDS);
-			iommu_group_ctrl.iommus[iommu_group_ctrl.nr_iommus] = map;
-			iommu_group_ctrl.nr_iommus++
+			BUG_ON(iommu_domain_ctrl.nr_maps >= MAX_IOMMU_RIDS);
+			iommu_domain_ctrl.maps[iommu_domain_ctrl.nr_maps] = map;
+			iommu_domain_ctrl.nr_maps++
 			iommu_device_restore(sdev);
+			mst = iommu_master_save(iommu_master_dma(map));
+			if (!iommu_master_ctrl.valid) {
+				iommu_master_ctrl.valid = true;
+				iommu_master_ctrl.id = dev;
+			}
+			iommu_master_restore(mst);
 		}
 	}
 	iommu_group_restore(sgrp);
@@ -536,21 +591,28 @@ void iommu_init(void)
 	__unused iommu_dev_t dev, sdev;
 	__unused iommu_grp_t grp, sgrp;
 	__unused iommu_dom_t dom, sdom;
+	int i;
 
 	for (dev = 0; dev < NR_IOMMU_DEVICES; dev++) {
 		sdev = iommu_device_save(dev);
 		if (iommu_device_ctrl.valid)
-			iommu_hw_ctrl_init(); /* .device_probe */
+			iommu_hw_ctrl_init(); /* .iommu device_probe */
 		iommu_device_restore(sdev);
 	}
 	/* Non-allocatable groups are probed */
 	for (grp = 0; grp < NR_IOMMU_GROUPS; grp++) {
 		sgrp = iommu_group_save(grp);
 		if (iommu_group_ctrl.valid) {
-			iommu_hw_group_init(); /* .probe_device */
 			dom = iommu_group_ctrl.default_dom;
 			sdom = iommu_domain_save(dom);
-			iommu_hw_group_attach(); /* .attach_dev */
+			for (i = 0; i < iommu_domain_ctrl.nr_maps; i++) {
+				dma_t dma = iommu_master_save((iommu_map_t)iommu_master_dma(iommu_domain_ctrl.maps[i]));
+				iommu_master_ctrl.map = iommu_domain_ctrl.maps[i];
+				iommu_master_ctrl.dom = iommu_dom;
+				iommu_hw_group_init(); /* .use iommu(eg:dma ch) probe_device */
+				iommu_hw_group_attach(); /* .attach_dev */
+				iommu_master_restore(dma);
+			}
 			iommu_domain_restore(sdom);
 		}
 		iommu_group_restore(sgrp);

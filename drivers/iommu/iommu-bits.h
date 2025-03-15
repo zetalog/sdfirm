@@ -15,7 +15,6 @@
 #define _RISCV_IOMMU_BITS_H_
 
 #include <target/types.h>
-// #include <target/bitfield.h>
 #include <target/bitops.h>
 
 /*
@@ -422,6 +421,8 @@ struct riscv_iommu_pc {
 	uint64_t ta;
 	uint64_t fsc;
 };
+
+#define RISCV_IOMMU_PDTE_VALID	BIT_ULL(0)
 
 /* Translation attributes fields */
 #define RISCV_IOMMU_PC_TA_V	BIT_ULL(0)
