@@ -113,6 +113,12 @@ static int k1max_pmp_region_info(uint32_t hartid, uint32_t index,
 	return ret;
 }
 
+void __attribute__((noinline)) break_func(void)
+{
+	asm volatile("nop\n");
+	asm volatile("nop\n");
+}
+
 static int k1max_early_init(bool cold_boot)
 {
 	struct csr_trap_info trap = {0};
@@ -123,6 +129,8 @@ static int k1max_early_init(bool cold_boot)
 	}
 
 	if (cold_boot) {
+		break_func();
+		*(volatile int *)break_func = 0;
 		void *fdt = sbi_scratch_thishart_arg1_ptr();
 		k1max_modify_dt_early(fdt);
 	}
@@ -194,8 +202,10 @@ static int k1max_console_getc(void)
 static int k1max_irqchip_init(bool cold_boot)
 {
 #ifdef CONFIG_RISCV_SMAIA
-	imsic_sbi_init_cold();
-	aplic_sbi_init_cold();
+	if (cold_boot) {
+		imsic_sbi_init_cold();
+		aplic_sbi_init_cold();
+	}
 #else
 	if (cold_boot)
 		plic_sbi_init_cold();
