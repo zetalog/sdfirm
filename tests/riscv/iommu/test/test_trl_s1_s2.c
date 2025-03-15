@@ -51,9 +51,9 @@ static int s1_s2_case_init(void)
         for(ddi = 0; ddi < case_s1_s2_data.ddi_max; ddi ++) {
             int offset = pdi * case_s1_s2_data.ddi_max + ddi;
             // add_dc_pc_s1(ddi, pdi, &case_s1_s2_data.data[offset].iova, &case_s1_s2_data.data[offset].iopa);
-            case_s1_s2_data.data[offset].ddi = 0x80000;
+            case_s1_s2_data.data[offset].ddi = 0xc0000;
             case_s1_s2_data.data[offset].pdi = 0;
-            add_dc_pc_s1_s2(0x80000, 0, &case_s1_s2_data.data[offset].iova,&case_s1_s2_data.data[offset].iopa);
+            add_dc_pc_s1_s2(0xc0000, 0, &case_s1_s2_data.data[offset].iova,&case_s1_s2_data.data[offset].iopa);
         }
     }
 

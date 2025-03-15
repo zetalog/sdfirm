@@ -23,7 +23,7 @@ iommu_translate_iova(
     uint64_t dest_mrif_addr;
     uint8_t PSCV, GV, PV;
     uint32_t DID, PID, GSCID, PSCID;
-    pte_t vs_pte;
+    rvos_pte_t vs_pte;
     gpte_t g_pte;
     uint8_t ioatc_status, gst_fault;
     uint64_t napot_ppn, napot_iova, napot_gpa;

@@ -62,7 +62,7 @@ extern tlb_t       tlb[TLB_SIZE];
 extern void
 cache_ioatc_iotlb(
     uint64_t vpn, uint8_t  GV, uint8_t  PSCV, uint32_t GSCID, uint32_t PSCID,
-    pte_t *vs_pte, gpte_t *g_pte, uint64_t PPN, uint8_t S);
+    rvos_pte_t *vs_pte, gpte_t *g_pte, uint64_t PPN, uint8_t S);
 
 extern uint8_t
 lookup_ioatc_iotlb(
@@ -70,7 +70,7 @@ lookup_ioatc_iotlb(
     uint8_t priv, uint8_t is_read, uint8_t is_write, uint8_t is_exec,
     uint8_t SUM, uint8_t PSCV, uint32_t PSCID, uint8_t GV, uint16_t GSCID, 
     uint32_t *cause, uint64_t *resp_pa, uint64_t *page_sz,
-    pte_t *vs_pte, gpte_t *g_pte);
+    rvos_pte_t *vs_pte, gpte_t *g_pte);
 
 extern uint8_t 
 lookup_ioatc_dc(uint32_t device_id, device_context_t *DC);
