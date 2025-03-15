@@ -28,7 +28,7 @@ static void dmatest(void)
 	cpu_dst_addr = dma_alloc_coherent(dmatest_chan, PAGE_SIZE, &dma_dst_addr);
 
 	if (!cpu_src_addr || !cpu_dst_addr) {
-		printf("dmatest alloc failed %s\n", failed_cnt ? "failed" : "successfully");
+		printf("dmatest alloc failed size: 0x%lx\n", transfer_size);
 		goto failed;
 	}
 
@@ -41,11 +41,15 @@ static void dmatest(void)
 	dma_memcpy_sync(dmatest_chan, dma_dst_addr, dma_src_addr, PAGE_SIZE, 0);
 
 	if (dmatest_verify) {
+		size_t cnt = 32;
 		for(int i = 0; i < PAGE_SIZE; i++) {
 			if (p_src[i] != p_dst[i]) {
-				printf("[%d]except: 0x%02x get:0x%02x\n", i ,
-						p_src[i],
-						p_dst[i]);
+				if (failed_cnt < cnt) {
+					printf("[%d]except: 0x%02x get:0x%02x\n", 
+					i ,
+					p_src[i],
+					p_dst[i]);
+				}
 				failed_cnt ++;
 			}
 		}

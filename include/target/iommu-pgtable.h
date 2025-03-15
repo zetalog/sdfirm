@@ -115,7 +115,7 @@ typedef struct io_pgtable_cfg {
 } iommu_cfg_t;
 
 struct io_pgtable {
-	void *cookie;
+	struct io_pgtable_cfg	cfg;
 };
 
 bool iommu_pgtable_alloc(iommu_cfg_t *cfg);

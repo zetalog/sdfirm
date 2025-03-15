@@ -118,6 +118,9 @@ config SMMU
 	select BIT_FIND_CLEAR
 	select SMMU_COMMON
 
+config RISCV_IOMMU
+	bool
+
 choice
 	prompt "Translation scheme"
 

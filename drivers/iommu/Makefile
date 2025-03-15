@@ -12,4 +12,4 @@ obj-$(CONFIG_ARM_SMMUv3) += arm_smmuv3.rel
 obj-$(CONFIG_IOMMU_PGTABLE_ARMv8) += iommu_armv8.rel
 obj-$(CONFIG_IOMMU_PGTABLE_RISCV) += io_pgtable.rel
 
-obj-$(CONFIG_K1MXLITE_IOMMU) += iommu.rel
+obj-$(CONFIG_RISCV_IOMMU) += iommu.rel
