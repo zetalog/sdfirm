@@ -138,10 +138,8 @@ void spi_set_status(uint8_t status)
 {
 	spi_dbg("spi: status = %s\n", spi_status_name(status));
 	spi_status = status;
-#if 0
 	if (status == SPI_STATUS_IDLE)
 		spi_enter_state(SPI_STATE_IDLE);
-#endif
 	if (status == SPI_STATUS_START)
 		spi_raise_event(SPI_EVENT_START);
 	if (status == SPI_STATUS_STOP)

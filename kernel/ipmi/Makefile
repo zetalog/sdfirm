@@ -7,3 +7,4 @@ obj-$(CONFIG_KCS_BMC) += kcs_bmc.rel
 obj-$(CONFIG_KCS_HIF) += kcs_master.rel
 obj-$(CONFIG_MCTP) += mctp.rel
 obj-$(CONFIG_PECI) += peci.rel
+obj-$(CONFIG_SSIF) += ssif.rel

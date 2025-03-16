@@ -382,8 +382,8 @@ void dw_ssi_handle_irq(irq_t irq)
 	/* dw_ssi_transfer_handler */
 	int n = irq - IRQ_SPI;
 
-	uint32_t status = dw_ssi_readl(SSI_ISR(n));
-	uint32_t mask = dw_ssi_readl(SSI_IMR(n));
+	uint32_t status = __raw_readl(SSI_ISR(n));
+	uint32_t mask = __raw_readl(SSI_IMR(n));
 	status &= mask;
 
 	if (status & SSI_MSTI) {
