@@ -306,4 +306,11 @@ if MCTP
 
 endif
 
+menuconfig SSIF
+	bool "SMBus System Interface (SSIF) support"
+
+if SSIF
+
+endif
+
 endmenu
