@@ -13,3 +13,5 @@ obj-$(CONFIG_RPMI_MAILBOX) += rpmi_mailbox.rel
 
 obj-$(CONFIG_RAS_RPMI) += ras_rpmi_baremetal.rel
 obj-$(CONFIG_MAILBOX_RPMI_SHMEM) += mailbox_rpmi_shmem_baremetal.rel
+obj-$(CONFIG_RAS_AGENT) += ghes.rel
+obj-$(CONFIG_RAS_AGENT) += reri_drv.rel
