@@ -164,4 +164,8 @@ config RAS_RPMI
 	bool "RPMI RAS baremetal driver"
 	default n
 
+config RAS_AGENT
+	bool "FDT SBI RAS Agent driver"
+	default y
+
 endmenu
