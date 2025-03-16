@@ -1,6 +1,7 @@
 #include <target/sbi.h>
 #include <sbi_utils/mailbox/fdt_mailbox.h>
 #include <sbi_utils/mailbox/rpmi_mailbox.h>
+#include <sbi_utils/ras/apei_tables.h>
 
 struct rpmi_ras {
         struct mbox_chan *chan;
@@ -60,3 +61,43 @@ int rpmi_ras_sync_hart_errs(u32 *pending_vectors, u32 *nr_pending,
 	return 0;
 }
 
+int rpmi_ras_sync_reri_errs(u32 *pending_vectors, u32 *nr_pending,
+			    u32 *nr_remaining)
+{
+	int rc = 0;
+	struct rpmi_ras_sync_hart_err_req req;
+	struct rpmi_ras_sync_err_resp resp;
+	acpi_ghesv2 err_src;
+	acpi_ghes_status_block *sblock;
+	u64 *gas;
+
+	//FIXME: source_id
+	rc = acpi_ghes_get_err_src_desc(/*source_id*/0, &err_src);
+	if (rc)
+		return;
+
+	/*
+	 * FIXME: Read gas address via a function that respects the
+	 * gas parameters. Don't read directly after typecast.
+	 */
+	gas = (u64 *)(ulong)err_src.ghes.gas.address;
+	sblock = (acpi_ghes_status_block *)(ulong)(*gas);
+
+	if (!pending_vectors || !nr_pending || !nr_remaining)
+		return -1;
+
+	*nr_pending = *nr_remaining = 0;
+
+	if (!ras.chan)
+		return -1;
+
+	rc = rpmi_posted_request(ras.chan,
+				 RPMI_RAS_SRV_SYNC_HART_ERR_REQ,
+				 sblock, sblock->data_len / sizeof(u32),
+				 0);
+
+	if (rc) {
+		printf("%s: sync failed, rc: 0x%x\n", __func__, rc);
+		return rc;
+	}
+}
