@@ -752,7 +752,7 @@
 			status = "okay";
 		};
 #endif
-		clint: clint@c30400000 {
+		clint: clint@c32000000 {
 			interrupts-extended = <
 				&cpu0_intc 0x3 &cpu0_intc 0x7
 #ifdef CONFIG_SMP
