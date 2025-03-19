@@ -131,6 +131,9 @@ static int k1max_early_init(bool cold_boot)
 	if (cold_boot) {
 		break_func();
 		*(volatile int *)break_func = 0;
+#ifndef CONFIG_CPU_CVA6
+		flush_dcache_addr(break_func);
+#endif
 		void *fdt = sbi_scratch_thishart_arg1_ptr();
 		k1max_modify_dt_early(fdt);
 	}
