@@ -339,16 +339,19 @@ static void cmn_hnf_slc_lock_disable(caddr_t hnf)
 #endif
 static void cmn_hnf_cal_enable_ocm(caddr_t hnf)
 {
+	uint64_t pwsr = 0;
+
 	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
 		CMN_ppu_op_mode(CMN_ppu_op_mode_SFONLY) |
 		CMN_ppu_dyn_en,
 		CMN_hnf_ppu_pwpr(hnf),
 		"CMN_hnf_ppu_pwpr", -1);
 
-	cmn_writeq(CMN_ppu_pow_status(CMN_ppu_pow_status_ON) |
-		CMN_ppu_op_mode_status(CMN_ppu_op_mode_status_SFONLY),
-		CMN_hnf_ppu_pwsr(hnf),
-		"CMN_hnf_ppu_pwsr", -1);
+	while (1) {
+		pwsr = __raw_readl(CMN_hnf_ppu_pwsr(hnf));
+		if (((pwsr >> CMN_ppu_op_mode_status_OFFSET) & CMN_ppu_op_mode_status_MASK) == CMN_ppu_op_mode_status_SFONLY)
+			break;
+		}
 
 	cmn_writeq(CMN_hnf_ocm_en,
 		CMN_hnf_cfg_ctl(hnf),
@@ -361,22 +364,22 @@ static void cmn_hnf_cal_enable_ocm(caddr_t hnf)
 	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cc000000) |
 		CMN_hnf_slc_lock_basen_vld,
 		CMN_hnf_slc_lock_base(hnf, 0),
-		"CMN_hnf_slc_lock_base", -1);
-	
+		"CMN_hnf_slc_lock_base", 0);
+
 	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cd000000) |
 		CMN_hnf_slc_lock_basen_vld,
 		CMN_hnf_slc_lock_base(hnf, 1),
-		"CMN_hnf_slc_lock_base", -1);
-	
-	cmn_writeq(CMN_hnf_slc_lock_basen(0x5ce000000) |
+		"CMN_hnf_slc_lock_base", 1);
+
+	cmn_writeq(CMN_hnf_slc_lock_basen(0x5e0000000) |
 		CMN_hnf_slc_lock_basen_vld,
 		CMN_hnf_slc_lock_base(hnf, 2),
-		"CMN_hnf_slc_lock_base", -1);
+		"CMN_hnf_slc_lock_base", 2);
 
 	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cf000000) |
 		CMN_hnf_slc_lock_basen_vld,
 		CMN_hnf_slc_lock_base(hnf, 3),
-		"CMN_hnf_slc_lock_base", -1);
+		"CMN_hnf_slc_lock_base", 3);
 
 	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
 		CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
@@ -384,11 +387,11 @@ static void cmn_hnf_cal_enable_ocm(caddr_t hnf)
 		CMN_hnf_ppu_pwpr(hnf),
 		"CMN_hnf_ppu_pwpr", -1);
 	
-	cmn_writeq(CMN_ppu_pow_status(CMN_ppu_pow_status_ON) |
-		CMN_ppu_op_mode_status(CMN_ppu_op_mode_status_FAM),
-		CMN_hnf_ppu_pwsr(hnf),
-		"CMN_hnf_ppu_pwsr", -1);
-
+	while (1) {
+		pwsr = __raw_readl(CMN_hnf_ppu_pwsr(hnf));
+		if (((pwsr >> CMN_ppu_op_mode_status_OFFSET) & CMN_ppu_op_mode_status_MASK) == CMN_ppu_op_mode_status_FAM)
+			break;
+		}
 }
 
 static void cmn_hnf_cal_config_ocm(caddr_t hnf)
@@ -403,18 +406,15 @@ static void cmn_hnf_cal_config_ocm(caddr_t hnf)
 static void cmn_hnf_cal_disable_ocm(caddr_t hnf)
 {
 	cmn_writeq(hnf_cfg_ctl(hnf) |
-		CMN_hnf_ocm_en |
-		CMN_hnf_ocm_always_en,
+		~CMN_hnf_ocm_en,
 		CMN_hnf_cfg_ctl(hnf),
 		"CMN_hnf_cfg_ctl", -1);
-	cmn600_hw_disable_ocm();
-	cmn600_reconfigure();
+	//cmn600_hw_disable_ocm();
+	//cmn600_reconfigure();
 }
 #endif
 
 /*
-
-
 static void cmn_hnf_abf(uint64_t hnf, uint64_t abf_mode, uint64_t saddr, uint64_t eaddr)
 {
 	cmn_writeq(hnf_abf_lo_addr(hnf) |
@@ -535,11 +535,9 @@ static void cmn600_configure_hnf_sam(caddr_t hnf, cmn_id_t id)
 {
 	cmn_hnf_cal_process(hnf);
 	cmn_hnf_cal_config_scg(hnf, id);
-
 	/* Set target node */
 	cmn_configure_hnf_sam_hashed(hnf);
 	cmn_configure_hnf_sam_range_based(hnf);
-
 	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
 		   CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
 		   CMN_ppu_dyn_en, CMN_hnf_ppu_pwpr(hnf),
@@ -737,6 +735,7 @@ void cmn600_discover_xp(caddr_t xp)
 		nid = CMN_XP_PID2NID(xp_pid, 0);
 		dev_type = cmn_mxp_device_type(xp, pid);
 		port_node_count = cmn600_dev_node_count(dev_type);
+		//printf("nid:%d, dev_type:%d, cmn600_hw_xp_masked(nid, dev_type):%d\n", nid, dev_type, cmn600_hw_xp_masked(nid, dev_type));
 		if (cmn600_hw_xp_masked(nid, dev_type)) {
 			con_dbg(CMN_MODNAME ": XP%d(%d,%d,%d) skip %d %s nodes\n",
 				xp_pid, (uint8_t)cmn_node_x(xp),(uint8_t)cmn_node_y(xp),
@@ -1134,18 +1133,20 @@ void cmn600_init(void)
 	if (cmn600_initialized)
 		return;
 
-	con_log("CPU_MASK: %016llx\n", CPU_MASK);
+	con_log("CPU_MASK: %016lx\n", CPU_MASK);
 	con_log("DDR_MASK: %016x\n", DDR_MASK);
 	con_log("LLC_MASK: %016x\n", LLC_MASK);
 	con_log("HW_CPU_MASK: %016x\n", __raw_readl(HW_CPU_MASK));
 	con_log("HW_DDR_MASK: %016x\n", __raw_readl(HW_DDR_MASK));
 	con_log("HW_LLC_MASK: %016x\n", __raw_readl(HW_LLC_MASK));
+	con_log("HW_PCIE_MASK: %016x\n", __raw_readl(HW_PCIE_MASK));
 	con_log("SW_CPU_MASK: %016x\n", __raw_readl(SW_CPU_MASK));
 	con_log("SW_DDR_MASK: %016x\n", __raw_readl(SW_DDR_MASK));
 	con_log("SW_LLC_MASK: %016x\n", __raw_readl(SW_LLC_MASK));
-	con_log("XP_MASK_0: %016x\n", __raw_readl(0x00420730A2C));
-	con_log("XP_MASK_1: %016x\n", __raw_readl(0x00420730A30));
-	con_log("XP_MASK_2: %016x\n", __raw_readl(0x00420730A34));
+	con_log("SW_PCIE_MASK: %016x\n", __raw_readl(SW_PCIE_MASK));
+	con_log("XP_MASK_0: %016x\n", __raw_readl(0x00420730A34));
+	con_log("XP_MASK_1: %016x\n", __raw_readl(0x00420730A38));
+	con_log("XP_MASK_2: %016x\n", __raw_readl(0x00420730A3c));
 	con_dbg(CMN_MODNAME ": cmn_mmap_count is %d.\n", cmn_mmap_count);
 	cmn_debug_init();
 	root_node_pointer = CMN_ROOT_NODE_POINTER(CMN_HND_NID);
@@ -1521,10 +1522,10 @@ DEFINE_COMMAND(cmn600, do_cmn600, "Coherent mesh network (" CMN_MODNAME ") comma
 	"    - dump CMN mesh network\n"
 	CMN_MODNAME " dump [hnf|rnd|rnf|rni|snf|xp|dtc|sbsx|rnsam|cxg]\n"
 	"    - dump CMN ndoe information\n"
-	CMN_MODNAME "ocm enable\n"
+	CMN_MODNAME " ocm enable\n"
 	"    - ocm initial configuration\n"
-	CMN_MODNAME "ocm config <size>\n"
+	CMN_MODNAME " ocm config <size>\n"
 	"    - configure size of ocm\n"
-	CMN_MODNAME "ocm disable\n"
+	CMN_MODNAME " ocm disable\n"
 	"    - disable ocm\n"
 );
