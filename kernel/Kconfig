@@ -179,9 +179,6 @@ config SMP_BOOT_QUIRK_INIT_WAIT_ENTRY
 	bool "Enable quirk to initialize wait entry"
 	depends ARCH_HAS_SMP_BOOT_QUIRK_INIT_WAIT_ENTRY
 
-config SMP_NO_BOOT_SECONDARY
-	bool "Disable secondary boot"
-
 endif
 
 menuconfig SMP
@@ -871,5 +868,8 @@ config PERF_MAX_PMUS
 	default 1
 
 endif
+
+menuconfig WDT
+	bool "General watchdog support"
 
 endmenu

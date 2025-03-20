@@ -1,0 +1,11 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "WatchDog drivers"
+
+config DW_WDTS
+	bool "Synopsys DesignWare APB watchdog support"
+
+endmenu

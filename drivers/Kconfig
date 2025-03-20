@@ -52,5 +52,6 @@ source drivers/mctp/Kconfig
 
 source drivers/pmu/Kconfig
 source drivers/ras/Kconfig
+source drivers/wdt/Kconfig
 
 endmenu
