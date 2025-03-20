@@ -68,6 +68,9 @@ config CMN600_SAM_RANGE_BASED
 	  hashed SAM configuration. However, this driver uses hashed SAM
 	  unless this option is enabled.
 
+config CMN600_OCM
+	bool "Enable On Chip Memory configuration"
+
 if CMN600_CML
 
 config CMN600_CML_TLP
