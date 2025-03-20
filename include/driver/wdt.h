@@ -6,7 +6,8 @@
 #endif
 
 #ifndef ARCH_HAVE_WDT
-#define wdt_hw_ctrl_stop()
+#define wdt_hw_con_bark()		do { } while (0)
+#define wdt_hw_con_init()		do { } while (0)
 #endif
 
 #endif /* __WDT_DRIVER_H_INCLUDE__ */
