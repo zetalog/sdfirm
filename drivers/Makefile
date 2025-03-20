@@ -21,6 +21,7 @@ obj-$(CONFIG_DMA) += dma/
 obj-$(CONFIG_PCI) += pci/
 obj-$(CONFIG_RIO) += rio/
 obj-$(CONFIG_IOMMU) += iommu/
+obj-$(CONFIG_WDT) += wdt/
 obj-y += stm/
 obj-$(CONFIG_DDR) += ddr/
 obj-y += spd/
