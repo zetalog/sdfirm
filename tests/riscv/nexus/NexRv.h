@@ -23,6 +23,8 @@
 #ifndef NEXRV_H
 #define NEXRV_H
 
+#include <target/generic.h>
+
 //****************************************************************************
 // Nexus specific values (based on Nexus Standard PDF)
 
