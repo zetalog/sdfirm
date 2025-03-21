@@ -114,7 +114,7 @@ void dma_unmap_single(dma_t dma, dma_addr_t addr, size_t size, dma_dir_t dir)
 		dma_hw_unmap_single(dma, addr, size, dir);
 }
 
-caddr_t dma_alloc_coherent(dma_t dma, size_t size, dma_addr_t *dma_handle)
+static caddr_t dma_direct_alloc(dma_t dma, size_t size, dma_addr_t *dma_handle)
 {
 	int nr_pages = ALIGN_UP(size, PAGE_SIZE) / PAGE_SIZE;
 	struct page *page;
@@ -124,6 +124,14 @@ caddr_t dma_alloc_coherent(dma_t dma, size_t size, dma_addr_t *dma_handle)
 		memory_set((caddr_t)page, 0, PAGE_SIZE * nr_pages);
 	*dma_handle = phys_to_dma(dma, (phys_addr_t)page);
 	return phys_to_virt((phys_addr_t)page);
+}
+
+caddr_t dma_alloc_coherent(dma_t dma, size_t size, dma_addr_t *dma_handle)
+{
+	if (dma_is_direct(dma))
+		return dma_direct_alloc(dma, size, dma_handle);
+	else
+		return iommu_dma_alloc(dma, size, dma_handle);
 }
 
 void dma_free_coherent(dma_t dma, size_t size,

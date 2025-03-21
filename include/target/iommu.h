@@ -315,6 +315,7 @@ iommu_event_t iommu_event_save(void);
 void iommu_event_restore(iommu_event_t event);
 iommu_state_t iommu_state_get(void);
 void iommu_state_set(iommu_state_t state);
+caddr_t iommu_dma_alloc(dma_t dma, size_t size, dma_addr_t *dma_handle);
 
 void iommu_init(void);
 

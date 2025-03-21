@@ -188,8 +188,8 @@ void iommu_free_group(iommu_grp_t grp)
 static int iova_cnt;
 dma_addr_t iommu_iova_alloc(iommu_dom_t dom, size_t size)
 {
-	// return (((uint64_t)(CONFIG_VA_VPN_2 + iova_cnt++)<<30) | ((uint64_t)CONFIG_VA_VPN_1<<21) | ((uint64_t)CONFIG_VA_VPN_0<<12));
-	return 0;
+	return 0x10000 + (iova_cnt ++) * PAGE_SIZE;
+
 }
 
 int dma_info_to_prot(uint8_t dir, bool coherent, unsigned long attrs)
@@ -207,6 +207,28 @@ int dma_info_to_prot(uint8_t dir, bool coherent, unsigned long attrs)
 			return 0;
 	}
 }
+
+caddr_t iommu_dma_alloc(dma_t dma, size_t size, dma_addr_t *dma_handle)
+{
+	int nr_pages = ALIGN_UP(size, PAGE_SIZE) / PAGE_SIZE;
+	struct page *page;
+	dma_addr_t dma_addr = 0;
+	caddr_t cpu_addr;
+
+	page = page_alloc_pages(nr_pages);
+	if (!page) {
+		return 0;
+	} else {
+		cpu_addr = phys_to_virt((phys_addr_t)page);
+		memory_set((caddr_t)page, 0, PAGE_SIZE * nr_pages);
+	}
+
+	dma_addr = dma_map_single(dma, cpu_addr, PAGE_SIZE * nr_pages, DMA_BIDIRECTIONAL);
+	*dma_handle = dma_addr;
+
+	return cpu_addr;
+}
+
 
 /* ======================================================================
  * IOMMU Domains
