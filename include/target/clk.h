@@ -94,6 +94,9 @@ void clk_select_source(clk_t clk, clk_t src);
 const char *clk_get_mnemonic(clk_t clk);
 int clk_register_driver(clk_cat_t category, const struct clk_driver *clkd);
 void clk_init(void);
+caddr_t sel_clk_reg(clk_clk_t sel);
+caddr_t div_clk_reg(clk_clk_t clk);
+caddr_t div_clk_rst_reg(clk_clk_t clk);
 #ifndef CONFIG_MMU
 #define clk_hw_mmu_init()		do { } while (0)
 #endif /* CONFIG_MMU */
