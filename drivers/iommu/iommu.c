@@ -348,7 +348,7 @@ static struct riscv_iommu_device rv_iommu_devices[NR_IOMMU_DEVICES];
 static uint32_t riscv_iommu_device_cnt = 0;
 
 /* Global IOMMU params. */
-static int ddt_mode = RISCV_IOMMU_DDTP_MODE_2LVL;
+static int ddt_mode = RISCV_IOMMU_DDTP_MODE_3LVL;
 static int cmdq_length = 128;
 static int fltq_length = 128;
 static int priq_length = 128;
