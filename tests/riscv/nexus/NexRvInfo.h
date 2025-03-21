@@ -20,6 +20,8 @@
 #ifndef NEXRVINFO_H
 #define NEXRVINFO_H
 
+#include <target/generic.h>
+
 #define INFO_LINEAR   0x1   // Linear (plain instruction or not taken BRANCH)
 #define INFO_4        0x2   // If not 4, it must be 2 on RISC-V
 //                    0x4   // Reserved (for exception or so ...)
