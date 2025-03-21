@@ -296,8 +296,8 @@ void iommu_free_domain(iommu_dom_t dom)
 
 iommu_dom_t iommu_get_domain(iommu_map_t map)
 {
-	iommu_grp_t grp, sgrp;
-	iommu_dom_t dom, sdom;
+	__unused iommu_grp_t grp, sgrp;
+	__unused iommu_dom_t dom, sdom;
 	int i;
 
 	for (grp = 0; grp < NR_IOMMU_GROUPS; grp++) {

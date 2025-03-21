@@ -676,8 +676,8 @@ static void axi_desc_put(struct axi_dma_desc *desc)
 		page_free(hw_desc->lli);
 	}
 
-	heap_free(desc->hw_desc);
-	heap_free(desc);
+	heap_free((caddr_t)desc->hw_desc);
+	heap_free((caddr_t)desc);
 }
 
 static int axi_dma_release(struct dma_channel *dchan)

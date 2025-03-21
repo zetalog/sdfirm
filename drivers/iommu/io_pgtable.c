@@ -119,7 +119,7 @@ static pte_t *riscv_iommu_pt_walk_fetch(pmd_t * ptp,
 	else
 		pte = (pmd_t *) pfn_to_virt(__page_val_to_pfn(pmd_val(*ptp))) +
 		    ((iova >> shift) & (PTRS_PER_PMD - 1));
-	con_log("io pgtbl: pte(%p) = 0x%lx  \n", pte, pmd_val(*pte));
+	con_log("io pgtbl: pte(%p) = 0x%lx  \n", pte, (size_t)pmd_val(*pte));
 	if (pmd_leaf_xx(*pte))
 		return (pte_t *) pte;
 	else if (pmd_none(*pte))
@@ -172,7 +172,7 @@ int riscv_iommu_map_pages(unsigned long iova, phys_addr_t phys,
 
 		pte_val = pfn_pte(phys_to_pfn(phys), pte_prot);
 
-		con_log("PTE: %p = %016lx\n", pte, pte_val);
+		con_log("PTE: %p = %016lx\n", pte, (size_t)pte_val);
 		set_pte(pte, pte_val);
 
 		size += page_size;
@@ -199,7 +199,7 @@ phys_addr_t riscv_iommu_pgtbl_ptw(uint64_t pgd_root, uint64_t iova, int mode)
 	pte = riscv_iommu_pt_walk_fetch((pmd_t *)pgd_root, iova, pgdir_shift, true);
 
 	if (!pte || !pte_present(*pte)) {
-		con_log("PTE: %p = 0x%lx addr:%lx\n", pte, pte_pfn(*pte), pfn_to_phys(pte_pfn(*pte)));
+		con_log("PTE: %p = 0x%lx addr:%lx\n", pte, (size_t)pte_pfn(*pte), (size_t)pfn_to_phys(pte_pfn(*pte)));
 		return (pfn_to_phys(pte_pfn(*pte)) | (iova & PAGE_MASK));
 	}
 	
@@ -236,7 +236,7 @@ size_t riscv_iommu_unmap_pages(unsigned long iova, size_t pgsize,
 	return size;
 }
 
-static phys_addr_t riscv_iommu_iova_to_phys(unsigned long iova)
+phys_addr_t riscv_iommu_iova_to_phys(unsigned long iova)
 {
 	struct riscv_iommu_domain *domain = &riscv_iommu_domain_ctrl;
 	pte_t *pte;

@@ -17,10 +17,9 @@
 
 #include "iommu.h"
 #include "iommu-bits.h"
-// #include "task.h"
+#include <target/atomic.h>
 
-#define cmpxchg_relaxed(p, o, n)		\
-	__cmpxchg(p, (unsigned long)o, (unsigned long)n, sizeof(*p))
+// #define cmpxchg_relaxed(p, o, n)  __cmpxchg(p, (unsigned long)o, (unsigned long)n, sizeof(*p))
 
 #define RV_IOMMU_BASE(n)	ULL(0x04780000000)
 
@@ -390,7 +389,7 @@ static int riscv_iommu_ddt_show(void)
 {
 	int i;
 	for (i = 0; i< g_ddt_cnt; i++) {
-		con_log("riscv iommu ddt[%d]:%lx\n", i, g_ddt_buf[i]);
+		con_log("riscv iommu ddt[%d]:%llx\n", i, g_ddt_buf[i]);
 	}
 	return 0;
 }
@@ -420,7 +419,7 @@ static int riscv_iommu_pdt_show(void)
 {
 	int i;
 	for (i = 0; i< g_pdt_cnt; i++) {
-		con_log("riscv iommu pdt[%d]:%lx\n", i, g_pdt_buf[i]);
+		con_log("riscv iommu pdt[%d]:%llx\n", i, g_pdt_buf[i]);
 	}
 	return 0;
 }
@@ -450,7 +449,7 @@ static int riscv_iommu_pgtbl_show(void)
 {
 	int i;
 	for (i = 0; i< g_pgtbl_cnt; i++) {
-		con_log("riscv iommu pgtbl[%d]:%lx\n", i, g_pgtbl_buf[i]);
+		con_log("riscv iommu pgtbl[%d]:%llx\n", i, g_pgtbl_buf[i]);
 	}
 	return 0;
 }
@@ -484,7 +483,7 @@ static int riscv_iommu_queue_show(void)
 {
 	int i;
 	for (i = 0; i< g_queue_cnt; i++) {
-		con_log("riscv iommu queue[%d]:%lx\n", i, g_queue_buf[i]);
+		con_log("riscv iommu queue[%d]:%llx\n", i, g_queue_buf[i]);
 	}
 	return 0;
 }
@@ -519,10 +518,10 @@ int riscv_iommu_debug(int ddi, int pdi, uint64_t iova)
 	struct riscv_iommu_device *iommu = get_iommu_device();
 	struct riscv_iommu_dc *dc = riscv_iommu_get_dc(iommu, ddi);
 	uint64_t dc_ppn = FIELD_GET(RISCV_IOMMU_DC_FSC_PPN, dc->fsc);
-	con_log("dc(%p)->fsc.ppn:%lx ", dc, dc_ppn);
+	con_log("dc(%p)->fsc.ppn:%llx ", dc, dc_ppn);
 
 	struct riscv_iommu_pc *pdtp = (struct riscv_iommu_pc *)(dc_ppn << 12);
-	con_log("pc(%p)->fsc:%lx\n", pdtp + pdi, pdtp[pdi].fsc);
+	con_log("pc(%p)->fsc:%llx\n", pdtp + pdi, pdtp[pdi].fsc);
 	uint64_t pc_ppn =  FIELD_GET(RISCV_IOMMU_PC_FSC_PPN, pdtp[pdi].fsc);
 
 	riscv_iommu_pgtbl_ptw(pc_ppn << 12, iova, 8); //8:sv39
@@ -1145,7 +1144,8 @@ static void riscv_iommu_fault_report(struct riscv_iommu_fq_record *event)
 	err = FIELD_GET(RISCV_IOMMU_FQ_HDR_CAUSE, event->hdr);
 	devid = FIELD_GET(RISCV_IOMMU_FQ_HDR_DID, event->hdr);
 
-	con_err("Fault %d devid: %d" " iotval: %lx iotval2: %lx\n", err, devid, event->iotval, event->iotval2);
+	con_err("Fault %d devid: %d" " iotval: 0x%llx iotval2: 0x%llx\n", 
+		err, devid, event->iotval, event->iotval2);
 }
 
 #if 0
@@ -1820,7 +1820,7 @@ void riscv_iommu_probe_device(void)
 
 	riscv_iommu_enable_ir(&riscv_master_ctrl.ep);
 	riscv_iommu_enable_ep(&riscv_master_ctrl.ep);
-	// con_log("iommu: devid[%d] mst[%d], DDT base=0x%p PDT base=0x%p\n", \
+	con_dbg("iommu: devid[%d] mst[%d], DDT base=0x%p PDT base=0x%p\n", \
 		devid, iommu_mst, riscv_master_ctrl.ep.dc, riscv_master_ctrl.ep.pc);
 
 	riscv_master_ctrl.devid[riscv_master_ctrl.num_devids] = devid;
@@ -1984,7 +1984,7 @@ static int riscv_iommu_domain_finalize(struct riscv_iommu_domain *domain, struct
 	if (!domain->pgd_root)
 		return -ENOMEM;
 	riscv_iommu_save_pgtbl((uint64_t)domain->pgd_root);
-	memory_set(domain->pgd_root, 0, PAGE_SIZE*(domain->g_stage ? 4 : 1));
+	memory_set((caddr_t)domain->pgd_root, 0, PAGE_SIZE*(domain->g_stage ? 4 : 1));
 	// if (!alloc_io_pgtable_ops(RISCV_IOMMU, &domain->pgtbl.cfg, domain))
 	// 	return -ENOMEM;
 	// riscv_iommu_alloc_pgtable(&domain->pgtbl.cfg)
@@ -2522,7 +2522,8 @@ static char *ddtp_modes[] = {
 	"DDTP_MODE_2LVL",
 	"DDTP_MODE_3LVL",
 };
-	con_log("ddt_mode: %s ddtp:%lx iommu->ddtp:0x%lx\n", ddtp_modes[iommu->ddt_mode], riscv_iommu_get_ddtp(iommu), iommu->ddtp);
+	con_log("ddt_mode: %s ddtp:0x%lx iommu->ddtp:0x%lx\n", 
+		ddtp_modes[iommu->ddt_mode], (size_t)riscv_iommu_get_ddtp(iommu), iommu->ddtp);
 	return 0;
 
  fail:
