@@ -274,9 +274,9 @@ struct io_pgtable *riscv_iommu_alloc_pgtable(iommu_cfg_t *cfg)
 {
 	struct io_pgtable *iop = &riscv_io_pgtables[iommu_dom];
 
-	// cfg->pgsize_bitmap = SZ_4K | SZ_2M | SZ_1G;
-	// cfg->ias = 57;		// va mode, SvXX -> ias
-	// cfg->oas = 57;		// pa mode, or SvXX+4 -> oas
+	cfg->pgsize_bitmap = SZ_4K | SZ_2M | SZ_1G;
+	cfg->ias = 57;		// va mode, SvXX -> ias
+	cfg->oas = 57;		// pa mode, or SvXX+4 -> oas
 	// cfg->tlb = &riscv_iommu_flush_ops;
 
 	// iop->ops.map_pages = riscv_iommu_map_pages;

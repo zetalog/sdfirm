@@ -196,8 +196,6 @@ void modules_init(void)
 	usb_init();
 	mtd_init();
 	dma_init();
-	iommu_init();
-
 	/* subsys */
 	led_init();	/* on GPIO */
 	kbd_init();	/* on GPIO */
