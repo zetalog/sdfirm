@@ -2,6 +2,7 @@
 #include <sbi_utils/mailbox/fdt_mailbox.h>
 #include <sbi_utils/mailbox/rpmi_mailbox.h>
 #include <sbi_utils/ras/apei_tables.h>
+#include <sbi_utils/ras/ghes.h>
 
 struct rpmi_ras {
         struct mbox_chan *chan;
@@ -65,8 +66,6 @@ int rpmi_ras_sync_reri_errs(u32 *pending_vectors, u32 *nr_pending,
 			    u32 *nr_remaining)
 {
 	int rc = 0;
-	struct rpmi_ras_sync_hart_err_req req;
-	struct rpmi_ras_sync_err_resp resp;
 	acpi_ghesv2 err_src;
 	acpi_ghes_status_block *sblock;
 	u64 *gas;
@@ -74,7 +73,7 @@ int rpmi_ras_sync_reri_errs(u32 *pending_vectors, u32 *nr_pending,
 	//FIXME: source_id
 	rc = acpi_ghes_get_err_src_desc(/*source_id*/0, &err_src);
 	if (rc)
-		return;
+		return -1;
 
 	/*
 	 * FIXME: Read gas address via a function that respects the
@@ -100,4 +99,6 @@ int rpmi_ras_sync_reri_errs(u32 *pending_vectors, u32 *nr_pending,
 		printf("%s: sync failed, rc: 0x%x\n", __func__, rc);
 		return rc;
 	}
+
+	return 0;
 }
