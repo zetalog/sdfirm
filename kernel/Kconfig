@@ -199,6 +199,21 @@ endif
 
 endmenu
 
+menu "Scheduling facility (MSI) support"
+
+config ARCH_HAS_MSI
+	bool
+
+menuconfig MSI
+	bool "Enable per-cpu MSI support"
+	depends ARCH_HAS_MSI
+
+if MSI
+
+endif
+
+endmenu
+
 menu "Timing facility (jiffy) support"
 
 config TICKLESS
