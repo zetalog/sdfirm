@@ -48,9 +48,51 @@
 #define IRQ2IE(irq)		(_AC(0x1, UL) << (irq))
 #define riscv_enable_irq(irq)	csr_set(CSR_IE, IRQ2IE(irq))
 #define riscv_disable_irq(irq)	csr_clear(CSR_IE, IRQ2IE(irq))
-#define riscv_trigger_irq(irq)	csr_set(CSR_IP, IRQ2IE(irq))
 #define riscv_clear_irq(irq)	csr_clear(CSR_IP, IRQ2IE(irq))
+#define riscv_trigger_irq(irq)	csr_set(CSR_IP, IRQ2IE(irq))
 #define riscv_irq_raised(irq)	(csr_read(CSR_IP) & IRQ2IE(irq))
+
+/* Interrupt filtering and virtual interrupts:
+ * When supervisor mode is implemented, the Advanced Interrupt Architecture
+ * adds a facility for software filtering of interrupts and for virtual
+ * interrupts, making use of new CSRs mvien and mvip.
+ * Interrupt filtering permits a supervisor-level interrupt (SEI or SSI) or
+ * local or custom interrupt to trap to M-mode and then be selectively
+ * delegated by software to supervisor level, even while the corresponding
+ * bit in mideleg remains zero. The same hardware may also, under the right
+ * circumstances, allow machine level to assert virtual interrupts to
+ * supervisor level that have no connection to any real interrupt events.
+ *                 *          *
+ *  +------------+----------+---------+---------+--------------+
+ *  | mideleg[n] | mvien[n] | mvip[n] | sip[n]  | sie[n]       |
+ *  +------------+----------+---------+---------+--------------+
+ *  | 0          | 0        | RO 0    | RO 0    | RO 0         |
+ * *| 0          | 1        | RW      | mvip[n] | RW (mvie[n]) |
+ *  | 1          | -        | mip[n]  | mip[n]  | mie[n]       |
+ *  +------------+----------+---------+---------+--------------+
+ *  NOTE:
+ *   Normally AIA RW sie[n] is invisible to software and is implemented as
+ *   mvie[n] register.
+ */
+#ifdef CONFIG_RISCV_EXIT_S
+#ifdef CONFIG_RISCV_AIA
+#define riscv_enable_aia(irq)	csr_set(CSR_MVIEN, IRQ2IE(irq))
+#define riscv_delegate_irq(irq)	csr_set(CSR_MVIP, IRQ2IE(irq))
+#else /* CONFIG_RISCV_AIA */
+#define riscv_enable_aia(irq)	do { } while (0)
+#define riscv_delegate_irq(irq)	csr_set(CSR_MIDELEG, IRQ2IE(irq))
+#endif /* CONFIG_RISCV_AIA */
+#endif /* CONFIG_RISCV_EXIT_S */
+
+#ifdef CONFIG_RISCV_EXIT_VS
+#ifdef CONFIG_RISCV_AIA
+#define riscv_enable_aia(irq)	csr_set(CSR_HVIEN, IRQ2IE(irq))
+#define riscv_delegate_irq(irq)	csr_set(CSR_HVIP, IRQ2IE(irq))
+#else /* CONFIG_RISCV_AIA */
+#define riscv_enable_aia(irq)	do { } while (0)
+#define riscv_delegate_irq(irq)	csr_set(CSR_HIDELEG, IRQ2IE(irq))
+#endif /* CONFIG_RISCV_AIA */
+#endif /* CONFIG_RISCV_EXIT_VS */
 
 /* RISCV allows embedded IRQ controllers */
 #include <asm/mach/irqc.h>

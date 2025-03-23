@@ -57,12 +57,6 @@
 #ifdef CONFIG_SMP
 cpu_t smp_boot_cpu;
 cpu_mask_t smp_online_cpus;
-
-#define smp_set_online(cpu)	cpumask_set_cpu((cpu), &smp_online_cpus)
-#define smp_test_online(cpu)	cpumask_test_cpu((cpu), &smp_online_cpus)
-#else /* CONFIG_SMP */
-#define smp_set_online(cpu)		do { } while (0)
-#define smp_test_online(cpu)		false
 #endif /* CONFIG_SMP */
 
 #ifdef CONFIG_SMP_WAIT_BOOT

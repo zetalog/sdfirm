@@ -8,85 +8,13 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <sbi/riscv_asm.h>
-//#include <sbi/riscv_io.h>
-//#include <sbi/riscv_encoding.h>
-//#include <sbi/sbi_console.h>
-//#include <sbi/sbi_csr_detect.h>
-//#include <sbi/sbi_domain.h>
-//#include <sbi/sbi_ipi.h>
-//#include <sbi/sbi_irqchip.h>
-//#include <sbi/sbi_error.h>
-//#include <sbi/sbi_scratch.h>
-//#include <sbi_utils/irqchip/imsic.h>
-#include <target/types.h>
-#include <asm/io.h>
-#include <asm/imsic.h>
+#include <target/irq.h>
 #include <target/smp.h>
+#include <target/percpu.h>
 #include <target/irq.h>
 #include <target/sbi.h>
-#include <sbi/sbi_bitops.h>
 
-#define IMSIC_MMIO_PAGE_LE		0x00
-#define IMSIC_MMIO_PAGE_BE		0x04
-
-#define IMSIC_MIN_ID			63
-#define IMSIC_MAX_ID			2047
-
-#define IMSIC_EIDELIVERY		0x70
-
-#define IMSIC_EITHRESHOLD		0x72
-
-#define IMSIC_TOPEI			0x76
-#define IMSIC_TOPEI_ID_SHIFT		16
-#define IMSIC_TOPEI_ID_MASK		0x7ff
-#define IMSIC_TOPEI_PRIO_MASK		0x7ff
-
-#define IMSIC_EIP0			0x80
-
-#define IMSIC_EIP63			0xbf
-
-#define IMSIC_EIPx_BITS			32
-
-#define IMSIC_EIE0			0xc0
-
-#define IMSIC_EIE63			0xff
-
-#define IMSIC_EIEx_BITS			32
-
-#define IMSIC_DISABLE_EIDELIVERY	0
-#define IMSIC_ENABLE_EIDELIVERY		1
-#define IMSIC_DISABLE_EITHRESHOLD	1
-#define IMSIC_ENABLE_EITHRESHOLD	0
-
-#define IMSIC_IPI_ID			1
-
-#define imsic_csr_write(__c, __v)	\
-do { \
-	csr_write(CSR_MISELECT, __c); \
-	csr_write(CSR_MIREG, __v); \
-} while (0)
-
-#define imsic_csr_read(__c)	\
-({ \
-	unsigned long __v; \
-	csr_write(CSR_MISELECT, __c); \
-	__v = csr_read(CSR_MIREG); \
-	__v; \
-})
-
-#define imsic_csr_set(__c, __v)		\
-do { \
-	csr_write(CSR_MISELECT, __c); \
-	csr_set(CSR_MIREG, __v); \
-} while (0)
-
-#define imsic_csr_clear(__c, __v)	\
-do { \
-	csr_write(CSR_MISELECT, __c); \
-	csr_clear(CSR_MIREG, __v); \
-} while (0)
-
+#ifdef CONFIG_SBI
 static unsigned long imsic_ptr_offset;
 
 #define imsic_get_hart_data_ptr(__scratch)				\
@@ -209,7 +137,7 @@ void imsic_local_irqchip_init(void)
 
 int imsic_warm_irqchip_init(void)
 {
-	struct imsic_data *imsic = imsic_get_data(current_hartid());
+	struct imsic_data *imsic = imsic_get_data(sbi_current_hartid());
 
 	/* Sanity checks */
 	if (!imsic || !imsic->targets_mmode)
@@ -326,3 +254,4 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
 
 	return 0;
 }
+#endif /* CONFIG_SBI */

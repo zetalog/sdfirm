@@ -7,6 +7,7 @@ obj-y:=
 obj-y += panic.rel
 obj-y += bh.rel
 obj-y += irq.rel
+obj-$(CONFIG_MSI) += msi.rel
 obj-y += delay.rel
 obj-y += stack.rel
 obj-y += smp.rel

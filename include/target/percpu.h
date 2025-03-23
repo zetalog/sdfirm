@@ -69,6 +69,9 @@ extern uintptr_t __percpu_end[];
 #define PERCPU_END		((uint64_t)&__percpu_end)
 
 #ifdef CONFIG_SMP
+#define __percpu(expr)					\
+	__attribute__((__section__(".data..percpu")))	\
+	__cache_aligned expr
 #define DEFINE_PERCPU(type, name)			\
 	__attribute__((__section__(".data..percpu")))	\
 	__cache_aligned __typeof__(type) name
@@ -85,6 +88,7 @@ extern uintptr_t __percpu_end[];
 extern uint64_t __percpu_offset[NR_CPUS];
 void percpu_init(void);
 #else
+#define __percpu(expr)			expr
 #define DEFINE_PERCPU(type, name)	\
 	__typeof__(type) name
 #define this_cpu_var(var)		(var)
