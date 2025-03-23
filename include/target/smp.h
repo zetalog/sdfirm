@@ -100,6 +100,8 @@ extern bool smp_initialized;
 
 #define smp_processor_id()			__smp_processor_id()
 #define smp_cpu_off(cpu)			smp_hw_cpu_off(cpu)
+#define smp_set_online(cpu)			cpumask_set_cpu((cpu), &smp_online_cpus)
+#define smp_test_online(cpu)			cpumask_test_cpu((cpu), &smp_online_cpus)
 #endif /* __ASSEMBLY__ */
 #else /* CONFIG_SMP */
 #ifndef __SMP_CACHE_BYTES
@@ -127,6 +129,8 @@ extern cpu_mask_t smp_online_cpus;
 
 #define smp_processor_id()			0
 #define smp_cpu_off(cpu)			do { } while (0)
+#define smp_set_online(cpu)			do { } while (0)
+#define smp_test_online(cpu)			((cpu) == 0)
 #endif /* __ASSEMBLY__ */
 #endif /* CONFIG_SMP */
 #define __cache_aligned				__align(SMP_CACHE_BYTES)

@@ -8,112 +8,9 @@
  *   Anup Patel <anup.patel@wdc.com>
  */
 
-#include <asm/aplic.h>
-#include <asm/io.h>
-#include <target/smp.h>
 #include <target/irq.h>
+#include <target/smp.h>
 #include <target/sbi.h>
-
-#define APLIC_MAX_IDC			(1UL << 14)
-#define APLIC_MAX_SOURCE		1024
-
-#define APLIC_DOMAINCFG		0x0000
-#define APLIC_DOMAINCFG_IE		(1 << 8)
-#define APLIC_DOMAINCFG_DM		(1 << 2)
-#define APLIC_DOMAINCFG_BE		(1 << 0)
-
-#define APLIC_SOURCECFG_BASE		0x0004
-#define APLIC_SOURCECFG_D		(1 << 10)
-#define APLIC_SOURCECFG_CHILDIDX_MASK	0x000003ff
-#define APLIC_SOURCECFG_SM_MASK	0x00000007
-#define APLIC_SOURCECFG_SM_INACTIVE	0x0
-#define APLIC_SOURCECFG_SM_DETACH	0x1
-#define APLIC_SOURCECFG_SM_EDGE_RISE	0x4
-#define APLIC_SOURCECFG_SM_EDGE_FALL	0x5
-#define APLIC_SOURCECFG_SM_LEVEL_HIGH	0x6
-#define APLIC_SOURCECFG_SM_LEVEL_LOW	0x7
-
-#define APLIC_MMSICFGADDR		0x1bc0
-#define APLIC_MMSICFGADDRH		0x1bc4
-#define APLIC_SMSICFGADDR		0x1bc8
-#define APLIC_SMSICFGADDRH		0x1bcc
-
-#define APLIC_xMSICFGADDRH_L		(1UL << 31)
-#define APLIC_xMSICFGADDRH_HHXS_MASK	0x1f
-#define APLIC_xMSICFGADDRH_HHXS_SHIFT	24
-#define APLIC_xMSICFGADDRH_LHXS_MASK	0x7
-#define APLIC_xMSICFGADDRH_LHXS_SHIFT	20
-#define APLIC_xMSICFGADDRH_HHXW_MASK	0x7
-#define APLIC_xMSICFGADDRH_HHXW_SHIFT	16
-#define APLIC_xMSICFGADDRH_LHXW_MASK	0xf
-#define APLIC_xMSICFGADDRH_LHXW_SHIFT	12
-#define APLIC_xMSICFGADDRH_BAPPN_MASK	0xfff
-
-#define APLIC_xMSICFGADDR_PPN_SHIFT	12
-
-#define APLIC_xMSICFGADDR_PPN_HART(__lhxs) \
-	((1UL << (__lhxs)) - 1)
-
-#define APLIC_xMSICFGADDR_PPN_LHX_MASK(__lhxw) \
-	((1UL << (__lhxw)) - 1)
-#define APLIC_xMSICFGADDR_PPN_LHX_SHIFT(__lhxs) \
-	((__lhxs))
-#define APLIC_xMSICFGADDR_PPN_LHX(__lhxw, __lhxs) \
-	(APLIC_xMSICFGADDR_PPN_LHX_MASK(__lhxw) << \
-	 APLIC_xMSICFGADDR_PPN_LHX_SHIFT(__lhxs))
-
-#define APLIC_xMSICFGADDR_PPN_HHX_MASK(__hhxw) \
-	((1UL << (__hhxw)) - 1)
-#define APLIC_xMSICFGADDR_PPN_HHX_SHIFT(__hhxs) \
-	((__hhxs) + APLIC_xMSICFGADDR_PPN_SHIFT)
-#define APLIC_xMSICFGADDR_PPN_HHX(__hhxw, __hhxs) \
-	(APLIC_xMSICFGADDR_PPN_HHX_MASK(__hhxw) << \
-	 APLIC_xMSICFGADDR_PPN_HHX_SHIFT(__hhxs))
-
-#define APLIC_SETIP_BASE		0x1c00
-#define APLIC_SETIPNUM			0x1cdc
-
-#define APLIC_CLRIP_BASE		0x1d00
-#define APLIC_CLRIPNUM			0x1ddc
-
-#define APLIC_SETIE_BASE		0x1e00
-#define APLIC_SETIENUM			0x1edc
-
-#define APLIC_CLRIE_BASE		0x1f00
-#define APLIC_CLRIENUM			0x1fdc
-
-#define APLIC_SETIPNUM_LE		0x2000
-#define APLIC_SETIPNUM_BE		0x2004
-
-#define APLIC_TARGET_BASE		0x3004
-#define APLIC_TARGET_HART_IDX_SHIFT	18
-#define APLIC_TARGET_HART_IDX_MASK	0x3fff
-#define APLIC_TARGET_GUEST_IDX_SHIFT	12
-#define APLIC_TARGET_GUEST_IDX_MASK	0x3f
-#define APLIC_TARGET_IPRIO_MASK	0xff
-#define APLIC_TARGET_EIID_MASK	0x7ff
-
-#define APLIC_IDC_BASE			0x4000
-#define APLIC_IDC_SIZE			32
-
-#define APLIC_IDC_IDELIVERY		0x00
-
-#define APLIC_IDC_IFORCE		0x04
-
-#define APLIC_IDC_ITHRESHOLD		0x08
-
-#define APLIC_IDC_TOPI			0x18
-#define APLIC_IDC_TOPI_ID_SHIFT	16
-#define APLIC_IDC_TOPI_ID_MASK	0x3ff
-#define APLIC_IDC_TOPI_PRIO_MASK	0xff
-
-#define APLIC_IDC_CLAIMI		0x1c
-
-#define APLIC_DEFAULT_PRIORITY		1
-#define APLIC_DISABLE_IDELIVERY		0
-#define APLIC_ENABLE_IDELIVERY		1
-#define APLIC_DISABLE_ITHRESHOLD	1
-#define APLIC_ENABLE_ITHRESHOLD		0
 
 static void aplic_writel_msicfg(struct aplic_msicfg_data *msicfg,
 				void *msicfgaddr, void *msicfgaddrH)
@@ -279,4 +176,134 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
 //	}
 
 	return 0;
+}
+
+void irqc_hw_enable_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		aplic_enable_irq(irq_ext(irq));
+	else if (irq >= NR_INT_IRQS)
+		imsic_enable_irq(irq_msi(irq));
+	else
+		aplic_hw_enable_int(irq);
+}
+
+void irqc_hw_disable_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		aplic_disable_irq(irq_ext(irq));
+	else if (irq >= NR_INT_IRQS)
+		imsic_enable_irq(irq_msi(irq));
+	else
+		aplic_hw_disable_int(irq);
+}
+
+void irqc_hw_mask_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		aplic_mask_irq(irq_ext(irq));
+	else if (irq >= NR_INT_IRQS)
+		imsic_mask_irq(irq_msi(irq));
+	else
+		aplic_hw_disable_int(irq);
+}
+
+void irqc_hw_unmask_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		aplic_unmask_irq(irq_ext(irq));
+	else if (irq >= NR_INT_IRQS)
+		imsic_unmask_irq(irq_msi(irq));
+	else
+		aplic_hw_enable_int(irq);
+}
+
+void irqc_hw_clear_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		aplic_clear_irq(irq_ext(irq));
+	else if (irq >= NR_INT_IRQS)
+		imsic_clear_irq(irq_msi(irq));
+	else
+		aplic_hw_clear_int(irq);
+}
+
+void irqc_hw_trigger_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		aplic_set_irq(irq_ext(irq));
+	else if (irq >= NR_INT_IRQS)
+		imsic_trigger_irq(irq_msi(irq));
+	else
+		aplic_hw_trigger_int(irq);
+}
+
+void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
+{
+#if 0
+	if (irq >= IRQ_PLATFORM)
+		aplic_configure_priority(irq_ext(irq),
+					 prio + PLIC_PRI_MIN);
+#endif
+}
+
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+#define aplic_irq_completion_verbose(cpu, irq, is_ack)		\
+	do {							\
+		aplic_irq_completion((cpu), (irq));		\
+		printf("APLIC %d %s completion.\n", (irq),	\
+		       (is_ack) ? "external" : "internal");	\
+	} while (0)
+#else
+#define aplic_irq_completion_verbose(cpu, irq, is_ack)		\
+	aplic_irq_completion(cpu, irq)
+#endif
+
+#ifdef CONFIG_APLIC_COMPLETION
+#ifdef CONFIG_APLIC_COMPLETION_ENTRY
+#define aplic_completion_entry(cpu, irq)	\
+	aplic_irq_completion_verbose(cpu, irq, false)
+#define aplic_completion_exit(cpu, irq)		do { } while (0)
+#endif
+#ifdef CONFIG_APLIC_COMPLETION_EXIT
+#define aplic_completion_entry(cpu, irq)	do { } while (0)
+#define aplic_completion_exit(cpu, irq)		\
+	aplic_irq_completion_verbose(cpu, irq, false)
+#endif
+#else
+#define aplic_completion_entry(cpu, irq)	do { } while (0)
+#define aplic_completion_exit(cpu, irq)		do { } while (0)
+
+void irqc_hw_ack_irq(irq_t irq)
+{
+	__unused uint8_t cpu = smp_processor_id();
+
+	aplic_irq_completion_verbose(cpu, irq_ext(irq), true);
+}
+#endif
+
+void irqc_hw_handle_irq(void)
+{
+	irq_t irq;
+	__unused uint8_t cpu = smp_processor_id();
+
+	aplic_hw_disable_int(IRQ_EXT);
+	irq = aplic_claim_irq(cpu);
+	if (irq >= NR_EXT_IRQS) {
+		/* Invalid IRQ */
+		aplic_disable_irq(irq);
+		aplic_irq_completion(cpu, irq);
+	} else {
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+		printf("External IRQ %d\n", irq);
+#endif
+		aplic_completion_entry(cpu, irq);
+		if (!do_IRQ(EXT_IRQ(irq))) {
+			/* No IRQ handler registered, disabling... */
+			aplic_disable_irq(irq);
+			aplic_irq_completion(cpu, irq);
+		} else
+			aplic_completion_exit(cpu, irq);
+	}
+	aplic_hw_enable_int(IRQ_EXT);
 }

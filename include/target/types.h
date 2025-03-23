@@ -159,6 +159,9 @@ typedef unsigned long			loff_t;
 #define _SET_FV_ULLn(n, name, value)	\
 	((((uint64_t)(value)) & (name##_MASK)) << (name##_OFFSET(n)))
 
+#define BIT(n)				(UL(1) << (n))
+#define BIT_ULL(n)			(ULL(1) << (n))
+
 /* Create a contiguous bitmask starting at bit position @l and ending at
  * position @h. For example
  * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.

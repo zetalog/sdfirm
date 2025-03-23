@@ -59,7 +59,7 @@
 
 #if PLIC_MAX_CHIPS > 1
 #define PLIC_REG(soc, offset)		(PLIC_BASE(soc) + (offset))
-#define PLIC_1BIT_REG(soc, offset, irq)	\
+#define PLIC_1BIT_REG(soc, offset, irq)		\
 	REG_1BIT_ADDR(PLIC_BASE(soc) + (offset), irq)
 
 #ifdef PLIC_CTX_BASE
@@ -71,7 +71,7 @@
 #endif /* PLIC_CTX_BASE */
 #else /* PLIC_MAX_CHIPS == 1 */
 #define PLIC_REG(soc, offset)		(PLIC_BASE + (offset))
-#define PLIC_1BIT_REG(soc, offset, irq)	\
+#define PLIC_1BIT_REG(soc, offset, irq)		\
 	REG_1BIT_ADDR(PLIC_BASE + (offset), irq)
 
 #ifdef PLIC_CTX_BASE
@@ -126,22 +126,22 @@
 #define plic_enable_mirq(cpu, irq)			\
 	__raw_setl(PLIC_IRQ(plic_hw_irq_irq(irq)),	\
 		   PLIC_ENABLER(plic_hw_irq_soc(irq),	\
-			plic_hw_irq_irq(irq)) +	\
+			plic_hw_irq_irq(irq)) +		\
 		   plic_hw_m_ctx(cpu) * PLIC_ENABLER_CONTEXT)
 #define plic_enable_sirq(cpu, irq)			\
 	__raw_setl(PLIC_IRQ(plic_hw_irq_irq(irq)),	\
 		   PLIC_ENABLER(plic_hw_irq_soc(irq),	\
-			plic_hw_irq_irq(irq)) +	\
+			plic_hw_irq_irq(irq)) +		\
 		   plic_hw_s_ctx(cpu) * PLIC_ENABLER_CONTEXT)
 #define plic_disable_mirq(cpu, irq)			\
 	__raw_clearl(PLIC_IRQ(plic_hw_irq_irq(irq)),	\
-		     PLIC_ENABLER(plic_hw_irq_soc(irq),\
-			plic_hw_irq_irq(irq)) +	\
+		     PLIC_ENABLER(plic_hw_irq_soc(irq),	\
+			plic_hw_irq_irq(irq)) +		\
 		     plic_hw_m_ctx(cpu) * PLIC_ENABLER_CONTEXT)
 #define plic_disable_sirq(cpu, irq)			\
 	__raw_clearl(PLIC_IRQ(plic_hw_irq_irq(irq)),	\
-		     PLIC_ENABLER(plic_hw_irq_soc(irq),\
-			plic_hw_irq_irq(irq)) +	\
+		     PLIC_ENABLER(plic_hw_irq_soc(irq),	\
+			plic_hw_irq_irq(irq)) +		\
 		     plic_hw_s_ctx(cpu) * PLIC_ENABLER_CONTEXT)
 #define plic_irq_pending(irq)				\
 	(__raw_readl(PLIC_PENDINGR(			\

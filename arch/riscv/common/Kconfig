@@ -90,7 +90,8 @@ config CPU_X100
 	select ARCH_HAS_IMSIC
 	select CPU_H
 	select CPU_SMAIA
-	select CPU_SMAIA_IMSIC
+	select CPU_SSAIA
+	select CPU_IMSIC
 
 config CPU_X60
 	bool
@@ -352,7 +353,10 @@ config CPU_SVINVAL
 config CPU_SMAIA
 	bool
 
-config CPU_SMAIA_IMSIC
+config CPU_SSAIA
+	bool
+
+config CPU_IMSIC
 	bool
 
 config CPU_PMA
@@ -512,9 +516,20 @@ config RISCV_SSCOFPMF
 	bool "Count overflow and mode-based filtering (Sscofpmf) support"
 	depends CPU_SSCOFPMF
 
+config RISCV_AIA
+	bool
+
 config RISCV_SMAIA
 	bool "Advanced interrupt architecture (Smaia) support"
 	depends CPU_SMAIA
+	depends RISCV_ENTR_M
+	select RISCV_AIA
+
+config RISCV_SSAIA
+	bool "Advanced interrupt architecture (Ssaia) support"
+	depends CPU_SSAIA
+	depends RISCV_ENTR_S
+	select RISCV_AIA
 
 config RISCV_PMA
 	bool "Physical address attributes (PMA) support"
@@ -860,19 +875,6 @@ config HTIF
 	help
 	  The interface can be found in spike (RISCV ISA simulator).
 
-config ARCH_HAS_IMSIC
-	bool
-	select CPU_SMAIA
-
-menuconfig IMSIC
-	bool "Incoming MSI Controller (IMSIC) supprt"
-	select RISCV_SMAIA
-	select CPU_SMAIA_IMSIC
-
-if IMSIC
-
-endif
-
 config ARCH_HAS_CLINT
 	bool
 
@@ -996,25 +998,47 @@ config PLIC_MASK_PRIORITY
 
 endif
 
-config ARCH_HAS_AIA_IMSIC
+config ARCH_HAS_IMSIC
+	bool
+	select CPU_SMAIA
+	select CPU_SSAIA
+	select ARCH_HAS_MSI
+
+config ARCH_HAS_IMSIC_WSI
 	bool
 
-config AIA_IMSIC
-	bool "Enable incoming MSI controller (IMSIC) support"
-	depends ARCH_HAS_AIA_IMSIC
+menuconfig IMSIC
+	bool "Incoming MSI controller (IMSIC) support"
+	depends ARCH_HAS_IMSIC
+	select RISCV_SMAIA if RISCV_ENTR_M
+	select RISCV_SSAIA if RISCV_ENTR_S
+	select MSI if !ARCH_HAS_IMSIC_WSI
 
-if AIA_IMSIC
+if IMSIC
 
 endif
 
-config ARCH_HAS_AIA_APLIC
+config ARCH_HAS_APLIC
 	bool
 
-config AIA_APLIC
-	bool "Enable advanced platform level interrupt controller (APLIC) support"
-	depends ARCH_HAS_AIA_APLIC
+menuconfig APLIC
+	bool "Advanced platform level interrupt controller (APLIC) support"
+	depends ARCH_HAS_APLIC
 
-if AIA_APLIC
+if APLIC
+
+choice
+	prompt "IRQ delivery"
+
+config APLIC_WSI
+	bool "Wire-signaled-interrupt (WSI)"
+	depends !IMSIC || ARCH_HAS_IMSIC_WSI
+
+config APLIC_MSI
+	bool "Message-signaled-interrupt (MSI)"
+	depends IMSIC
+
+endchoice
 
 endif
 

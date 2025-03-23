@@ -45,13 +45,6 @@
 #include <target/generic.h>
 #include <target/spinlock.h>
 
-#ifndef BIT
-#define BIT(n)		(1UL << n)
-#endif
-#ifndef BIT_ULL
-#define BIT_ULL(n)	(1ULL << (n))
-#endif
-
 #define DMAC_MAX_CHANNELS	32
 #define DMAC_MAX_MASTERS	2
 #define DMAC_MAX_BLK_SIZE	0x200000

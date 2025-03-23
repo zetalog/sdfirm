@@ -124,28 +124,42 @@ static inline unsigned long sbi_regs_gva(const struct pt_regs *regs)
 #define IRQ_S_EXT		9
 #define IRQ_H_EXT		10
 #define IRQ_M_EXT		11
-#ifdef CONFIG_RISCV_AIA
 #ifdef CONFIG_RISCV_SSCOFPMF
 #define IRQ_M_COUNT		13
 #define IRQ_S_COUNT		13
 #endif /* CONFIG_SSCOFPMF */
-#ifdef CONFIG_RAS
-#define IRQ_M_RAS_CE		35
-#define IRQ_M_RAS_UE		43
-#endif /* CONFIG_RAS */
-#endif /* RISCV_RISCV_AIA */
+
 #ifdef CONFIG_RISCV_EXIT_M
 #define IRQ_SOFT		IRQ_M_SOFT
 #define IRQ_TIMER		IRQ_M_TIMER
 #define IRQ_EXT			IRQ_M_EXT
+#ifdef CONFIG_RISCV_AIA
+#define ARCH_HAVE_INT_IRQS_64	1
+#define IRQ_COUNT		64
+#else /* CONFIG_RISCV_AIA */
 #define IRQ_COUNT		IRQ_M_COUNT
-#endif
+#endif /* CONFIG_RISCV_AIA */
+#endif /* CONFIG_RISCV_EXIT_M */
+
 #ifdef CONFIG_RISCV_EXIT_S
 #define IRQ_SOFT		IRQ_S_SOFT
 #define IRQ_TIMER		IRQ_S_TIMER
 #define IRQ_EXT			IRQ_S_EXT
+#ifdef CONFIG_RISCV_AIA
+#define ARCH_HAVE_INT_IRQS_64	1
+#define IRQ_COUNT		64
+#else /* CONFIG_RISCV_AIA */
 #define IRQ_COUNT		IRQ_S_COUNT
-#endif
+#endif /* CONFIG_RISCV_AIA */
+#endif /* CONFIG_RISCV_EXIT_S */
+
+#define IRQ_DTC			17
+#define IRQ_SERR		23
+#ifdef CONFIG_RAS
+#define IRQ_RAS_CE		35
+#define IRQ_RAS_UE		43
+#endif /* CONFIG_RAS */
+#define IRQ_DVFS		45
 
 #ifndef ARCH_HAVE_INT_IRQS
 #ifdef ARCH_HAVE_INT_IRQS_64
@@ -154,7 +168,15 @@ static inline unsigned long sbi_regs_gva(const struct pt_regs *regs)
 #define NR_INT_IRQS		16
 #endif /* ARCH_HAVE_INT_IRQS_64 */
 #endif /* ARCH_HAVE_INT_IRQS */
+
+#ifdef CONFIG_IMSIC
+#define NR_MSI_IRQS		IMSIC_HW_MAX_IRQS
+#define irq_msi(irq)		((irq) - NR_INT_IRQS)
+#define IRQ_PLATFORM		(NR_INT_IRQS + NR_MSI_IRQS)
+#else
 #define IRQ_PLATFORM		NR_INT_IRQS
+#endif
+
 #define EXT_IRQ(irq)		(IRQ_PLATFORM + (irq))
 #define irq_ext(irq)		((irq) - IRQ_PLATFORM)
 

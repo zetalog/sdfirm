@@ -92,7 +92,6 @@ void irq_vectors_init(void);
 #define irq_register_vector(nr, isr)
 #define irq_vectors_init()
 #endif
-
 boolean do_IRQ(irq_t nr);
 
 /* irq pollers */
