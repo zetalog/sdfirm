@@ -17,24 +17,24 @@
 #include <sbi_utils/mailbox/fdt_mailbox.h>
 #include <sbi_utils/mailbox/rpmi_mailbox.h>
 
-#ifndef DOORBELL_BASE
-#define DOORBELL_BASE ULL(0)
+#ifndef SHMEM_DOORBELL_BASE
+#define SHMEM_DOORBELL_BASE ULL(0x51000000)
 #endif
 
 #ifndef SHMEM_REG_BASE
-#define SHMEM_REG_BASE ULL(0)
+#define SHMEM_REG_BASE ULL(0x40200000)
 #endif
 
 #ifndef SHMEM_REG_SIZE
 #define SHMEM_REG_SIZE ULL(0x100)
 #endif
 
-#ifndef QUEUE_SIZE
-#define QUEUE_SIZE ULL(0x1000)
+#ifndef SHMEM_QUEUE_SIZE
+#define SHMEM_QUEUE_SIZE ULL(0x1000)
 #endif
 
-#ifndef SLOT_SIZE
-#define SLOT_SIZE ULL(0x40)
+#ifndef SHMEM_SLOT_SIZE
+#define SHMEM_SLOT_SIZE ULL(0x40)
 #endif
 
 /** Minimum Base group version required */
@@ -466,7 +466,7 @@ int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl)
 	uint64_t reg_addr, reg_size;
 	struct smq_queue_ctx *qctx;
 
-	mctl->slot_size = SLOT_SIZE;
+	mctl->slot_size = SHMEM_SLOT_SIZE;
 	if (mctl->slot_size < RPMI_SLOT_SIZE_MIN) {
 		printf("%s: slot_size < mimnum required message size\n",
 			   __func__);
@@ -490,7 +490,7 @@ int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl)
 	for (qid = 0; qid < mctl->queue_count; qid++) {
 		qctx = &mctl->queue_ctx_tbl[qid];
 
-		reg_addr = SHMEM_REG_BASE + qid * QUEUE_SIZE;
+		reg_addr = SHMEM_REG_BASE + qid * SHMEM_QUEUE_SIZE;
 		reg_size = SHMEM_REG_SIZE;
 
 		memset((void *)reg_addr, 0, reg_size * 100);
@@ -521,7 +521,7 @@ struct mbox_chan g_chan;
 
 void rpmi_shmem_init(void)
 {
-	g_mctl.mb_regs = (struct rpmi_mb_regs *)DOORBELL_BASE;
+	g_mctl.mb_regs = (struct rpmi_mb_regs *)SHMEM_DOORBELL_BASE;
 	g_mbox_ptr->xfer = rpmi_shmem_mbox_xfer;
 	g_mbox_ptr->max_xfer_len = g_mctl.slot_size - sizeof(struct rpmi_message_header);
 	g_chan.mbox = g_mbox_ptr;

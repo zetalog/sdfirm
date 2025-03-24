@@ -16,6 +16,9 @@
 #include <sbi_utils/mailbox/fdt_mailbox.h>
 #include <sbi_utils/mailbox/rpmi_mailbox.h>
 
+//#include <target/acpi_cppc.h>
+//#include <target/mbox.h>
+
 /**
  * Per hart RPMI CPPC fast channel size (bytes)
  * PASSIVE MODE:
