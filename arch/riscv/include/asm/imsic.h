@@ -92,6 +92,11 @@ struct imsic_data {
 	struct imsic_regs regs[IMSIC_MAX_REGS];
 };
 
+#define imsic_clear_irq(irq)
+#define imsic_trigger_irq(irq)
+#define imsic_enable_irq(irq)
+#define imsic_disable_irq(irq)
+
 int imsic_map_hartid_to_data(uint32_t hartid, struct imsic_data *imsic, int file);
 struct imsic_data *imsic_get_data(uint32_t hartid);
 int imsic_get_target_file(uint32_t hartid);

@@ -20,7 +20,6 @@
 #define BITS_TO_LONGS(nbits)	(((nbits) + BITS_PER_LONG - 1) / \
 				 BITS_PER_LONG)
 
-#define BIT(nr)			(1UL << (nr))
 #define BIT_WORD_OFFSET(bit)	((bit) & (BITS_PER_LONG - 1))
 
 /**

@@ -17,12 +17,12 @@
 #define APLIC_MAX_IDC                   (1UL << 14)
 #define APLIC_MAX_SOURCE                1024
 
-#define APLIC_DOMAINCFG         0x0000
+#define __APLIC_DOMAINCFG         0x0000
 #define APLIC_DOMAINCFG_IE              (1 << 8)
 #define APLIC_DOMAINCFG_DM              (1 << 2)
 #define APLIC_DOMAINCFG_BE              (1 << 0)
 
-#define APLIC_SOURCECFG_BASE            0x0004
+#define __APLIC_SOURCECFG_BASE            0x0004
 #define APLIC_SOURCECFG_D               (1 << 10)
 #define APLIC_SOURCECFG_CHILDIDX_MASK   0x000003ff
 #define APLIC_SOURCECFG_SM_MASK 0x00000007
@@ -33,10 +33,10 @@
 #define APLIC_SOURCECFG_SM_LEVEL_HIGH   0x6
 #define APLIC_SOURCECFG_SM_LEVEL_LOW    0x7
 
-#define APLIC_MMSICFGADDR               0x1bc0
-#define APLIC_MMSICFGADDRH              0x1bc4
-#define APLIC_SMSICFGADDR               0x1bc8
-#define APLIC_SMSICFGADDRH              0x1bcc
+#define __APLIC_MMSICFGADDR		0x1bc0
+#define __APLIC_MMSICFGADDRH		0x1bc4
+#define __APLIC_SMSICFGADDR		0x1bc8
+#define __APLIC_SMSICFGADDRH		0x1bcc
 
 #define APLIC_xMSICFGADDRH_L            (1UL << 31)
 #define APLIC_xMSICFGADDRH_HHXS_MASK    0x1f
@@ -70,22 +70,22 @@
         (APLIC_xMSICFGADDR_PPN_HHX_MASK(__hhxw) << \
          APLIC_xMSICFGADDR_PPN_HHX_SHIFT(__hhxs))
 
-#define APLIC_SETIP_BASE                0x1c00
-#define APLIC_SETIPNUM                  0x1cdc
+#define __APLIC_SETIP_BASE		0x1c00
+#define __APLIC_SETIPNUM		0x1cdc
 
-#define APLIC_CLRIP_BASE                0x1d00
-#define APLIC_CLRIPNUM                  0x1ddc
+#define __APLIC_CLRIP_BASE		0x1d00
+#define __APLIC_CLRIPNUM		0x1ddc
 
-#define APLIC_SETIE_BASE                0x1e00
-#define APLIC_SETIENUM                  0x1edc
+#define __APLIC_SETIE_BASE		0x1e00
+#define __APLIC_SETIENUM		0x1edc
 
-#define APLIC_CLRIE_BASE                0x1f00
-#define APLIC_CLRIENUM                  0x1fdc
+#define __APLIC_CLRIE_BASE		0x1f00
+#define __APLIC_CLRIENUM		0x1fdc
 
-#define APLIC_SETIPNUM_LE               0x2000
-#define APLIC_SETIPNUM_BE               0x2004
+#define __APLIC_SETIPNUM_LE		0x2000
+#define __APLIC_SETIPNUM_BE		0x2004
 
-#define APLIC_TARGET_BASE               0x3004
+#define __APLIC_TARGET_BASE		0x3004
 #define APLIC_TARGET_HART_IDX_SHIFT     18
 #define APLIC_TARGET_HART_IDX_MASK      0x3fff
 #define APLIC_TARGET_GUEST_IDX_SHIFT    12
@@ -190,28 +190,28 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
         }
 
         /* Set domain configuration to 0 */
-        __raw_writel(0, (caddr_t)(aplic->addr + APLIC_DOMAINCFG));
+        __raw_writel(0, (caddr_t)(aplic->addr + __APLIC_DOMAINCFG));
 
         /* Disable all interrupts */
-        for (i = 0; i <= aplic->num_source; i += 32)
-                __raw_writel(-1U, (caddr_t)(aplic->addr + APLIC_CLRIE_BASE +
-                                     (i / 32) * sizeof(uint32_t)));
+	for (i = 0; i <= aplic->num_source; i += 32)
+		__raw_writel(-1U, (caddr_t)(aplic->addr + __APLIC_CLRIE_BASE +
+			     (i / 32) * sizeof(uint32_t)));
 
         /* Set interrupt type and priority for all interrupts */
-        for (i = 1; i <= aplic->num_source; i++) {
-                /* Set IRQ source configuration to 0 */
-                __raw_writel(0, (caddr_t)(aplic->addr + APLIC_SOURCECFG_BASE +
-                          (i - 1) * sizeof(uint32_t)));
-                /* Set IRQ target hart index and priority to 1 */
-                __raw_writel(APLIC_DEFAULT_PRIORITY, (caddr_t)(aplic->addr +
-                                                APLIC_TARGET_BASE +
-                                                (i - 1) * sizeof(uint32_t)));
+	for (i = 1; i <= aplic->num_source; i++) {
+		/* Set IRQ source configuration to 0 */
+		__raw_writel(0,
+			     (caddr_t)(aplic->addr + __APLIC_SOURCECFG_BASE +
+			     (i - 1) * sizeof(uint32_t)));
+		/* Set IRQ target hart index and priority to 1 */
+		__raw_writel(APLIC_DEFAULT_PRIORITY, (caddr_t)(aplic->addr +
+			     __APLIC_TARGET_BASE + (i - 1) * sizeof(uint32_t)));
         }
 
         /* Configure IRQ delegation */
         first_deleg_irq = -1U;
         last_deleg_irq = 0;
-        for (i = 0; i < APLIC_MAX_DELEGATE; i++) {
+        for (i = 0; i < APLIC_MAX_DELEGS; i++) {
                 deleg = &aplic->delegate[i];
                 if (!deleg->first_irq || !deleg->last_irq)
                         continue;
@@ -231,7 +231,7 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
                         last_deleg_irq = deleg->last_irq;
                 for (j = deleg->first_irq; j <= deleg->last_irq; j++)
                         __raw_writel(APLIC_SOURCECFG_D | deleg->child_index,
-                                (caddr_t)(aplic->addr + APLIC_SOURCECFG_BASE +
+                                (caddr_t)(aplic->addr + __APLIC_SOURCECFG_BASE +
                                 (j - 1) * sizeof(uint32_t)));
         }
 
@@ -250,13 +250,13 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
         /* MSI configuration */
         if (aplic->targets_mmode && aplic->has_msicfg_mmode) {
                 aplic_writel_msicfg(&aplic->msicfg_mmode,
-                                (void *)(aplic->addr + APLIC_MMSICFGADDR),
-                                (void *)(aplic->addr + APLIC_MMSICFGADDRH));
+                                (void *)(aplic->addr + __APLIC_MMSICFGADDR),
+                                (void *)(aplic->addr + __APLIC_MMSICFGADDRH));
         }
         if (aplic->targets_mmode && aplic->has_msicfg_smode) {
                 aplic_writel_msicfg(&aplic->msicfg_smode,
-                                (void *)(aplic->addr + APLIC_SMSICFGADDR),
-                                (void *)(aplic->addr + APLIC_SMSICFGADDRH));
+                                (void *)(aplic->addr + __APLIC_SMSICFGADDR),
+                                (void *)(aplic->addr + __APLIC_SMSICFGADDRH));
         }
 
 //      /*
