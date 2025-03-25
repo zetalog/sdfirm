@@ -1,5 +1,4 @@
 #include <target/sbi.h>
-#include <sbi_utils/mailbox/fdt_mailbox.h>
 #include <sbi_utils/mailbox/rpmi_mailbox.h>
 #include <sbi_utils/ras/apei_tables.h>
 #include <sbi_utils/ras/ghes.h>
