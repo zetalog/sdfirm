@@ -1021,9 +1021,21 @@ endif
 config ARCH_HAS_APLIC
 	bool
 
+config ARCH_HAS_APLIC_BE
+	bool
+	select ARCH_HAS_APLIC
+
+config ARCH_HAS_APLIC_LE
+	bool
+	select ARCH_HAS_APLIC
+
+config ARCH_HAS_APLIC_IRQNUM
+	bool
+
 menuconfig APLIC
 	bool "Advanced platform level interrupt controller (APLIC) support"
 	depends ARCH_HAS_APLIC
+	select APLIC_IRQNUM if ARCH_HAS_APLIC_IRQNUM
 
 if APLIC
 
@@ -1033,12 +1045,36 @@ choice
 config APLIC_WSI
 	bool "Wire-signaled-interrupt (WSI)"
 	depends !IMSIC || ARCH_HAS_IMSIC_WSI
+	select ARCH_HAS_IRQC_MASK
 
 config APLIC_MSI
 	bool "Message-signaled-interrupt (MSI)"
 	depends IMSIC
 
 endchoice
+
+choice
+	prompt "Endianness"
+
+config APLIC_BE
+	bool "Big-endian"
+	depends ARCH_HAS_APLIC_BE
+
+config APLIC_LE
+	bool "Little-endian"
+	depends ARCH_HAS_APLIC_LE
+
+endchoice
+
+config APLIC_DELEG
+	bool "Enable delegation support"
+
+config APLIC_IRQNUM
+	bool "Enable SET/CLRIE/IPNUM support"
+	depends ARCH_HAS_APLIC_IRQNUM
+	help
+	  By default all APLIC APIs using SET/CLRIE/IP registers, enabling
+	  this to use SET/CLRIE/IPNUM registers.
 
 endif
 
