@@ -170,7 +170,6 @@ int reri_drv_sync_hart_errs(u32 hart_id, u32 *pending_vectors)
 
 	eaddr = riscv_reri_dev_read_u64(&heb->records[0].addr_i);
 
-status.v = 1;
 	/* Error is valid process it */
 	if (status.v == 1) {
 		riscv_reri_clear_valid_bit(&heb->records[0].control_i.value);

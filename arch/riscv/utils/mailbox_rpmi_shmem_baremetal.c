@@ -9,12 +9,9 @@
  *   Anup Patel <apatel@ventanamicro.com>
  */
 
-#include <asm/fdt.h>
-#include <target/fdt.h>
-#include <sbi/sbi_heap.h>
+#include <stdint.h>
 #include <asm/io.h>
 #include <sbi_utils/mailbox/mailbox.h>
-#include <sbi_utils/mailbox/fdt_mailbox.h>
 #include <sbi_utils/mailbox/rpmi_mailbox.h>
 
 #ifndef SHMEM_DOORBELL_BASE
@@ -457,8 +454,6 @@ int rpmi_shmem_mbox_xfer(struct mbox_chan *chan, struct mbox_xfer *xfer)
 
 	return 0;
 }
-
-extern struct fdt_mailbox fdt_mailbox_rpmi_shmem;
 
 int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl)
 {
