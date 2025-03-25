@@ -203,7 +203,7 @@ void csr_write_pmpaddr(int n, unsigned long val)
 
 int pmp_disable(unsigned int n)
 {
-	int pmpcfg_csr, pmpcfg_index, pmpcfg_shift;
+	int pmpcfg_index, pmpcfg_shift;
 	unsigned long cfgmask, pmpcfg;
 
 	if (n >= PMP_COUNT)
@@ -211,11 +211,9 @@ int pmp_disable(unsigned int n)
 
 #if __riscv_xlen == 32
 	pmpcfg_index = n >> 2;
-	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
 	pmpcfg_shift = (n & 3) << 3;
 #elif __riscv_xlen == 64
 	pmpcfg_index = (n >> 2) & ~1;
-	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
 	pmpcfg_shift = (n & 7) << 3;
 #else
 # error "Unexpected __riscv_xlen"
