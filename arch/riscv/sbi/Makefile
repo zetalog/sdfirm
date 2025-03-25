@@ -39,7 +39,7 @@ obj-$(CONFIG_ARCH_HAS_SBI_IPI) += sbi_ipi.rel
 obj-$(CONFIG_ARCH_HAS_SBI_TIMER) += sbi_timer.rel
 obj-$(CONFIG_ARCH_HAS_SBI_CLOCK) += sbi_clock.rel
 obj-$(CONFIG_ARCH_HAS_SBI_PINCTRL) += sbi_pinctrl.rel
-
+obj-${CONFIG_APLIC} += aplic.rel
 ifdef CONFIG_SBI_PAYLOAD
 sbi_payload: $(CONFIG_SBI_PAYLOAD_PATH)
 	if $(READELF) -h $< 2> /dev/null > /dev/null; then $(OBJCOPY) -O binary --set-section-flags .bss=alloc,load,contents $< $@; else cp $< $@; fi
