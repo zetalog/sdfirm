@@ -1032,6 +1032,9 @@ config ARCH_HAS_APLIC_LE
 config ARCH_HAS_APLIC_IRQNUM
 	bool
 
+config ARCH_HAS_APLIC_DELEG
+	bool
+
 menuconfig APLIC
 	bool "Advanced platform level interrupt controller (APLIC) support"
 	depends ARCH_HAS_APLIC

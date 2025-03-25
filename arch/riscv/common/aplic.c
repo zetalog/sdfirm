@@ -1,11 +1,17 @@
 #include <target/irq.h>
 #include <target/smp.h>
 #include <target/sbi.h>
+#include <target/panic.h>
 
 #ifndef CONFIG_ARCH_HAS_APLIC_DELEG
+/* This is a default delegation for M mode APLIC */
 #define aplic_hw_deleg_num		1
-static struct aplic_delegate_data aplic_hw_deleg_data[1] = {
-	{0, APLIC_MAX_IRQS},
+static struct aplic_delegate_data aplic_hw_deleg_data[] = {
+	{
+		.first_irq = 0,
+		.last_irq = APLIC_MAX_IRQS,	/* All delegated to S mode APLIC */
+		.child_index = APLIC_HW_SMODE_CHILD,
+	},
 };
 #endif
 
@@ -30,21 +36,16 @@ static void aplic_writel_msicfg(uint8_t soc, unsigned long base_addr)
 		     APLIC_MSICFGADDRH(soc));
 }
 
-static bool aplic_check_msicfg(struct aplic_msicfg_data *msicfg)
+static void aplic_check_msicfg(void)
 {
-	if (APLIC_LHXS_MASK < APLIC_HW_MSI_LHXS)
-		return false;
-	if (APLIC_LHXW_MASK < APLIC_HW_MSI_LHXW)
-		return false;
-	if (APLIC_HHXS_MASK < APLIC_HW_MSI_HHXS)
-		return false;
-	if (APLIC_HHXW_MASK < APLIC_HW_MSI_HHXW)
-		return true;
-	return true;
+	BUG_ON(APLIC_LHXS_MASK < APLIC_HW_MSI_LHXS);
+	BUG_ON(APLIC_LHXW_MASK < APLIC_HW_MSI_LHXW);
+	BUG_ON(APLIC_HHXS_MASK < APLIC_HW_MSI_HHXS);
+	BUG_ON(APLIC_HHXW_MASK < APLIC_HW_MSI_HHXW);
 }
 #else
 #define aplic_writel_msicfg(cfg, addr)	do { } while (0)
-#define aplic_check_msicfg(cfg)		true
+#define aplic_check_msicfg(cfg)		do { } while (0)
 
 void irqc_hw_mask_irq(irq_t irq)
 {
@@ -70,7 +71,6 @@ void irqc_hw_unmask_irq(irq_t irq)
 void aplic_sbi_init(uint8_t soc)
 {
 	uint32_t i, tmp;
-//	struct sbi_domain_memregion reg;
 	struct aplic_delegate_data *deleg;
 	uint32_t first_deleg_irq, last_deleg_irq;
 	irq_t irq;
@@ -83,6 +83,8 @@ void aplic_sbi_init(uint8_t soc)
 			     APLIC_SOURCECFG(soc, irq));
 		aplic_configure_wsi(irq, BOOT_HART, APLIC_IPRIO_DEF);
 	}
+
+	aplic_check_msicfg();
 
 	/* Configure IRQ delegation */
 	first_deleg_irq = -1U;
@@ -118,30 +120,11 @@ void aplic_sbi_init(uint8_t soc)
 	}
 #endif
 
-#if 0
 	/* MSI configuration */
-	aplic_writel_msicfg(soc, aplic->msicfg_mmode.base_addr);
-	aplic_writel_msicfg(soc, aplic->msicfg_smode.base_addr);
-#endif
-
-//	/*
-//	 * Add APLIC region to the root domain if:
-//	 * 1) It targets M-mode of any HART directly or via MSIs
-//	 * 2) All interrupts are delegated to some child APLIC
-//	 */
-//	if (aplic->targets_mmode ||
-//	    ((first_deleg_irq < last_deleg_irq) &&
-//	    (last_deleg_irq == aplic->num_source) &&
-//	    (first_deleg_irq == 1))) {
-//		sbi_domain_memregion_init(aplic->addr, aplic->size,
-//					  (SBI_DOMAIN_MEMREGION_MMIO |
-//					   SBI_DOMAIN_MEMREGION_M_READABLE |
-//					   SBI_DOMAIN_MEMREGION_M_WRITABLE),
-//					  &reg);
-//		rc = sbi_domain_root_add_memregion(&reg);
-//		if (rc)
-//			return rc;
-//	}
+	if (APLIC_HW_MMODE_MSIADDR)
+		aplic_writel_msicfg(soc, APLIC_HW_MMODE_MSIADDR);
+	if (APLIC_HW_SMODE_MSIADDR)
+		aplic_writel_msicfg(soc, APLIC_HW_SMODE_MSIADDR);
 }
 
 void irqc_hw_enable_irq(irq_t irq)
