@@ -67,7 +67,7 @@ void irqc_hw_unmask_irq(irq_t irq)
 }
 #endif
 
-void aplic_sbi_init_cold(uint8_t soc)
+void aplic_sbi_init(uint8_t soc)
 {
 	uint32_t i, tmp;
 //	struct sbi_domain_memregion reg;
@@ -142,8 +142,6 @@ void aplic_sbi_init_cold(uint8_t soc)
 //		if (rc)
 //			return rc;
 //	}
-
-	return 0;
 }
 
 void irqc_hw_enable_irq(irq_t irq)

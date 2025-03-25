@@ -664,7 +664,7 @@ int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic)
 	}
 aplic_msi_parent_done:
 
-	for (d = 0; d < APLIC_MAX_DELEGATE; d++) {
+	for (d = 0; d < APLIC_MAX_DELEGS; d++) {
 		deleg = &aplic->delegate[d];
 		deleg->first_irq = 0;
 		deleg->last_irq = 0;
@@ -677,7 +677,7 @@ aplic_msi_parent_done:
 	d = 0;
 	dcnt = len / sizeof(fdt32_t);
 	for (i = 0; i < dcnt; i += 3) {
-		if (d >= APLIC_MAX_DELEGATE)
+		if (d >= APLIC_MAX_DELEGS)
 			break;
 		deleg = &aplic->delegate[d];
 
