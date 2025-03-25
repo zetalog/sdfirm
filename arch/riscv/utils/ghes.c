@@ -357,8 +357,10 @@ void acpi_ghes_record_errors(uint8_t source_id, acpi_ghes_error_info *einfo)
 
 	if (!ospm_acked_prev_err(&err_src->ack_reg, err_src->ack_preserve,
 				 err_src->ack_write)) {
+#if 0
 		sbi_printf("OSPM hasn't acknowledged the previous error. New "
 			   "error record cannot be created.\n");
+#endif
 		return;
 	}
 
@@ -374,7 +376,9 @@ void acpi_ghes_record_errors(uint8_t source_id, acpi_ghes_error_info *einfo)
 	} else if (einfo->etype == ERROR_TYPE_GENERIC_CPU) {
 		ghes_record_generic_cpu_error(sblock, einfo);
 	} else {
+#if 0
 		sbi_printf("%s: Unknown error type %u\n", __func__, einfo->etype);
+#endif
 	}
 }
 

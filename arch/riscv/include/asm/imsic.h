@@ -96,6 +96,8 @@ struct imsic_data {
 #define imsic_trigger_irq(irq)
 #define imsic_enable_irq(irq)
 #define imsic_disable_irq(irq)
+#define imsic_mask_irq(irq)
+#define imsic_unmask_irq(irq)
 
 int imsic_map_hartid_to_data(uint32_t hartid, struct imsic_data *imsic, int file);
 struct imsic_data *imsic_get_data(uint32_t hartid);
