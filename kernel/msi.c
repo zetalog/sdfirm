@@ -5,6 +5,7 @@
 __percpu(DECLARE_BITMAP(irq_msi_alloc, NR_MSI_IRQS));
 __percpu(DECLARE_BITMAP(irq_msi_reserved, NR_MSI_IRQS));
 
+#if 0
 irq_t irq_register_matrix(cpu_mask_t *msk)
 {
 	cpu_t cpu;
@@ -39,3 +40,4 @@ void irq_reserve_matrix(cpu_mask_t *msk, irq_t start, irq_t end)
 		}
 	}
 }
+#endif

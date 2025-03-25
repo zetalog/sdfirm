@@ -362,6 +362,8 @@ struct aplic_data {
 			__raw_writel(0xFFFFFFFF,			\
 			  APLIC_CLRIE(soc, aplic_hw_irq_irq(irq)));	\
 	} while (0)
+#define aplic_claim_irq(cpu)			0
+#define aplic_irq_completion(cpu, irq)		do { } while (0)
 
 #ifdef ARCH_HAVE_IRQC
 #ifdef CONFIG_APLIC
@@ -425,6 +427,8 @@ void irqc_hw_ack_irq(irq_t irq);
 #endif /* CONFIG_APLIC */
 #endif /* ARCH_HAVE_IRQC */
 
-void aplic_sbi_init_cold(uint8_t soc);
+void aplic_sbi_init(uint8_t soc);
+int aplic_sbi_init_cold(void);
+int aplic_cold_irqchip_init(struct aplic_data *aplic);
 
 #endif /* __APLIC_RISCV_H_INCLUDE__ */
