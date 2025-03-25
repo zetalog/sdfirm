@@ -191,41 +191,6 @@ void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
 				    prio + APLIC_IPRIO_MIN);
 }
 
-#ifdef CONFIG_RISCV_IRQ_VERBOSE
-#define aplic_irq_completion_verbose(cpu, irq, is_ack)		\
-	do {							\
-		aplic_irq_completion((cpu), (irq));		\
-		printf("APLIC %d %s completion.\n", (irq),	\
-		       (is_ack) ? "external" : "internal");	\
-	} while (0)
-#else
-#define aplic_irq_completion_verbose(cpu, irq, is_ack)		\
-	aplic_irq_completion(cpu, irq)
-#endif
-
-#ifdef CONFIG_APLIC_COMPLETION
-#ifdef CONFIG_APLIC_COMPLETION_ENTRY
-#define aplic_completion_entry(cpu, irq)	\
-	aplic_irq_completion_verbose(cpu, irq, false)
-#define aplic_completion_exit(cpu, irq)		do { } while (0)
-#endif
-#ifdef CONFIG_APLIC_COMPLETION_EXIT
-#define aplic_completion_entry(cpu, irq)	do { } while (0)
-#define aplic_completion_exit(cpu, irq)		\
-	aplic_irq_completion_verbose(cpu, irq, false)
-#endif
-#else
-#define aplic_completion_entry(cpu, irq)	do { } while (0)
-#define aplic_completion_exit(cpu, irq)		do { } while (0)
-
-void irqc_hw_ack_irq(irq_t irq)
-{
-	__unused uint8_t cpu = smp_processor_id();
-
-	aplic_irq_completion_verbose(cpu, irq_ext(irq), true);
-}
-#endif
-
 void irqc_hw_handle_irq(void)
 {
 	irq_t irq;
@@ -236,18 +201,13 @@ void irqc_hw_handle_irq(void)
 	if (irq >= NR_EXT_IRQS) {
 		/* Invalid IRQ */
 		aplic_disable_irq(irq);
-		aplic_irq_completion(cpu, irq);
 	} else {
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
 		printf("External IRQ %d\n", irq);
 #endif
-		aplic_completion_entry(cpu, irq);
-		if (!do_IRQ(EXT_IRQ(irq))) {
+		if (!do_IRQ(EXT_IRQ(irq)))
 			/* No IRQ handler registered, disabling... */
 			aplic_disable_irq(irq);
-			aplic_irq_completion(cpu, irq);
-		} else
-			aplic_completion_exit(cpu, irq);
 	}
 	aplic_hw_enable_int(IRQ_EXT);
 }
