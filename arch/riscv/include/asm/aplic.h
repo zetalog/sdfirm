@@ -255,8 +255,8 @@ struct aplic_data {
 #define APLIC_TOPI(soc, cpu)		APLIC_IDC_REG(soc, cpu, 0x18)
 #define APLIC_IID_OFFSET		16
 #define APLIC_IID_MASK			REG_10BIT_MASK
-#define APLIC_IID(value)		_SET_FV(APLIC_IID, value)
-#define APLIC_IDC_CLAIMI(soc, cpu)	APLIC_IDC_REG(soc, cpu, 0x1C)
+#define APLIC_IID(value)		_GET_FV(APLIC_IID, value)
+#define APLIC_CLAIMI(soc, cpu)		APLIC_IDC_REG(soc, cpu, 0x1C)
 #define APLIC_ENABLE_IDELIVERY		1
 #define APLIC_DISABLE_IDELIVERY		0
 #define APLIC_DISABLE_ITHRESHOLD	1
@@ -296,6 +296,8 @@ struct aplic_data {
 		     APLIC_TARGET(aplic_hw_irq_soc(irq), irq))
 #define aplic_configure_msi(irq, hart, guest, msi)	\
 	do { } while (0)
+#define aplic_claim_irq(cpu)				\
+	APLIC_IID(__raw_readl(APLIC_CLAIMI(aplic_hw_irq_soc(irq), cpu)))
 #else /* CONFIG_APLIC_WSI */
 #define aplic_configure_pri(irq, prio)			\
 	do { } while (0)
@@ -306,6 +308,7 @@ struct aplic_data {
 		     APLIC_GUEST_INDEX(guest) |			\
 		     APLIC_EIID(msi),				\
 		     APLIC_TARGET(aplic_hw_irq_soc(irq), irq))
+#define aplic_claim_irq()			APLIC_IRQ_NONE
 #endif /* CONFIG_APLIC_WSI */
 #define aplic_configure_irq(irq, prio, trigger)			\
 	do {							\
@@ -362,8 +365,6 @@ struct aplic_data {
 			__raw_writel(0xFFFFFFFF,			\
 			  APLIC_CLRIE(soc, aplic_hw_irq_irq(irq)));	\
 	} while (0)
-#define aplic_claim_irq(cpu)			0
-#define aplic_irq_completion(cpu, irq)		do { } while (0)
 
 #ifdef ARCH_HAVE_IRQC
 #ifdef CONFIG_APLIC
@@ -377,9 +378,6 @@ void irqc_hw_clear_irq(irq_t irq);
 void irqc_hw_trigger_irq(irq_t irq);
 void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger);
 void irqc_hw_handle_irq(void);
-#ifndef CONFIG_APLIC_COMPLETION
-void irqc_hw_ack_irq(irq_t irq);
-#endif /* CONFIG_APLIC_COMPLETION */
 #ifdef CONFIG_SBI
 /* APLIC requires no special initialization other than that is done
  * in SBI.
@@ -392,7 +390,7 @@ void irqc_hw_ack_irq(irq_t irq);
 #define irqc_hw_ctrl_init()				\
 	do {						\
 		aplic_hw_ctrl_init();			\
-		aplic_sbi_init_cold(0);			\
+		aplic_sbi_init_cold();			\
 	} while (0)
 #ifdef CONFIG_SMP
 #define irqc_hw_smp_init()		aplic_sbi_init_warm(smp_processor_id())
@@ -401,12 +399,12 @@ void irqc_hw_ack_irq(irq_t irq);
 #ifdef CONFIG_MMU
 #define irqc_hw_mmu_init()		aplic_hw_mmu_init()
 #endif /* CONFIG_MMU */
-#else /* CONFIG_PLIC */
+#else /* CONFIG_APLIC */
 #define irqc_hw_ctrl_init()		do { } while (0)
 #define irqc_hw_handle_irq()		do { } while (0)
 #define irqc_hw_enable_irq(irq)		do { } while (0)
 #define irqc_hw_disable_irq(irq)	do { } while (0)
-#ifdef CONFIG_APLIC_MASK_PRIORITY
+#ifdef CONFIG_APLIC_WSI
 #define irqc_hw_mask_irq(irq)		do { } while (0)
 #define irqc_hw_unmask_irq(irq)		do { } while (0)
 #endif
@@ -415,9 +413,6 @@ void irqc_hw_ack_irq(irq_t irq);
 #define irqc_hw_configure_irq(irq, prio, trigger)	\
 					do { } while (0)
 #define irqc_hw_handle_irq()		do { } while (0)
-#ifdef CONFIG_APLIC_MASK_PRIORITY
-#define irqc_hw_ack_irq(irq)		do { } while (0)
-#endif
 #ifdef CONFIG_SMP
 #define irqc_hw_smp_init()		do { } while (0)
 #endif /* CONFIG_SMP */
@@ -428,7 +423,12 @@ void irqc_hw_ack_irq(irq_t irq);
 #endif /* ARCH_HAVE_IRQC */
 
 void aplic_sbi_init(uint8_t soc);
+#ifdef CONFIG_SBI
 int aplic_sbi_init_cold(void);
 int aplic_cold_irqchip_init(struct aplic_data *aplic);
+#else
+#define aplic_sbi_init_cold()		do { } while (0)
+#define aplic_cold_irqchip_init(aplic)	do { } while (0)
+#endif
 
 #endif /* __APLIC_RISCV_H_INCLUDE__ */
