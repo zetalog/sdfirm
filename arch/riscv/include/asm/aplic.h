@@ -308,7 +308,7 @@ struct aplic_data {
 		     APLIC_GUEST_INDEX(guest) |			\
 		     APLIC_EIID(msi),				\
 		     APLIC_TARGET(aplic_hw_irq_soc(irq), irq))
-#define aplic_claim_irq()			APLIC_IRQ_NONE
+#define aplic_claim_irq(cpu)			APLIC_NO_IRQ
 #endif /* CONFIG_APLIC_WSI */
 #define aplic_configure_irq(irq, prio, trigger)			\
 	do {							\
