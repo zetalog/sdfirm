@@ -1,121 +1,100 @@
-/*
- * SPDX-License-Identifier: BSD-2-Clause
- *
- * Copyright (c) 2021 Western Digital Corporation or its affiliates.
- * Copyright (c) 2022 Ventana Micro Systems Inc.
- *
- * Authors:
- *   Anup Patel <anup.patel@wdc.com>
- */
-
 #include <target/irq.h>
 #include <target/smp.h>
 #include <target/sbi.h>
 
-static void aplic_writel_msicfg(struct aplic_msicfg_data *msicfg,
-				void *msicfgaddr, void *msicfgaddrH)
+#ifndef CONFIG_ARCH_HAS_APLIC_DELEG
+#define aplic_hw_deleg_num		1
+static struct aplic_delegate_data aplic_hw_deleg_data[1] = {
+	{0, APLIC_MAX_IRQS},
+};
+#endif
+
+#ifdef CONFIG_APLIC_MSI
+static void aplic_writel_msicfg(uint8_t soc, unsigned long base_addr)
 {
-	uint32_t val;
 	unsigned long base_ppn;
 
-	/* Check if MSI config is already locked */
-	if (__raw_readl((caddr_t)msicfgaddrH) & APLIC_xMSICFGADDRH_L)
+	if (aplic_msiaddr_locked(soc))
 		return;
 
-	/* Compute the MSI base PPN */
-	base_ppn = msicfg->base_addr >> APLIC_xMSICFGADDR_PPN_SHIFT;
-	base_ppn &= ~APLIC_xMSICFGADDR_PPN_HART(msicfg->lhxs);
-	base_ppn &= ~APLIC_xMSICFGADDR_PPN_LHX(msicfg->lhxw, msicfg->lhxs);
-	base_ppn &= ~APLIC_xMSICFGADDR_PPN_HHX(msicfg->hhxw, msicfg->hhxs);
-
-	/* Write the lower MSI config register */
-	__raw_writel((uint32_t)base_ppn, (caddr_t)msicfgaddr);
-
-	/* Write the upper MSI config register */
-	val = (((uint64_t)base_ppn) >> 32) &
-		APLIC_xMSICFGADDRH_BAPPN_MASK;
-	val |= (msicfg->lhxw & APLIC_xMSICFGADDRH_LHXW_MASK)
-		<< APLIC_xMSICFGADDRH_LHXW_SHIFT;
-	val |= (msicfg->hhxw & APLIC_xMSICFGADDRH_HHXW_MASK)
-		<< APLIC_xMSICFGADDRH_HHXW_SHIFT;
-	val |= (msicfg->lhxs & APLIC_xMSICFGADDRH_LHXS_MASK)
-		<< APLIC_xMSICFGADDRH_LHXS_SHIFT;
-	val |= (msicfg->hhxs & APLIC_xMSICFGADDRH_HHXS_MASK)
-		<< APLIC_xMSICFGADDRH_HHXS_SHIFT;
-	__raw_writel(val, (caddr_t)msicfgaddrH);
+	base_ppn = APLIC_ADDR2PFN(base_addr);
+	base_ppn &= ~APLIC_PPN_HART(APLIC_HW_MSI_LHXS);
+	base_ppn &= ~APLIC_PPN_LHX(APLIC_HW_MSI_LHXW, APLIC_HW_MSI_LHXS);
+	base_ppn &= ~APLIC_PPN_HHX(APLIC_HW_MSI_HHXW, APLIC_HW_MSI_HHXS);
+	__raw_writel(LODWORD(base_ppn), APLIC_MSICFGADDR(soc));
+	__raw_writel(APLIC_BASE_PPN_H(HIDWORD(base_ppn)) |
+		     APLIC_LHXW(APLIC_HW_MSI_LHXW) |
+		     APLIC_HHXW(APLIC_HW_MSI_HHXW) |
+		     APLIC_LHXS(APLIC_HW_MSI_LHXS) |
+		     APLIC_HHXS(APLIC_HW_MSI_HHXS),
+		     APLIC_MSICFGADDRH(soc));
 }
 
-static int aplic_check_msicfg(struct aplic_msicfg_data *msicfg)
+static bool aplic_check_msicfg(struct aplic_msicfg_data *msicfg)
 {
-	if (APLIC_xMSICFGADDRH_LHXS_MASK < msicfg->lhxs)
-		return SBI_EINVAL;
+	if (APLIC_LHXS_MASK < APLIC_HW_MSI_LHXS)
+		return false;
+	if (APLIC_LHXW_MASK < APLIC_HW_MSI_LHXW)
+		return false;
+	if (APLIC_HHXS_MASK < APLIC_HW_MSI_HHXS)
+		return false;
+	if (APLIC_HHXW_MASK < APLIC_HW_MSI_HHXW)
+		return true;
+	return true;
+}
+#else
+#define aplic_writel_msicfg(cfg, addr)	do { } while (0)
+#define aplic_check_msicfg(cfg)		true
 
-	if (APLIC_xMSICFGADDRH_LHXW_MASK < msicfg->lhxw)
-		return SBI_EINVAL;
-
-	if (APLIC_xMSICFGADDRH_HHXS_MASK < msicfg->hhxs)
-		return SBI_EINVAL;
-
-	if (APLIC_xMSICFGADDRH_HHXW_MASK < msicfg->hhxw)
-		return SBI_EINVAL;
-
-	return 0;
+void irqc_hw_mask_irq(irq_t irq)
+{
+	if (irq >= IRQ_PLATFORM)
+		aplic_mask_irq(irq_ext(irq));
+	else if (irq >= NR_INT_IRQS)
+		imsic_mask_irq(irq_msi(irq));
+	else
+		aplic_hw_disable_int(irq);
 }
 
-int aplic_cold_irqchip_init(struct aplic_data *aplic)
+void irqc_hw_unmask_irq(irq_t irq)
 {
-	int rc;
-	uint32_t i, j, tmp;
+	if (irq >= IRQ_PLATFORM)
+		aplic_unmask_irq(irq_ext(irq));
+	else if (irq >= NR_INT_IRQS)
+		imsic_unmask_irq(irq_msi(irq));
+	else
+		aplic_hw_enable_int(irq);
+}
+#endif
+
+void aplic_sbi_init_cold(uint8_t soc)
+{
+	uint32_t i, tmp;
 //	struct sbi_domain_memregion reg;
 	struct aplic_delegate_data *deleg;
 	uint32_t first_deleg_irq, last_deleg_irq;
+	irq_t irq;
 
-	/* Sanity checks */
-	if (!aplic ||
-	    !aplic->num_source || APLIC_MAX_SOURCE <= aplic->num_source ||
-	    APLIC_MAX_IDC <= aplic->num_idc)
-		return SBI_EINVAL;
-	if (aplic->targets_mmode && aplic->has_msicfg_mmode) {
-		rc = aplic_check_msicfg(&aplic->msicfg_mmode);
-		if (rc)
-			return rc;
-	}
-	if (aplic->targets_mmode && aplic->has_msicfg_smode) {
-		rc = aplic_check_msicfg(&aplic->msicfg_smode);
-		if (rc)
-			return rc;
-	}
+	aplic_ctrl_disable(soc);
+	aplic_disable_all_irqs(soc);
 
-	/* Set domain configuration to 0 */
-	__raw_writel(0, (caddr_t)(aplic->addr + APLIC_DOMAINCFG));
-
-	/* Disable all interrupts */
-	for (i = 0; i <= aplic->num_source; i += 32)
-		__raw_writel(-1U, (caddr_t)(aplic->addr + APLIC_CLRIE_BASE +
-				     (i / 32) * sizeof(uint32_t)));
-
-	/* Set interrupt type and priority for all interrupts */
-	for (i = 1; i <= aplic->num_source; i++) {
-		/* Set IRQ source configuration to 0 */
-		__raw_writel(0, (caddr_t)(aplic->addr + APLIC_SOURCECFG_BASE +
-			  (i - 1) * sizeof(uint32_t)));
-		/* Set IRQ target hart index and priority to 1 */
-		__raw_writel(APLIC_DEFAULT_PRIORITY, (caddr_t)(aplic->addr +
-						APLIC_TARGET_BASE +
-						(i - 1) * sizeof(uint32_t)));
+	for (irq = 1; irq <= APLIC_MAX_IRQS; irq++) {
+		__raw_writel(APLIC_SM(APLIC_SM_INACTIVE),
+			     APLIC_SOURCECFG(soc, irq));
+		aplic_configure_wsi(irq, BOOT_HART, APLIC_IPRIO_DEF);
 	}
 
 	/* Configure IRQ delegation */
 	first_deleg_irq = -1U;
 	last_deleg_irq = 0;
-	for (i = 0; i < APLIC_MAX_DELEGATE; i++) {
-		deleg = &aplic->delegate[i];
+	for (i = 0; i < aplic_hw_deleg_num; i++) {
+		deleg = &aplic_hw_deleg_data[i];
 		if (!deleg->first_irq || !deleg->last_irq)
 			continue;
-		if (aplic->num_source < deleg->first_irq ||
-		    aplic->num_source < deleg->last_irq)
+		if (APLIC_MAX_IRQS < deleg->first_irq ||
+		    APLIC_MAX_IRQS < deleg->last_irq)
 			continue;
-		if (APLIC_SOURCECFG_CHILDIDX_MASK < deleg->child_index)
+		if (APLIC_CHILD_INDEX_MASK < deleg->child_index)
 			continue;
 		if (deleg->first_irq > deleg->last_irq) {
 			tmp = deleg->first_irq;
@@ -126,35 +105,24 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
 			first_deleg_irq = deleg->first_irq;
 		if (last_deleg_irq < deleg->last_irq)
 			last_deleg_irq = deleg->last_irq;
-		for (j = deleg->first_irq; j <= deleg->last_irq; j++)
-			__raw_writel(APLIC_SOURCECFG_D | deleg->child_index,
-				(caddr_t)(aplic->addr + APLIC_SOURCECFG_BASE +
-				(j - 1) * sizeof(uint32_t)));
+		for (irq = deleg->first_irq; irq <= deleg->last_irq; irq++)
+			aplic_delegate_irq(irq, deleg->child_index);
 	}
 
+#ifdef CONFIG_APLIC_WSI
 	/* Default initialization of IDC structures */
-	for (i = 0; i < aplic->num_idc; i++) {
-		__raw_writel(0, (caddr_t)(aplic->addr + APLIC_IDC_BASE +
-			  i * APLIC_IDC_SIZE + APLIC_IDC_IDELIVERY));
-		__raw_writel(0, (caddr_t)(aplic->addr + APLIC_IDC_BASE +
-			  i * APLIC_IDC_SIZE + APLIC_IDC_IFORCE));
-		__raw_writel(APLIC_DISABLE_ITHRESHOLD, (caddr_t)(aplic->addr +
-						  APLIC_IDC_BASE +
-						  (i * APLIC_IDC_SIZE) +
-						  APLIC_IDC_ITHRESHOLD));
+	for (i = 0; i < MAX_HARTS; i++) {
+		__raw_writel(APLIC_ITHRES_ALL, APLIC_IDELIVERY(soc, i));
+		__raw_writel(0, APLIC_IFORCE(soc, i));
+		__raw_writel(APLIC_ITHRES_NONE, APLIC_IDELIVERY(soc, i));
 	}
+#endif
 
+#if 0
 	/* MSI configuration */
-	if (aplic->targets_mmode && aplic->has_msicfg_mmode) {
-		aplic_writel_msicfg(&aplic->msicfg_mmode,
-				(void *)(aplic->addr + APLIC_MMSICFGADDR),
-				(void *)(aplic->addr + APLIC_MMSICFGADDRH));
-	}
-	if (aplic->targets_mmode && aplic->has_msicfg_smode) {
-		aplic_writel_msicfg(&aplic->msicfg_smode,
-				(void *)(aplic->addr + APLIC_SMSICFGADDR),
-				(void *)(aplic->addr + APLIC_SMSICFGADDRH));
-	}
+	aplic_writel_msicfg(soc, aplic->msicfg_mmode.base_addr);
+	aplic_writel_msicfg(soc, aplic->msicfg_smode.base_addr);
+#endif
 
 //	/*
 //	 * Add APLIC region to the root domain if:
@@ -198,26 +166,6 @@ void irqc_hw_disable_irq(irq_t irq)
 		aplic_hw_disable_int(irq);
 }
 
-void irqc_hw_mask_irq(irq_t irq)
-{
-	if (irq >= IRQ_PLATFORM)
-		aplic_mask_irq(irq_ext(irq));
-	else if (irq >= NR_INT_IRQS)
-		imsic_mask_irq(irq_msi(irq));
-	else
-		aplic_hw_disable_int(irq);
-}
-
-void irqc_hw_unmask_irq(irq_t irq)
-{
-	if (irq >= IRQ_PLATFORM)
-		aplic_unmask_irq(irq_ext(irq));
-	else if (irq >= NR_INT_IRQS)
-		imsic_unmask_irq(irq_msi(irq));
-	else
-		aplic_hw_enable_int(irq);
-}
-
 void irqc_hw_clear_irq(irq_t irq)
 {
 	if (irq >= IRQ_PLATFORM)
@@ -231,7 +179,7 @@ void irqc_hw_clear_irq(irq_t irq)
 void irqc_hw_trigger_irq(irq_t irq)
 {
 	if (irq >= IRQ_PLATFORM)
-		aplic_set_irq(irq_ext(irq));
+		aplic_trigger_irq(irq_ext(irq));
 	else if (irq >= NR_INT_IRQS)
 		imsic_trigger_irq(irq_msi(irq));
 	else
@@ -240,11 +188,9 @@ void irqc_hw_trigger_irq(irq_t irq)
 
 void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
 {
-#if 0
 	if (irq >= IRQ_PLATFORM)
-		aplic_configure_priority(irq_ext(irq),
-					 prio + PLIC_PRI_MIN);
-#endif
+		aplic_configure_pri(irq_ext(irq),
+				    prio + APLIC_IPRIO_MIN);
 }
 
 #ifdef CONFIG_RISCV_IRQ_VERBOSE

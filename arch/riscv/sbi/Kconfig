@@ -32,6 +32,7 @@ menuconfig SBI
 	select PRINT_SNPRINTF
 	select STRING_STRNCPY
 	select CC_NO_RELAX
+	select APLIC_DELEG if APLIC
 
 if SBI
 
