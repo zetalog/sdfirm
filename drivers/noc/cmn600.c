@@ -735,7 +735,6 @@ void cmn600_discover_xp(caddr_t xp)
 		nid = CMN_XP_PID2NID(xp_pid, 0);
 		dev_type = cmn_mxp_device_type(xp, pid);
 		port_node_count = cmn600_dev_node_count(dev_type);
-		//printf("nid:%d, dev_type:%d, cmn600_hw_xp_masked(nid, dev_type):%d\n", nid, dev_type, cmn600_hw_xp_masked(nid, dev_type));
 		if (cmn600_hw_xp_masked(nid, dev_type)) {
 			con_dbg(CMN_MODNAME ": XP%d(%d,%d,%d) skip %d %s nodes\n",
 				xp_pid, (uint8_t)cmn_node_x(xp),(uint8_t)cmn_node_y(xp),
@@ -1133,21 +1132,6 @@ void cmn600_init(void)
 	if (cmn600_initialized)
 		return;
 
-	con_log("CPU_MASK: %016lx\n", CPU_MASK);
-	con_log("DDR_MASK: %016x\n", DDR_MASK);
-	con_log("LLC_MASK: %016x\n", LLC_MASK);
-	con_log("HW_CPU_MASK: %016x\n", __raw_readl(HW_CPU_MASK));
-	con_log("HW_DDR_MASK: %016x\n", __raw_readl(HW_DDR_MASK));
-	con_log("HW_LLC_MASK: %016x\n", __raw_readl(HW_LLC_MASK));
-	con_log("HW_PCIE_MASK: %016x\n", __raw_readl(HW_PCIE_MASK));
-	con_log("SW_CPU_MASK: %016x\n", __raw_readl(SW_CPU_MASK));
-	con_log("SW_DDR_MASK: %016x\n", __raw_readl(SW_DDR_MASK));
-	con_log("SW_LLC_MASK: %016x\n", __raw_readl(SW_LLC_MASK));
-	con_log("SW_PCIE_MASK: %016x\n", __raw_readl(SW_PCIE_MASK));
-	con_log("XP_MASK_0: %016x\n", __raw_readl(0x00420730A34));
-	con_log("XP_MASK_1: %016x\n", __raw_readl(0x00420730A38));
-	con_log("XP_MASK_2: %016x\n", __raw_readl(0x00420730A3c));
-	con_dbg(CMN_MODNAME ": cmn_mmap_count is %d.\n", cmn_mmap_count);
 	cmn_debug_init();
 	root_node_pointer = CMN_ROOT_NODE_POINTER(CMN_HND_NID);
 	cmn_bases[CMN_CFGM_ID] = CMN_PERIPH_BASE + root_node_pointer;

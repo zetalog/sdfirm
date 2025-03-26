@@ -425,9 +425,11 @@ void irqc_hw_handle_irq(void);
 void aplic_sbi_init(uint8_t soc);
 #ifdef CONFIG_SBI
 int aplic_sbi_init_cold(void);
+#define aplic_sbi_init_warm(cpu)	do { } while (0)
 int aplic_cold_irqchip_init(struct aplic_data *aplic);
 #else
 #define aplic_sbi_init_cold()		do { } while (0)
+#define aplic_sbi_init_warm(cpu)	do { } while (0)
 #define aplic_cold_irqchip_init(aplic)	do { } while (0)
 #endif
 

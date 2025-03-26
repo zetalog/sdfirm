@@ -764,6 +764,9 @@
 #define CSR_ISELECT		CSR_MISELECT
 #define CSR_IREG		CSR_MIREG
 #define CSR_TOPI		CSR_MTOPI
+#ifdef CONFIG_CPU_IMSIC
+#define CSR_TOPEI		CSR_MTOPEI
+#endif /* CONFIG_CPU_IMSIC */
 
 #define SR_IE			SR_MIE
 #define SR_PIE			SR_MPIE
@@ -785,6 +788,9 @@
 #define CSR_ISELECT		CSR_SISELECT
 #define CSR_IREG		CSR_SIREG
 #define CSR_TOPI		CSR_STOPI
+#ifdef CONFIG_CPU_IMSIC
+#define CSR_TOPEI		CSR_STOPEI
+#endif /* CONFIG_CPU_IMSIC */
 
 #define SR_IE			SR_SIE
 #define SR_PIE			SR_SPIE
@@ -909,6 +915,38 @@
 	    : "rK"(value)						\
 	    : "memory");						\
 	})
+
+#ifdef CONFIG_RISCV_AIA
+#define aia_csr_write(__c, __v)				\
+	do {						\
+		csr_write(CSR_ISELECT, __c);		\
+		csr_write(CSR_IREG, __v);		\
+	} while (0)
+#define aia_csr_read(__c)				\
+	({						\
+		unsigned long __v;			\
+		csr_write(CSR_ISELECT, __c);		\
+		__v = csr_read(CSR_IREG);		\
+		__v;					\
+	})
+#define aia_csr_read_clear(__c, __v)			\
+	({						\
+	 	unsigned long ____v;			\
+		csr_write(CSR_ISELECT, __c);		\
+		____v = csr_read_clear(CSR_IREG, __v);	\
+		____v;					\
+	})
+#define aia_csr_set(__c, __v)				\
+	do {						\
+		csr_write(CSR_ISELECT, __c);		\
+		csr_set(CSR_IREG, __v);			\
+	} while (0)
+#define aia_csr_clear(__c, __v)				\
+	do {						\
+		csr_write(CSR_ISELECT, __c);		\
+		csr_clear(CSR_IREG, __v);		\
+	} while (0)
+#endif
 
 /** Representation of trap details */
 struct csr_trap_info {

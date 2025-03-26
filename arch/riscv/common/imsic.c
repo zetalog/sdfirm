@@ -255,3 +255,27 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
 	return 0;
 }
 #endif /* CONFIG_SBI */
+
+void irqc_hw_handle_irq(void)
+{
+	irq_t irq;
+	__unused uint8_t cpu = smp_processor_id();
+
+	imsic_hw_disable_int(IRQ_EXT);
+	irq = imsic_claim_irq();
+	if (irq >= IMSIC_NR_SIRQS) {
+		/* Handle EXT MSIs */
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+		printf("Dynamic MSI %d\n", irq);
+#endif
+	} else {
+		/* Handle INT MSIs */
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+		printf("Static MSI %d\n", irq);
+#endif
+		if (!do_IRQ(MSI_IRQ(irq)))
+			/* No IRQ handler registered, disabling... */
+			imsic_disable_irq(irq);
+	}
+	imsic_hw_enable_int(IRQ_EXT);
+}

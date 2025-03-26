@@ -174,6 +174,7 @@ void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
 				    prio + APLIC_IPRIO_MIN);
 }
 
+#ifdef CONFIG_APLIC_WSI
 void irqc_hw_handle_irq(void)
 {
 	irq_t irq;
@@ -194,3 +195,4 @@ void irqc_hw_handle_irq(void)
 	}
 	aplic_hw_enable_int(IRQ_EXT);
 }
+#endif
