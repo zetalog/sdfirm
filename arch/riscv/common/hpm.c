@@ -1,6 +1,7 @@
 #include <target/perf.h>
 #include <target/cmdline.h>
 #include <target/console.h>
+#include <target/percpu.h>
 
 struct hpm_cpu {
 	DECLARE_BITMAP(configured, HPM_MAX_COUNTERS);
@@ -14,7 +15,7 @@ struct hpm_cpu {
 #ifdef CONFIG_SMP
 DEFINE_PERCPU(struct hpm_cpu, hpm_ctx);
 #define get_hpm			this_cpu_ptr(&hpm_ctx)
-#define get_hpm_cpu(cpu)	per_cpu_ptr(&hpm_ctx, cpu)
+#define get_cpu_hpm(cpu)	per_cpu_ptr(&hpm_ctx, cpu)
 #else
 struct hpm_cpu hpm_ctx;
 #define get_hpm			(&hpm_ctx)
@@ -449,7 +450,7 @@ void hpm_init(void)
 	hpm_register_event(0, "cpu:CY");
 	hpm_register_event(1, "cpu:TM");
 	hpm_register_event(2, "cpu:IR");
-	for_each_cpu(cpu, smp_online_cpus) {
+	for_each_cpu(cpu, &smp_online_cpus) {
 		hpm_add_event(cpu, HPM_CYCLE);
 		hpm_add_event(cpu, HPM_TIME);
 		hpm_add_event(cpu, HPM_INSTRET);
@@ -481,7 +482,7 @@ static int do_hpm_dump(int argc, char *argv[])
 		cpu = (cpu_t)strtoull(argv[2], 0, 0);
 		hpm_dump_events(cpu);
 	} else {
-		for_each_cpu(cpu, smp_online_cpus) {
+		for_each_cpu(cpu, &smp_online_cpus) {
 			hpm_dump_events(cpu);
 		}
 	}
@@ -504,7 +505,7 @@ static int do_hpm_remove(int argc, char *argv[])
 		cpu = (cpu_t)strtoull(argv[3], 0, 0);
 		hpm_remove_event(cpu, event);
 	} else {
-		for_each_cpu(cpu, smp_online_cpus)
+		for_each_cpu(cpu, &smp_online_cpus)
 			hpm_remove_event(cpu, event);
 	}
 	return 0;
@@ -526,7 +527,7 @@ static int do_hpm_add(int argc, char *argv[])
 		cpu = (cpu_t)strtoull(argv[3], 0, 0);
 		hpm_add_event(cpu, event);
 	} else {
-		for_each_cpu(cpu, smp_online_cpus)
+		for_each_cpu(cpu, &smp_online_cpus)
 			hpm_add_event(cpu, event);
 	}
 	return 0;
