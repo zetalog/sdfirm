@@ -1,18 +1,49 @@
 /*
- * SPDX-License-Identifier: BSD-2-Clause
+ * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2021 Western Digital Corporation or its affiliates.
- * Copyright (c) 2022 Ventana Micro Systems Inc.
+ * Copyright (c) 2019
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zhenglv@hotmail.com
  *
- * Authors:
- *   Anup Patel <anup.patel@wdc.com>
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 3. Neither the name of this software nor the names of its developers may
+ *    be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 4. Permission of redistribution and/or reuse of souce code partially only
+ *    granted to the developer(s) in the companies ZETALOG worked.
+ * 5. Any modification of this software should be published to ZETALOG unless
+ *    the above copyright notice is no longer declaimed.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)imsic.c: incoming MSI controller (IMSIC) implementation
+ * $Id: imsic.c,v 1.1 2023-3-11 15:43:00 zhenglv Exp $
  */
-
 #include <target/irq.h>
 #include <target/smp.h>
 #include <target/percpu.h>
 #include <target/irq.h>
 #include <target/sbi.h>
+#include <target/msi.h>
 
 #ifdef CONFIG_SBI
 static unsigned long imsic_ptr_offset;
@@ -259,6 +290,7 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
 void irqc_hw_handle_irq(void)
 {
 	irq_t irq;
+	irq_t eirq;
 	__unused uint8_t cpu = smp_processor_id();
 
 	imsic_hw_disable_int(IRQ_EXT);
@@ -268,6 +300,16 @@ void irqc_hw_handle_irq(void)
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
 		printf("Dynamic MSI %d\n", irq);
 #endif
+		eirq = irq_locate_mapping(cpu, irq);
+		if (eirq == IMSIC_NO_IRQ)
+			imsic_disable_irq(irq);
+		else {
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+			printf("External IRQ %d\n", eirq);
+#endif
+			if (!do_IRQ(EXT_IRQ(eirq)))
+				aplic_disable_irq(eirq);
+		}
 	} else {
 		/* Handle INT MSIs */
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
@@ -278,4 +320,9 @@ void irqc_hw_handle_irq(void)
 			imsic_disable_irq(irq);
 	}
 	imsic_hw_enable_int(IRQ_EXT);
+}
+
+void imsic_ctrl_init(void)
+{
+	irq_reserve_mapping(0, IMSIC_NR_SIRQS - 1);
 }
