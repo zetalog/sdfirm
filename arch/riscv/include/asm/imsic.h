@@ -44,6 +44,7 @@
 #include <target/arch.h>
 
 /* Pre-allocated shared interrupts */
+#define IMSIC_NO_IRQ			0
 #define IMSIC_IPI			1	/* IMSIC IPI ID */
 #define IMSIC_NR_SIRQS			8
 #define IMSIC_DIRQ_BASE			IMSIC_NR_SIRQS
@@ -109,6 +110,7 @@ struct imsic_data {
 #define imsic_mask_irq(irq)
 #define imsic_unmask_irq(irq)
 
+void imsic_ctrl_init(void);
 int imsic_map_hartid_to_data(uint32_t hartid, struct imsic_data *imsic, int file);
 struct imsic_data *imsic_get_data(uint32_t hartid);
 int imsic_get_target_file(uint32_t hartid);

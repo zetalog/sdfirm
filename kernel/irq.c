@@ -1,6 +1,7 @@
 #include <target/irq.h>
 #include <target/panic.h>
 #include <target/percpu.h>
+#include <target/msi.h>
 
 #if !defined(CONFIG_CC_ISR_VECTOR) && !defined(CONFIG_SYS_NOIRQ)
 #ifndef ARCH_HAVE_VIC
@@ -26,6 +27,7 @@ void irq_register_vector(irq_t nr, irq_handler h)
 	irq_nr_table[curr] = nr;
 	irq_nr_regs++;
 	irq_handlers[curr] = h;
+	irq_register_mapping(nr);
 }
 
 boolean do_IRQ(irq_t nr)
