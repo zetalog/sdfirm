@@ -170,10 +170,11 @@ static inline unsigned long sbi_regs_gva(const struct pt_regs *regs)
 #endif /* ARCH_HAVE_INT_IRQS */
 
 #ifdef CONFIG_IMSIC
-#define NR_MSI_IRQS		IMSIC_NR_SIRQS
+#define NR_MSI_IPIS		IMSIC_NR_SIRQS
+#define NR_MSI_IRQS		(IMSIC_NR_SIRQS + IMSIC_NR_DIRQS)
 #define MSI_IRQ(irq)		(NR_INT_IRQS + (irq))
 #define irq_msi(irq)		((irq) - NR_INT_IRQS)
-#define IRQ_PLATFORM		(NR_INT_IRQS + NR_MSI_IRQS)
+#define IRQ_PLATFORM		(NR_INT_IRQS + NR_MSI_IPIS)
 #else
 #define IRQ_PLATFORM		NR_INT_IRQS
 #endif
