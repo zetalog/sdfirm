@@ -1,17 +1,53 @@
 /*
- * SPDX-License-Identifier: BSD-2-Clause
+ * ZETALOG's Personal COPYRIGHT
  *
- * Copyright (c) 2021 Western Digital Corporation or its affiliates.
- * Copyright (c) 2022 Ventana Micro Systems Inc.
+ * Copyright (c) 2019
+ *    ZETALOG - "Lv ZHENG".  All rights reserved.
+ *    Author: Lv "Zetalog" Zheng
+ *    Internet: zhenglv@hotmail.com
  *
- * Authors:
- *   Anup Patel <anup.patel@wdc.com>
+ * This COPYRIGHT used to protect Personal Intelligence Rights.
+ * Redistribution and use in source and binary forms with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    This product includes software developed by the Lv "Zetalog" ZHENG.
+ * 3. Neither the name of this software nor the names of its developers may
+ *    be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 4. Permission of redistribution and/or reuse of souce code partially only
+ *    granted to the developer(s) in the companies ZETALOG worked.
+ * 5. Any modification of this software should be published to ZETALOG unless
+ *    the above copyright notice is no longer declaimed.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE ZETALOG AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE ZETALOG OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#)imsic.h: incoming MSI controller (IMSIC) definitions
+ * $Id: imsic.h,v 1.1 2025-3-25 20:43:00 zhenglv Exp $
  */
-
 #ifndef __IMSIC_RISCV_H_INCLUDE__
 #define __IMSIC_RISCV_H_INCLUDE__
 
 #include <target/arch.h>
+
+/* Pre-allocated shared interrupts */
+#define IMSIC_IPI			1	/* IMSIC IPI ID */
+#define IMSIC_NR_SIRQS			8
+#define IMSIC_DIRQ_BASE			IMSIC_NR_SIRQS
+#define IMSIC_NR_DIRQS			(IMSIC_HW_MAX_IRQS - IMSIC_NR_SIRQS)
 
 #define IMSIC_MMIO_PAGE_SHIFT		12
 #define IMSIC_MMIO_PAGE_SZ		(1UL << IMSIC_MMIO_PAGE_SHIFT)
@@ -24,24 +60,17 @@
 #define IMSIC_MAX_ID			2047
 
 #define IMSIC_EIDELIVERY		0x70
-
 #define IMSIC_EITHRESHOLD		0x72
+#define IMSIC_EIP0			0x80
+#define IMSIC_EIP63			0xbf
+#define IMSIC_EIE0			0xc0
+#define IMSIC_EIE63			0xff
 
-#define IMSIC_TOPEI			0x76
 #define IMSIC_TOPEI_ID_SHIFT		16
 #define IMSIC_TOPEI_ID_MASK		0x7ff
 #define IMSIC_TOPEI_PRIO_MASK		0x7ff
 
-#define IMSIC_EIP0			0x80
-
-#define IMSIC_EIP63			0xbf
-
 #define IMSIC_EIPx_BITS			32
-
-#define IMSIC_EIE0			0xc0
-
-#define IMSIC_EIE63			0xff
-
 #define IMSIC_EIEx_BITS			32
 
 #define IMSIC_DISABLE_EIDELIVERY	0
@@ -49,33 +78,14 @@
 #define IMSIC_DISABLE_EITHRESHOLD	1
 #define IMSIC_ENABLE_EITHRESHOLD	0
 
-#define IMSIC_IPI_ID			1
-
-#define imsic_csr_write(__c, __v)	\
-do { \
-	csr_write(CSR_MISELECT, __c); \
-	csr_write(CSR_MIREG, __v); \
-} while (0)
-
-#define imsic_csr_read(__c)	\
-({ \
-	unsigned long __v; \
-	csr_write(CSR_MISELECT, __c); \
-	__v = csr_read(CSR_MIREG); \
-	__v; \
-})
-
-#define imsic_csr_set(__c, __v)		\
-do { \
-	csr_write(CSR_MISELECT, __c); \
-	csr_set(CSR_MIREG, __v); \
-} while (0)
-
-#define imsic_csr_clear(__c, __v)	\
-do { \
-	csr_write(CSR_MISELECT, __c); \
-	csr_clear(CSR_MIREG, __v); \
-} while (0)
+#define imsic_claim_irq()				\
+	({						\
+		unsigned long __topei;			\
+		irq_t __irq;				\
+		__topei = csr_swap(CSR_TOPEI, 0);	\
+	 	__irq = __topei >> TOPEI_ID_SHIFT;	\
+		__irq;					\
+	})
 
 struct imsic_regs {
 	unsigned long addr;
