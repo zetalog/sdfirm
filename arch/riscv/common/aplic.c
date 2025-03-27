@@ -42,6 +42,7 @@
 #include <target/smp.h>
 #include <target/sbi.h>
 #include <target/panic.h>
+#include <target/msi.h>
 
 #ifndef CONFIG_ARCH_HAS_APLIC_DELEG
 /* This is a default delegation for M mode APLIC */
@@ -234,5 +235,42 @@ void irqc_hw_handle_irq(void)
 			aplic_disable_irq(irq);
 	}
 	aplic_hw_enable_int(IRQ_EXT);
+}
+#endif
+
+#ifdef CONFIG_APLIC_MSI
+void irqc_hw_handle_irq(void)
+{
+	irq_t irq;
+	irq_t eirq;
+	__unused uint8_t cpu = smp_processor_id();
+
+	imsic_hw_disable_int(IRQ_EXT);
+	irq = imsic_claim_irq();
+	if (irq >= IMSIC_NR_SIRQS) {
+		/* Handle EXT MSIs */
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+		printf("Dynamic MSI %d\n", irq);
+#endif
+		eirq = irq_locate_mapping(cpu, irq);
+		if (eirq == IMSIC_NO_IRQ)
+			imsic_disable_irq(irq);
+		else {
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+			printf("External IRQ %d\n", eirq);
+#endif
+			if (!do_IRQ(EXT_IRQ(eirq)))
+				aplic_disable_irq(eirq);
+		}
+	} else {
+		/* Handle INT MSIs */
+#ifdef CONFIG_RISCV_IRQ_VERBOSE
+		printf("Static MSI %d\n", irq);
+#endif
+		if (!do_IRQ(MSI_IRQ(irq)))
+			/* No IRQ handler registered, disabling... */
+			imsic_disable_irq(irq);
+	}
+	imsic_hw_enable_int(IRQ_EXT);
 }
 #endif

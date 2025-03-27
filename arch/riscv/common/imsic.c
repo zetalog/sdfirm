@@ -132,9 +132,9 @@ static void imsic_local_eix_update(unsigned long base_id,
 		}
 
 		if (val)
-			imsic_csr_set(isel, ireg);
+			aia_csr_set(isel, ireg);
 		else
-			imsic_csr_clear(isel, ireg);
+			aia_csr_clear(isel, ireg);
 	}
 }
 
@@ -157,13 +157,13 @@ void imsic_local_irqchip_init(void)
 		return;
 
 	/* Setup threshold to allow all enabled interrupts */
-	imsic_csr_write(IMSIC_EITHRESHOLD, IMSIC_ENABLE_EITHRESHOLD);
+	aia_csr_write(IMSIC_EITHRESHOLD, IMSIC_ENABLE_EITHRESHOLD);
 
 	/* Enable interrupt delivery */
-	imsic_csr_write(IMSIC_EIDELIVERY, IMSIC_ENABLE_EIDELIVERY);
+	aia_csr_write(IMSIC_EIDELIVERY, IMSIC_ENABLE_EIDELIVERY);
 
 	/* Enable IPI */
-	imsic_local_eix_update(IMSIC_IPI_ID, 1, false, true);
+	imsic_local_eix_update(IMSIC_IPI, 1, false, true);
 }
 
 int imsic_warm_irqchip_init(void)
@@ -178,7 +178,7 @@ int imsic_warm_irqchip_init(void)
 	imsic_local_eix_update(1, imsic->num_ids, false, false);
 
 	/* Clear IPI pending */
-	imsic_local_eix_update(IMSIC_IPI_ID, 1, true, false);
+	imsic_local_eix_update(IMSIC_IPI, 1, true, false);
 
 	/* Local IMSIC initialization */
 	imsic_local_irqchip_init();
@@ -286,41 +286,6 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
 	return 0;
 }
 #endif /* CONFIG_SBI */
-
-void irqc_hw_handle_irq(void)
-{
-	irq_t irq;
-	irq_t eirq;
-	__unused uint8_t cpu = smp_processor_id();
-
-	imsic_hw_disable_int(IRQ_EXT);
-	irq = imsic_claim_irq();
-	if (irq >= IMSIC_NR_SIRQS) {
-		/* Handle EXT MSIs */
-#ifdef CONFIG_RISCV_IRQ_VERBOSE
-		printf("Dynamic MSI %d\n", irq);
-#endif
-		eirq = irq_locate_mapping(cpu, irq);
-		if (eirq == IMSIC_NO_IRQ)
-			imsic_disable_irq(irq);
-		else {
-#ifdef CONFIG_RISCV_IRQ_VERBOSE
-			printf("External IRQ %d\n", eirq);
-#endif
-			if (!do_IRQ(EXT_IRQ(eirq)))
-				aplic_disable_irq(eirq);
-		}
-	} else {
-		/* Handle INT MSIs */
-#ifdef CONFIG_RISCV_IRQ_VERBOSE
-		printf("Static MSI %d\n", irq);
-#endif
-		if (!do_IRQ(MSI_IRQ(irq)))
-			/* No IRQ handler registered, disabling... */
-			imsic_disable_irq(irq);
-	}
-	imsic_hw_enable_int(IRQ_EXT);
-}
 
 void imsic_ctrl_init(void)
 {
