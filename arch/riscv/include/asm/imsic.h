@@ -114,6 +114,8 @@ bool __imsic_id_read_clear_enabled(unsigned long id);
 bool __imsic_id_read_clear_pending(unsigned long id);
 void __imsic_id_set_enabled(unsigned long id);
 void __imsic_id_set_pending(unsigned long id);
+void __imsic_id_clear_enabled(unsigned long id);
+void __imsic_id_clear_pending(unsigned long id);
 void __imsic_eix_update(unsigned long base_id, unsigned long num_id,
 			bool pend, bool val);
 void imsic_ctrl_init(void);
