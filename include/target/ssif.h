@@ -23,16 +23,13 @@
 /* SSIF Write Protocol */
 #define SSIF_W_SMBUS_CMD			0
 #define SSIF_W_LEN				1
-#define SSIF_W_NETFN				2
-#define SSIF_W_LUN				3
-#define SSIF_W_IPMI_CMD				4
+#define SSIF_W_NETFN_LUN			2
+#define SSIF_W_IPMI_CMD				3
 
 /* SSIF Read Protocol */
-#define SSIF_R_SMBUS_CMD			0
 #define SSIF_R_LEN				0
-#define SSIF_R_NETFN				1
-#define SSIF_R_LUN				2
-#define SSIF_R_IPMI_CMD				3
-#define SSIF_R_COMPLETION_CODE			4
+#define SSIF_R_NETFN_LUN			1
+#define SSIF_R_IPMI_CMD				2
+#define SSIF_R_COMPLETION_CODE			3
 
 #endif
