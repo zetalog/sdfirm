@@ -319,6 +319,16 @@ void __imsic_id_clear_enabled(unsigned long id)
 	__imsic_eix_update(id, 1, false, false);
 }
 
+void __imsic_id_set_pending(unsigned long id)
+{
+	__imsic_eix_update(id, 1, true, true);
+}
+
+void __imsic_id_clear_pending(unsigned long id)
+{
+	__imsic_eix_update(id, 1, true, false);
+}
+
 void __imsic_eix_update(unsigned long base_id, unsigned long num_id, bool pend, bool val)
 {
 	unsigned long id = base_id, last_id = base_id + num_id;
