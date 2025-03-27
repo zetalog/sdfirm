@@ -103,13 +103,19 @@ struct imsic_data {
 	struct imsic_regs regs[IMSIC_MAX_REGS];
 };
 
-#define imsic_clear_irq(irq)
-#define imsic_trigger_irq(irq)
-#define imsic_enable_irq(irq)
-#define imsic_disable_irq(irq)
+#define imsic_clear_irq(irq)		__imsic_id_read_clear_pending(irq)
+#define imsic_trigger_irq(irq)		__imsic_id_set_pending(irq)
+#define imsic_enable_irq(irq)		__imsic_id_set_enabled(irq)
+#define imsic_disable_irq(irq)		__imsic_id_clear_enabled(irq)
 #define imsic_mask_irq(irq)
 #define imsic_unmask_irq(irq)
 
+bool __imsic_id_read_clear_enabled(unsigned long id);
+bool __imsic_id_read_clear_pending(unsigned long id);
+void __imsic_id_set_enabled(unsigned long id);
+void __imsic_id_set_pending(unsigned long id);
+void __imsic_eix_update(unsigned long base_id, unsigned long num_id,
+			bool pend, bool val);
 void imsic_ctrl_init(void);
 int imsic_map_hartid_to_data(uint32_t hartid, struct imsic_data *imsic, int file);
 struct imsic_data *imsic_get_data(uint32_t hartid);

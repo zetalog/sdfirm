@@ -17,6 +17,17 @@ uint8_t irq_nr_regs = 0;
 
 extern void __bad_interrupt(irq_t irq);
 
+#ifdef CONFIG_MSI
+irq_t irq_map[MAX_VECTORS];
+
+static void irq_map_parent(irq_t irq)
+{
+	irq_map[irq] = irq_register_mapping(nr);
+}
+#else
+#define irq_map_parent(irq)		do { } while (0)
+#endif
+
 /* 0 ~ NR_IRQS-1 is allowed. */
 void irq_register_vector(irq_t nr, irq_handler h)
 {
@@ -27,7 +38,7 @@ void irq_register_vector(irq_t nr, irq_handler h)
 	irq_nr_table[curr] = nr;
 	irq_nr_regs++;
 	irq_handlers[curr] = h;
-	irq_register_mapping(nr);
+	irq_map_parent(nr);
 }
 
 boolean do_IRQ(irq_t nr)
