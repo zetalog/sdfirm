@@ -207,6 +207,7 @@ config ARCH_HAS_MSI
 menuconfig MSI
 	bool "Enable per-cpu MSI support"
 	depends ARCH_HAS_MSI
+	select BIT_FIND_CLEAR
 
 if MSI
 
