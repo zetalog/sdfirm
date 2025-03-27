@@ -22,7 +22,7 @@ irq_t irq_map[MAX_VECTORS];
 
 static void irq_map_parent(irq_t irq)
 {
-	irq_map[irq] = irq_register_mapping(nr);
+	irq_map[irq] = irq_register_mapping(irq);
 }
 #else
 #define irq_map_parent(irq)		do { } while (0)
