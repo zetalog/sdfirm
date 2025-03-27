@@ -287,6 +287,60 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
 }
 #endif /* CONFIG_SBI */
 
+static bool __imsic_eix_read_clear(unsigned long id, bool pend)
+{
+	unsigned long isel, imask;
+
+	isel = id / BITS_PER_LONG;
+	isel *= BITS_PER_LONG / IMSIC_EIPx_BITS;
+	isel += pend ? IMSIC_EIP0 : IMSIC_EIE0;
+	imask = BIT(id & (__riscv_xlen - 1));
+
+	return !!(aia_csr_read_clear(isel, imask) & imask);
+}
+
+bool __imsic_id_read_clear_enabled(unsigned long id)
+{
+	return __imsic_eix_read_clear(id, false);
+}
+
+bool __imsic_id_read_clear_pending(unsigned long id)
+{
+	return __imsic_eix_read_clear(id, true);
+}
+
+void __imsic_id_set_enabled(unsigned long id)
+{
+	__imsic_eix_update(id, 1, false, true);
+}
+
+void __imsic_id_clear_enabled(unsigned long id)
+{
+	__imsic_eix_update(id, 1, false, false);
+}
+
+void __imsic_eix_update(unsigned long base_id, unsigned long num_id, bool pend, bool val)
+{
+	unsigned long id = base_id, last_id = base_id + num_id;
+	unsigned long i, isel, ireg;
+
+	while (id < last_id) {
+		isel = id / BITS_PER_LONG;
+		isel *= BITS_PER_LONG / IMSIC_EIPx_BITS;
+		isel += pend ? IMSIC_EIP0 : IMSIC_EIE0;
+
+		ireg = 0;
+		for (i = id & (__riscv_xlen - 1); id < last_id && i < __riscv_xlen; i++) {
+			ireg |= _BV(i);
+			id++;
+		}
+		if (val)
+			aia_csr_set(isel, ireg);
+		else
+			aia_csr_clear(isel, ireg);
+	}
+}
+
 void imsic_ctrl_init(void)
 {
 	irq_reserve_mapping(0, IMSIC_NR_SIRQS - 1);

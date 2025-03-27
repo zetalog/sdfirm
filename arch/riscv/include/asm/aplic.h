@@ -116,25 +116,24 @@ struct aplic_data {
 #define APLIC_WSI			(0 << 2)
 #else /* CONFIG_APLIC_WSI */
 #define APLIC_WSI			APLIC_MSI
-#define APLIC_DM			APLIC_MSI
 #endif /* CONFIG_APLIC_WSI */
 
 #ifdef CONFIG_APLIC_MSI
 #define APLIC_MSI			_BV(2)
 #else /* CONFIG_APLIC_MSI */
 #define APLIC_MSI			APLIC_WSI
-#define APLIC_DM			APLIC_WSI
 #endif /* CONFIG_APLIC_MSI */
 
-#ifndef APLIC_DM
+#ifdef CONFIG_APLIC_WSI
 #define APLIC_DM			APLIC_WSI
-#endif /* APLIC_DM */
+#else /* CONFIG_APLIC_WSI */
+#define APLIC_DM			APLIC_MSI
+#endif /* CONFIG_APLIC_WSI */
 
 #ifdef CONFIG_APLIC_BE
 #define APLIC_BE			_BV(0)
 #else /* CONFIG_APLIC_BE */
 #define APLIC_BE			APLIC_LE
-#define APLIC_END			APLIC_LE
 #endif /* CONFIG_APLIC_BE */
 
 #ifdef CONFIG_APLIC_LE
@@ -144,9 +143,11 @@ struct aplic_data {
 #define APLIC_END			APLIC_BE
 #endif /* CONFIG_APLIC_LE */
 
-#ifndef APLIC_END
+#ifdef CONFIG_APLIC_LE
+#define APLIC_END			APLIC_LE
+#else /* CONFIG_APLIC_LE */
 #define APLIC_END			APLIC_BE
-#endif /* APLIC_END */
+#endif /* CONFIG_APLIC_LE */
 
 #define APLIC_SOURCECFG(soc, irq)	APLIC_REG(soc, 0x0004 + (((irq) - 1) << 2))
 #define APLIC_D				_BV(10)
