@@ -65,6 +65,13 @@
 struct scratch {
 	unsigned long sp;
 } __attribute__((aligned(STACK_ALIGN)));
+
+#ifdef CONFIG_RISCV_ATOMIC_TEST
+void __atomic_test_addr(void *addr);
+#else
+#define __atomic_test_addr(addr)	do { } while (0)
+#endif
+
 #endif
 
 #include <asm/mach/cpus.h>
@@ -74,12 +81,6 @@ struct scratch {
 #endif
 #ifndef HART_ALL
 #define HART_ALL		CPU_ALL
-#endif
-
-#ifdef CONFIG_RISCV_ATOMIC_TEST
-void __atomic_test_addr(void *addr);
-#else
-#define __atomic_test_addr(addr)	do { } while (0)
 #endif
 
 #endif /* __RISCV_CPUS_H_INCLUDE__ */

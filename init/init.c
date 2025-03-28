@@ -118,6 +118,11 @@ void scs_slot_init(void);
 #else
 #define scs_slot_init()
 #endif
+#ifdef CONFIG_WDT
+void wdt_init(void);
+#else
+#define wdt_init()
+#endif
 
 /* modules */
 #ifdef CONFIG_MTD_FLASH
@@ -217,6 +222,7 @@ void modules_init(void)
 	dfu_init();
 	scd_init();
 	cos_init();
+	wdt_init();
 
 	/* apps */
 	usb_pn53x_init();

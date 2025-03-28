@@ -142,6 +142,15 @@
 #endif
 	csrs	CSR_ML2SETUP, t0
 
+#if 0
+	li	t0, 0x3f
+	csrs	0x7d0, t0
+
+
+	li	t0, (1<<0) | (1<<1) | (1<<4) | (1<<8) | (1<<9)
+	csrs	0x7d1, t0
+#endif
+
 	/* enable hypervisor extension */
 	li	t0, HYPERVISOR_EXT
 	csrs	CSR_MISA, t0
