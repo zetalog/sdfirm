@@ -1,10 +1,8 @@
 #include <target/uefi.h>
 #include <target/console.h>
 
-//#define CONFIG_UEFI_GPT_DEBUG
-
 #ifdef CONFIG_UEFI_GPT_DEBUG
-#define gpt_dbg(...)		gpt_dbg(__VA_ARGS__)
+#define gpt_dbg(fmt, ...) printf(fmt, ##__VA_ARGS__)
 
 static void gpt_header_print(struct gpt_header *header)
 {
@@ -104,7 +102,7 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 	mtd_load(mtd, sector_buffer,
 		     flash_addr_header, copy_size_header);
 	gpt_header_print((struct gpt_header *)sector_buffer);
-
+	hexdump(flash_addr_header, sector_buffer, 1, GPT_SECTOR_SIZE);
 	for (i = 0; i < GPT_PGPT_PART_CNT; i++) {
 		uint32_t *guid_words =
 			(uint32_t *)(&entry_ptr->partition_guid);
@@ -144,6 +142,7 @@ int gpt_get_file_by_name(mtd_t mtd, const char *file_name,
 	int ret;
 	uint16_t pad_size;
 
+	gpt_dbg("uefi_gpt: Enter %s\n", __func__);
 	ret = gpt_get_part_by_name(mtd, file_name, offset, size, &pad_size);
 	*size -= pad_size;
 	return ret;
