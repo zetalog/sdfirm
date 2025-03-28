@@ -11,5 +11,8 @@ config UEFI_GPT
 	bool "UEFI GUID partition table (GPT) support"
 	select MTD
 
+config UEFI_GPT_DEBUG
+	bool "Enable UEFI debugging message"
+
 endif
 
