@@ -348,7 +348,7 @@ static void cmn_hnf_cal_enable_ocm(caddr_t hnf)
 		"CMN_hnf_ppu_pwpr", -1);
 
 	while (1) {
-		pwsr = __raw_readl(CMN_hnf_ppu_pwsr(hnf));
+		pwsr = __raw_readq(CMN_hnf_ppu_pwsr(hnf));
 		if (((pwsr >> CMN_ppu_op_mode_status_OFFSET) & CMN_ppu_op_mode_status_MASK) == CMN_ppu_op_mode_status_SFONLY)
 			break;
 		}
@@ -388,7 +388,7 @@ static void cmn_hnf_cal_enable_ocm(caddr_t hnf)
 		"CMN_hnf_ppu_pwpr", -1);
 	
 	while (1) {
-		pwsr = __raw_readl(CMN_hnf_ppu_pwsr(hnf));
+		pwsr = __raw_readq(CMN_hnf_ppu_pwsr(hnf));
 		if (((pwsr >> CMN_ppu_op_mode_status_OFFSET) & CMN_ppu_op_mode_status_MASK) == CMN_ppu_op_mode_status_FAM)
 			break;
 		}
