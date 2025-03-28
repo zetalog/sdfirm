@@ -136,9 +136,7 @@ void smp_init(void)
 		board_smp_init();
 		bench_init();
 	} else {
-#ifndef CONFIG_SMP_NO_BOOT_SECONDARY
 		smp_boot_secondary_cpus((caddr_t)smp_init);
-#endif
 		board_smp_init();
 		bench_init();
 		cmd_init();
