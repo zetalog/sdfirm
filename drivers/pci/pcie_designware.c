@@ -1,12 +1,10 @@
 #include <target/pci.h>
-#ifdef SDFIRM
 #include <target/console.h>
-#endif
 
 uint32_t form_pci_addr(int bus, int dev, int fun)
 {
-	return ((bus << 20) | (dev << 15) | (fun << 12));
-	/* return ((bus << 24) | (dev << 19) | (fun << 16)); */
+    return ((bus << 20) | (dev << 15) | (fun << 12));
+    /* return ((bus << 24) | (dev << 19) | (fun << 16)); */
 }
 
 #ifdef CONFIG_DPU_GEN2
@@ -43,7 +41,39 @@ static uint64_t format_dbi_addr(enum dw_pcie_access_type type, uint32_t reg)
 	return addr;
 }
 #else
-static uint64_t format_dbi_addr(enum dw_pcie_access_type type, uint32_t reg)
+/* static uint64_t format_dbi_addr(enum dw_pcie_access_type type, uint32_t reg)
+{
+	[>uint64_t route0, route1, addr;<]
+	uint32_t route1, addr;
+
+	[>BUG_ON(reg & 0x3 != 0);<]
+	switch (type) {
+	case DW_PCIE_CDM:
+		[>route0 = 0;<]
+		route1 = DW_PCIE_CDM_BASE;
+		break;
+	case DW_PCIE_SHADOW:
+		[>route0 = 1;<]
+		route1 = DW_PCIE_SHADOW_BASE;
+		break;
+	case DW_PCIE_ATU:
+		[>route0 = 3;<]
+		route1 = DW_PCIE_ATU_BASE;
+		break;
+	case DW_PCIE_DMA:
+		[>route0 = 3;<]
+		route1 = DW_PCIE_DMA_BASE;
+		break;
+	default:
+		con_err("dw_pcie: Other types is not supported\n");
+		return 0xffffffff;
+	}
+
+	[>addr = (route0 << 31) | (route1 << 17) | (uint64_t)reg;<]
+	addr = route1 + reg;
+	return addr;
+} */
+static uint64_t format_dbi_addr(struct dw_pcie *pci, enum dw_pcie_access_type type, uint32_t reg)
 {
 	/* uint64_t route0, route1, addr; */
 	uint32_t route1, addr;
@@ -52,19 +82,19 @@ static uint64_t format_dbi_addr(enum dw_pcie_access_type type, uint32_t reg)
 	switch (type) {
 	case DW_PCIE_CDM:
 		/* route0 = 0; */
-		route1 = 0;
+		route1 = pci->cdm_offset;
 		break;
 	case DW_PCIE_SHADOW:
 		/* route0 = 1; */
-		route1 = 1;
+		route1 = pci->shadow_offset;
 		break;
 	case DW_PCIE_ATU:
 		/* route0 = 3; */
-		route1 = 2;
+		route1 = pci->atu_offset;
 		break;
 	case DW_PCIE_DMA:
 		/* route0 = 3; */
-		route1 = 3;
+		route1 = pci->dma_offset;
 		break;
 	default:
 		con_err("dw_pcie: Other types is not supported\n");
@@ -72,7 +102,7 @@ static uint64_t format_dbi_addr(enum dw_pcie_access_type type, uint32_t reg)
 	}
 
 	/* addr = (route0 << 31) | (route1 << 17) | (uint64_t)reg; */
-	addr = (route1 << 17) | reg;
+	addr = route1 + reg;
 	return addr;
 }
 #endif
@@ -82,7 +112,7 @@ static uint32_t read_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
 {
 	uint64_t dbi_offset;
 
-	dbi_offset = format_dbi_addr(type, reg);
+    dbi_offset = format_dbi_addr(pci, type, reg);
 	return dw_pcie_read_axi(pci->dbi_base + dbi_offset);
 }
 
@@ -99,7 +129,7 @@ uint16_t readw_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
 	uint8_t shift;
 
 	shift = (reg & 0x2);
-	val = read_dbi(pci, type, reg);
+	val = read_dbi(pci, type, (reg & 0xfffffffc));
 	val = val >> (8 * shift);
 
 	return (uint16_t)val;
@@ -112,7 +142,8 @@ uint8_t readb_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
 	uint8_t shift;
 
 	shift = (reg & 0x3);
-	val = read_dbi(pci, type, reg);
+	/* val = read_dbi(pci, type, reg); */
+	val = read_dbi(pci, type, (reg & 0xfffffffc));
 	val = val >> (8 * shift);
 
 	return (uint8_t)val;
@@ -144,7 +175,7 @@ static void write_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
 {
 	uint64_t dbi_offset;
 
-	dbi_offset = format_dbi_addr(type, reg);
+	dbi_offset = format_dbi_addr(pci, type, reg);
 	dw_pcie_write_axi(pci->dbi_base + dbi_offset, val);
 }
 
@@ -161,7 +192,7 @@ void dw_pcie_writeb_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
 	uint8_t shift;
 
 	shift = (reg & 0x3);
-	tmp = readl_dbi(pci, type, (reg & 0xfffffffc));
+	tmp = read_dbi(pci, type, (reg & 0xfffffffc));
 	mask = mask << (8 * shift);
 	mask = ~mask;
 	tmp = ((tmp & mask) | val << (8 * shift));
@@ -176,7 +207,7 @@ void dw_pcie_writew_dbi(struct dw_pcie *pci, enum dw_pcie_access_type type,
 	uint8_t shift;
 
 	shift = (reg & 0x2);
-	tmp = readl_dbi(pci, type, (reg & 0xfffffffc));
+	tmp = read_dbi(pci, type, (reg & 0xfffffffc));
 	tmp = (tmp & (0xffff0000 >> (shift * 8))) | (val << (shift * 8));
 
 	write_dbi(pci, type, (reg & 0xfffffffc), tmp);
@@ -263,14 +294,19 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			  PCIE_IATU_UPPER_TARGET_ADDR_OFF_OUTBOUND, 0x4,
 			  upper_32_bits(pci_addr));
+    if (upper_32_bits(size) > 0) {
+        type |= PCIE_ATU_INCREASE_REGION_SIZE;                   
+    }
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			  PCIE_IATU_REGION_CTRL1_OFF_OUTBOUND, 0x4, type);
 #ifdef CONFIG_DW_PCIE_RC
 	uint32_t val;
 
 	val = PCIE_ATU_ENABLE;
-	if ((type == PCIE_ATU_TYPE_CFG0) || (type == PCIE_ATU_TYPE_CFG1))
-		val |= _BV(28);
+    if ((type == PCIE_ATU_TYPE_CFG0) || (type == PCIE_ATU_TYPE_CFG1)) {
+        val |= PCIE_ATU_SHIFT_MODE_ENABLE;
+    }
+
 	dw_pcie_write_atu(pci, DW_PCIE_REGION_OUTBOUND, index,
 			  PCIE_IATU_REGION_CTRL2_OFF_OUTBOUND, 0x4, val);
 #else
@@ -447,6 +483,77 @@ void dw_pcie_setup(struct dw_pcie *pci)
 	}
 #endif
 }
+void dw_pcie_dbi_read_cfg(struct dw_pcie *pci)
+{
+	uint32_t i;
+    pci_cfg cfg_space = {0};
+    for(i = 0; i < 16; i ++) {
+		cfg_space.value[i] = dw_pcie_read_dbi(pci, DW_PCIE_CDM, i * sizeof(uint32_t), 0x4);
+    }
+    if(PCI_HeaderLayout(cfg_space.cfg0.HeaderType) == PCI_HeaderType0) {
+        printf("Type0 : \n");
+        printf("\tVendorID                 : 0x%x\n",cfg_space.cfg0.VendorID);
+        printf("\tDeviceID                 : 0x%x\n",cfg_space.cfg0.DeviceID);
+        printf("\tCommand                  : 0x%x\n",cfg_space.cfg0.Command);
+        printf("\tStatus                   : 0x%x\n",cfg_space.cfg0.Status);
+        printf("\tRevisionID               : 0x%x\n",cfg_space.cfg0.RevisionID);
+        printf("\tClassCode                : 0x%x\n",cfg_space.cfg0.ClassCode);
+        printf("\tCacheLineSize            : 0x%x\n",cfg_space.cfg0.CacheLineSize);
+        printf("\tLatencyTimer             : 0x%x\n",cfg_space.cfg0.LatencyTimer);
+        printf("\tHeaderType               : 0x%x\n",cfg_space.cfg0.HeaderType);
+        printf("\tBIST                     : 0x%x\n",cfg_space.cfg0.BIST);
+        printf("\tBAR0                     : 0x%x\n",cfg_space.cfg0.BAR0);
+        printf("\tBAR1                     : 0x%x\n",cfg_space.cfg0.BAR1);
+        printf("\tBAR2                     : 0x%x\n",cfg_space.cfg0.BAR2);
+        printf("\tBAR3                     : 0x%x\n",cfg_space.cfg0.BAR3);
+        printf("\tBAR4                     : 0x%x\n",cfg_space.cfg0.BAR4);
+        printf("\tBAR5                     : 0x%x\n",cfg_space.cfg0.BAR5);
+        printf("\tCardbusCISPointer        : 0x%x\n",cfg_space.cfg0.CardbusCISPointer);
+        printf("\tSubsystemVendorID        : 0x%x\n",cfg_space.cfg0.SubsystemVendorID);
+        printf("\tSubsystemID              : 0x%x\n",cfg_space.cfg0.SubsystemID);
+        printf("\tExpansionROMBaseAddress0 : 0x%x\n",cfg_space.cfg0.ExpansionROMBaseAddress0);
+        printf("\tCapPointer               : 0x%x\n",cfg_space.cfg0.CapPointer);
+        printf("\tMinGnt                   : 0x%x\n",cfg_space.cfg0.MinGnt);
+        printf("\tMaxLat                   : 0x%x\n",cfg_space.cfg0.MaxLat);
+        printf("\tInterruptLine            : 0x%x\n",cfg_space.cfg0.InterruptLine);
+        printf("\tInterruptPin             : 0x%x\n",cfg_space.cfg0.InterruptPin);
+    } else if(PCI_HeaderLayout(cfg_space.cfg1.HeaderType) == PCI_HeaderType1) {
+        printf("Type1 : \n");
+        printf("\tVendorID                 : 0x%x\n",cfg_space.cfg1.VendorID);
+        printf("\tDeviceID                 : 0x%x\n",cfg_space.cfg1.DeviceID);
+        printf("\tCommand                  : 0x%x\n",cfg_space.cfg1.Command);
+        printf("\tStatus                   : 0x%x\n",cfg_space.cfg1.Status);
+        printf("\tRevisionID               : 0x%x\n",cfg_space.cfg1.RevisionID);
+        printf("\tClassCode                : 0x%x\n",cfg_space.cfg1.ClassCode);
+        printf("\tCacheLineSize            : 0x%x\n",cfg_space.cfg1.CacheLineSize);
+        printf("\tLatencyTimer             : 0x%x\n",cfg_space.cfg1.LatencyTimer);
+        printf("\tHeaderType               : 0x%x\n",cfg_space.cfg1.HeaderType);
+        printf("\tBIST                     : 0x%x\n",cfg_space.cfg1.BIST);
+        printf("\tBAR0                     : 0x%x\n",cfg_space.cfg1.BAR0);
+        printf("\tBAR1                     : 0x%x\n",cfg_space.cfg1.BAR1);
+        printf("\tPrimaryBusNumber         : 0x%x\n",cfg_space.cfg1.PrimaryBusNumber);
+        printf("\tSecondaryBusNumber       : 0x%x\n",cfg_space.cfg1.SecondaryBusNumber);
+        printf("\tSubordinateBusNumber     : 0x%x\n",cfg_space.cfg1.SubordinateBusNumber);
+        printf("\tSecondaryLatencyTimer    : 0x%x\n",cfg_space.cfg1.SecondaryLatencyTimer);
+        printf("\tIOBase                   : 0x%x\n",cfg_space.cfg1.IOBase);
+        printf("\tIOLimit                  : 0x%x\n",cfg_space.cfg1.IOLimit);
+        printf("\tSecondaryStatus          : 0x%x\n",cfg_space.cfg1.SecondaryStatus);
+        printf("\tMemoryBase               : 0x%x\n",cfg_space.cfg1.MemoryBase);
+        printf("\tMemoryLimit              : 0x%x\n",cfg_space.cfg1.MemoryLimit);
+        printf("\tPrefetchableMemoryBase   : 0x%x\n",cfg_space.cfg1.PrefetchableMemoryBase);
+        printf("\tPrefetchableMemoryLimit  : 0x%x\n",cfg_space.cfg1.PrefetchableMemoryLimit);
+        printf("\tPrefetchableMemoryBaseUpper32Bits : 0x%x\n",cfg_space.cfg1.PrefetchableMemoryBaseUpper32Bits);
+        printf("\tPrefetchableMemoryLimitUpper32Bits : 0x%x\n",cfg_space.cfg1.PrefetchableMemoryLimitUpper32Bits);
+        printf("\tIOBaseUpper16Bits        : 0x%x\n",cfg_space.cfg1.IOBaseUpper16Bits);
+        printf("\tIOLimitUpper16Bits       : 0x%x\n",cfg_space.cfg1.IOLimitUpper16Bits);
+        printf("\tExpansionROMBaseAddress0 : 0x%x\n",cfg_space.cfg1.ExpansionROMBaseAddress0);
+        printf("\tCapPointer               : 0x%x\n",cfg_space.cfg1.CapPointer);
+        printf("\tBridgeControl            : 0x%x\n",cfg_space.cfg1.BridgeControl);
+        printf("\tInterruptLine            : 0x%x\n",cfg_space.cfg1.InterruptLine);
+        printf("\tInterruptPin             : 0x%x\n",cfg_space.cfg1.InterruptPin);
+    }
+}
+
 
 void dw_pcie_setup_ctrl(struct pcie_port *pp)
 {
@@ -455,7 +562,7 @@ void dw_pcie_setup_ctrl(struct pcie_port *pp)
 
 	dw_pcie_dbi_ro_wr_en(pci);
 
-	dw_pcie_setup(pci);
+	/* dw_pcie_setup(pci); */
 
 	if (pp->role == ROLE_RC) {
 		/* Setup RC BARs */
@@ -486,18 +593,24 @@ void dw_pcie_setup_ctrl(struct pcie_port *pp)
 		val |= PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
 			PCI_COMMAND_MASTER | PCI_COMMAND_SERR;
 		dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_COMMAND, val, 0x4);
-
-		dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_CFG0,
-					  pp->cfg_bar0, 0x0, pp->cfg_size);
-		dw_pcie_prog_outbound_atu(pci, 1, PCIE_ATU_TYPE_CFG1,
-					  pp->cfg_bar1, 0x0, pp->cfg_size);
-		dw_pcie_prog_outbound_atu(pci, 2, PCIE_ATU_TYPE_MEM,
-					  pp->mem_base, 0x0, pp->mem_size);
-		dw_pcie_wr_own_conf(pp, PCI_BASE_ADDRESS_0, 4, 0);
+#ifdef CONFIG_PCIE_ECAM
+        dw_pcie_ecam_init(pci);
+#else
+        dw_pcie_prog_outbound_atu(pci, 0, PCIE_ATU_TYPE_CFG0,
+                      pp->cfg_bar0, 0x0, pp->cfg_size);
+#endif
+        dw_pcie_prog_outbound_atu(pci, 1, PCIE_ATU_TYPE_MEM,
+                      pp->mem_base, 0x10000000, pp->mem_size);
+        dw_pcie_prog_outbound_atu(pci, 2, PCIE_ATU_TYPE_MEM,
+                      pp->prefetch_base, 0x100000000, pp->prefetch_size);
+        dw_pcie_prog_outbound_atu(pci, 3, PCIE_ATU_TYPE_IO,
+                      pp->io_base, 0x0, pp->io_size);
+        dw_pcie_wr_own_conf(pp, PCI_BASE_ADDRESS_0, 4, 0);
 
 		/* Program correct class for RC */
 		dw_pcie_wr_own_conf(pp, PCI_CLASS_DEVICE, 2,
 				    PCI_CLASS_BRIDGE_PCI);
+        /* dw_pcie_dbi_read_cfg(pci); */
 	} else {
 		/* Choose Storage class for EP test seems reasonably */
 		dw_pcie_wr_own_conf(pp, PCI_CLASS_DEVICE, 2,

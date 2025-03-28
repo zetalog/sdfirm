@@ -85,6 +85,8 @@
 #define PCIE_ATU_CR2			0x908
 #define PCIE_ATU_ENABLE			_BV(31)
 #define PCIE_ATU_BAR_MODE_ENABLE	_BV(30)
+#define PCIE_ATU_SHIFT_MODE_ENABLE  _BV(28)
+#define PCIE_ATU_INCREASE_REGION_SIZE _BV(13)
 #define PCIE_ATU_LOWER_BASE		0x90C
 #define PCIE_ATU_UPPER_BASE		0x910
 #define PCIE_ATU_LIMIT			0x914
@@ -299,6 +301,11 @@
 
 #define PCI_CLASS_OTHERS        0xff
 
+/* #define DW_PCIE_CDM_BASE       0x0
+#define DW_PCIE_SHADOW_BASE    0x100000
+#define DW_PCIE_ATU_BASE       0x300000
+#define DW_PCIE_DMA_BASE       0x380000 */
+
 /* CCIX */
 #define CCIX_TL_CAP			0x224
 #define CCIX_OPT_LTP_FMT_SUPPORT	_BV(0)
@@ -431,6 +438,13 @@ enum dw_pcie_as_type {
 
 struct dw_pcie {
 	uint64_t dbi_base;
+	uint64_t slv_base;
+	uint64_t app_base;
+	uint64_t phy_base;
+	uint64_t cdm_offset;
+	uint64_t shadow_offset;
+	uint64_t atu_offset;
+	uint64_t dma_offset;
 	uint64_t mem32_base;
 	uint64_t mem32_size;
 	uint64_t mem64_base;
