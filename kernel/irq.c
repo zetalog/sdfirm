@@ -20,9 +20,18 @@ extern void __bad_interrupt(irq_t irq);
 #ifdef CONFIG_MSI
 irq_t irq_map[MAX_VECTORS];
 
-static void irq_map_parent(irq_t irq)
+irq_t irq_map_parent(irq_t irq)
 {
-	irq_map[irq] = irq_register_mapping(irq);
+	irq_t msi;
+
+	msi = irq_register_mapping(irq);;
+	irq_map[irq] = msi;
+	return msi;
+}
+
+irq_t irq_mapped_msi(irq_t irq)
+{
+	return irq_map[irq];
 }
 #else
 #define irq_map_parent(irq)		do { } while (0)

@@ -157,10 +157,10 @@ void imsic_local_irqchip_init(void)
 		return;
 
 	/* Setup threshold to allow all enabled interrupts */
-	aia_csr_write(IMSIC_EITHRESHOLD, IMSIC_ENABLE_EITHRESHOLD);
+	aia_csr_write(IMSIC_EITHRESHOLD, IMSIC_NONE);
 
 	/* Enable interrupt delivery */
-	aia_csr_write(IMSIC_EIDELIVERY, IMSIC_ENABLE_EIDELIVERY);
+	aia_csr_write(IMSIC_EIDELIVERY, IMSIC_MSI);
 
 	/* Enable IPI */
 	imsic_local_eix_update(IMSIC_IPI, 1, false, true);
@@ -354,4 +354,5 @@ void __imsic_eix_update(unsigned long base_id, unsigned long num_id, bool pend, 
 void imsic_ctrl_init(void)
 {
 	irq_reserve_mapping(0, IMSIC_NR_SIRQS - 1);
+	aia_csr_write(IMSIC_EITHRESHOLD, IMSIC_NONE);
 }
