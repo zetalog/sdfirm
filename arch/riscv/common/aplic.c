@@ -170,9 +170,12 @@ void aplic_sbi_init(uint8_t soc)
 
 void irqc_hw_enable_irq(irq_t irq)
 {
-	if (irq >= IRQ_PLATFORM)
+	if (irq >= IRQ_PLATFORM) {
 		aplic_enable_irq(irq_ext(irq));
-	else if (irq >= NR_INT_IRQS)
+#ifdef CONFIG_APLIC_MSI
+		//imsic_enable_irq();
+#endif
+	} else if (irq >= NR_INT_IRQS)
 		imsic_enable_irq(irq_msi(irq));
 	else
 		aplic_hw_enable_int(irq);
@@ -272,5 +275,10 @@ void irqc_hw_handle_irq(void)
 			imsic_disable_irq(irq);
 	}
 	imsic_hw_enable_int(IRQ_EXT);
+}
+
+void msi_hw_ctrl_init(void)
+{
+	irq_reserve_mapping(IMSIC_NO_IRQ, IMSIC_NR_SIRQS - 1);
 }
 #endif
