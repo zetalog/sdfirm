@@ -96,7 +96,8 @@ extern bool smp_initialized;
 	find_next_set_bit(cpumask_bits(srcp), NR_CPUS, (n)+ 1)
 #define for_each_cpu(cpu, mask)			\
 	for ((cpu) = cpumask_first(mask);	\
-	     (cpu) = cpumask_next((cpu), (mask)), (cpu) < NR_CPUS;)
+	     (cpu) < NR_CPUS;			\
+	     (cpu) = cpumask_next((cpu), (mask)))
 
 #define smp_processor_id()			__smp_processor_id()
 #define smp_cpu_off(cpu)			smp_hw_cpu_off(cpu)

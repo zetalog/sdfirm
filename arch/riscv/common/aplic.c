@@ -90,9 +90,14 @@ static void aplic_check_msicfg(void)
 
 void irqc_hw_mask_irq(irq_t irq)
 {
-	if (irq >= IRQ_PLATFORM)
+	irq_t msi;
+
+	if (irq >= IRQ_PLATFORM) {
 		aplic_mask_irq(irq_ext(irq));
-	else if (irq >= NR_INT_IRQS)
+		msi = irq_mapped_msi(irq);
+		if (msi != INVALID_IRQ)
+			irqc_hw_mask_irq(msi);
+	} else if (irq >= NR_INT_IRQS)
 		imsic_mask_irq(irq_msi(irq));
 	else
 		aplic_hw_disable_int(irq);
@@ -100,9 +105,14 @@ void irqc_hw_mask_irq(irq_t irq)
 
 void irqc_hw_unmask_irq(irq_t irq)
 {
-	if (irq >= IRQ_PLATFORM)
+	irq_t msi;
+
+	if (irq >= IRQ_PLATFORM) {
 		aplic_unmask_irq(irq_ext(irq));
-	else if (irq >= NR_INT_IRQS)
+		msi = irq_mapped_msi(irq);
+		if (msi != INVALID_IRQ)
+			irqc_hw_mask_irq(msi);
+	} else if (irq >= NR_INT_IRQS)
 		imsic_unmask_irq(irq_msi(irq));
 	else
 		aplic_hw_enable_int(irq);
@@ -170,11 +180,13 @@ void aplic_sbi_init(uint8_t soc)
 
 void irqc_hw_enable_irq(irq_t irq)
 {
+	irq_t msi;
+
 	if (irq >= IRQ_PLATFORM) {
 		aplic_enable_irq(irq_ext(irq));
-#ifdef CONFIG_APLIC_MSI
-		//imsic_enable_irq();
-#endif
+		msi = irq_mapped_msi(irq);
+		if (msi != INVALID_IRQ)
+			irqc_hw_enable_irq(msi);
 	} else if (irq >= NR_INT_IRQS)
 		imsic_enable_irq(irq_msi(irq));
 	else
@@ -183,9 +195,14 @@ void irqc_hw_enable_irq(irq_t irq)
 
 void irqc_hw_disable_irq(irq_t irq)
 {
-	if (irq >= IRQ_PLATFORM)
+	irq_t msi;
+
+	if (irq >= IRQ_PLATFORM) {
 		aplic_disable_irq(irq_ext(irq));
-	else if (irq >= NR_INT_IRQS)
+		msi = irq_mapped_msi(irq);
+		if (msi != INVALID_IRQ)
+			irqc_hw_enable_irq(msi);
+	} else if (irq >= NR_INT_IRQS)
 		imsic_enable_irq(irq_msi(irq));
 	else
 		aplic_hw_disable_int(irq);
@@ -279,6 +296,6 @@ void irqc_hw_handle_irq(void)
 
 void msi_hw_ctrl_init(void)
 {
-	irq_reserve_mapping(IMSIC_NO_IRQ, IMSIC_NR_SIRQS - 1);
+	imsic_ctrl_init();
 }
 #endif
