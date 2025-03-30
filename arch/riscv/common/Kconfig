@@ -82,6 +82,7 @@ config CPU_SPACEMIT
 	select CPU_ZICBOZ
 	select CPU_ZICBOM
 	select ARCH_IS_ATOMIC_UNFAIR
+	select CPU_ZIOMMU
 
 config CPU_X100
 	bool
@@ -490,6 +491,7 @@ config RISCV_ZICBOZ
 config RISCV_ZIOMMU
 	bool "I/O memory management unit (Ziommu) support"
 	depends CPU_ZIOMMU
+	select RISCV_IOMMU
 
 config RISCV_SVNAPOT
 	bool "Sv39 NAPOT page size (Svnapot) support"
