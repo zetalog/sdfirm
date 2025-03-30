@@ -400,6 +400,9 @@ void irqc_hw_handle_irq(void);
 #ifdef CONFIG_MMU
 #define irqc_hw_mmu_init()		aplic_hw_mmu_init()
 #endif /* CONFIG_MMU */
+#ifdef CONFIG_APLIC_MSI
+void msi_hw_ctrl_init(void);
+#endif
 #else /* CONFIG_APLIC */
 #define irqc_hw_ctrl_init()		do { } while (0)
 #define irqc_hw_handle_irq()		do { } while (0)

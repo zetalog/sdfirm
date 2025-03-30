@@ -1,6 +1,7 @@
 #include <target/generic.h>
 #include <target/arch.h>
 #include <target/irq.h>
+#include <target/msi.h>
 #include <target/bh.h>
 #include <target/delay.h>
 #include <target/timer.h>
@@ -46,10 +47,14 @@ void system_init(void)
 	early_fixmap_init();
 	main_debug(MAIN_DEBUG_INIT, 0);
 	board_early_init();
+	page_init();
+	heap_init();
+	percpu_init();
+	msi_init();
+	irq_init();
 	clk_init();
 	gpio_init();
 	debug_init();
-	irq_init();
 	tick_init();
 	delay_init();
 #ifdef CONFIG_PORTING_DELAY
@@ -62,11 +67,7 @@ void system_init(void)
 #endif
 	fixmap_late_con_init();
 	paging_init();
-	page_init();
-	heap_init();
 	bulk_init();
-	percpu_init();
-
 #ifdef CONFIG_GEM5
 	con_log("Simpoint: Start simpoint_entry\n");
 	simpoint_entry();
