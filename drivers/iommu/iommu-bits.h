@@ -21,9 +21,6 @@
  * Chapter 5: Memory Mapped register interface
  */
 
-#define BIT(n)		(1UL << n)
-#define BIT_ULL(n)	(1ULL << (n))
-
 /* Common field positions */
 #define RISCV_IOMMU_PPN_FIELD		GENMASK_ULL(53, 10)
 #define RISCV_IOMMU_QUEUE_LOGSZ_FIELD	GENMASK_ULL(4, 0)
@@ -288,6 +285,57 @@ enum riscv_iommu_hpmevent_id {
 #define RISCV_IOMMU_MSI_VEC_CTL_M	BIT_ULL(0)
 
 #define RISCV_IOMMU_REG_SIZE	0x1000
+
+/* Spacemit Distributed IOMMU Extension */
+#ifdef CONFIG_RISCV_IOMMU_SPACET
+/* SpacemiT T100 (RISC-V IOMMU) Architecture Spacification */
+/* 4.7 IOMMU Indetification (32-bits) */
+#define RISCV_IOMMU_REG_ID		0x000C
+#define RISCV_IOMMU_ID_MFID		GENMASK_ULL(6, 0)
+#define RISCV_IOMMU_ID_BANK		GENMASK_ULL(10, 7)
+#define RISCV_IOMMU_ID_REVISION		GENMASK_ULL(23, 16)
+
+#define JEDEC_BANK(n)			((n) - 1)
+#define JEDEC_SPACET			0x10
+
+/* 4.28 Distributed translation interface status register (dtisr0-3) (4 * 32-bits) */
+#define RISCV_IOMMU_REG_DTISR_BASE	0x02B0
+#define RISCV_IOMMU_REG_DTISR(_n)	(RISCV_IOMMU_REG_DTISR_BASE + (_n * 0x04))
+#define RISCV_IOMMU_DTI_STS_SHIFT(n)	(((n) / 16) * 2)
+#define RISCV_IOMMU_DTI_STS_MASK(n)	(0x03 << RISCV_IOMMU_DTI_STS_SHIFT(n))
+
+#define RISCV_IOMMU_DTI_NONE		0x00
+#define RISCV_IOMMU_DTI_TBU_IOATC	0x01
+#define RISCV_IOMMU_DTI_ATS_PCIE	0x01
+
+#define MAX_RISCV_IOMMU_IOATC		64
+#define RISCV_IOMMU_IOATC_BASE(base, ioatc)	\
+	((void *)(((unsigned long)(base)) + (RISCV_IOMMU_REG_SIZE * ((ioatc) + 1))))
+
+/* 4.29 Distrubuted translation interface QoS register (dtiqos0-3) (4 * 32-bits) */
+#define RISCV_IOMMU_REG_DTIQOS_BASE	0x02C0
+#define RISCV_IOMMU_REG_DTIQOS(_n)	(RISCV_IOMMU_REG_DTIQOS_BASE + (_n * 0x04))
+#define RISCV_IOMMU_DTI_PRY_SHIFT(n)	(((n) / 16) * 2)
+#define RISCV_IOMMU_DTI_PRY_MASK(n)	(0x03 << RISCV_IOMMU_DTI_PRY_SHIFT(n))
+
+/* 4.30 Address translation service control and status register (atscsr) (32-bits) */
+#define RISCV_IOMMU_REG_ATSCSR		0x02D0
+#define RISCV_IOMMU_ATS_CAP_TS		GENMASK_ULL(19, 8)
+#define RISCV_IOMMU_ATS_TS		GENMASK_ULL(31, 20)
+#define RISCV_IOMMU_ATS_PTWC_S2L3_DIS	BIT_ULL(7)
+#define RISCV_IOMMU_ATS_PTWC_S2L2_DIS	BIT_ULL(6)
+#define RISCV_IOMMU_ATS_PTWC_S2L1_DIS	BIT_ULL(5)
+#define RISCV_IOMMU_ATS_PTWC_S2L0_DIS	BIT_ULL(4)
+#define RISCV_IOMMU_ATS_PTWC_S1L3_DIS	BIT_ULL(3)
+#define RISCV_IOMMU_ATS_PTWC_S1L2_DIS	BIT_ULL(2)
+#define RISCV_IOMMU_ATS_PTWC_S1L1_DIS	BIT_ULL(1)
+#define RISCV_IOMMU_ATS_PTWC_S1L0_DIS	BIT_ULL(0)
+
+/* 4.31 AMBA AxQOS control register (axqos) (32-bits) */
+#define RISCV_IOMMU_REG_AXQOS		0x02D4
+#define RISCV_IOMMU_QOS_MSI		GENMASK_ULL(23, 20)
+#define RISCV_IOMMU_QOS_DTI_PRY(n)	GENMASK_ULL(((n) + 1) * 4 - 1, (n) * 4)
+#endif
 
 /*
  * Chapter 2: Data structures

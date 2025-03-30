@@ -2669,6 +2669,43 @@ static int riscv_iommu_init(struct riscv_iommu_device *iommu)
 	return ret;
 }
 
+#ifdef CONFIG_RISCV_IOMMU_SPACET
+bool riscv_iommu_spacet = false;
+int riscv_ioatc_num;
+void *riscv_ioatc_reg[MAX_RISCV_IOMMU_IOATC];
+
+void riscv_iommu_probe_spacet(struct riscv_iommu_device *iommu)
+{
+	uint32_t id;
+	uint32_t dtisr;
+	int i, j, ioatc;
+	uint32_t sts;
+
+	id = riscv_iommu_readl(iommu, RISCV_IOMMU_REG_ID);
+	if (FIELD_GET(RISCV_IOMMU_ID_MFID, id) != JEDEC_SPACET ||
+	    FIELD_GET(RISCV_IOMMU_ID_BANK, id) != JEDEC_BANK(15))
+		return;
+
+	riscv_iommu_spacet = true;
+
+	for (i = 0; i < 4; i++) {
+		dtisr = riscv_iommu_readl(iommu, RISCV_IOMMU_REG_DTISR(i));
+		for (j = 0; j < 16; j++) {
+			ioatc = i * 16 + j;
+			sts = (dtisr & RISCV_IOMMU_DTI_STS_MASK(ioatc)) >>
+			      RISCV_IOMMU_DTI_STS_SHIFT(ioatc);
+			if (sts == RISCV_IOMMU_DTI_TBU_IOATC) {
+				riscv_ioatc_reg[riscv_ioatc_num] =
+					RISCV_IOMMU_IOATC_BASE(iommu->reg, ioatc);
+				riscv_ioatc_num++;
+			}
+		}
+	}
+}
+#else
+#define riscv_iommu_probe_spacet(iommu)		do { } while (0)
+#endif
+
 static int riscv_iommu_platform_probe(struct riscv_iommu_device *iommu)
 {
 	uint32_t fctl = 0;
