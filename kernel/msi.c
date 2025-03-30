@@ -68,3 +68,8 @@ irq_t irq_locate_mapping(cpu_t cpu, irq_t irq)
 	vec = *this_cpu_ptr(&irq_msi_vector);
 	return vec[msi];
 }
+
+void msi_init(void)
+{
+	msi_hw_ctrl_init();
+}
