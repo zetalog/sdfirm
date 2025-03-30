@@ -74,10 +74,16 @@
 #define IMSIC_EIPx_BITS			32
 #define IMSIC_EIEx_BITS			32
 
-#define IMSIC_DISABLE_EIDELIVERY	0
-#define IMSIC_ENABLE_EIDELIVERY		1
-#define IMSIC_DISABLE_EITHRESHOLD	1
-#define IMSIC_ENABLE_EITHRESHOLD	0
+/* EIDELIVERY values */
+#define IMSIC_OFF			0
+#define IMSIC_MSI			1
+#define IMSIC_WSI			0x40000000
+
+/* EITHRESHOLD values */
+#define IMSIC_NONE			0
+#define IMSIC_MIN			1
+#define IMSIC_MAX			IMSIC_HW_MAX_IRQS
+#define IMSIC_ALL			IMSIC_MIN
 
 #define imsic_claim_irq()				\
 	({						\

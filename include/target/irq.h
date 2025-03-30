@@ -94,6 +94,12 @@ void irq_vectors_init(void);
 #endif
 boolean do_IRQ(irq_t nr);
 
+#ifdef CONFIG_MSI
+irq_t irq_mapped_msi(irq_t irq);
+#else
+#define irq_mapped_msi(irq)		INVALID_IRQ
+#endif
+
 /* irq pollers */
 void irq_register_poller(bh_t bh);
 boolean irq_poll_bh(bool sync);
