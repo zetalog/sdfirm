@@ -118,8 +118,15 @@ config SMMU
 	select BIT_FIND_CLEAR
 	select SMMU_COMMON
 
-config RISCV_IOMMU
+menuconfig RISCV_IOMMU
 	bool
+
+if RISCV_IOMMU
+
+config RISCV_IOMMU_SPACET
+	bool "Enable SpacemiT distributed IOMMU extension"
+
+endif
 
 choice
 	prompt "Translation scheme"
