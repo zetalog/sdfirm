@@ -42,6 +42,8 @@
 #ifndef __IRQ_K1MAX_H_INCLUDE__
 #define __IRQ_K1MAX_H_INCLUDE__
 
+#define IMSIC_HW_MAX_IRQS	256
+
 #define IRQ_UART		EXT_IRQ(1)
 #define IRQ_TIMERS		EXT_IRQ(3)
 
