@@ -9,7 +9,7 @@ struct rpmi_ras {
 
 extern struct mbox_chan g_chan;
 
-static struct rpmi_ras ras = {
+static struct rpmi_ras g_ras = {
 	.chan = &g_chan
 };
 
@@ -25,10 +25,10 @@ int rpmi_ras_sync_hart_errs(u32 *pending_vectors, u32 *nr_pending,
 
 	*nr_pending = *nr_remaining = 0;
 
-	if (!ras.chan)
+	if (!g_ras.chan)
 		return -1;
 
-	rc = rpmi_normal_request_with_status(ras.chan,
+	rc = rpmi_normal_request_with_status(g_ras.chan,
 					     RPMI_RAS_SRV_SYNC_HART_ERR_REQ,
 					     &req, rpmi_u32_count(req),
 					     rpmi_u32_count(req),
@@ -86,10 +86,10 @@ int rpmi_ras_sync_reri_errs(u32 *pending_vectors, u32 *nr_pending,
 
 	*nr_pending = *nr_remaining = 0;
 
-	if (!ras.chan)
+	if (!g_ras.chan)
 		return -1;
 
-	rc = rpmi_posted_request(ras.chan,
+	rc = rpmi_posted_request(g_ras.chan,
 				 RPMI_RAS_SRV_SYNC_HART_ERR_REQ,
 				 sblock, sblock->data_len / sizeof(u32),
 				 0);
