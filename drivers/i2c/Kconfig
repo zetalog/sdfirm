@@ -122,6 +122,12 @@ config ARCH_HAS_DW_I2C_ADD_ENCODED_PARAMS
 config ARCH_HAS_DW_I2C_USE_COUNTS
 	bool
 	depends !ARCH_HAS_DW_I2C_CLOCK_PERIOD
+	help
+	  When enabled, *CNT registers are programmed. When disabled, the
+	  *CNT registers are read only or hard coded and their reset values
+	  are specified by the corresponding *COUNT configurations.
+	  For fast mode plus, it is recommended to enable this to reprogram
+	  the IC_FS_SC_*CNT register to achieve the required data rate.
 
 config ARCH_HAS_DW_I2C_HC_COUNTS
 	bool
@@ -166,6 +172,11 @@ config ARCH_HAS_DW_I2C_FIRST_DATA_BYTE_STATUS
 	bool
 
 config ARCH_HAS_DW_I2C_AVOID_RX_FIFO_FLUSH_ON_TX_ABRT
+	bool
+	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
+	depends ARCH_HAS_DW_AMBA_ADVANCED
+
+config ARCH_HAS_DW_I2C_FREQ_OPTIMIZATION
 	bool
 	depends !ARCH_IS_DW_I2C_ULTRA_FAST_MODE
 	depends ARCH_HAS_DW_AMBA_ADVANCED
@@ -442,18 +453,6 @@ config DW_I2C_ADD_ENCODED_PARAMS
 	  any of the other parameters that are encoded in the register's
 	  bits.
 
-config DW_I2C_USE_COUNTS
-	bool "Enable *CNT programming support"
-	depends ARCH_HAS_DW_I2C_USE_COUNTS
-	depends !ARCH_HAS_DW_I2C_HC_COUNTS
-	depends !DW_I2C_SPEED_STANDARD || DW_I2C_ULTRA_FAST_MODE
-	help
-	  When enabled, *CNT registers are programmed. When disabled, the
-	  *CNT registers are read only or hard coded and their reset values
-	  are specified by the corresponding *COUNT configurations.
-	  For fast mode plus, it is recommended to enable this to reprogram
-	  the IC_FS_SC_*CNT register to achieve the required data rate.
-
 endmenu
 
 menu "Additional Features"
@@ -697,5 +696,9 @@ menuconfig DW_I2CS
 if DW_I2CS
 
 endif
+
+config DW_I2C_MAX_FREQ
+	bool "Enable maximum frequency"
+	depends SIMULATION
 
 endmenu
