@@ -2,6 +2,19 @@ if ARCH_K1MAX
 
 menu "Spacemit K1MAX board options"
 
+choice
+	prompt "Testing CPU"
+
+config K1MAX_X100
+	bool "X100 w/o AIA"
+	select ARCH_HAS_PLIC
+
+config K1MAX_X100_AIA
+	bool "X100 w AIA"
+	select ARCH_HAS_APLIC
+
+endchoice
+
 config K1M_SOC
 	bool
 
