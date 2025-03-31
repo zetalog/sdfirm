@@ -64,9 +64,62 @@ void dw_i2c_set_address(i2c_addr_t addr, boolean call)
 
 /* Master configuration */
 #ifdef CONFIG_ARCH_HAS_DW_I2C_FREQ_OPTIMIZATION
+#define LCNT_MIN		6
+#define HCNT_MIN		5
+
+uint32_t MIN_SCL_HIGHtime(uint16_t khz, bool pf400)
+{
+	uint32_t min_scl_high_time;
+
+	switch (khz) {
+	default:
+	case 100:
+		min_scl_high_time = 4000;
+		break;
+	case 400:
+		min_scl_high_time = 600;
+		break;
+	case 1000:
+		min_scl_high_time = 260;
+		break;
+	case 3400:
+		if (pf400)
+			min_scl_high_time = 160;
+		else
+			min_scl_high_time = 60;
+		break;
+	}
+	return min_scl_high_time;
+}
+
+uint32_t MIN_SCL_LOWtime(uint16_t khz, bool pf400)
+{
+	uint32_t min_scl_low_time;
+
+	switch (khz) {
+	default:
+	case 100:
+		min_scl_low_time = 4700;
+		break;
+	case 400:
+		min_scl_low_time = 1300;
+		break;
+	case 1000:
+		min_scl_low_time = 500;
+		break;
+	case 3400:
+		if (pf400)
+			min_scl_low_time = 320;
+		else
+			min_scl_low_time = 120;
+		break;
+	}
+	return min_scl_low_time;
+}
+
 void dw_i2c_set_frequency(uint16_t khz)
 {
-	uint32_t hcnt, lcnt;
+	uint32_t hcnt, lcnt, spklen;
 	int i2c_spd;
 	int bus_speed = DW_I2C_FREQ;
 	int speed = khz * 1000;
@@ -82,25 +135,24 @@ void dw_i2c_set_frequency(uint16_t khz)
 	dw_i2c_writel_mask(IC_CON_SPEED(i2c_spd),
 			   IC_CON_SPEED(IC_CON_SPEED_MASK),
 			   IC_CON(dw_i2cd));
+
+	hcnt = MIN_SCL_HIGHtime(khz, false) * (bus_speed / 1000);
+	lcnt = MIN_SCL_LOWtime(khz, false) * (bus_speed / 1000);
 	switch (i2c_spd) {
 	case IC_CON_SPEED_HIGH:
-		hcnt = bus_speed / speed / (6+16) * 6 - (1+7);
-		lcnt = bus_speed / speed / (6+16) * 16 - 1;
-		lcnt = hcnt * 2;
-		dw_i2c_writel(hcnt, IC_HS_SCL_HCNT(dw_i2cd));
+		spklen = dw_i2c_readl(IC_HS_SPKLEN(dw_i2cd));
+		dw_i2c_writel(hcnt - 3 - spklen, IC_HS_SCL_HCNT(dw_i2cd));
 		dw_i2c_writel(lcnt, IC_HS_SCL_LCNT(dw_i2cd));
 		break;
 	case IC_CON_SPEED_STD:
-		hcnt = bus_speed / speed / (40+47) * 40 - (5+7);
-		lcnt = bus_speed / speed / (40+47) * 47 - 1;
-		dw_i2c_writel(hcnt, IC_SS_SCL_HCNT(dw_i2cd));
+		spklen = dw_i2c_readl(IC_FS_SPKLEN(dw_i2cd));
+		dw_i2c_writel(hcnt - 3 - spklen, IC_SS_SCL_HCNT(dw_i2cd));
 		dw_i2c_writel(lcnt, IC_SS_SCL_LCNT(dw_i2cd));
 		break;
 	case IC_CON_SPEED_FAST:
 	default:
-		hcnt = bus_speed / speed / (6+13) * 6 - (5+7);
-		lcnt = bus_speed / speed / (6+13) * 13 - 1;
-		dw_i2c_writel(hcnt, IC_FS_SCL_HCNT(dw_i2cd));
+		spklen = dw_i2c_readl(IC_FS_SPKLEN(dw_i2cd));
+		dw_i2c_writel(hcnt - 3 - spklen, IC_FS_SCL_HCNT(dw_i2cd));
 		dw_i2c_writel(lcnt, IC_FS_SCL_LCNT(dw_i2cd));
 		break;
 	}
