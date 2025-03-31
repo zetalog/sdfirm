@@ -35,19 +35,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)rpmi.h: required RPMI driver specific abstraction
- * $Id: rpmi.h,v 1.1 2020-07-28 17:13:00 zhenglv Exp $
+ * @(#)reri.h: required RERI driver specific abstraction
+ * $Id: reri.h,v 1.1 2020-07-28 17:13:00 zhenglv Exp $
  */
 
-#ifndef __RPMI_DRIVER_H_INCLUDE__
-#define __RPMI_DRIVER_H_INCLUDE__
+#ifndef __RERI_DRIVER_H_INCLUDE__
+#define __RERI_DRIVER_H_INCLUDE__
 
 #include <asm/types.h>
 
-void rpmi_shmem_init(void);
-int rpmi_ras_sync_hart_errs(u32 *pending_vectors, u32 *nr_pending,
-			    u32 *nr_remaining);
-int rpmi_ras_sync_reri_errs(u32 *pending_vectors, u32 *nr_pending,
-                            u32 *nr_remaining);
+void reri_drv_init(void);
+int reri_drv_sync_hart_errs(u32 hart_id, u32 *pending_vectors);
 
-#endif /* __RPMI_DRIVER_H_INCLUDE__ */
+
+#endif /* __RERI_DRIVER_H_INCLUDE__ */
