@@ -124,7 +124,7 @@ static uint32_t riscv_reri_get_hart_src_id(int hart_id, uint32_t *hart_src_id)
 	return 0;
 }
 
-int reri_drv_init(void)
+void reri_drv_init(void)
 {
 	int i, ret;
 	static reri_hart_dev_t reri_hart_dev[NR_CPUS];
@@ -145,8 +145,6 @@ int reri_drv_init(void)
 		reri_hart_devices[i].dev.src_id = i;
 		reri_hart_devices[i].hart_id = i;
 	}
-
-	return 0;
 }
 
 int reri_drv_sync_hart_errs(u32 hart_id, u32 *pending_vectors)
