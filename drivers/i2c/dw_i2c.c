@@ -63,16 +63,13 @@ void dw_i2c_set_address(i2c_addr_t addr, boolean call)
 }
 
 /* Master configuration */
+#ifdef CONFIG_ARCH_HAS_DW_I2C_FREQ_OPTIMIZATION
 void dw_i2c_set_frequency(uint16_t khz)
 {
-	uint32_t cntl;
 	uint32_t hcnt, lcnt;
 	int i2c_spd;
-	int speed = khz * 1000;
 	int bus_speed = DW_I2C_FREQ;
-#ifndef CONFIG_DW_I2C_USE_COUNTS
-	int bus_mhz = bus_speed / 1000 / 1000;
-#endif
+	int speed = khz * 1000;
 
 	if (speed >= I2C_MAX_SPEED)
 		i2c_spd = IC_CON_SPEED_MAX;
@@ -82,10 +79,9 @@ void dw_i2c_set_frequency(uint16_t khz)
 		i2c_spd = IC_CON_SPEED_STD;
 
 	dw_i2c_ctrl_disable();
-	cntl = dw_i2c_readl(IC_CON(dw_i2cd));
-
-	cntl |= IC_CON_SPEED(i2c_spd);
-#ifdef CONFIG_DW_I2C_USE_COUNTS
+	dw_i2c_writel_mask(IC_CON_SPEED(i2c_spd),
+			   IC_CON_SPEED(IC_CON_SPEED_MASK),
+			   IC_CON(dw_i2cd));
 	switch (i2c_spd) {
 	case IC_CON_SPEED_HIGH:
 		hcnt = bus_speed / speed / (6+16) * 6 - (1+7);
@@ -108,7 +104,16 @@ void dw_i2c_set_frequency(uint16_t khz)
 		dw_i2c_writel(lcnt, IC_FS_SCL_LCNT(dw_i2cd));
 		break;
 	}
+	dw_i2c_ctrl_enable();
+}
 #else
+#ifdef CONFIG_DW_I2C_MAX_FREQ
+static void dw_i2c_set_max_frequency(uint32_t i2c_spd)
+{
+	uint32_t hcnt, lcnt;
+	int bus_speed = DW_I2C_FREQ;
+	int bus_mhz = bus_speed / 1000 / 1000;
+
 	switch (i2c_spd) {
 	case IC_CON_SPEED_HIGH:
 		hcnt = (bus_mhz * MIN_HS_SCL_HIGHTIME) / 1000;
@@ -130,10 +135,58 @@ void dw_i2c_set_frequency(uint16_t khz)
 		dw_i2c_writel(lcnt, IC_FS_SCL_LCNT(dw_i2cd));
 		break;
 	}
+}
+#else
+#define dw_i2c_set_max_frequency(i2c_spd)	do { } while (0)
 #endif
-	dw_i2c_writel(cntl, IC_CON(dw_i2cd));
+
+/* TODO: Following code should be tuned to match FREQ_OPTIMIZATION=0 */
+void dw_i2c_set_frequency(uint16_t khz)
+{
+	uint32_t hcnt, lcnt;
+	int i2c_spd;
+	int speed = khz * 1000;
+	int bus_speed = DW_I2C_FREQ;
+
+	if (speed >= I2C_MAX_SPEED)
+		i2c_spd = IC_CON_SPEED_MAX;
+	else if (speed >= I2C_FAST_SPEED)
+		i2c_spd = IC_CON_SPEED_FAST;
+	else
+		i2c_spd = IC_CON_SPEED_STD;
+
+	dw_i2c_ctrl_disable();
+	dw_i2c_writel_mask(IC_CON_SPEED(i2c_spd),
+			   IC_CON_SPEED(IC_CON_SPEED_MASK),
+			   IC_CON(dw_i2cd));
+	dw_i2c_set_max_frequency(i2c_spd);
+#ifndef CONFIG_DW_I2C_MAX_FREQ
+	switch (i2c_spd) {
+	case IC_CON_SPEED_HIGH:
+		hcnt = bus_speed / speed / (6+16) * 6 - (1+7);
+		lcnt = bus_speed / speed / (6+16) * 16 - 1;
+		lcnt = hcnt * 2;
+		dw_i2c_writel(hcnt, IC_HS_SCL_HCNT(dw_i2cd));
+		dw_i2c_writel(lcnt, IC_HS_SCL_LCNT(dw_i2cd));
+		break;
+	case IC_CON_SPEED_STD:
+		hcnt = bus_speed / speed / (40+47) * 40 - (5+7);
+		lcnt = bus_speed / speed / (40+47) * 47 - 1;
+		dw_i2c_writel(hcnt, IC_SS_SCL_HCNT(dw_i2cd));
+		dw_i2c_writel(lcnt, IC_SS_SCL_LCNT(dw_i2cd));
+		break;
+	case IC_CON_SPEED_FAST:
+	default:
+		hcnt = bus_speed / speed / (6+13) * 6 - (5+7);
+		lcnt = bus_speed / speed / (6+13) * 13 - 1;
+		dw_i2c_writel(hcnt, IC_FS_SCL_HCNT(dw_i2cd));
+		dw_i2c_writel(lcnt, IC_FS_SCL_LCNT(dw_i2cd));
+		break;
+	}
+#endif
 	dw_i2c_ctrl_enable();
 }
+#endif
 
 #ifdef CONFIG_DW_I2C_DYNAMIC_TAR_UPDATE
 static void dw_i2c_update_target(i2c_addr_t addr)
