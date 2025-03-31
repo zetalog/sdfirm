@@ -232,6 +232,7 @@ CONFIG_FDT_PMU=y
 # Spacemit K1MAX board options
 #
 CONFIG_K1M_SOC=y
+CONFIG_K1MAX_X100=y
 # CONFIG_K1M_CPU is not set
 # CONFIG_K1M_PZ1 is not set
 CONFIG_K1M_S2C=y
