@@ -318,7 +318,7 @@ static int rpmi_cppc_update_hart_scratch(struct mbox_chan *chan)
 }
 
 extern struct mbox_chan g_chan;
-int rpmi_cppc_init(void)
+void rpmi_cppc_init(void)
 {
 	int rc;
 	struct mbox_chan *chan = &g_chan;
@@ -326,7 +326,7 @@ int rpmi_cppc_init(void)
 	/* Update per-HART scratch space */
 	rc = rpmi_cppc_update_hart_scratch(chan);
 	if (rc)
-		return rc;
+		return;
 
-	return 0;
+	return;
 }
