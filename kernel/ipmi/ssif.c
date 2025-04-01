@@ -57,44 +57,45 @@ uint8_t calculate_pec(uint8_t rw, uint8_t *buf, uint8_t length) {
 	return pec;
 }
 
-uint8_t ssif_write_single(uint8_t *data, uint8_t len, uint8_t netfn, uint8_t lun, uint8_t ipmi_cmd)
+uint8_t ssif_write_single(uint8_t *txdata, uint8_t txlen, uint8_t txnetfn, uint8_t txlun, uint8_t txcmd)
 {
 	int i;
 	i2c_register_device(&ssif_i2c);
 	ssif_txlen = 0;
 	ssif_rxlen = 0;
 	ssif_txbuf[SSIF_W_SMBUS_CMD] = SSIF_SINGLE_WRITE;
-	ssif_txbuf[SSIF_W_LEN] = len + 2;
-	ssif_txbuf[SSIF_W_NETFN_LUN] = (netfn << 2) | (lun & 0x3);
-	ssif_txbuf[SSIF_W_IPMI_CMD] = ipmi_cmd;
-	for (i = 0; i < len; i++)
-		ssif_txbuf[i + 4] = data[i];
-	ssif_txbuf[i + 4] = calculate_pec(0, ssif_txbuf, len + 4);
-	i2c_master_submit(ssif_addr, len + 5, 0);
+	ssif_txbuf[SSIF_W_LEN] = txlen + 2;
+	ssif_txbuf[SSIF_W_NETFN_LUN] = (txnetfn << 2) | (txlun & 0x3);
+	ssif_txbuf[SSIF_W_IPMI_CMD] = txcmd;
+	for (i = 0; i < txlen; i++)
+		ssif_txbuf[i + 4] = txdata[i];
+	ssif_txbuf[i + 4] = calculate_pec(0, ssif_txbuf, txlen + 4);
+	i2c_master_submit(ssif_addr, txlen + 5, 0);
 	return ssif_txlen;
 }
 
-uint8_t ssif_read_single(uint8_t *data)
+uint8_t ssif_read_single(uint8_t *rxdata)
 {
 	int i;
-	uint8_t len, netfn, lun, cmd, cpcode;
+	uint8_t rxlen, rxnetfn, rxlun, rxcmd, rxcpcode;
 	i2c_register_device(&ssif_i2c);
 	ssif_txbuf[SSIF_W_SMBUS_CMD] = SSIF_SINGLE_READ;
 	ssif_txlen = 0;
 	ssif_rxlen = 0;
-	i2c_master_submit(ssif_addr, 1, 0);
-	ssif_txlen = 0;
-	ssif_rxlen = 0;
-	i2c_master_submit(ssif_addr, 0, 4);
-	len = ssif_rxbuf[SSIF_R_LEN];
-	netfn = ssif_rxbuf[SSIF_R_NETFN_LUN] >> 2;
-	lun = ssif_rxbuf[SSIF_R_NETFN_LUN] & 0x3;
-	cmd = ssif_rxbuf[SSIF_R_IPMI_CMD];
-	cpcode = ssif_rxbuf[SSIF_R_COMPLETION_CODE];
+	i2c_master_submit(ssif_addr, 1, 4);
+	rxlen = ssif_rxbuf[SSIF_R_LEN];
+	rxnetfn = ssif_rxbuf[SSIF_R_NETFN_LUN] >> 2;
+	rxlun = ssif_rxbuf[SSIF_R_NETFN_LUN] & 0x3;
+	rxcmd = ssif_rxbuf[SSIF_R_IPMI_CMD];
+	rxcpcode = ssif_rxbuf[SSIF_R_COMPLETION_CODE];
 	printf("ssif read: len = %x, netfn = %x, lun = %x, ipmi_cmd = %x, compcode = %x\n", 
-		len, netfn, lun, cmd, cpcode);
-	i2c_master_submit(ssif_addr, 0, len);
-	data = ssif_rxbuf;
+		rxlen, rxnetfn, rxlun, rxcmd, rxcpcode);
+	for (i = 0; i < rxlen; i++) {
+		ssif_rxbuf[ssif_rxlen] = i2c_read_byte();
+		printf("ssif rx: %d - %x\n", ssif_rxlen, ssif_rxbuf[ssif_rxlen]);
+		ssif_rxlen++;
+	}
+	rxdata = ssif_rxbuf;
 	return ssif_rxlen;
 }
 
@@ -142,43 +143,6 @@ int do_ssif_write(int argc, char *argv[])
 	return 0;
 }
 
-int do_ssif_xfer(int argc, char *argv[])
-{
-	int ret, i;
-	uint8_t len, netfn, lun, ipmi_cmd, pec;
-	uint8_t txbuf[SSIF_MAX_LEN], rxbuf[SSIF_MAX_LEN];
-
-	if (argc < 3)
-		return -EINVAL;
-	len = (uint8_t)strtoull(argv[2], 0, 0);
-	netfn = (uint8_t)strtoull(argv[3], 0, 0);
-	lun = (uint8_t)strtoull(argv[4], 0, 0);
-	ipmi_cmd = (uint8_t)strtoull(argv[5], 0, 0);
-	if (len >= SSIF_MAX_LEN) {
-		printf("write length oversized!\n");
-		return -EINVAL;
-	}
-	if (len > argc - 2) {
-		printf("write length not match!\n");
-		return -EINVAL;
-	}
-	for (i = 0; i < len; i++) {
-		txbuf[i] = (uint8_t)strtoull(argv[i + 6], 0, 0);
-	}
-	ret = ssif_write_single(txbuf, len, netfn, lun, ipmi_cmd);
-	if (ret < 0) {
-		printf("ssif write error!\n");
-		return -ret;
-	}
-	ret = ssif_read_single(rxbuf);
-	if (ret < 0) {
-		printf("ssif read error!\n");
-		return ret;
-	}
-	hexdump(0, rxbuf, 1, ret);
-	return 0;
-}
-
 int do_ssif(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -191,8 +155,10 @@ int do_ssif(int argc, char *argv[])
 		return do_ssif_read(argc, argv);
 	if (strcmp(argv[1], "write") == 0)
 		return do_ssif_write(argc, argv);
-	if (strcmp(argv[1], "xfer") == 0)
-		return do_ssif_xfer(argc, argv);
+	if (strcmp(argv[1], "xfer") == 0) {
+		do_ssif_write(argc, argv);
+		return do_ssif_read(argc, argv);
+	}
 	return -EINVAL;
 }
 

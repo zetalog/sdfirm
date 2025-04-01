@@ -4,6 +4,8 @@
 typedef uint16_t spi_len_t;
 typedef uint8_t spi_addr_t;
 
+typedef void (*spi_io_cb)(spi_len_t len);
+
 #ifdef CONFIG_ARCH_HAS_SPI
 #include <asm/mach/spi.h>
 #endif
