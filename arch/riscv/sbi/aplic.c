@@ -126,6 +126,7 @@ static void aplic_writel_msicfg(struct aplic_msicfg_data *msicfg,
                 return;
 
         /* Compute the MSI base PPN */
+        //sbi_printf("aplic.c:msicfg->base_addr:%llx\n", msicfg->base_addr);
         base_ppn = msicfg->base_addr >> APLIC_xMSICFGADDR_PPN_SHIFT;
         base_ppn &= ~APLIC_xMSICFGADDR_PPN_HART(msicfg->lhxs);
         base_ppn &= ~APLIC_xMSICFGADDR_PPN_LHX(msicfg->lhxw, msicfg->lhxs);
@@ -173,6 +174,8 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
         struct aplic_delegate_data *deleg;
         uint32_t first_deleg_irq, last_deleg_irq;
 
+        //sbi_printf("aplic.c:num_source:%ld, num_idc:%ld, addr:%llx\n",
+        //        aplic->num_source, aplic->num_idc, aplic->addr);
         /* Sanity checks */
         if (!aplic ||
             !aplic->num_source || APLIC_MAX_SOURCE <= aplic->num_source ||
@@ -212,6 +215,8 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
         first_deleg_irq = -1U;
         last_deleg_irq = 0;
         for (i = 0; i < APLIC_MAX_DELEGS; i++) {
+                //sbi_printf("aplic.c: delegate[%d], first_irq=%d, last_irq=%d, aplic->addr=%lx\n",
+                //        i, deleg->first_irq, deleg->last_irq, aplic->addr);
                 deleg = &aplic->delegate[i];
                 if (!deleg->first_irq || !deleg->last_irq)
                         continue;
