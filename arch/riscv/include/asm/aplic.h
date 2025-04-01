@@ -295,14 +295,14 @@ struct aplic_data {
 #define aplic_configure_wsi(irq, hart, prio)			\
 	__raw_writel(APLIC_HART_INDEX(hart) | APLIC_IPRIO(prio),\
 		     APLIC_TARGET(aplic_hw_irq_soc(irq), irq))
-#define aplic_configure_msi(irq, hart, guest, msi)	\
+#define aplic_configure_msi(irq, hart, guest, msi)		\
 	do { } while (0)
-#define aplic_claim_irq(cpu)				\
+#define aplic_claim_irq(cpu)					\
 	APLIC_IID(__raw_readl(APLIC_CLAIMI(aplic_hw_irq_soc(irq), cpu)))
 #else /* CONFIG_APLIC_WSI */
-#define aplic_configure_pri(irq, prio)			\
+#define aplic_configure_pri(irq, prio)				\
 	do { } while (0)
-#define aplic_configure_wsi(irq, hart, prio)		\
+#define aplic_configure_wsi(irq, hart, prio)			\
 	do { } while (0)
 #define aplic_configure_msi(irq, hart, guest, msi)		\
 	__raw_writel(APLIC_HART_INDEX(hart) |			\
