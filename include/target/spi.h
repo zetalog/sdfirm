@@ -15,13 +15,14 @@ typedef uint8_t spi_t;
 #endif
 #define INVALID_SPI_DID	NR_SPI_DEVICES
 
+typedef uint16_t spi_event_t;
+
 struct spi_device {
 	uint8_t mode;
 	uint32_t max_freq_khz;
 	uint8_t chip;
-	uint16_t iocb;
+	spi_io_cb iocb;
 };
-typedef uint16_t spi_event_t;
 typedef struct spi_device spi_device_t;
 
 #ifdef SPI_HW_FREQ
@@ -103,6 +104,8 @@ typedef struct spi_device spi_device_t;
 #define SPI_MODE_MASTER_RX	(SPI_MODE_MASTER | SPI_MODE_RX)
 
 #define spi_addr_mode(addr, mode)	(((addr) << 1) | (mode))
+#define spi_addr(addr_mode)		((addr_mode) >> 1)
+#define spimode_mode(addr_mode)		((addr_mode) & 0x01)
 
 extern spi_addr_t spi_target;
 extern spi_addr_t spi_address;
@@ -119,20 +122,23 @@ extern spi_event_t spi_event;
 extern spi_device_t *spi_device;
 extern spi_addr_t spi_abrt_slave;
 
+#define spi_master_save(spi)		0
+#define spi_master_restore(spi)		do { } while (0)
+
 void spi_write_byte(uint8_t byte);
 uint8_t spi_read_byte(void);
 #define spi_tx(byte)		spi_write_byte(byte)
 #define spi_rx()		spi_read_byte()
 uint8_t spi_txrx(uint8_t byte);
 
+void spi_raise_event(uint8_t event);
+void spi_enter_state(uint8_t state);
+
 bool spi_first_byte(void);
 bool spi_prev_byte(void);
 bool spi_last_byte(void);
 
 void spi_set_status(uint8_t status);
-
-void spi_raise_event(uint8_t event);
-void spi_enter_state(uint8_t state);
 
 #ifdef CONFIG_SPI_MASTER
 spi_t spi_register_device(spi_device_t *dev);
