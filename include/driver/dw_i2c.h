@@ -398,8 +398,27 @@
 #define MIN_SS_SCL_LOWTIME		4700
 #define MIN_FS_SCL_HIGHTIME		600
 #define MIN_FS_SCL_LOWTIME		1300
+#define MIN_FP_SCL_HIGHTIME		260
+#define MIN_FP_SCL_LOWTIME		500
 #define MIN_HS_SCL_HIGHTIME		60
 #define MIN_HS_SCL_LOWTIME		160
+
+#ifdef DW_I2C_HW_SCL_RISE_TIME
+#define DW_I2C_SCL_RISE_TIME		DW_I2C_HW_SCL_RISE_TIME
+#else
+#define DW_I2C_SCL_RISE_TIME		0
+#endif
+#ifdef DW_I2C_HW_SCL_FALL_TIME
+#define DW_I2C_SCL_FALL_TIME		DW_I2C_HW_SCL_FALL_TIME
+#else
+#define DW_I2C_SCL_FALL_TIME		0
+#endif
+#ifdef DW_I2C_HW_SDA_HOLD_TIME
+#define DW_I2C_SDA_HOLD_TIME		DW_I2C_HW_SDA_HOLD_TIME
+#else
+#define DW_I2C_SDA_HOLD_TIME		0
+#endif
+#define DEFAULT_SDA_HOLD_TIME		300
 
 /* Worst case timeout for 1 byte is kept as 2ms */
 #define I2C_BYTE_TO			(CONFIG_SYS_HZ/500)
