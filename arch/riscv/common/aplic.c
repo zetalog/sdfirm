@@ -137,11 +137,8 @@ void aplic_wsi_init(uint8_t soc)
 
 void aplic_msi_init(uint8_t soc)
 {
-	aplic_check_msicfg();
-	if (APLIC_HW_MMODE_MSIADDR)
-		aplic_write_msicfg(soc, APLIC_HW_MMODE_MSIADDR);
-	if (APLIC_HW_SMODE_MSIADDR)
-		aplic_write_msicfg(soc, APLIC_HW_SMODE_MSIADDR);
+	if (APLIC_MODE_MSIADDR)
+		aplic_write_msicfg(soc, APLIC_MODE_MSIADDR);
 }
 #endif
 
