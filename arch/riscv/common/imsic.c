@@ -38,6 +38,7 @@
  * @(#)imsic.c: incoming MSI controller (IMSIC) implementation
  * $Id: imsic.c,v 1.1 2023-3-11 15:43:00 zhenglv Exp $
  */
+#include <target/console.h>
 #include <target/irq.h>
 #include <target/smp.h>
 #include <target/percpu.h>
