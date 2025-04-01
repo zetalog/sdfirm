@@ -921,6 +921,7 @@
 	do {						\
 		csr_write(CSR_ISELECT, __c);		\
 		csr_write(CSR_IREG, __v);		\
+		csr_dbg("aia: %d = %04x\n", __c, __v);	\
 	} while (0)
 #define aia_csr_read(__c)				\
 	({						\
@@ -934,17 +935,20 @@
 	 	unsigned long ____v;			\
 		csr_write(CSR_ISELECT, __c);		\
 		____v = csr_read_clear(CSR_IREG, __v);	\
+		csr_dbg("aia: %ld &=~ %04lx\n", __c, __v);\
 		____v;					\
 	})
 #define aia_csr_set(__c, __v)				\
 	do {						\
 		csr_write(CSR_ISELECT, __c);		\
 		csr_set(CSR_IREG, __v);			\
+		csr_dbg("aia: %ld |= %04lx\n", __c, __v);\
 	} while (0)
 #define aia_csr_clear(__c, __v)				\
 	do {						\
 		csr_write(CSR_ISELECT, __c);		\
 		csr_clear(CSR_IREG, __v);		\
+		csr_dbg("aia: %ld &=~ %04lx\n", __c, __v);\
 	} while (0)
 #endif
 
