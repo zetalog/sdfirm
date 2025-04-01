@@ -96,8 +96,10 @@ boolean do_IRQ(irq_t nr);
 
 #ifdef CONFIG_MSI
 irq_t irq_mapped_msi(irq_t irq);
+cpu_t irq_mapped_cpu(irq_t irq);
 #else
 #define irq_mapped_msi(irq)		INVALID_IRQ
+#define irq_mapped_cpu(irq)		0
 #endif
 
 /* irq pollers */
