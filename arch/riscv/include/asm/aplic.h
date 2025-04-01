@@ -229,7 +229,7 @@ struct aplic_data {
 #define APLIC_SETIPNUM_BE(soc)		APLIC_REG(soc, 0x2004)
 
 #define APLIC_GENMSI(soc)		APLIC_REG(soc, 0x3000)
-#define APLIC_TARGET(soc, irq)		APLIC_REG(soc, 0x3004 + ((irq) << 2))
+#define APLIC_TARGET(soc, irq)		APLIC_REG(soc, 0x3004 + (((irq) - 1) << 2))
 
 #define APLIC_EIID_OFFSET		0
 #define APLIC_EIID_MASK			REG_11BIT_MASK
