@@ -57,7 +57,7 @@ static struct aplic_delegate_data aplic_hw_deleg_data[] = {
 #endif
 
 #ifdef CONFIG_APLIC_MSI
-static void aplic_writel_msicfg(uint8_t soc, unsigned long base_addr)
+static void aplic_write_msicfg(uint8_t soc, unsigned long base_addr)
 {
 	unsigned long base_ppn;
 
@@ -85,7 +85,7 @@ static void aplic_check_msicfg(void)
 	BUG_ON(APLIC_HHXW_MASK < APLIC_HW_MSI_HHXW);
 }
 #else
-#define aplic_writel_msicfg(cfg, addr)	do { } while (0)
+#define aplic_write_msicfg(cfg, addr)	do { } while (0)
 #define aplic_check_msicfg(cfg)		do { } while (0)
 
 void irqc_hw_mask_irq(irq_t irq)
@@ -119,23 +119,53 @@ void irqc_hw_unmask_irq(irq_t irq)
 }
 #endif
 
+#ifdef CONFIG_APLIC_WSI
+void aplic_wsi_init(uint8_t soc)
+{
+	uint32_t i;
+
+	for (i = 0; i < MAX_HARTS; i++) {
+		__raw_writel(APLIC_ITHRES_ALL, APLIC_IDELIVERY(soc, i));
+		__raw_writel(0, APLIC_IFORCE(soc, i));
+		__raw_writel(APLIC_ITHRES_NONE, APLIC_IDELIVERY(soc, i));
+	}
+}
+
+#define aplic_msi_init(soc)		do { } while (0)
+#else
+#define aplic_wsi_init(soc)		do { } while (0)
+
+void aplic_msi_init(uint8_t soc)
+{
+	aplic_check_msicfg();
+	if (APLIC_HW_MMODE_MSIADDR)
+		aplic_write_msicfg(soc, APLIC_HW_MMODE_MSIADDR);
+	if (APLIC_HW_SMODE_MSIADDR)
+		aplic_write_msicfg(soc, APLIC_HW_SMODE_MSIADDR);
+}
+#endif
+
+static void aplic_irqs_init(void)
+{
+	irq_t irq;
+
+	for (irq = 1; irq <= APLIC_MAX_IRQS; irq++) {
+		aplic_disable_irq(irq);
+		__raw_writel(APLIC_SM(APLIC_SM_INACTIVE),
+			     APLIC_SOURCECFG(aplic_hw_irq_soc(irq), irq));
+		aplic_configure_wsi(irq, BOOT_HART, APLIC_IPRIO_DEF);
+	}
+}
+
 void aplic_sbi_init(uint8_t soc)
 {
 	uint32_t i, tmp;
 	struct aplic_delegate_data *deleg;
-	uint32_t first_deleg_irq, last_deleg_irq;
+	int first_deleg_irq, last_deleg_irq;
 	irq_t irq;
 
 	aplic_ctrl_disable(soc);
-	aplic_disable_all_irqs(soc);
-
-	for (irq = 1; irq <= APLIC_MAX_IRQS; irq++) {
-		__raw_writel(APLIC_SM(APLIC_SM_INACTIVE),
-			     APLIC_SOURCECFG(soc, irq));
-		aplic_configure_wsi(irq, BOOT_HART, APLIC_IPRIO_DEF);
-	}
-
-	aplic_check_msicfg();
+	aplic_irqs_init();
 
 	/* Configure IRQ delegation */
 	first_deleg_irq = -1U;
@@ -162,20 +192,17 @@ void aplic_sbi_init(uint8_t soc)
 			aplic_delegate_irq(irq, deleg->child_index);
 	}
 
-#ifdef CONFIG_APLIC_WSI
-	/* Default initialization of IDC structures */
-	for (i = 0; i < MAX_HARTS; i++) {
-		__raw_writel(APLIC_ITHRES_ALL, APLIC_IDELIVERY(soc, i));
-		__raw_writel(0, APLIC_IFORCE(soc, i));
-		__raw_writel(APLIC_ITHRES_NONE, APLIC_IDELIVERY(soc, i));
-	}
-#endif
+	aplic_wsi_init(soc);
+	aplic_msi_init(soc);
+}
 
-	/* MSI configuration */
-	if (APLIC_HW_MMODE_MSIADDR)
-		aplic_writel_msicfg(soc, APLIC_HW_MMODE_MSIADDR);
-	if (APLIC_HW_SMODE_MSIADDR)
-		aplic_writel_msicfg(soc, APLIC_HW_SMODE_MSIADDR);
+void aplic_ctrl_init(void)
+{
+	aplic_ctrl_disable(0);
+	aplic_irqs_init();
+	aplic_wsi_init(0);
+	aplic_msi_init(0);
+	aplic_ctrl_enable(0);
 }
 
 void irqc_hw_enable_irq(irq_t irq)
@@ -230,9 +257,12 @@ void irqc_hw_trigger_irq(irq_t irq)
 
 void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger)
 {
-	if (irq >= IRQ_PLATFORM)
-		aplic_configure_pri(irq_ext(irq),
-				    prio + APLIC_IPRIO_MIN);
+	if (irq >= IRQ_PLATFORM) {
+		volatile irq_t airq = irq_ext(irq);
+		aplic_configure_irq(airq,
+				    prio + APLIC_IPRIO_MIN,
+				    trigger);
+	}
 }
 
 #ifdef CONFIG_APLIC_WSI
@@ -297,5 +327,6 @@ void irqc_hw_handle_irq(void)
 void msi_hw_ctrl_init(void)
 {
 	imsic_ctrl_init();
+	aplic_ctrl_init();
 }
 #endif
