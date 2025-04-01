@@ -6,7 +6,7 @@ __percpu(DECLARE_BITMAP(irq_msi_alloc, NR_MSI_IRQS));
 __percpu(DECLARE_BITMAP(irq_msi_reserved, NR_MSI_IRQS));
 DEFINE_PERCPU(irq_t, irq_msi_vector[NR_MSI_IRQS]);
 
-irq_t __irq_register_mapping(cpu_mask_t *msk, irq_t irq)
+irq_t __irq_register_mapping(cpu_mask_t *msk, irq_t irq, cpu_t *aff)
 {
 	cpu_t cpu;
 	bits_t *map;
@@ -20,13 +20,16 @@ irq_t __irq_register_mapping(cpu_mask_t *msk, irq_t irq)
 			continue;
 		vec = *per_cpu_ptr(&irq_msi_vector, cpu);
 		vec[msi] = irq;
+		if (aff)
+			*aff = cpu;
+		break;
 	}
 	return msi == NR_MSI_IRQS ? INVALID_IRQ : MSI_IRQ(msi);
 }
 
-irq_t irq_register_mapping(irq_t irq)
+irq_t irq_register_mapping(irq_t irq, cpu_t *cpu)
 {
-	return __irq_register_mapping(&smp_online_cpus, irq);
+	return __irq_register_mapping(&smp_online_cpus, irq, cpu);
 }
 
 static void __irq_reserve_mapping(cpu_mask_t *msk, irq_t start, irq_t end)

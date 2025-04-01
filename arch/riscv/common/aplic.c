@@ -208,12 +208,17 @@ void aplic_ctrl_init(void)
 void irqc_hw_enable_irq(irq_t irq)
 {
 	irq_t msi;
+	cpu_t cpu;
 
 	if (irq >= IRQ_PLATFORM) {
 		aplic_enable_irq(irq_ext(irq));
 		msi = irq_mapped_msi(irq);
-		if (msi != INVALID_IRQ)
+		cpu = irq_mapped_cpu(irq);
+		if (msi != INVALID_IRQ) {
 			irqc_hw_enable_irq(msi);
+			aplic_configure_msi(irq_ext(irq),
+					    cpu, 0, irq_msi(msi));
+		}
 	} else if (irq >= NR_INT_IRQS)
 		imsic_enable_irq(irq_msi(irq));
 	else
