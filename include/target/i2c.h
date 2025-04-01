@@ -85,10 +85,15 @@ extern i2c_addr_t i2c_abrt_slave;
 #define i2c_master_restore(i2c)		do { } while (0)
 #endif
 
+#define I2C_SPEED_STANDARD_RATE		100
+#define I2C_SPEED_FAST_RATE		400
+#define I2C_SPEED_FAST_PLUS_RATE	1000
+#define I2C_SPEED_HIGH_RATE		3400
+
 #ifdef I2C_HW_FREQ
 #define I2C_FREQ		I2C_HW_FREQ
 #else
-#define I2C_FREQ		300
+#define I2C_FREQ		I2C_SPEED_STANDARD_RATE
 #endif
 
 #define I2C_ADDR_CALL		0x00

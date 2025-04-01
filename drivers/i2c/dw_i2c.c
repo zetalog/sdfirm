@@ -2,12 +2,29 @@
 #include <target/clk.h>
 #include <target/console.h>
 #include <target/irq.h>
+#include <target/panic.h>
 
 #ifdef CONFIG_DW_I2C_DEBUG
 #define dw_i2c_dbg(...)		con_dbg(__VA_ARGS__)
 #else
 #define dw_i2c_dbg(...)		do { } while (0)
 #endif
+
+/*
+ * This constant is used to calculate when during the clock high phase the
+ * data bit shall be read.
+ * "This is just an experimental rule: the tHD;STA period turned out to be
+ * proportinal to (_HCNT + 3). With this setting, we could meet both tHIGH
+ * and tHD;STA timing specs."
+ */
+#define T_HD_STA_OFFSET			3
+
+struct dw_i2c_speed_config {
+	/* SCL high and low period count */
+	uint16_t scl_lcnt;
+	uint16_t scl_hcnt;
+	uint32_t sda_hold;
+};
 
 #if NR_DW_I2CS > 1
 #define dw_i2c				dw_i2cs[dw_i2cd]
@@ -62,11 +79,115 @@ void dw_i2c_set_address(i2c_addr_t addr, boolean call)
 	dw_i2c_ctrl_enable();
 }
 
+#define NANO_TO_KILO		1000000
+
+struct dw_i2c_mode_info {
+	int speed;
+	int min_scl_hightime_ns;
+	int min_scl_lowtime_ns;
+	int def_rise_time_ns;
+	int def_fall_time_ns;
+};
+
+static const struct dw_i2c_mode_info dw_i2c_ss_info = {
+	I2C_SPEED_STANDARD_RATE * 1000,
+	MIN_SS_SCL_HIGHTIME,
+	MIN_SS_SCL_LOWTIME,
+	1000,
+	300,
+};
+static const struct dw_i2c_mode_info dw_i2c_fs_info = {
+	I2C_SPEED_FAST_RATE * 1000,
+	MIN_FS_SCL_HIGHTIME,
+	MIN_FS_SCL_LOWTIME,
+	300,
+	300,
+};
+static const struct dw_i2c_mode_info dw_i2c_fps_info = {
+	I2C_SPEED_FAST_PLUS_RATE * 1000,
+	MIN_FP_SCL_HIGHTIME,
+	MIN_FP_SCL_LOWTIME,
+	260,
+	500,
+};
+static const struct dw_i2c_mode_info dw_i2c_hs_info = {
+	I2C_SPEED_HIGH_RATE,
+	MIN_HS_SCL_HIGHTIME,
+	MIN_HS_SCL_LOWTIME,
+	120,
+	120,
+};
+
+static uint32_t calc_counts(clk_freq_t ic_clk, uint32_t period_ns)
+{
+	return DIV_ROUND_UP(ic_clk / 1000 * period_ns, NANO_TO_KILO);
+}
+
+static void dw_i2c_calc_timing(const struct dw_i2c_mode_info *info,
+			       uint32_t spk_cnt, clk_freq_t ic_clk,
+			       struct dw_i2c_speed_config *config)
+{
+	uint32_t fall_cnt, rise_cnt, min_tlow_cnt, min_thigh_cnt;
+	uint32_t hcnt, lcnt, period_cnt, diff, tot;
+	uint32_t sda_hold_time_ns, scl_rise_time_ns, scl_fall_time_ns;
+
+	/*
+	 * Find the period, rise, fall, min tlow, and min thigh in terms of
+	 * counts of the IC clock
+	 */
+	period_cnt = ic_clk / info->speed;
+	scl_rise_time_ns = DW_I2C_SCL_RISE_TIME ?
+			   DW_I2C_SCL_RISE_TIME : info->def_rise_time_ns;
+	scl_fall_time_ns = DW_I2C_SCL_FALL_TIME ?
+			   DW_I2C_SCL_FALL_TIME : info->def_fall_time_ns;
+	rise_cnt = calc_counts(ic_clk, scl_rise_time_ns);
+	fall_cnt = calc_counts(ic_clk, scl_fall_time_ns);
+	min_tlow_cnt = calc_counts(ic_clk, info->min_scl_lowtime_ns);
+	min_thigh_cnt = calc_counts(ic_clk, info->min_scl_hightime_ns);
+
+	con_dbg("dw_i2c: ic_clk %lld, speed %d, period %d rise %d fall %d tlow %d thigh %d spk %d\n",
+		ic_clk, info->speed, period_cnt, rise_cnt, fall_cnt,
+		min_tlow_cnt, min_thigh_cnt, spk_cnt);
+
+	/*
+	 * Back-solve for hcnt and lcnt according to the following equations:
+	 * SCL_High_time = [(HCNT + IC_*_SPKLEN + T_HD_STA_OFFSET) * ic_clk] + SCL_Fall_time
+	 * SCL_Low_time = [(LCNT + 1) * ic_clk] - SCL_Fall_time + SCL_Rise_time
+	 */
+	hcnt = min_thigh_cnt - fall_cnt - T_HD_STA_OFFSET - spk_cnt;
+	lcnt = min_tlow_cnt - rise_cnt + fall_cnt - 1;
+
+	if (hcnt < 0 || lcnt < 0) {
+		con_err("dw_i2c: bad counts. hcnt = %d lcnt = %d\n", hcnt, lcnt);
+		BUG();
+	}
+
+	/*
+	 * Now add things back up to ensure the period is hit. If it is off,
+	 * split the difference and bias to lcnt for remainder
+	 */
+	tot = hcnt + lcnt + T_HD_STA_OFFSET + spk_cnt + rise_cnt + 1;
+	if (tot < period_cnt) {
+		diff = (period_cnt - tot) / 2;
+		hcnt += diff;
+		lcnt += diff;
+		tot = hcnt + lcnt + T_HD_STA_OFFSET + spk_cnt + rise_cnt + 1;
+		lcnt += period_cnt - tot;
+	}
+
+	config->scl_lcnt = lcnt;
+	config->scl_hcnt = hcnt;
+
+	/* Use internal default unless other value is specified */
+	sda_hold_time_ns = DW_I2C_SDA_HOLD_TIME ?
+			   DW_I2C_SDA_HOLD_TIME : DEFAULT_SDA_HOLD_TIME;
+	config->sda_hold = calc_counts(ic_clk, sda_hold_time_ns);
+	con_dbg("dw_i2c: hcnt = %d lcnt = %d sda hold = %d\n", hcnt, lcnt,
+		config->sda_hold);
+}
+
 /* Master configuration */
 #ifdef CONFIG_ARCH_HAS_DW_I2C_FREQ_OPTIMIZATION
-#define LCNT_MIN		6
-#define HCNT_MIN		5
-
 uint32_t MIN_SCL_HIGHtime(uint16_t khz, bool pf400)
 {
 	uint32_t min_scl_high_time;
@@ -119,43 +240,57 @@ uint32_t MIN_SCL_LOWtime(uint16_t khz, bool pf400)
 
 void dw_i2c_set_frequency(uint16_t khz)
 {
-	uint32_t hcnt, lcnt, spklen;
-	int i2c_spd;
-	int bus_speed = DW_I2C_FREQ;
-	int speed = khz * 1000;
+	uint32_t spklen;
+	uint32_t con_speed;
+	clk_freq_t bus_speed = DW_I2C_FREQ;
+	clk_freq_t i2c_speed = khz * 1000;
+	const struct dw_i2c_mode_info *info;
+	bool fps = false;
+	struct dw_i2c_speed_config config;
 
-	if (speed >= I2C_MAX_SPEED)
-		i2c_spd = IC_CON_SPEED_MAX;
-	else if (speed >= I2C_FAST_SPEED)
-		i2c_spd = IC_CON_SPEED_FAST;
+	if (i2c_speed >= I2C_MAX_SPEED)
+		con_speed = IC_CON_SPEED_MAX;
+	else if (i2c_speed >= I2C_FAST_PLUS_SPEED) {
+		fps = true;
+		con_speed = IC_CON_SPEED_FAST;
+	} else if (i2c_speed >= I2C_FAST_SPEED)
+		con_speed = IC_CON_SPEED_FAST;
 	else
-		i2c_spd = IC_CON_SPEED_STD;
+		con_speed = IC_CON_SPEED_STD;
 
 	dw_i2c_ctrl_disable();
-	dw_i2c_writel_mask(IC_CON_SPEED(i2c_spd),
+	dw_i2c_writel_mask(IC_CON_SPEED(con_speed),
 			   IC_CON_SPEED(IC_CON_SPEED_MASK),
 			   IC_CON(dw_i2cd));
-
-	hcnt = MIN_SCL_HIGHtime(khz, false) * (bus_speed / 1000);
-	lcnt = MIN_SCL_LOWtime(khz, false) * (bus_speed / 1000);
-	switch (i2c_spd) {
-	case IC_CON_SPEED_HIGH:
-		spklen = dw_i2c_readl(IC_HS_SPKLEN(dw_i2cd));
-		dw_i2c_writel(hcnt - 3 - spklen, IC_HS_SCL_HCNT(dw_i2cd));
-		dw_i2c_writel(lcnt, IC_HS_SCL_LCNT(dw_i2cd));
-		break;
+	switch (con_speed) {
+	default:
 	case IC_CON_SPEED_STD:
 		spklen = dw_i2c_readl(IC_FS_SPKLEN(dw_i2cd));
-		dw_i2c_writel(hcnt - 3 - spklen, IC_SS_SCL_HCNT(dw_i2cd));
-		dw_i2c_writel(lcnt, IC_SS_SCL_LCNT(dw_i2cd));
+		info = &dw_i2c_ss_info;
+		dw_i2c_calc_timing(info, spklen, bus_speed, &config);
+		dw_i2c_writel(config.scl_hcnt, IC_SS_SCL_HCNT(dw_i2cd));
+		dw_i2c_writel(config.scl_lcnt, IC_SS_SCL_LCNT(dw_i2cd));
 		break;
 	case IC_CON_SPEED_FAST:
-	default:
 		spklen = dw_i2c_readl(IC_FS_SPKLEN(dw_i2cd));
-		dw_i2c_writel(hcnt - 3 - spklen, IC_FS_SCL_HCNT(dw_i2cd));
-		dw_i2c_writel(lcnt, IC_FS_SCL_LCNT(dw_i2cd));
+		if (fps)
+			info = &dw_i2c_fps_info;
+		else
+			info = &dw_i2c_fs_info;
+		dw_i2c_calc_timing(info, spklen, bus_speed, &config);
+		dw_i2c_writel(config.scl_hcnt, IC_FS_SCL_HCNT(dw_i2cd));
+		dw_i2c_writel(config.scl_lcnt, IC_FS_SCL_LCNT(dw_i2cd));
+		break;
+	case IC_CON_SPEED_HIGH:
+		spklen = dw_i2c_readl(IC_HS_SPKLEN(dw_i2cd));
+		info = &dw_i2c_hs_info;
+		dw_i2c_calc_timing(info, spklen, bus_speed, &config);
+		dw_i2c_writel(config.scl_hcnt, IC_HS_SCL_HCNT(dw_i2cd));
+		dw_i2c_writel(config.scl_lcnt, IC_HS_SCL_LCNT(dw_i2cd));
 		break;
 	}
+	if (config.sda_hold)
+		dw_i2c_writel(config.sda_hold, IC_SDA_HOLD(dw_i2cd));
 	dw_i2c_ctrl_enable();
 }
 #else
@@ -191,53 +326,6 @@ static void dw_i2c_set_max_frequency(uint32_t i2c_spd)
 #else
 #define dw_i2c_set_max_frequency(i2c_spd)	do { } while (0)
 #endif
-
-/* TODO: Following code should be tuned to match FREQ_OPTIMIZATION=0 */
-void dw_i2c_set_frequency(uint16_t khz)
-{
-	uint32_t hcnt, lcnt;
-	int i2c_spd;
-	int speed = khz * 1000;
-	int bus_speed = DW_I2C_FREQ;
-
-	if (speed >= I2C_MAX_SPEED)
-		i2c_spd = IC_CON_SPEED_MAX;
-	else if (speed >= I2C_FAST_SPEED)
-		i2c_spd = IC_CON_SPEED_FAST;
-	else
-		i2c_spd = IC_CON_SPEED_STD;
-
-	dw_i2c_ctrl_disable();
-	dw_i2c_writel_mask(IC_CON_SPEED(i2c_spd),
-			   IC_CON_SPEED(IC_CON_SPEED_MASK),
-			   IC_CON(dw_i2cd));
-	dw_i2c_set_max_frequency(i2c_spd);
-#ifndef CONFIG_DW_I2C_MAX_FREQ
-	switch (i2c_spd) {
-	case IC_CON_SPEED_HIGH:
-		hcnt = bus_speed / speed / (6+16) * 6 - (1+7);
-		lcnt = bus_speed / speed / (6+16) * 16 - 1;
-		lcnt = hcnt * 2;
-		dw_i2c_writel(hcnt, IC_HS_SCL_HCNT(dw_i2cd));
-		dw_i2c_writel(lcnt, IC_HS_SCL_LCNT(dw_i2cd));
-		break;
-	case IC_CON_SPEED_STD:
-		hcnt = bus_speed / speed / (40+47) * 40 - (5+7);
-		lcnt = bus_speed / speed / (40+47) * 47 - 1;
-		dw_i2c_writel(hcnt, IC_SS_SCL_HCNT(dw_i2cd));
-		dw_i2c_writel(lcnt, IC_SS_SCL_LCNT(dw_i2cd));
-		break;
-	case IC_CON_SPEED_FAST:
-	default:
-		hcnt = bus_speed / speed / (6+13) * 6 - (5+7);
-		lcnt = bus_speed / speed / (6+13) * 13 - 1;
-		dw_i2c_writel(hcnt, IC_FS_SCL_HCNT(dw_i2cd));
-		dw_i2c_writel(lcnt, IC_FS_SCL_LCNT(dw_i2cd));
-		break;
-	}
-#endif
-	dw_i2c_ctrl_enable();
-}
 #endif
 
 #ifdef CONFIG_DW_I2C_DYNAMIC_TAR_UPDATE
