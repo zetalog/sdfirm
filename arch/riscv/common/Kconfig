@@ -1194,10 +1194,22 @@ menuconfig VAISRA_RAS
 	depends CPU_VAISRA
 	depends !SYS_NOIRQ || SBI
 
-menuconfig SPACEMIT_RAS
-	bool "SpacemiT reliability availability serviceability (RAS) support"
+menu "SpacemiT reliability availability serviceability (RAS) features"
+
+config SPACEMIT_ECC
+	bool "SpacemiT CPU error correction code (ECC) support"
 	depends CPU_SPACEMIT
+	help
+	  This enables core
+
+config SPACEMIT_BER
+	bool "SpacemiT CPU bus error (BER) support
 	depends !SYS_NOIRQ || SBI
+	help
+	  This feature reports bus error via RISC-V AIA interrupt 23
+	  (system and bus error).
+
+endmenu
 
 endmenu
 

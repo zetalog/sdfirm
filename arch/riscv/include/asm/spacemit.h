@@ -110,7 +110,9 @@
 /* ML2BUSERR */
 #define L2BER_ERR	_AC(0x8000000000000000, UL) /* bus error valid */
 #define L2BER_CORE	_AC(0x0300000000000000, UL)
+#define L2BER_CORE_SHIFT	56
 #define L2BER_INFO	_AC(0x00000003, UL)
+#define L2BER_INFO_SHIFT	0
 
 #if defined(__ASSEMBLY__) && !defined(__DTS__) && !defined(LINKER_SCRIPT)
 	.macro	spacemit_smp_init
@@ -120,7 +122,7 @@
 #else
 	li	t0, STP_DE | STP_IE | STP_MM
 #endif
-#ifdef CONFIG_SPACEMIT_RAS
+#ifdef CONFIG_SPACEMIT_ECC
 	or	t0, t0, STP_ECC
 #endif
 	csrs	CSR_MSETUP, t0
@@ -137,7 +139,7 @@
 	sllw	t0, t0, t1
 	li	t1, L2S_PAE | L2S_IPRF_1L | L2S_TPRF
 	or	t0, t0, t1
-#ifdef CONFIG_SPACEMIT_RAS
+#ifdef CONFIG_SPACEMIT_ECC
 	or	t0, t0, L2S_ECC
 #endif
 	csrs	CSR_ML2SETUP, t0
