@@ -1200,16 +1200,24 @@ config SPACEMIT_ECC
 	bool "SpacemiT CPU error correction code (ECC) support"
 	depends CPU_SPACEMIT
 	help
-	  This enables core
+	  This enables core ECC error detection.
 
 config SPACEMIT_BER
 	bool "SpacemiT CPU bus error (BER) support
+	depends CPU_SPACEMIT
 	depends !SYS_NOIRQ || SBI
 	help
 	  This feature reports bus error via RISC-V AIA interrupt 23
 	  (system and bus error).
 
 endmenu
+
+config THEAD_ECC
+	bool "T-Head CPU errro correction code (ECC) support"
+	depends CPU_C910
+	depends !SYS_NOIRQ || SBI
+	help
+	  This feature reports bus error via RISC-V interrupt 17.
 
 endmenu
 
