@@ -85,15 +85,33 @@ extern i2c_addr_t i2c_abrt_slave;
 #define i2c_master_restore(i2c)		do { } while (0)
 #endif
 
-#define I2C_SPEED_STANDARD_RATE		100
-#define I2C_SPEED_FAST_RATE		400
-#define I2C_SPEED_FAST_PLUS_RATE	1000
-#define I2C_SPEED_HIGH_RATE		3400
+/* Starting speed for each Mode */
+#define I2C_STANDARD_SPEED		100000
+#define I2C_FAST_SPEED			400000
+#define I2C_FAST_PLUS_SPEED		1000000
+#define I2C_HIGH_SPEED			3400000
+#define I2C_MAX_SPEED			I2C_HIGH_SPEED
+
+/* kHz speed for each mode, used for I2C_HW_FREQ */
+#define I2C_SPEED_STANDARD_RATE		(I2C_STANDARD_SPEED / 1000)
+#define I2C_SPEED_FAST_RATE		(I2C_FAST_SPEED / 1000)
+#define I2C_SPEED_FAST_PLUS_RATE	(I2C_FAST_PLUS_SPEED / 1000)
+#define I2C_SPEED_HIGH_RATE		(I2C_HIGH_SPEED / 1000)
+
+/* High and low times in different speed modes (in ns) */
+#define MIN_SS_SCL_HIGHTIME		4000
+#define MIN_SS_SCL_LOWTIME		4700
+#define MIN_FS_SCL_HIGHTIME		600
+#define MIN_FS_SCL_LOWTIME		1300
+#define MIN_FP_SCL_HIGHTIME		260
+#define MIN_FP_SCL_LOWTIME		500
+#define MIN_HS_SCL_HIGHTIME		60
+#define MIN_HS_SCL_LOWTIME		160
 
 #ifdef I2C_HW_FREQ
-#define I2C_FREQ		I2C_HW_FREQ
+#define I2C_FREQ			I2C_HW_FREQ
 #else
-#define I2C_FREQ		I2C_SPEED_STANDARD_RATE
+#define I2C_FREQ			I2C_SPEED_STANDARD_RATE
 #endif
 
 #define I2C_ADDR_CALL		0x00
