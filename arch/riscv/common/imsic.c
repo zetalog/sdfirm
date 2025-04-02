@@ -355,5 +355,6 @@ void __imsic_eix_update(unsigned long base_id, unsigned long num_id, bool pend, 
 void imsic_ctrl_init(void)
 {
 	irq_reserve_mapping(0, IMSIC_NR_SIRQS - 1);
+	aia_csr_write(IMSIC_EIDELIVERY, IMSIC_MSI);
 	aia_csr_write(IMSIC_EITHRESHOLD, IMSIC_NONE);
 }

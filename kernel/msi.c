@@ -18,6 +18,7 @@ irq_t __irq_register_mapping(cpu_mask_t *msk, irq_t irq, cpu_t *aff)
 		msi = find_next_clear_bit(map, NR_MSI_IRQS, 0);
 		if (msi == NR_MSI_IRQS)
 			continue;
+		set_bit(msi, map);
 		vec = *per_cpu_ptr(&irq_msi_vector, cpu);
 		vec[msi] = irq;
 		if (aff)
@@ -62,7 +63,7 @@ irq_t irq_locate_mapping(cpu_t cpu, irq_t irq)
 	irq_t msi = irq_msi(irq);
 
 	map = *this_cpu_ptr(&irq_msi_alloc);
-	if (!test_bit(irq, map))
+	if (!test_bit(irq_msi(msi), map))
 		return INVALID_IRQ;
 
 	vec = *this_cpu_ptr(&irq_msi_vector);
