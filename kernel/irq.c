@@ -21,51 +21,65 @@ extern void __bad_interrupt(irq_t irq);
 irq_t irq_map[MAX_VECTORS];
 cpu_t cpu_map[MAX_VECTORS];
 
-irq_t irq_map_parent(irq_t irq)
+irq_t irq_map_parent(irq_t irq, uint8_t nr)
 {
 	irq_t msi;
 	cpu_t cpu;
 
+	if (irq < IRQ_PLATFORM)
+		return INVALID_IRQ;
 	msi = irq_register_mapping(irq, &cpu);
-	irq_map[irq] = msi;
-	cpu_map[irq] = cpu;
+	irq_map[nr] = msi;
+	cpu_map[nr] = cpu;
 	return msi;
 }
 
 irq_t irq_mapped_msi(irq_t irq)
 {
-	return irq_map[irq];
+	uint8_t curr = irq_nr_regs;
+
+	for (curr = 0; curr < irq_nr_regs; curr++) {
+		if (irq == irq_nr_table[curr])
+			return irq_map[curr];
+	}
+	return INVALID_IRQ;
 }
 
 cpu_t irq_mapped_cpu(irq_t irq)
 {
-	return cpu_map[irq];
+	uint8_t curr = irq_nr_regs;
+
+	for (curr = 0; curr < irq_nr_regs; curr++) {
+		if (irq == irq_nr_table[curr])
+			return cpu_map[curr];
+	}
+	return 0;
 }
 #else
 #define irq_map_parent(irq)		do { } while (0)
 #endif
 
 /* 0 ~ NR_IRQS-1 is allowed. */
-void irq_register_vector(irq_t nr, irq_handler h)
+void irq_register_vector(irq_t irq, irq_handler h)
 {
 	uint8_t curr = irq_nr_regs;
 
-	BUG_ON(nr <= 0 || nr >= NR_IRQS);
+	BUG_ON(irq <= 0 || irq >= NR_IRQS);
 	BUG_ON(curr == MAX_VECTORS);
-	irq_nr_table[curr] = nr;
+	irq_nr_table[curr] = irq;
 	irq_nr_regs++;
 	irq_handlers[curr] = h;
-	irq_map_parent(nr);
+	irq_map_parent(irq, curr);
 }
 
-boolean do_IRQ(irq_t nr)
+boolean do_IRQ(irq_t irq)
 {
 	uint8_t curr;
 
-	BUG_ON(nr >= NR_IRQS || nr <= 0);
+	BUG_ON(irq >= NR_IRQS || irq <= 0);
 	for (curr = 0; curr < irq_nr_regs; curr++) {
-		if (nr == irq_nr_table[curr]) {
-			irq_handlers[curr](nr);
+		if (irq == irq_nr_table[curr]) {
+			irq_handlers[curr](irq);
 			return true;
 		}
 	}
@@ -91,9 +105,9 @@ void irq_vectors_init(void)
 	vic_hw_vectors_init();
 }
 
-void irq_register_vector(irq_t nr, irq_handler h)
+void irq_register_vector(irq_t irq, irq_handler h)
 {
-	vic_hw_register_irq(nr, h);
+	vic_hw_register_irq(irq, h);
 }
 
 void irq_smp_vectors_init(void)
@@ -101,7 +115,7 @@ void irq_smp_vectors_init(void)
 }
 #endif /* ARCH_HAVE_VIC */
 #else /* !CONFIG_CC_ISR_VECTOR && !CONFIG_SYS_NOIRQ */
-boolean do_IRQ(irq_t nr)
+boolean do_IRQ(irq_t irq)
 {
 	return false;
 }

@@ -3,21 +3,23 @@
 static void handle_spacet_ber(irq_t irq)
 {
 	uint32_t buserr;
+	bool handled = false;
 
-#define L2BER_ERR	_AC(0x8000000000000000, UL) /* bus error valid */
-#define L2BER_CORE	_AC(0x0300000000000000, UL)
-#define L2BER_INFO	_AC(0x00000003, UL)
 	buserr = csr_read(CSR_MBUSERR);
 	if (buserr & BER_ERR) {
-		if (buserr & BER_ST) {
-			con_log("spacet: CPU%d store bus error\n", smp_processor_id());
-			csr_clear(CSR_MBUSERR, BER_ST);
-		}
-		if (buserr & BER_LD) {
-			con_log("spacet: CPU%d load bus error\n", smp_processor_id());
-			csr_clear(CSR_MBUSERR, BER_LD);
-		}
+		con_log("spacet: CPU%d bus error\n", smp_processor_id());
 		csr_clear(CSR_MBUSERR, BER_ERR);
+		handled = true;
+	}
+	if (buserr & BER_ST) {
+		con_log("spacet: CPU%d store bus error\n", smp_processor_id());
+		csr_clear(CSR_MBUSERR, BER_ST);
+		handled = true;
+	}
+	if (buserr & BER_LD) {
+		con_log("spacet: CPU%d load bus error\n", smp_processor_id());
+		csr_clear(CSR_MBUSERR, BER_LD);
+		handled = true;
 	}
 	buserr = csr_read(CSR_ML2BUSERR);
 	if (buserr & L2BER_ERR) {
@@ -26,7 +28,10 @@ static void handle_spacet_ber(irq_t irq)
 			(uint8_t)((buserr & L2BER_CORE) >> L2BER_CORE_SHIFT),
 			(uint8_t)((buserr & L2BER_INFO) >> L2BER_INFO_SHIFT));
 		csr_clear(CSR_ML2BUSERR, L2BER_ERR);
+		handled = true;
 	}
+	if (!handled)
+		con_log("spacet: Spurious BUS error on cpu%d\n", smp_processor_id());
 }
 
 void spacemit_ber_init(void)
