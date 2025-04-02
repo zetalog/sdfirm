@@ -57,6 +57,8 @@
 typedef uint8_t irq_t;
 #elif NR_IRQS <= 65536
 typedef uint16_t irq_t;
+#else
+typedef uint32_t irq_t;
 #endif
 typedef void (*irq_handler)(irq_t irq);
 
