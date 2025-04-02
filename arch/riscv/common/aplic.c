@@ -309,7 +309,7 @@ void irqc_hw_handle_irq(void)
 			imsic_disable_irq(irq);
 		else {
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
-			printf("External IRQ %d\n", eirq);
+			printf("External IRQ %d\n", irq_ext(eirq));
 #endif
 			if (!do_IRQ(eirq))
 				aplic_disable_irq(eirq);
