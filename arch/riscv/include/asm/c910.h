@@ -211,7 +211,8 @@
 	.endm
 #endif /* __ASSEMBLY__ */
 
-#define IRQ_ECC		17
+#define IRQ_ECC		16
+#define ARCH_HAVE_INT_IRQS_64	1
 #if !defined(__ASSEMBLY__) && !defined(__DTS__) & !defined(LINKER_SCRIPT)
 #ifdef CONFIG_THEAD_ECC
 void thead_ecc_init(void);

@@ -176,11 +176,13 @@ struct aplic_data {
 #define APLIC_MSICFGADDR(soc)		APLIC_MMSICFGADDR(soc)
 #define APLIC_MSICFGADDRH(soc)		APLIC_MMSICFGADDRH(soc)
 #define APLIC_MODE_MSIADDR		APLIC_HW_MMODE_MSIADDR
+#define APLIC_IS_MMODE			true
 #endif /* CONFIG_RISCV_EXIT_M */
 #ifdef CONFIG_RISCV_EXIT_S
 #define APLIC_MSICFGADDR(soc)		APLIC_SMSICFGADDR(soc)
 #define APLIC_MSICFGADDRH(soc)		APLIC_SMSICFGADDRH(soc)
 #define APLIC_MODE_MSIADDR		APLIC_HW_SMODE_MSIADDR
+#define APLIC_IS_MMODE			false
 #endif /* CONFIG_RISCV_EXIT_S */
 #define APLIC_L				_BV(31)
 #define APLIC_HHXS_MASK			REG_5BIT_MASK
@@ -222,6 +224,27 @@ struct aplic_data {
 #define APLIC_MSI_HHXS			(IMSIC_GROUP_SHIFT - 24)
 #define APLIC_MSI_LHXW			IMSIC_HART_WIDTH
 #define APLIC_MSI_LHXS			IMSIC_GUEST_WIDTH
+
+#define aplic_config_msiaddr(soc, base, mmode)				\
+	do {								\
+		unsigned long base_ppn;					\
+		uint8_t lhxs = (mmode) ? 0 : APLIC_MSI_LHXS;		\
+		if (aplic_msiaddr_locked(soc))				\
+			return;						\
+		base_ppn = APLIC_ADDR2PFN(base);			\
+		base_ppn &= ~APLIC_PPN_HART(lhxs);			\
+		base_ppn &= ~APLIC_PPN_LHX(APLIC_MSI_LHXW, lhxs);	\
+		base_ppn &= ~APLIC_PPN_HHX(APLIC_MSI_HHXW,		\
+					   APLIC_MSI_HHXS);		\
+		__raw_writel(LODWORD(base_ppn),				\
+			     APLIC_MSICFGADDR(soc));			\
+		__raw_writel(APLIC_BASE_PPN_H(HIDWORD(base_ppn)) |	\
+			     APLIC_LHXW(APLIC_MSI_LHXW) |		\
+			     APLIC_HHXW(APLIC_MSI_HHXW) |		\
+			     APLIC_LHXS(lhxs) |				\
+			     APLIC_HHXS(APLIC_MSI_HHXS),		\
+			     APLIC_MSICFGADDRH(soc));			\
+	} while (0)
 #endif /* CONFIG_APLIC_MSI */
 
 #define APLIC_IRQ_OFFSET(irq)		REG_1BIT_OFFSET(irq)
@@ -443,6 +466,10 @@ void msi_hw_ctrl_init(void);
 
 void aplic_sbi_init(uint8_t soc);
 #ifdef CONFIG_SBI
+#ifdef CONFIG_ARCH_HAS_APLIC_DELEG
+int aplic_hw_deleg_num;
+struct aplic_deleg_data *aplic_hw_deleg_data[];
+#endif
 int aplic_sbi_init_cold(void);
 #define aplic_sbi_init_warm(cpu)	do { } while (0)
 int aplic_cold_irqchip_init(struct aplic_data *aplic);
