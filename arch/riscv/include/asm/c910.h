@@ -46,7 +46,9 @@
 #define CSR_MHCR	0x7C1
 #define CSR_MCOR	0x7C2
 #define CSR_MCCR2	0x7C3
+#define CSR_MCER2	0x7C4
 #define CSR_MHINT	0x7C5
+#define CSR_MCER	0x7C8
 #define CSR_MSMPR	0x7F3
 
 /* 18.1.9.1 MXSTATUS */
@@ -111,6 +113,22 @@
 #define CCR2_IPRF_3	_AC(0x60000000, UL)
 #define CCR2_TPRF	_AC(0x80000000, UL) /* TLB prefetch */
 
+/* 18.1.9.5 MCER2 */
+#define CER2_ERR_VLD		_AC(0x8000000000000000, UL)
+#define CER2_ECC_FATAL		_AC(0x4000000000000000, UL)
+#define CER2_FIX_CNT_OFFSET	56
+#define CER2_FIX_CNT_MASK	REG_5BIT_MASK
+#define CER2_FIX_CNT(value)	_GET_FV_ULL(CER2_FIX_CNT, value)
+#define CER2_RAMID_OFFSET	53
+#define CER2_RAMID_MASK		REG_2BIT_MASK
+#define CER2_RAMID(value)	_GET_FV_ULL(CER2_RAMID, value)
+#define CER2_ERR_WAY_OFFSET	21
+#define CER2_ERR_WAY_MASK	REG_4BIT_MASK
+#define CER2_ERR_WAY(value)	_GET_FV_ULL(CER2_ERR_WAY, value)
+#define CER2_ERR_INDEX_OFFSET	3
+#define CER2_ERR_INDEX_MASK	REG_18BIT_MASK
+#define CER2_ERR_INDEX(value)	_GET_FV_ULL(CER2_ERR_INDEX, value)
+
 /* 18.1.9.6 MHINT */
 #define HNT_DPLD	_AC(0x00000004, UL) /* DCache prefetch enable */
 #define HNT_AMR		_AC(0x00000018, UL) /* Auto write allocate policy */
@@ -141,6 +159,24 @@
 #define HNT_FENCEI_BROAD_DIS	_AC(0x00800000, UL)
 
 #define HNT_PLD		(HNT_DPLD | HNT_IPLD | HNT_L2PLD)
+
+/* 18.1.9.8 MCER */
+#define CER_ECC_ERR		_AC(0x8000000000000000, UL)
+#define CER_BUS_ERR		_AC(0x4000000000000000, UL)
+#define CER_ERR_VLD		_AC(0x0000000080000000, UL)
+#define CER_ERR_FATAL		_AC(0x0000000040000000, UL)
+#define CER_FIX_CNT_OFFSET	24
+#define CER_FIX_CNT_MASK	REG_6BIT_MASK
+#define CER_FIX_CNT(value)	_GET_FV_ULL(CER_FIX_CNT, value)
+#define CER_RAMID_OFFSET	21
+#define CER_RAMID_MASK		REG_3BIT_MASK
+#define CER_RAMID(value)	_GET_FV_ULL(CER_RAMID, value)
+#define CER_ERR_WAY_OFFSET	17
+#define CER_ERR_WAY_MASK	REG_2BIT_MASK
+#define CER_ERR_WAY(value)	_GET_FV_ULL(CER_ERR_WAY, value)
+#define CER_ERR_INDEX_OFFSET	0
+#define CER_ERR_INDEX_MASK	REG_17BIT_MASK
+#define CER_ERR_INDEX(value)	_GET_FV_ULL(CER_ERR_INDEX, value)
 
 /* 18.1.14.1 MSMPR */
 #define SMPR_SMPEN	_AC(0x00000001, UL) /* SMP snpper enable */
@@ -174,5 +210,14 @@
 	csrc	CSR_MXSTATUS, x3
 	.endm
 #endif /* __ASSEMBLY__ */
+
+#define IRQ_ECC		17
+#if !defined(__ASSEMBLY__) && !defined(__DTS__) & !defined(LINKER_SCRIPT)
+#ifdef CONFIG_THEAD_ECC
+void thead_ecc_init(void);
+#else /* CONFIG_THEAD_ECC */
+#define thead_ecc_init()	do { } while (0)
+#endif /* CONFIG_THEAD_ECC */
+#endif /* !__ASSEMBLY__ && !__DTS__ && !LINKER_SCRIPT */
 
 #endif /* __CSR_C910_H_INCLUDE__ */

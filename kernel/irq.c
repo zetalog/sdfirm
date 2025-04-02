@@ -56,7 +56,7 @@ cpu_t irq_mapped_cpu(irq_t irq)
 	return 0;
 }
 #else
-#define irq_map_parent(irq)		do { } while (0)
+#define irq_map_parent(irq, nr)		do { } while (0)
 #endif
 
 /* 0 ~ NR_IRQS-1 is allowed. */
