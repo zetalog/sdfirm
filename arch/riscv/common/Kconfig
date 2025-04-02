@@ -1111,6 +1111,10 @@ endchoice
 
 endif
 
+menuconfig RISCV_TRACE
+	bool "Nexus Trace Support"
+	depends CORESIGHT
+
 menuconfig RI5CY_PC
 	bool "RI5CY performance counter support"
 	depends CPU_RI5CY
@@ -1151,10 +1155,6 @@ menuconfig VAISRA_PMA
 	select BIT_FLS64 if 64BIT
 	help
 	  Vaisra SoC PMA driver.
-
-menuconfig RISCV_TRACE
-	bool "Nexus Trace Support"
-	depends CORESIGHT
 
 if VAISRA_PMA
 
