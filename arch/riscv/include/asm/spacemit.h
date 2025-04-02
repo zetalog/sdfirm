@@ -159,6 +159,6 @@
 	.endm
 #endif /* __ASSEMBLY__ */
 
-#include <spacemit_ber.h>
+#include <asm/spacemit_ber.h>
 
 #endif /* __CSR_SPACEMIT_H_INCLUDE__ */

@@ -114,76 +114,25 @@ int imsic_get_target_file(uint32_t hartid)
 	return imsic_get_hart_file(scratch);
 }
 
-static void imsic_local_eix_update(unsigned long base_id,
-				   unsigned long num_id, bool pend, bool val)
-{
-	unsigned long i, isel, ireg;
-	unsigned long id = base_id, last_id = base_id + num_id;
-
-	while (id < last_id) {
-		isel = id / __riscv_xlen;
-		isel *= __riscv_xlen / IMSIC_EIPx_BITS;
-		isel += (pend) ? IMSIC_EIP0 : IMSIC_EIE0;
-
-		ireg = 0;
-		for (i = id & (__riscv_xlen - 1);
-		     (id < last_id) && (i < __riscv_xlen); i++) {
-			ireg |= BIT(i);
-			id++;
-		}
-
-		if (val)
-			aia_csr_set(isel, ireg);
-		else
-			aia_csr_clear(isel, ireg);
-	}
-}
-
-void imsic_local_irqchip_init(void)
-{
-	struct csr_trap_info trap = { 0 };
-
-	/*
-	 * This function is expected to be called from:
-	 * 1) nascent_init() platform callback which is called
-	 *    very early on each HART in boot-up path and and
-	 *    HSM resume path.
-	 * 2) irqchip_init() platform callback which is called
-	 *    in boot-up path.
-	 */
-
-	/* If Smaia not available then do nothing */
-	csr_read_allowed(CSR_MTOPI, (ulong)&trap);
-	if (trap.cause)
-		return;
-
-	/* Setup threshold to allow all enabled interrupts */
-	aia_csr_write(IMSIC_EITHRESHOLD, IMSIC_NONE);
-
-	/* Enable interrupt delivery */
-	aia_csr_write(IMSIC_EIDELIVERY, IMSIC_MSI);
-
-	/* Enable IPI */
-	imsic_local_eix_update(IMSIC_IPI, 1, false, true);
-}
-
 int imsic_warm_irqchip_init(void)
 {
+	struct csr_trap_info trap = { 0 };
 	struct imsic_data *imsic = imsic_get_data(sbi_current_hartid());
+
+	csr_read_allowed(CSR_MTOPI, (ulong)&trap);
+	if (trap.cause)
+		return -SBI_ENODEV;
 
 	/* Sanity checks */
 	if (!imsic || !imsic->targets_mmode)
 		return SBI_EINVAL;
 
 	/* Disable all interrupts */
-	imsic_local_eix_update(1, imsic->num_ids, false, false);
+	__imsic_eix_update(1, imsic->num_ids, false, false);
 
-	/* Clear IPI pending */
-	imsic_local_eix_update(IMSIC_IPI, 1, true, false);
-
-	/* Local IMSIC initialization */
-	imsic_local_irqchip_init();
-
+	__imsic_eix_update(IMSIC_IPI, 1, true, false);
+	imsic_ctrl_init();
+	__imsic_eix_update(IMSIC_IPI, 1, false, true);
 	return 0;
 }
 

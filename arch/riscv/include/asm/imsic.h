@@ -165,9 +165,8 @@ void imsic_ctrl_init(void);
 int imsic_map_hartid_to_data(uint32_t hartid, struct imsic_data *imsic, int file);
 struct imsic_data *imsic_get_data(uint32_t hartid);
 int imsic_get_target_file(uint32_t hartid);
-void imsic_local_irqchip_init(void);
-int imsic_warm_irqchip_init(void);
 int imsic_data_check(struct imsic_data *imsic);
+int imsic_warm_irqchip_init(void);
 int imsic_cold_irqchip_init(struct imsic_data *imsic);
 int imsic_sbi_init_cold(void);
 
