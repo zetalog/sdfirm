@@ -2,7 +2,7 @@
 
 static void handle_spacet_ber(irq_t irq)
 {
-	uint32_t buserr;
+	uint64_t buserr;
 	bool handled = false;
 
 	buserr = csr_read(CSR_MBUSERR);

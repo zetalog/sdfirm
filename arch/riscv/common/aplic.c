@@ -304,14 +304,14 @@ void irqc_hw_handle_irq(void)
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
 		printf("Dynamic MSI %d\n", irq);
 #endif
-		eirq = irq_locate_mapping(cpu, irq);
+		eirq = irq_locate_mapping(cpu, MSI_IRQ(irq));
 		if (eirq == IMSIC_NO_IRQ)
 			imsic_disable_irq(irq);
 		else {
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
 			printf("External IRQ %d\n", eirq);
 #endif
-			if (!do_IRQ(EXT_IRQ(eirq)))
+			if (!do_IRQ(eirq))
 				aplic_disable_irq(eirq);
 		}
 	} else {
