@@ -44,39 +44,7 @@
 #include <target/panic.h>
 #include <target/msi.h>
 
-#ifndef CONFIG_ARCH_HAS_APLIC_DELEG
-/* This is a default delegation for M mode APLIC */
-#define aplic_hw_deleg_num		1
-static struct aplic_delegate_data aplic_hw_deleg_data[] = {
-	{
-		.first_irq = 0,
-		.last_irq = APLIC_MAX_IRQS,	/* All delegated to S mode APLIC */
-		.child_index = APLIC_HW_SMODE_CHILD,
-	},
-};
-#endif
-
 #ifdef CONFIG_APLIC_MSI
-static void aplic_write_msicfg(uint8_t soc, unsigned long base_addr)
-{
-	unsigned long base_ppn;
-
-	if (aplic_msiaddr_locked(soc))
-		return;
-
-	base_ppn = APLIC_ADDR2PFN(base_addr);
-	base_ppn &= ~APLIC_PPN_HART(APLIC_MSI_LHXS);
-	base_ppn &= ~APLIC_PPN_LHX(APLIC_MSI_LHXW, APLIC_MSI_LHXS);
-	base_ppn &= ~APLIC_PPN_HHX(APLIC_MSI_HHXW, APLIC_MSI_HHXS);
-	__raw_writel(LODWORD(base_ppn), APLIC_MSICFGADDR(soc));
-	__raw_writel(APLIC_BASE_PPN_H(HIDWORD(base_ppn)) |
-		     APLIC_LHXW(APLIC_MSI_LHXW) |
-		     APLIC_HHXW(APLIC_MSI_HHXW) |
-		     APLIC_LHXS(APLIC_MSI_LHXS) |
-		     APLIC_HHXS(APLIC_MSI_HHXS),
-		     APLIC_MSICFGADDRH(soc));
-}
-
 static void aplic_check_msicfg(void)
 {
 	BUG_ON(APLIC_LHXS_MASK < APLIC_MSI_LHXS);
@@ -131,6 +99,7 @@ void aplic_wsi_init(uint8_t soc)
 	}
 }
 
+#define aplic_msi_deleg_init(soc)	do { } while (0)
 #define aplic_msi_init(soc)		do { } while (0)
 #else
 #define aplic_wsi_init(soc)		do { } while (0)
@@ -138,31 +107,36 @@ void aplic_wsi_init(uint8_t soc)
 void aplic_msi_init(uint8_t soc)
 {
 	if (APLIC_MODE_MSIADDR)
-		aplic_write_msicfg(soc, APLIC_MODE_MSIADDR);
+		aplic_config_msiaddr(soc, APLIC_MODE_MSIADDR,
+				     APLIC_IS_MMODE);
+}
+
+void aplic_msi_deleg_init(uint8_t soc)
+{
+	if (APLIC_HW_SMODE_MSIADDR)
+		aplic_config_msiaddr(soc, APLIC_HW_SMODE_MSIADDR, false);
 }
 #endif
 
-static void aplic_irqs_init(void)
-{
-	irq_t irq;
+#ifdef CONFIG_APLIC_DELEG
+#ifndef CONFIG_ARCH_HAS_APLIC_DELEG
+/* This is a default delegation for M mode APLIC */
+#define aplic_hw_deleg_num		1
+static struct aplic_delegate_data aplic_hw_deleg_data[] = {
+	{
+		.first_irq = 0,
+		.last_irq = APLIC_MAX_IRQS,	/* All delegated to S mode APLIC */
+		.child_index = APLIC_HW_SMODE_CHILD,
+	},
+};
+#endif
 
-	for (irq = 1; irq <= APLIC_MAX_IRQS; irq++) {
-		aplic_disable_irq(irq);
-		__raw_writel(APLIC_SM(APLIC_SM_INACTIVE),
-			     APLIC_SOURCECFG(aplic_hw_irq_soc(irq), irq));
-		aplic_configure_wsi(irq, BOOT_HART, APLIC_IPRIO_DEF);
-	}
-}
-
-void aplic_sbi_init(uint8_t soc)
+static void aplic_deleg_init(uint8_t soc)
 {
 	uint32_t i, tmp;
 	struct aplic_delegate_data *deleg;
 	int first_deleg_irq, last_deleg_irq;
 	irq_t irq;
-
-	aplic_ctrl_disable(soc);
-	aplic_irqs_init();
 
 	/* Configure IRQ delegation */
 	first_deleg_irq = -1U;
@@ -188,17 +162,41 @@ void aplic_sbi_init(uint8_t soc)
 		for (irq = deleg->first_irq; irq <= deleg->last_irq; irq++)
 			aplic_delegate_irq(irq, deleg->child_index);
 	}
+	aplic_msi_deleg_init(soc);
+}
+#else
+#define aplic_deleg_init(soc)		do { } while (0)
+#endif
 
+static void aplic_irqs_init(void)
+{
+	irq_t irq;
+
+	for (irq = 1; irq <= APLIC_MAX_IRQS; irq++) {
+		aplic_disable_irq(irq);
+		__raw_writel(APLIC_SM(APLIC_SM_INACTIVE),
+			     APLIC_SOURCECFG(aplic_hw_irq_soc(irq), irq));
+		aplic_configure_wsi(irq, BOOT_HART, APLIC_IPRIO_DEF);
+	}
+}
+
+static void __aplic_ctrl_init(uint8_t soc)
+{
+	aplic_ctrl_disable(soc);
+	aplic_irqs_init();
 	aplic_wsi_init(soc);
 	aplic_msi_init(soc);
 }
 
+void aplic_sbi_init(uint8_t soc)
+{
+	__aplic_ctrl_init(soc);
+	aplic_deleg_init(soc);
+}
+
 void aplic_ctrl_init(void)
 {
-	aplic_ctrl_disable(0);
-	aplic_irqs_init();
-	aplic_wsi_init(0);
-	aplic_msi_init(0);
+	__aplic_ctrl_init(0);
 	aplic_ctrl_enable(0);
 }
 
