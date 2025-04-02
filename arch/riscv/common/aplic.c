@@ -65,24 +65,24 @@ static void aplic_write_msicfg(uint8_t soc, unsigned long base_addr)
 		return;
 
 	base_ppn = APLIC_ADDR2PFN(base_addr);
-	base_ppn &= ~APLIC_PPN_HART(APLIC_HW_MSI_LHXS);
-	base_ppn &= ~APLIC_PPN_LHX(APLIC_HW_MSI_LHXW, APLIC_HW_MSI_LHXS);
-	base_ppn &= ~APLIC_PPN_HHX(APLIC_HW_MSI_HHXW, APLIC_HW_MSI_HHXS);
+	base_ppn &= ~APLIC_PPN_HART(APLIC_MSI_LHXS);
+	base_ppn &= ~APLIC_PPN_LHX(APLIC_MSI_LHXW, APLIC_MSI_LHXS);
+	base_ppn &= ~APLIC_PPN_HHX(APLIC_MSI_HHXW, APLIC_MSI_HHXS);
 	__raw_writel(LODWORD(base_ppn), APLIC_MSICFGADDR(soc));
 	__raw_writel(APLIC_BASE_PPN_H(HIDWORD(base_ppn)) |
-		     APLIC_LHXW(APLIC_HW_MSI_LHXW) |
-		     APLIC_HHXW(APLIC_HW_MSI_HHXW) |
-		     APLIC_LHXS(APLIC_HW_MSI_LHXS) |
-		     APLIC_HHXS(APLIC_HW_MSI_HHXS),
+		     APLIC_LHXW(APLIC_MSI_LHXW) |
+		     APLIC_HHXW(APLIC_MSI_HHXW) |
+		     APLIC_LHXS(APLIC_MSI_LHXS) |
+		     APLIC_HHXS(APLIC_MSI_HHXS),
 		     APLIC_MSICFGADDRH(soc));
 }
 
 static void aplic_check_msicfg(void)
 {
-	BUG_ON(APLIC_LHXS_MASK < APLIC_HW_MSI_LHXS);
-	BUG_ON(APLIC_LHXW_MASK < APLIC_HW_MSI_LHXW);
-	BUG_ON(APLIC_HHXS_MASK < APLIC_HW_MSI_HHXS);
-	BUG_ON(APLIC_HHXW_MASK < APLIC_HW_MSI_HHXW);
+	BUG_ON(APLIC_LHXS_MASK < APLIC_MSI_LHXS);
+	BUG_ON(APLIC_LHXW_MASK < APLIC_MSI_LHXW);
+	BUG_ON(APLIC_HHXS_MASK < APLIC_MSI_HHXS);
+	BUG_ON(APLIC_HHXW_MASK < APLIC_MSI_HHXW);
 }
 #else
 #define aplic_write_msicfg(cfg, addr)	do { } while (0)

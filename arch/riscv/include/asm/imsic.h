@@ -85,6 +85,43 @@
 #define IMSIC_MAX			IMSIC_HW_MAX_IRQS
 #define IMSIC_ALL			IMSIC_MIN
 
+/* The arrangement of IMSIC interrupt files in MMIO space of a RISC-V
+ * platform follows a particular scheme defined by the RISC-V AIA
+ * specification. A IMSIC group is a set of IMSIC interrupt files
+ * co-located in MMIO space and we can have multiple IMSIC groups (i.e.
+ * clusters, sockets, chiplets, etc) in a RISC-V platform. The MSI target
+ * address of a IMSIC interrupt file at given privilege level (machine or
+ * supervisor) encodes group index, HART index, and guest index (shown
+ * below).
+ *
+ * XLEN-1            > (HART Index MSB)                  12    0
+ * |                  |                                  |     |
+ * -------------------------------------------------------------
+ * |xxxxxx|Group Index|xxxxxxxxxxx|HART Index|Guest Index|  0  |
+ * -------------------------------------------------------------
+ */
+#ifdef IMSIC_HW_GROUP_SHIFT
+#define IMSIC_GROUP_SHIFT		IMSIC_HW_GROUP_SHIFT
+#else
+#define IMSIC_GROUP_SHIFT		(IMSIC_MMIO_PAGE_SHIFT << 1)
+#endif
+#ifdef IMSIC_HW_GROUP_WIDTH
+#define IMSIC_GROUP_WIDTH		IMSIC_HW_GROUP_WIDTH
+#else
+#define IMSIC_GROUP_WIDTH		0
+#endif
+#ifdef IMSIC_HW_HART_WIDTH
+#define IMSIC_HART_WIDTH		IMSIC_HW_HART_WIDTH
+#else
+#define IMSIC_HART_WIDTH		ilog2_const(NR_CPUS)
+#endif
+#ifdef IMSIC_HW_GUEST_WIDTH
+#define IMSIC_GUEST_WIDTH		IMSIC_HW_GUEST_WIDTH
+#else
+#define IMSIC_HW_GUEST_WIDTH		0
+#endif
+#define IMSIC_MAX_GROUPS		_BV(IMSIC_GROUP_WIDTH)
+
 #define imsic_claim_irq()				\
 	({						\
 		unsigned long __topei;			\
