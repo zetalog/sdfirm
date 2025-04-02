@@ -209,6 +209,19 @@ struct aplic_data {
 #define APLIC_PPN_HHX_SHIFT(__hhxs)	((__hhxs) + APLIC_BASE_PPN_SHIFT)
 #define APLIC_PPN_HHX(__hhxw, __hhxs)	\
 	(APLIC_PPN_HHX_MASK(__hhxw) << APLIC_PPN_HHX_SHIFT(__hhxs))
+
+/* Derived from IMSIC platform specific values
+ * g = (HART_INDEX >> LHXW) & (2^HHXW - 1)
+ * h = HART_INDEX & (2^LHXW - 1)
+ * HHXW = IMSIC_GROUP_WIDTH
+ * HHXS = IMSIC_GROUP_SHIFT
+ * LHXW = IMSIC_HART_WIDTH
+ * LHXS = IMSIC_GUEST_WIDTH
+ */
+#define APLIC_MSI_HHXW			IMSIC_GROUP_WIDTH
+#define APLIC_MSI_HHXS			IMSIC_GROUP_SHIFT
+#define APLIC_MSI_LHXW			IMSIC_HART_WIDTH
+#define APLIC_MSI_LHXS			IMSIC_GUEST_WIDTH
 #endif /* CONFIG_APLIC_MSI */
 
 #define APLIC_IRQ_OFFSET(irq)		REG_1BIT_OFFSET(irq)
