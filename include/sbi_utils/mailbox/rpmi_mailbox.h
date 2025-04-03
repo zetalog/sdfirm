@@ -1,33 +1,23 @@
-/*
- * SPDX-License-Identifier: BSD-2-Clause
- *
- * Copyright (c) 2023 Ventana Micro Systems Inc.
- *
- * Authors:
- *   Anup Patel <apatel@ventanamicro.com>
- */
+#ifndef __RPMI_MBOX_H_INCLUDE__
+#define __RPMI_MBOX_H_INCLUDE__
 
-#ifndef __RPMI_MAILBOX_H__
-#define __RPMI_MAILBOX_H__
-
-//#include <sbi/sbi_error.h>
+#include <target/rpmi.h>
 #include <target/sbi.h>
-#include <sbi_utils/mailbox/rpmi_msgprot.h>
 
-#define rpmi_u32_count(__var)	(sizeof(__var) / sizeof(u32))
+#define rpmi_u32_count(__var)	(sizeof(__var) / sizeof(uint32_t))
 
 /** Convert RPMI error to SBI error */
 int rpmi_xlate_error(enum rpmi_error error);
 
 /** Typical RPMI normal request with at least status code in response */
-int rpmi_normal_request_with_status(
-			struct mbox_chan *chan, u32 service_id,
-			void *req, u32 req_words, u32 req_endian_words,
-			void *resp, u32 resp_words, u32 resp_endian_words);
+int rpmi_normal_request_with_status(struct mbox_chan *chan, uint32_t service_id,
+				    void *req, uint32_t req_words,
+				    uint32_t req_endian_words,
+				    void *resp, uint32_t resp_words,
+				    uint32_t resp_endian_words);
 
 /* RPMI posted request which is without any response*/
-int rpmi_posted_request(
-		struct mbox_chan *chan, u32 service_id,
-		void *req, u32 req_words, u32 req_endian_words);
+int rpmi_posted_request(struct mbox_chan *chan, uint32_t service_id,
+			void *req, uint32_t req_words, uint32_t req_endian_words);
 
-#endif /* !__RPMI_MAILBOX_H__ */
+#endif /* __RPMI_MBOX_H_INCLUDE__ */

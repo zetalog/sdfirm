@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: BSD-2-Clause
+menu "RISC-V device tree peripherals"
 
 menu "CPPC Device Support"
 
@@ -11,13 +11,12 @@ if FDT_CPPC
 
 config FDT_CPPC_RPMI
 	bool "FDT RPMI CPPC driver"
-	depends on FDT_MAILBOX && RPMI_MAILBOX
+	depends on FDT_MAILBOX
 	default n
 
 endif
 
 endmenu
-# SPDX-License-Identifier: BSD-2-Clause
 
 menu "HSM Device Support"
 
@@ -30,47 +29,30 @@ if FDT_HSM
 
 config FDT_HSM_RPMI
 	bool "FDT RPMI HSM driver"
-	depends on FDT_MAILBOX && RPMI_MAILBOX
+	depends on FDT_MAILBOX
 	default n
 
 endif
 
 endmenu
-# SPDX-License-Identifier: BSD-2-Clause
 
 menu "Mailbox Support"
 
 config FDT_MAILBOX
 	bool "FDT based mailbox drivers"
 	depends on FDT
-	select MAILBOX
-	default n
-
-config RPMI_MAILBOX
-	bool "RPMI based mailbox drivers"
-	select MAILBOX
-	default n
-
-config MAILBOX
-	bool "Mailbox support"
+	depends RPMI
 	default n
 
 if FDT_MAILBOX
 
 config FDT_MAILBOX_RPMI_SHMEM
 	bool "RPMI Shared Memory Mailbox Controller"
-	depends on RPMI_MAILBOX
 	default n
 
 endif
 
-config MAILBOX_RPMI_SHMEM
-	bool "RPMI Shared Memory Mailbox Controller baremetal drivers"
-	depends on RPMI_MAILBOX
-	default n
-
 endmenu
-# SPDX-License-Identifier: BSD-2-Clause
 
 menu "MPXY Device Support"
 
@@ -117,7 +99,7 @@ config FDT_RESET_HTIF
 
 config FDT_RESET_RPMI
 	bool "RPMI FDT reset driver"
-	depends on FDT_MAILBOX && RPMI_MAILBOX
+	depends on FDT_MAILBOX
 	default n
 
 config FDT_RESET_SG2042_HWMON_MCU
@@ -136,7 +118,6 @@ config FDT_RESET_SYSCON
 endif
 
 endmenu
-# SPDX-License-Identifier: BSD-2-Clause
 
 menu "System Suspend Support"
 
@@ -149,23 +130,20 @@ if FDT_SUSPEND
 
 config FDT_SUSPEND_RPMI
 	bool "FDT RPMI suspend driver"
-	depends on FDT_MAILBOX && RPMI_MAILBOX
+	depends on FDT_MAILBOX
 	default n
 
 endif
 
 endmenu
 
-# SPDX-License-Identifier: BSD-2-Clause
-
 menu "RAS Agent Driver Support"
 
-config RAS_RPMI
-	bool "RPMI RAS baremetal driver"
+config FDT_RAS_RPMI
+	bool "FDT SBI RAS Agent driver"
+	depends on FDT_MAILBOX
 	default n
 
-config RAS_AGENT
-	bool "FDT SBI RAS Agent driver"
-	default y
+endmenu
 
 endmenu

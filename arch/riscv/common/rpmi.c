@@ -1,13 +1,3 @@
-/*
- * SPDX-License-Identifier: BSD-2-Clause
- *
- * Copyright (c) 2023 Ventana Micro Systems Inc.
- *
- * Authors:
- *   Anup Patel <apatel@ventanamicro.com>
- */
-
-//#include <sbi/sbi_error.h>
 #include <target/sbi.h>
 #include <sbi_utils/mailbox/mailbox.h>
 #include <sbi_utils/mailbox/rpmi_mailbox.h>
@@ -50,8 +40,8 @@ int rpmi_xlate_error(enum rpmi_error error)
 	}
 }
 
-int rpmi_normal_request_with_status(
-			struct mbox_chan *chan, u32 service_id,
+int rpmi_normal_request_with_status(struct mbox_chan *chan,
+				    uint32_t service_id,
 			void *req, u32 req_words, u32 req_endian_words,
 			void *resp, u32 resp_words, u32 resp_endian_words)
 {
