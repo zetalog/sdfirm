@@ -1,23 +1,5 @@
-/*
- * SPDX-License-Identifier: BSD-2-Clause
- *
- * Copyright (c) 2024 Ventana Micro Systems, Inc.
- *
- * Author(s):
- *   Himanshu Chauhan <hchauhan@ventanamicro.com>
- */
-
-//#include <libfdt.h>
 #include <asm/fdt.h>
-//#include <sbi/sbi_error.h>
-//#include <sbi/riscv_io.h>
-//#include <sbi/sbi_ras.h>
-//#include <sbi/sbi_ecall_interface.h>
-//#include <sbi/sbi_scratch.h>
-//#include <sbi/sbi_console.h>
 #include <sbi/sbi_heap.h>
-//#include <sbi_utils/fdt/fdt_helper.h>
-//#include <sbi_utils/ras/riscv_reri_regs.h>
 #include <sbi_utils/ras/apei_tables.h>
 #include <sbi_utils/ras/ghes.h>
 

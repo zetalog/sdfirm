@@ -1,4 +1,6 @@
 #include <target/sbi.h>
+#include <target/mbox.h>
+#include <target/rpmi.h>
 #include <sbi_utils/mailbox/rpmi_mailbox.h>
 #include <sbi_utils/ras/apei_tables.h>
 #include <sbi_utils/ras/ghes.h>
