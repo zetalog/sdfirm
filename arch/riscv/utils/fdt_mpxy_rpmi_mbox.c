@@ -8,17 +8,13 @@
  *   Anup Patel <apatel@ventanamicro.com>
  */
 
-//#include <libfdt.h>
 #include <asm/fdt.h>
 #include <target/fdt.h>
-//#include <sbi/sbi_error.h>
 #include <sbi/sbi_heap.h>
 #include <sbi/sbi_mpxy.h>
-//#include <sbi_utils/fdt/fdt_helper.h>
 #include <sbi_utils/mpxy/fdt_mpxy.h>
 #include <sbi_utils/mailbox/fdt_mailbox.h>
-#include <sbi_utils/mailbox/rpmi_msgprot.h>
-//#include <sbi/sbi_console.h>
+#include <target/rpmi.h>
 
 #define RPMI_MAJOR_VER		(1)
 #define RPMI_MINOR_VER		(0)

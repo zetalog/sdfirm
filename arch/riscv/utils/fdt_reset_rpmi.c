@@ -14,7 +14,7 @@
 #include <asm/fdt.h>
 //#include <sbi_utils/reset/fdt_reset.h>
 #include <sbi_utils/mailbox/fdt_mailbox.h>
-#include <sbi_utils/mailbox/rpmi_msgprot.h>
+#include <target/rpmi.h>
 #include <sbi_utils/mailbox/rpmi_mailbox.h>
 
 /* struct rpmi_sysreset: RPMI System Reset Context */

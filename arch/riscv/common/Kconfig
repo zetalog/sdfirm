@@ -1098,21 +1098,57 @@ endif
 
 menuconfig RPMI
 	bool "RISC-V platform management interface (RPMI) support"
+	depends MBOX
 
 if RPMI
 
 choice
 	prompt "Platform RPMI scheme"
+	default RPMI_SHMEM
 
 config RPMI_SHMEM
 	bool "SHMEM"
 
 endchoice
 
+menu "RPMI interfaces"
+
+config RPMI_RAS
+	bool "RPMI RAS support"
+	select RERI
+	select RISCV_GHES
+
+config RPMI_CPPC
+	bool "RPMI CPPC support"
+	select RISCV_PCC
+
+endmenu
+
 endif
 
+menuconfig RERI
+	bool "RISC-V RAS error report interface (RERI) support"
+
+if RERI
+
+endif
+
+menu "RISC-V ACPI adoptions"
+
+config RISCV_APEI
+	bool
+
+config RISCV_GHES
+	bool "RISC-V generic hardware error source (GHES) support"
+	select RISCV_APEI
+
+config RISCV_PCC
+	bool "RISC-V generic platform communication channel (PCC) support"
+
+endmenu
+
 menuconfig RISCV_TRACE
-	bool "Nexus Trace Support"
+	bool "RISC-V Nexus Trace (N-trace) Support"
 	depends CORESIGHT
 
 menuconfig RI5CY_PC

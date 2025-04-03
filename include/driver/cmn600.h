@@ -1124,10 +1124,12 @@ typedef uint8_t cmn_did_t;
 /* CMN_cxg_ra_sam_addr_region */
 #define CMN_reg_size_OFFSET				0
 #define CMN_reg_size_MASK				REG_6BIT_MASK
-#define CMN_reg_size(value)				_SET_FV_ULL(CMN_reg_size, value)
+#define CMN_reg_size(value)				\
+	_SET_FV_ULL(CMN_reg_size, __ilog2_u64((value) / _BV(CMN_reg_base_addr_OFFSET)))
 #define CMN_reg_base_addr_OFFSET			16
 #define CMN_reg_base_addr_MASK				REG_32BIT_MASK
-#define CMN_reg_base_addr(value)			_SET_FV_ULL(CMN_reg_base_addr, value)
+#define CMN_reg_base_addr(value)			\
+	_SET_FV_ULL(CMN_reg_base_addr, (value) >> CMN_reg_base_addr_OFFSET)
 #define CMN_reg_ha_tgtid_OFFSET				52
 #define CMN_reg_ha_tgtid_MASK				REG_5BIT_MASK
 #define CMN_reg_ha_tgtid(value)				_SET_FV_ULL(CMN_reg_ha_tgtid, value)
