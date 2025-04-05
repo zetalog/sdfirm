@@ -116,56 +116,30 @@ void dw_ssi_switch_xfer(int n, uint8_t tmod)
 	}
 }
 
-void dw_ssi_submit_write(uint8_t byte)
-{
-	uint32_t val = byte;
-
-	if ((spi_rxsubmit == 0) && spi_prev_byte()) {
-		//val |= SPI_DATA_CMD_STOP;
-	}
-	if (spi_first_byte()) {
-		dw_ssi_setl(SPI_INTR_TX, SSI_IMR(dw_ssid));
-		//val |= SPI_DATA_CMD_RESTART;
-	} else {
-		dw_ssi_setl(SPI_INTR_IDL, SSI_IMR(dw_ssid));
-	}
-	dw_ssi.last_tx_byte = byte;
-	while (!(dw_ssi_irqs_status(dw_ssid) & SSI_TFNF));
-	//dw_ssi_writel(val, SPI_DATA_CMD(dw_ssid));
-}
-
-void dw_ssi_commit_write(void)
-{
-	if (spi_last_byte())
-		dw_ssi_clearl(SPI_INTR_TX, SSI_IMR(dw_ssid));
-}
-
-void dw_ssi_start_condition(bool sr)
-{
-	if (sr) {
-		dw_ssi_stop_condition();
-	}
-	spi_set_status(SPI_STATUS_START);
-	dw_ssi_dbg("dw_ssi: DW_SSI_DRIVER_START\n");
-	dw_ssi.state = DW_SSI_DRIVER_START;
-}
-
-void dw_ssi_stop_condition(void)
-{
-	dw_ssi_dbg("dw_ssi: DW_SSI_DRIVER_STOP\n");
-	dw_ssi.state = DW_SSI_DRIVER_STOP;
-}
-
 void dw_ssi_write_byte(int n, uint8_t byte)
 {
-	while (!(dw_ssi_readl(SSI_RISR(n)) & SSI_TXEI));
+	spi_sync_status();
+	dw_ssi.status = SPI_STATUS_IDLE;
+	dw_ssi_mask_intr(n, SSI_TXEI);
 	dw_ssi_write_dr(n, byte);
+	while (dw_ssi.status == SPI_STATUS_IDLE)
+		bh_sync();
+	dw_ssi.status = SPI_STATUS_IDLE;
+	dw_ssi_unmask_intr(n, SSI_TXEI);
 }
 
 uint8_t dw_ssi_read_byte(int n)
 {
-	while (!(dw_ssi_readl(SSI_RISR(n)) & SSI_RXFI));
-	return dw_ssi_read_dr(n);
+	uint8_t byte;
+	spi_sync_status();
+	dw_ssi.status = SPI_STATUS_IDLE;
+	dw_ssi_mask_intr(n, SSI_RXFI);
+	while (dw_ssi.status == SPI_STATUS_IDLE)
+		bh_sync();
+	byte = (uint8_t)dw_ssi_read_dr(n);
+	dw_ssi.status = SPI_STATUS_IDLE;
+	dw_ssi_unmask_intr(n, SSI_RXFI);
+	return byte;
 }
 
 #define dw_ssi_probe_fifo(n, reg, depth)				\
@@ -392,6 +366,7 @@ void dw_ssi_handle_irq(irq_t irq)
 	}
 	if (status & SSI_RXFI) {
 		dw_ssi_dbg("dw_ssi: SSI_RXFI\n");
+		dw_ssi.status = SPI_STATUS_XFER;
 	}
 	if (status & SSI_RXOI) {
 		dw_ssi_dbg("dw_ssi: SSI_RXOI\n");
@@ -407,6 +382,7 @@ void dw_ssi_handle_irq(irq_t irq)
 	}
 	if (status & SSI_TXEI) {
 		dw_ssi_dbg("dw_ssi: SSI_TXEI\n");
+		dw_ssi.status = SPI_STATUS_XFER;
 	}
 }
 
