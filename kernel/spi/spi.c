@@ -41,27 +41,17 @@ spi_device_t *spi_device = NULL;
 
 const char *spi_status_names[] = {
 	"IDLE",
-	"START",
-	"ACK",
-	"NACK",
-	"ARBI",
-	"STOP",
+	"XFER",
 };
 
 const char *spi_state_names[] = {
 	"IDLE",
-	"WAIT",
-	"READ",
-	"WRITE",
+	"XFER",
 };
 
 const char *spi_event_names[] = {
 	"IDLE",
-	"START",
-	"PAUSE (ACK)",
-	"ABORT (NACK)",
-	"ARBITRATION",
-	"STOP",
+	"XFER",
 };
 
 const char *spi_status_name(uint8_t status)
@@ -98,32 +88,13 @@ void spi_raise_event(uint8_t event)
 	bh_resume(spi_bh);
 }
 
-static void spi_write_address(void)
-{
-	if (spi_txsubmit <= SPI_ADDR_LEN)
-		spi_write_byte(spi_addr_mode(spi_target, SPI_MODE_RX));
-	else
-		spi_write_byte(spi_addr_mode(spi_target, SPI_MODE_TX));
-}
-
 void spi_enter_state(uint8_t state)
 {
 	spi_dbg("spi: state = %s\n", spi_state_name(state));
 	spi_state = state;
-	if (state == SPI_STATE_IDLE) {
-		if (spi_rxsubmit == 0)
-			spi_hw_stop_condition();
-	} else if (state == SPI_STATE_WAIT)
-		spi_hw_start_condition(false);
-	else if (state == SPI_STATE_WRITE) {
-		if (spi_current < SPI_ADDR_LEN)
-			spi_write_address();
-		else if (spi_current < spi_limit)
-			spi_device->iocb(1);
-	} else if (state == SPI_STATE_READ) {
+	if (state == SPI_STATE_XFER)
 		if (spi_current < spi_limit)
 			spi_device->iocb(1);
-	}
 }
 
 static void spi_unraise_event(uint8_t event)
@@ -134,24 +105,6 @@ static void spi_unraise_event(uint8_t event)
 uint8_t spi_dir_mode(void)
 {
 	return SPI_DIR(spi_mode);
-}
-
-bool spi_last_byte(void)
-{
-	return spi_current == spi_limit;
-}
-
-bool spi_prev_byte(void)
-{
-	return (spi_current + 1) == spi_limit;
-}
-
-bool spi_first_byte(void)
-{
-	if (spi_dir_mode() == SPI_MODE_RX)
-		return spi_current == 0;
-	else
-		return spi_current == SPI_ADDR_LEN;
 }
 
 void spi_write_byte(uint8_t byte)
@@ -170,22 +123,6 @@ uint8_t spi_txrx(uint8_t byte)
 	return spi_rx();
 }
 
-void spi_master_abort(spi_addr_t slave)
-{
-	spi_abrt_slave = slave;
-	spi_raise_event(SPI_EVENT_ABORT);
-}
-
-void spi_master_start(void)
-{
-	spi_raise_event(SPI_EVENT_START);
-}
-
-void spi_master_stop(void)
-{
-	spi_raise_event(SPI_EVENT_STOP);
-}
-
 void spi_master_commit(spi_len_t len)
 {
 	BUG_ON(spi_current + spi_commit > spi_limit);
@@ -199,7 +136,7 @@ void spi_master_submit(spi_addr_t slave, spi_len_t txlen, spi_len_t rxlen)
 	/* IDLE means start, STOP means repeated start */
 	if (spi_state == SPI_STATE_IDLE) {
 		spi_current = 0;
-		spi_txsubmit = txlen + SPI_ADDR_LEN;
+		spi_txsubmit = txlen;
 		spi_rxsubmit = rxlen;
 		if (spi_txsubmit > 0) {
 			spi_limit = spi_txsubmit;
@@ -208,17 +145,12 @@ void spi_master_submit(spi_addr_t slave, spi_len_t txlen, spi_len_t rxlen)
 			spi_limit = spi_rxsubmit;
 			spi_config_mode(SPI_MODE_MASTER_RX);
 		}
-	} else if (spi_state == SPI_STATE_WRITE) {
+	} else if (spi_state == SPI_STATE_XFER) {
 		spi_txsubmit += txlen;
 		spi_limit += txlen;
 		spi_rxsubmit += rxlen;
-	} else if (spi_state == SPI_STATE_READ) {
-		spi_rxsubmit += rxlen;
 		spi_limit += rxlen;
 	}
-
-	if (spi_state == SPI_STATE_IDLE)
-		spi_enter_state(SPI_STATE_WAIT);
 
 	while (spi_state != SPI_STATE_IDLE)
 		bh_sync();
@@ -238,12 +170,6 @@ uint8_t spi_master_read(spi_addr_t slave, spi_len_t rxlen)
 	return spi_current;
 }
 
-void spi_master_release(void)
-{
-	spi_hw_stop_condition();
-}
-
-
 void spi_config_mode(uint8_t mode)
 {
 	spi_mode = mode;
@@ -255,18 +181,9 @@ void spi_set_status(uint8_t status)
 	spi_status = status;
 	if (status == SPI_STATUS_IDLE)
 		spi_enter_state(SPI_STATE_IDLE);
-	if (status == SPI_STATUS_START)
-		spi_raise_event(SPI_EVENT_START);
-	if (status == SPI_STATUS_STOP)
-		spi_raise_event(SPI_EVENT_STOP);
-	if (status == SPI_STATUS_NACK)
-		spi_raise_event(SPI_EVENT_ABORT);
-	if (status == SPI_STATUS_ACK) {
+	if (status == SPI_STATUS_XFER) {
+		spi_raise_event(SPI_EVENT_XFER);
 		spi_current++;
-		if (spi_current == spi_limit)
-			spi_raise_event(SPI_EVENT_STOP);
-		else
-			spi_raise_event(SPI_EVENT_PAUSE);
 	}
 }
 
@@ -291,36 +208,9 @@ static void spi_handle_xfr(void)
 
 	spi_unraise_event(event);
 	switch (spi_state) {
-	case SPI_STATE_READ:
-		if (event & SPI_EVENT_PAUSE)
-			spi_enter_state(SPI_STATE_READ);
-		if (event & SPI_EVENT_ABORT)
-			spi_enter_state(SPI_STATE_IDLE);
-		if (event & SPI_EVENT_STOP)
-			spi_enter_state(SPI_STATE_IDLE);
+	case SPI_STATE_XFER:
+		spi_enter_state(SPI_STATE_IDLE);
 		break;
-	case SPI_STATE_WRITE:
-		if (event & SPI_EVENT_PAUSE)
-			spi_enter_state(SPI_STATE_WRITE);
-		if (event & SPI_EVENT_ABORT)
-			spi_enter_state(SPI_STATE_IDLE);
-		if (event & SPI_EVENT_STOP) {
-			if (spi_rxsubmit > 0) {
-				spi_current = 0;
-				spi_limit = spi_rxsubmit;
-				spi_config_mode(SPI_MODE_MASTER_RX);
-				spi_enter_state(SPI_STATE_READ);
-			} else
-				spi_enter_state(SPI_STATE_IDLE);
-		}
-		break;
-	case SPI_STATE_WAIT:
-		if (event & SPI_EVENT_START) {
-			if (spi_dir_mode() == SPI_MODE_TX)
-				spi_enter_state(SPI_STATE_WRITE);
-			else
-				spi_enter_state(SPI_STATE_READ);
-		}
 	case SPI_STATE_IDLE:
 		break;
 	}
