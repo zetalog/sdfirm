@@ -62,7 +62,6 @@ typedef struct spi_device spi_device_t;
 #define SPI_MAX_FREQ		SPI_HW_MAX_FREQ
 #define SPI_MAX_FREQ_MHZ	(UL(1000) * SPI_MAX_FREQ)
 
-#define SPI_MODE_CALL		0x80
 #define SPI_MODE_SLAVE		0x00
 #define SPI_MODE_MASTER		0x02
 #define SPI_BUS_MASK		0x02
@@ -71,22 +70,15 @@ typedef struct spi_device spi_device_t;
 #define SPI_DIR_MASK		0x01
 
 #define SPI_STATUS_IDLE		0x00
-#define SPI_STATUS_START	0x01
-#define SPI_STATUS_ACK		0x02
-#define SPI_STATUS_NACK		0x03
-#define SPI_STATUS_ARBI		0x04
-#define SPI_STATUS_STOP		0x05
+#define SPI_STATUS_XFER		0x01
+#define SPI_STATUS_STOP		0x02
 
 #define SPI_STATE_IDLE		0x00
 #define SPI_STATE_WAIT		0x01
-#define SPI_STATE_READ		0x02
-#define SPI_STATE_WRITE		0x03
+#define SPI_STATE_XFER		0x02
 
 #define SPI_EVENT_IDLE		_BV(SPI_STATUS_IDLE)
-#define SPI_EVENT_START		_BV(SPI_STATUS_START)
-#define SPI_EVENT_PAUSE		_BV(SPI_STATUS_ACK)
-#define SPI_EVENT_ABORT		_BV(SPI_STATUS_NACK)
-#define SPI_EVENT_ARB		_BV(SPI_STATUS_ARBI)
+#define SPI_EVENT_XFER		_BV(SPI_STATUS_XFER)
 #define SPI_EVENT_STOP		_BV(SPI_STATUS_STOP)
 
 #define SPI_BUS(x)		(x & SPI_BUS_MASK)
@@ -134,9 +126,7 @@ uint8_t spi_txrx(uint8_t byte);
 void spi_raise_event(uint8_t event);
 void spi_enter_state(uint8_t state);
 
-bool spi_first_byte(void);
-bool spi_prev_byte(void);
-bool spi_last_byte(void);
+void spi_sync_status(void);
 
 void spi_set_status(uint8_t status);
 
