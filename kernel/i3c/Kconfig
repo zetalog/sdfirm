@@ -2,12 +2,19 @@
 # I3C Devices
 #
 
-config ARCH_HAS_I2C
+config ARCH_HAS_I3C
 	bool
 
 menuconfig I3C
 	bool "Improved inter integrated circuit (I3C) support"
 
 if I3C
+
+config I3C_MAX_MASTERS
+	int "Number of masters"
+	default 1
+
+config I3C_HCI
+	bool "I3C host controller interface (I3C HCI) support"
 
 endif

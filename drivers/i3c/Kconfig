@@ -1,0 +1,256 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "I3C controller drivers"
+
+config ARCH_IS_DW_MIPI_I3C_MASTER
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_SLAVE
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_MASTER_SLAVE
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_SECONDARY_MASTER
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_SLAVE_LITE
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_HCI
+	bool
+
+config ARCH_HAS_DW_MIPI_I3C_DAT
+	bool
+
+config ARCH_HAS_DW_MIPI_I3C_HDR_DDR
+	bool
+
+config ARCH_HAS_DW_MIPI_I3C_HDR_TS
+	depends !ARCH_IS_DW_MIPI_I3C_SLAVE_LITE
+
+config ARCH_HAS_DW_MIPI_I3C_PEC
+	bool
+	depends !ARCH_IS_DW_MIPI_I3C_HCI
+	depends ARCH_IS_DW_MIPI_I3C_MASTER || ARCH_IS_DW_MIPI_I3C_SLAVE_LITE
+
+config ARCH_HAS_DW_MIPI_I3C_DMA
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_BUF_LVL_MIN
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_BUF_LVL_TYP
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_BUF_LVL_MAX
+	bool
+
+config ARCH_HAS_DW_MIPI_I3C_IBI_DATA
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_IBI_BUF_LVL_MIN
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_IBI_BUF_LVL_TYP
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_IBI_BUF_LVL_MAX
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_HDR_EXIT
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_SCL_LOW
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_SYNC_DEPTH_2STAGE
+	bool
+
+config ARCH_IS_DW_MIPI_I3C_SYNC_DEPTH_3STAGE
+	bool
+
+config ARCH_HAS_DW_MIPI_I3C_FW_RAM_RETIMING
+	bool
+
+menuconfig DW_MIPI_I3C
+	bool "Synopsys DesignWare MIPI I3C support"
+	depends I3C
+
+if DW_MIPI_I3C
+
+config DW_MIPI_I3C_DEBUG
+	bool "Enable debugging message"
+	depends CONSOLE_DEBUG
+	help
+	  Additional debugging messages including register accesses and
+	  driver states.
+
+menu "Role Configuration Parameters"
+
+choice
+	prompt "Device Role"
+
+config DW_MIPI_I3C_MASTER
+	bool "Master-only"
+	depends ARCH_IS_DW_MIPI_I3C_MASTER
+
+config DW_MIPI_I3C_SLAVE
+	bool "Slave-only"
+	depends ARCH_IS_DW_MIPI_I3C_SLAVE
+
+config DW_MIPI_I3C_MASTER_SLAVE
+	bool "Programmable Master and Slave"
+	depends ARCH_IS_DW_MIPI_I3C_MASTER_SLAVE
+
+config DW_MIPI_I3C_SECONDARY_MASTER
+	bool "Secondary Master"
+	depends ARCH_IS_DW_MIPI_I3C_SECONDARY_MASTER
+
+config DW_MIPI_I3C_SLAVE_LITE
+	bool "Slave-Lite"
+	depends ARCH_IS_DW_MIPI_I3C_SLAVE_LITE
+
+endchoice
+
+endmenu
+
+menu "HCI Configuration Parameters"
+
+choice
+	prompt "Host Controller Interface (HCI)"
+
+config DW_MIPI_I3C_SNPS
+	bool "SNPS Properietry"
+	depends !ARCH_IS_DW_MIPI_I3C_HCI
+
+config DW_MIPI_H3C_HCI
+	bool "HCI Compliant"
+	depends ARCH_IS_DW_MIPI_I3C_HCI
+	select I3C_HCI
+
+endchoice
+
+config DW_MIPI_H3C_DAT
+	bool "Support default DAT section"
+	depends ARCH_HAS_DW_MIPI_I3C_DAT
+
+endmenu
+
+menu "Basic Configuration Parameters"
+
+config DW_MIPI_I3C_HDR_DDR
+	bool "HDR-DDR (double data rate)"
+	depends ARCH_HAS_DW_MIPI_I3C_HDR_DDR
+
+config DW_MIPI_I3C_HDR_TS
+	bool "HDR-TS (ternary symbol)"
+	depends !DW_MIPI_I3C_SLAVE_LITE
+	depends ARCH_HAS_DW_MIPI_I3C_HDR_TS
+
+config DW_MIPI_I3C_PEC
+	bool "PEC (packet error check) Support Enable"
+	depends ARCH_HAS_DW_MIPI_I3C_PEC
+
+endmenu
+
+menu "Queues and Interfaces Parameters"
+
+config DW_MIPI_I3C_DMA
+	bool "DMA handshaking interface"
+	depends ARCH_HAS_DW_MIPI_I3C_DMA
+
+choice
+	prompt "Buffer Level Selection"
+	depends !ARCH_IS_DW_MIPI_I3C_SLAVE_LITE
+
+config DW_MIPI_I3C_BUF_LVL_MIN
+	bool "Minimum (2 command/response, 16 TX/RX)"
+	depends ARCH_IS_DW_MIPI_I3C_BUF_LVL_MIN
+
+config DW_MIPI_I3C_BUF_LVL_TYP
+	bool "Typical (4 command/response, 32 TX/RX)"
+	depends ARCH_IS_DW_MIPI_I3C_BUF_LVL_TYP
+
+config DW_MIPI_I3C_BUF_LVL_MAX
+	bool "Maximum (8 command/response, 64 TX/RX)"
+	depends ARCH_IS_DW_MIPI_I3C_BUF_LVL_MAX
+
+endchoice
+
+endmenu
+
+menu "Master Configuration Parameters"
+
+config DW_MIPI_I3C_IBI_DATA
+	bool "Support IBI with data"
+	depends ARCH_HAS_DW_MIPI_I3C_IBI_DATA
+
+choice
+	prompt "IBI Buffer Level Selection"
+
+config DW_MIPI_I3C_IBI_BUF_LVL_MIN
+	bool "Minimum (4 status, 16 payload)"
+	depends ARCH_IS_DW_MIPI_I3C_IBI_BUF_LVL_MIN
+
+config DW_MIPI_I3C_IBI_BUF_LVL_TYP
+	bool "Typical (8 status, 32 payload)"
+	depends ARCH_IS_DW_MIPI_I3C_IBI_BUF_LVL_TYP
+
+config DW_MIPI_I3C_IBI_BUF_LVL_MAX
+	bool "Maximum (16 status, 64 payload)"
+	depends ARCH_IS_DW_MIPI_I3C_IBI_BUF_LVL_MAX
+
+endchoice
+
+choice
+	prompt "Device Reset Support"
+	default DDW_MIPI_I3C_SCL_LOW if DW_MIPI_I3C_HCI && !DW_MIPI_I3C_DAT
+
+config DW_MIPI_I3C_HDR_EXIT
+	bool "HDR Exit-Pattern"
+	depends ARCH_IS_DW_MIPI_I3C_HDR_EXIT
+
+config DW_MIPI_I3C_SCL_LOW
+	bool "SCL Low Pattern"
+	depends ARCH_IS_DW_MIPI_I3C_SCL_LOW
+
+endchoice
+
+endmenu
+
+menu "Slave Configuration Parameters"
+
+endmenu
+
+menu "Clock(s) Configuration Parameters"
+
+choice
+	prompt "Synchronizer depth settings"
+
+config DW_MIPI_I3C_SYNC_DEPTH_2STAGE
+	bool "2-stage: both stages positive edge"
+	depends ARCH_IS_DW_MIPI_I3C_SYNC_DEPTH_2STAGE
+
+config DW_MIPI_I3C_SYNC_DEPTH_3STAGE
+	bool "3-stage: all on positive edge"
+	depends ARCH_IS_DW_MIPI_I3C_SYNC_DEPTH_3STAGE
+
+endchoice
+
+endmenu
+
+menu "External Memory Parameters"
+
+config DW_MIPI_I3C_FW_RAM_RETIMING
+	bool "Register retiming on forward and return path to RAM"
+	depends ARCH_HAS_DW_MIPI_I3C_FW_RAM_RETIMING
+
+endmenu
+
+endif
+
+endmenu
