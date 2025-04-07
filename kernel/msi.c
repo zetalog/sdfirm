@@ -62,8 +62,8 @@ irq_t irq_locate_mapping(cpu_t cpu, irq_t irq)
 	irq_t *vec;
 	irq_t msi = irq_msi(irq);
 
-	map = *this_cpu_ptr(&irq_msi_alloc);
-	if (!test_bit(irq_msi(msi), map))
+	map = *per_cpu_ptr(&irq_msi_alloc, cpu);
+	if (!test_bit(msi, map))
 		return INVALID_IRQ;
 
 	vec = *this_cpu_ptr(&irq_msi_vector);

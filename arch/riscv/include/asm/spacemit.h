@@ -123,7 +123,8 @@
 	li	t0, STP_DE | STP_IE | STP_MM
 #endif
 #ifdef CONFIG_SPACEMIT_ECC
-	or	t0, t0, STP_ECC
+	li	t1, STP_ECC
+	or	t0, t0, t1
 #endif
 	csrs	CSR_MSETUP, t0
 	.endm
@@ -140,7 +141,8 @@
 	li	t1, L2S_PAE | L2S_IPRF_1L | L2S_TPRF
 	or	t0, t0, t1
 #ifdef CONFIG_SPACEMIT_ECC
-	or	t0, t0, L2S_ECC
+	li	t1, L2S_ECC
+	or	t0, t0, t1
 #endif
 	csrs	CSR_ML2SETUP, t0
 
