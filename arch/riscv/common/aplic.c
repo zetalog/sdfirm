@@ -214,6 +214,7 @@ void irqc_hw_enable_irq(irq_t irq)
 			aplic_configure_msi(irq_ext(irq),
 					    cpu, 0, irq_msi(msi));
 		}
+		aplic_trigger_irq(irq_ext(irq));
 	} else if (irq >= NR_INT_IRQS)
 		imsic_enable_irq(irq_msi(irq));
 	else
