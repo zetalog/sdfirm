@@ -1097,7 +1097,7 @@ config HPM_MAX_EVENTS
 endif
 
 menuconfig RPMI
-	bool "RISC-V platform management interface (RPMI) support"
+	bool "Platform management interface (RPMI) support"
 	depends MBOX
 
 if RPMI
@@ -1127,7 +1127,7 @@ endmenu
 endif
 
 menuconfig RERI
-	bool "RISC-V RAS error report interface (RERI) support"
+	bool "RAS error report interface (RERI) support"
 
 if RERI
 
@@ -1139,16 +1139,16 @@ config RISCV_APEI
 	bool
 
 config RISCV_GHES
-	bool "RISC-V generic hardware error source (GHES) support"
+	bool "Generic hardware error source (GHES) support"
 	select RISCV_APEI
 
 config RISCV_PCC
-	bool "RISC-V generic platform communication channel (PCC) support"
+	bool "Platform communication channel (PCC) support"
 
 endmenu
 
 menuconfig RISCV_TRACE
-	bool "RISC-V Nexus Trace (N-trace) Support"
+	bool "Nexus Trace (N-trace) Support"
 	depends CORESIGHT
 
 menuconfig RI5CY_PC
@@ -1230,7 +1230,7 @@ menuconfig VAISRA_RAS
 	depends CPU_VAISRA
 	depends !SYS_NOIRQ || SBI
 
-menu "SpacemiT reliability availability serviceability (RAS) features"
+menu "SpacemiT RAS features"
 
 config SPACEMIT_ECC
 	bool "SpacemiT CPU error correction code (ECC) support"
