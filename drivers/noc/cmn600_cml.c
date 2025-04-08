@@ -252,7 +252,11 @@ static void cmn_cml_start_ccix_link(void)
 		   "CMN_cxla_ccix_prop_configured", -1);
 #endif
 
-#ifndef CONFIG_K1MXLITE //FIXME: temporary modification, need to be changed back in the future
+#ifndef CONFIG_CMN600_CML_NO_MESSAGE_PACK
+	cmn_setq(CMN_la_nomessagepack,
+		 CMN_cxla_ccix_prop_configured(CMN_CXLA_BASE),
+		 "CMN_cxla_ccix_prop_configured", -1);
+#else
 	if (!cmn_ccix_no_message_pack())
 		cmn_clearq(CMN_la_nomessagepack,
 			   CMN_cxla_ccix_prop_configured(CMN_CXLA_BASE),
