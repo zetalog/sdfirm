@@ -237,15 +237,6 @@
 #define DW_SPI_CS			1
 #define DW_SPI_FREQ_SPEED		50
 
-enum dw_ssi_driver_state {
-	DW_SSI_DRIVER_INIT = 0,
-	DW_SSI_DRIVER_START,
-	DW_SSI_DRIVER_ADDRESS,
-	DW_SSI_DRIVER_DATA,
-	DW_SSI_DRIVER_STOP,
-	DW_SSI_DRIVER_INVALID
-};
-
 struct dw_ssi_ctx {
 	uint8_t frf;		/* SPI/SSP/MicroWire */
 	uint8_t tmod;		/* TR/TO/RO/EEPROM */
@@ -298,8 +289,6 @@ struct dw_ssi_ctx {
 #define dw_ssi_irqs_status(n)		dw_ssi_readl(SSI_ISR(n))
 #define dw_ssi_clear_irqs(n, irqs)	dw_ssi_clearl(irqs, SSI_ISR(n))
 
-void dw_ssi_start_condition(bool sr);
-void dw_ssi_stop_condition(void);
 uint8_t dw_ssi_read_byte(int n);
 void dw_ssi_write_byte(int n, uint8_t byte);
 void dw_ssi_config_mode(int n, uint8_t mode);
@@ -416,11 +405,19 @@ static void dw_writer(int n);
 void dw_ssi_handle_irq(irq_t irq);
 void dw_ssi_irq_init(void);
 
-static inline void dw_spi_mask_intr(int n, u32 mask)
+static inline void dw_ssi_mask_intr(int n, u32 mask)
 {
 	u32 new_mask;
 
 	new_mask = dw_ssi_readl(SSI_IMR(n)) & ~mask;
+	dw_ssi_writel(new_mask, SSI_IMR(n));
+}
+
+static inline void dw_ssi_unmask_intr(int n, u32 mask)
+{
+	u32 new_mask;
+
+	new_mask = dw_ssi_readl(SSI_IMR(n)) | mask;
 	dw_ssi_writel(new_mask, SSI_IMR(n));
 }
 

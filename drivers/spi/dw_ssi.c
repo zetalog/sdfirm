@@ -120,12 +120,12 @@ void dw_ssi_write_byte(int n, uint8_t byte)
 {
 	spi_sync_status();
 	dw_ssi.status = SPI_STATUS_IDLE;
-	dw_ssi_mask_intr(n, SSI_TXEI);
+	dw_ssi_enable_irqs(n, SSI_TXEI);
 	dw_ssi_write_dr(n, byte);
 	while (dw_ssi.status == SPI_STATUS_IDLE)
 		bh_sync();
 	dw_ssi.status = SPI_STATUS_IDLE;
-	dw_ssi_unmask_intr(n, SSI_TXEI);
+	dw_ssi_disable_irqs(n, SSI_TXEI);
 }
 
 uint8_t dw_ssi_read_byte(int n)
@@ -133,12 +133,12 @@ uint8_t dw_ssi_read_byte(int n)
 	uint8_t byte;
 	spi_sync_status();
 	dw_ssi.status = SPI_STATUS_IDLE;
-	dw_ssi_mask_intr(n, SSI_RXFI);
+	dw_ssi_enable_irqs(n, SSI_RXFI);
 	while (dw_ssi.status == SPI_STATUS_IDLE)
 		bh_sync();
 	byte = (uint8_t)dw_ssi_read_dr(n);
 	dw_ssi.status = SPI_STATUS_IDLE;
-	dw_ssi_unmask_intr(n, SSI_RXFI);
+	dw_ssi_disable_irqs(n, SSI_RXFI);
 	return byte;
 }
 
@@ -188,6 +188,15 @@ void dw_ssi_init_slave(int n, uint8_t frf, uint8_t tmod,
 {
 	if (n >= NR_DW_SSIS)
 		return;
+	
+	dw_ssis[n].frf = frf;
+	dw_ssis[n].tmod = tmod;
+	/* Default to standard SPI wires */
+	dw_ssis[n].spi_frf = SSI_SPI_FRF_STD;
+	/* Default to SPI_MODE_0 */
+	dw_ssis[n].spi_mode = SPI_MODE_0;
+
+
 }
 
 void dw_ssi_init_spi(int n, uint8_t spi_frf,
@@ -357,8 +366,6 @@ void dw_ssi_handle_irq(irq_t irq)
 	int n = irq - IRQ_SPI;
 
 	uint32_t status = __raw_readl(SSI_ISR(n));
-	uint32_t mask = __raw_readl(SSI_IMR(n));
-	status &= mask;
 
 	if (status & SSI_MSTI) {
 		dw_ssi_dbg("dw_ssi: SSI_MSTI\n");
@@ -367,6 +374,7 @@ void dw_ssi_handle_irq(irq_t irq)
 	if (status & SSI_RXFI) {
 		dw_ssi_dbg("dw_ssi: SSI_RXFI\n");
 		dw_ssi.status = SPI_STATUS_XFER;
+		spi_set_status(SPI_STATUS_XFER);
 	}
 	if (status & SSI_RXOI) {
 		dw_ssi_dbg("dw_ssi: SSI_RXOI\n");
@@ -383,6 +391,7 @@ void dw_ssi_handle_irq(irq_t irq)
 	if (status & SSI_TXEI) {
 		dw_ssi_dbg("dw_ssi: SSI_TXEI\n");
 		dw_ssi.status = SPI_STATUS_XFER;
+		spi_set_status(SPI_STATUS_XFER);
 	}
 }
 
