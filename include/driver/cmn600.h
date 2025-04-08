@@ -828,7 +828,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_ppu_pow_status_ON			8
 #define CMN_ppu_op_mode_status_OFFSET		4
 #define CMN_ppu_op_mode_status_MASK		REG_4BIT_MASK
-#define CMN_ppu_op_mode_status(value)		_SET_FV_ULL(CMN_ppu_op_mode_status, value)
+#define CMN_ppu_op_mode_status(value)		_GET_FV_ULL(CMN_ppu_op_mode_status, value)
 #define CMN_ppu_op_mode_status_NOSFSLC		0
 #define CMN_ppu_op_mode_status_SFONLY		1
 #define CMN_ppu_op_mode_status_HAM		2
@@ -1291,6 +1291,9 @@ typedef uint8_t cmn_did_t;
 	CMN_device_type(__raw_readq(CMN_mxp_device_port_connect_info(base, pid)))
 #define cmn_mxp_datacheck(base, pid)		\
 	(__raw_readq(CMN_mxp_p_info(base, pid)) & CMN_mxp_datacheck_en)
+
+#define cmn_hnf_op_mode_status(base)		\
+	CMN_ppu_op_mode_status(__raw_readq(CMN_hnf_ppu_pwsr(base)))
 
 /* CXG capabilities */
 #define cmn_ccix_request_credits()		\

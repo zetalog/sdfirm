@@ -313,108 +313,92 @@ static void cmn_hnf_cal_config_scg(caddr_t hnf, cmn_id_t id)
 static void cmn_hnf_cfg_slc_lockways(caddr_t hnf, uint64_t ways, uint64_t num_hnf)
 {
 	cmn_writeq(hnf_slc_lock_ways(hnf) |
-		CMN_hnf_slc_lock_ways_ways(ways) |
-		CMN_hnf_slc_lock_ways_num_hnf(num_hnf),
-		CMN_hnf_slc_lock_ways_ways(hnf),
-		"CMN_hnf_cfg_ctl", -1);
+		   CMN_hnf_slc_lock_ways_ways(ways) |
+		   CMN_hnf_slc_lock_ways_num_hnf(num_hnf),
+		   CMN_hnf_slc_lock_ways_ways(hnf),
+		   "CMN_hnf_cfg_ctl", -1);
 }
 
 static void cmn_hnf_slc_lock_enable(caddr_t hnf)
 {
 	cmn_writeq(hnf_cfg_ctl(hnf) |
-		CMN_hnf_ocm_en(0x1) |
-		CMN_hnf_ocm_always_en(0x0),
-		CMN_hnf_cfg_ctl(hnf),
-		"CMN_hnf_cfg_ctl", -1);
+		   CMN_hnf_ocm_en(0x1) |
+		   CMN_hnf_ocm_always_en(0x0),
+		   CMN_hnf_cfg_ctl(hnf),
+		   "CMN_hnf_cfg_ctl", -1);
 }
 
 static void cmn_hnf_slc_lock_disable(caddr_t hnf)
 {
 	cmn_writeq(hnf_cfg_ctl(hnf) |
-		CMN_hnf_ocm_en(0x0) |
-		CMN_hnf_ocm_always_en(0x0),
-		CMN_hnf_cfg_ctl(hnf),
-		"CMN_hnf_cfg_ctl", -1);
+		   CMN_hnf_ocm_en(0x0) |
+		   CMN_hnf_ocm_always_en(0x0),
+		   CMN_hnf_cfg_ctl(hnf),
+		   "CMN_hnf_cfg_ctl", -1);
 }
 #endif
+
 static void cmn_hnf_cal_enable_ocm(caddr_t hnf)
 {
-	uint64_t pwsr = 0;
-
 	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
-		CMN_ppu_op_mode(CMN_ppu_op_mode_SFONLY) |
-		CMN_ppu_dyn_en,
-		CMN_hnf_ppu_pwpr(hnf),
-		"CMN_hnf_ppu_pwpr", -1);
-
-	while (1) {
-		pwsr = __raw_readq(CMN_hnf_ppu_pwsr(hnf));
-		if (((pwsr >> CMN_ppu_op_mode_status_OFFSET) & CMN_ppu_op_mode_status_MASK) == CMN_ppu_op_mode_status_SFONLY)
-			break;
-		}
-
+		   CMN_ppu_op_mode(CMN_ppu_op_mode_SFONLY) |
+		   CMN_ppu_dyn_en,
+		   CMN_hnf_ppu_pwpr(hnf),
+		   "CMN_hnf_ppu_pwpr", -1);
+	while (cmn_hnf_op_mode_status(hnf) != CMN_ppu_op_mode_status_SFONLY);
 	cmn_writeq(CMN_hnf_ocm_en,
-		CMN_hnf_cfg_ctl(hnf),
-		"CMN_hnf_cfg_ctl", -1);
-
+		   CMN_hnf_cfg_ctl(hnf),
+		   "CMN_hnf_cfg_ctl", -1);
 	cmn_writeq(CMN_hnf_slc_lock_ways(4),
-		CMN_hnf_slc_lock_ways(hnf),
-		"CMN_hnf_slc_lock_ways", -1);
-
+		   CMN_hnf_slc_lock_ways(hnf),
+		   "CMN_hnf_slc_lock_ways", -1);
 	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cc000000) |
-		CMN_hnf_slc_lock_basen_vld,
-		CMN_hnf_slc_lock_base(hnf, 0),
-		"CMN_hnf_slc_lock_base", 0);
-
+		   CMN_hnf_slc_lock_basen_vld,
+		   CMN_hnf_slc_lock_base(hnf, 0),
+		   "CMN_hnf_slc_lock_base", 0);
 	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cd000000) |
-		CMN_hnf_slc_lock_basen_vld,
-		CMN_hnf_slc_lock_base(hnf, 1),
-		"CMN_hnf_slc_lock_base", 1);
-
+		   CMN_hnf_slc_lock_basen_vld,
+		   CMN_hnf_slc_lock_base(hnf, 1),
+		   "CMN_hnf_slc_lock_base", 1);
 	cmn_writeq(CMN_hnf_slc_lock_basen(0x5e0000000) |
-		CMN_hnf_slc_lock_basen_vld,
-		CMN_hnf_slc_lock_base(hnf, 2),
-		"CMN_hnf_slc_lock_base", 2);
-
+		   CMN_hnf_slc_lock_basen_vld,
+		   CMN_hnf_slc_lock_base(hnf, 2),
+		   "CMN_hnf_slc_lock_base", 2);
 	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cf000000) |
-		CMN_hnf_slc_lock_basen_vld,
-		CMN_hnf_slc_lock_base(hnf, 3),
-		"CMN_hnf_slc_lock_base", 3);
-
+		   CMN_hnf_slc_lock_basen_vld,
+		   CMN_hnf_slc_lock_base(hnf, 3),
+		   "CMN_hnf_slc_lock_base", 3);
 	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
-		CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
-		CMN_ppu_dyn_en,
-		CMN_hnf_ppu_pwpr(hnf),
-		"CMN_hnf_ppu_pwpr", -1);
-	
-	while (1) {
-		pwsr = __raw_readq(CMN_hnf_ppu_pwsr(hnf));
-		if (((pwsr >> CMN_ppu_op_mode_status_OFFSET) & CMN_ppu_op_mode_status_MASK) == CMN_ppu_op_mode_status_FAM)
-			break;
-		}
+		   CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
+		   CMN_ppu_dyn_en,
+		   CMN_hnf_ppu_pwpr(hnf),
+		   "CMN_hnf_ppu_pwpr", -1);
+	while (cmn_hnf_op_mode_status(hnf) != CMN_ppu_op_mode_status_FAM);
 }
 
 static void cmn_hnf_cal_config_ocm(caddr_t hnf)
 {
-	cmn_writeq(hnf_cfg_ctl(hnf) |
-		CMN_hnf_ocm_en |
-		CMN_hnf_ocm_always_en,
-		CMN_hnf_cfg_ctl(hnf),
-		"CMN_hnf_cfg_ctl", -1);
+	cmn_writeq(hnf_cfg_ctl(hnf) | CMN_hnf_ocm_en | CMN_hnf_ocm_always_en,
+		   CMN_hnf_cfg_ctl(hnf),
+		   "CMN_hnf_cfg_ctl", -1);
 }
 
 static void cmn_hnf_cal_disable_ocm(caddr_t hnf)
 {
-	cmn_writeq(hnf_cfg_ctl(hnf) |
-		~CMN_hnf_ocm_en,
-		CMN_hnf_cfg_ctl(hnf),
-		"CMN_hnf_cfg_ctl", -1);
-	//cmn600_hw_disable_ocm();
-	//cmn600_reconfigure();
+	cmn_writeq(hnf_cfg_ctl(hnf) | ~CMN_hnf_ocm_en,
+		   CMN_hnf_cfg_ctl(hnf),
+		   "CMN_hnf_cfg_ctl", -1);
 }
 #endif
 
 /*
+void cmn600_flush_hnfs_slc(uint64_t abf_mode,caddr_t saddr, caddr_t eaddr)
+{
+	cmn_id_t i;
+	for(i = 0; i< cmn_hnf_count; i++)
+		cmn_hnf_abf(CMN_HNF_BASE(cmn_hnf_ids[i]), abf_mode, saddr, eaddr);
+}
+
 static void cmn_hnf_abf(uint64_t hnf, uint64_t abf_mode, uint64_t saddr, uint64_t eaddr)
 {
 	cmn_writeq(hnf_abf_lo_addr(hnf) |
@@ -442,6 +426,7 @@ void cmn_hnf_abf_done(int hnf_id_idx)
 	}
 }
 */
+
 uint8_t cmn_hnf_mapping(void)
 {
 	if (cmn_snf_count == 3)
@@ -1016,14 +1001,12 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 					"CMN_rnsam_sys_cache_grp_hn_nodeid", lid_base);
 			lid_base++;
 #ifdef CONFIG_CMN600_DEBUG_CONFIGURE
-			if( cmn_scg_count == 2 && lid > 8)
-			{
+			if (cmn_scg_count == 2 && lid > 8)
 				con_dbg(CMN_MODNAME ": SCG2: %d/%d, ID: %d\n",
 					lid_base, cmn_hnf_count, nid);
-			} else {
+			else
 				con_dbg(CMN_MODNAME ": SCG%d: %d/%d, ID: %d\n",
 					scg, lid_base, cmn_hnf_count, nid);
-			}
 #endif
 		}
 		if (hnfs_per_scg < CMN_MAX_HASH_MEM_REGIONS)
@@ -1031,8 +1014,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		scg++;
 	}
 #endif
-	if (cmn_scg_count == 2)
-	{
+	if (cmn_scg_count == 2) {
 		cmn_writeq_mask(CMN_scg_hnf_num(0, hnfs_per_scg),
 				CMN_scg_hnf_num(0, CMN_scg_hnf_num_MASK),
 				CMN_rnsam_sys_cache_group_hn_count(rnsam, 0),
@@ -1105,14 +1087,7 @@ void cmn600_configure(void)
 		cmn600_configure_rn_sam(CMN_RN_SAM_EXT_BASE(cmn_rn_sam_ext_ids[i]));
 	con_dbg(CMN_MODNAME ": Setup external RN-SAM nodes\n");
 }
-/*
-void cmn600_flush_hnfs_slc(uint64_t abf_mode,caddr_t saddr, caddr_t eaddr)
-{
-	cmn_id_t i;
-	for(i = 0; i< cmn_hnf_count; i++)
-		cmn_hnf_abf(CMN_HNF_BASE(cmn_hnf_ids[i]), abf_mode, saddr, eaddr);
-}
-*/
+
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid)
 {
 	cmn_id_t rnsam;
@@ -1457,6 +1432,7 @@ static int do_cmn600_dump(int argc, char *argv[])
 	}
 	return -EINVAL;
 }
+
 #ifdef CONFIG_CMN600_OCM
 static int do_cmn600_ocm(int argc, char *argv[])
 {
@@ -1481,6 +1457,8 @@ static int do_cmn600_ocm(int argc, char *argv[])
 	}
 	return -EINVAL;
 }
+#else
+#define do_cmn600_ocm(argc, argv)		(-EINVAL)
 #endif
 
 static int do_cmn600(int argc, char *argv[])
@@ -1492,12 +1470,8 @@ static int do_cmn600(int argc, char *argv[])
 		do_cmn600_dump(argc, argv);
 		return 0;
 	}
-#ifdef CONFIG_CMN600_OCM
-	if (strcmp(argv[1], "ocm") == 0) {
-		do_cmn600_ocm(argc, argv);
-		return 0;
-	}
-#endif
+	if (strcmp(argv[1], "ocm") == 0)
+		return do_cmn600_ocm(argc, argv);
 	return -EINVAL;
 }
 
@@ -1507,9 +1481,9 @@ DEFINE_COMMAND(cmn600, do_cmn600, "Coherent mesh network (" CMN_MODNAME ") comma
 	CMN_MODNAME " dump [hnf|rnd|rnf|rni|snf|xp|dtc|sbsx|rnsam|cxg]\n"
 	"    - dump CMN ndoe information\n"
 	CMN_MODNAME " ocm enable\n"
-	"    - ocm initial configuration\n"
+	"    - enable CMN OCM configuration\n"
 	CMN_MODNAME " ocm config <size>\n"
-	"    - configure size of ocm\n"
+	"    - configure size of locked OCM ways\n"
 	CMN_MODNAME " ocm disable\n"
-	"    - disable ocm\n"
+	"    - disable CMN OCM configuration\n"
 );
