@@ -56,13 +56,13 @@ cmn_id_t ccix_sa_count;
 struct cmn600_ccix_ha_mmap cml_ha_mmap_table_local[CMN_MAX_HA_MMAP_COUNT];
 cmn_id_t cml_ha_mmap_count_local;
 
-uint64_t cmn600_cml_base(caddr_t base, uint16_t chip_id, bool ccix)
+uint64_t cmn600_cml_base(caddr_t base, cmn_id_t chip, bool ccix)
 {
-	if (chip_id == CMN600_CHIP_LOCAL)
+	if (chip == CMN600_CHIP_LOCAL)
 		return base;
 	if (ccix)
 		return base;
-	return (cmn600_hw_chip_base(base));
+	return (cmn600_hw_chip_base(base, chip));
 }
 
 int cmn600_cml_get_config(void)
@@ -140,12 +140,11 @@ static void cmn_cml_setup_ra_sam_addr_region(void)
 	cmn_id_t i;
 	uint64_t blocks;
 	uint64_t sz;
-	cmn_id_t ha_id;
-	uint64_t reg_value;
+	cmn_id_t chip_id;
 
 	for (i = 0; i < cml_ha_mmap_count_remote; i++) {
-		ha_id = cml_ha_mmap_table_remote[i].ha_id;
-		if (ha_id == cmn600_hw_chip_haid()) {
+		chip_id = cml_ha_mmap_table_remote[i].chip_id;
+		if (chip_id == cmn600_hw_chip_id()) {
 			BUG_ON(cml_ha_mmap_table_remote[i].size % SZ_64K);
 			BUG_ON(cml_ha_mmap_table_remote[i].size &
 			       (cml_ha_mmap_table_remote[i].size - 1));
@@ -156,13 +155,14 @@ static void cmn_cml_setup_ra_sam_addr_region(void)
 
 			cmn_writeq(CMN_reg_size(sz) |
 				   CMN_reg_base_addr(cml_ha_mmap_table_remote[i].base >> __ilog2_u64(SZ_64))  |
-				   CMN_reg_ha_tgtid(cmn600_hw_chip_haid()) |
+				   CMN_reg_ha_tgtid(cmn600_hw_ha_id(chip_id)) |
 				   CMN_reg_valid,
 				   CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i),
 				   "CMN_cxg_ra_sam_addr_region", i);
 #ifdef CML_DEBUG
 			printf("CMN_cxg_ra_sam_addr_region%d, addr:%llx, value:%llx\n",
-				i, CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i), __raw_readq(CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i)));
+				i, CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i),
+				__raw_readq(CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i)));
 #endif
 		}
 	}
@@ -333,11 +333,14 @@ static void cmn_cml_start_ccix_link(void)
 			      CMN_lnk_link_up, true);
 }
 
-static void cmn_cml_ha_config_rnf(cmn_id_t raid, cmn_id_t ldid, bool rnf)
+static void cmn_cml_ha_config_rnf(cmn_id_t raid, cmn_id_t ldid,
+				  bool rnf, bool remote,
+				  cmn_id_t chipid)
 {
 	uint8_t raid_ldid;
 	uint32_t phys_id;
 	unsigned int i;
+	cmn_nid_t nid;
 
 	/* Program the CXHA raid to ldid LUT. */
 	raid_ldid = CMN_rnf_raid_to_ldid(ldid, rnf ? 1 : 0);
@@ -353,8 +356,13 @@ static void cmn_cml_ha_config_rnf(cmn_id_t raid, cmn_id_t ldid, bool rnf)
 	 * agents.
 	 */
 	for (i = 0; i < cmn_hnf_count; i++) {
-		phys_id = CMN_nodeid_ra(cml_ha_nid_local) |
-			  CMN_remote_ra | CMN_valid_ra;
+		if (chipid == cmn600_hw_chip_id())
+			nid = cmn_node_id(cmn_bases[cmn_hnf_ids[i]]);
+		else
+			nid = cmn600_hw_ha_nid(chipid);
+		phys_id = CMN_valid_ra |
+			  CMN_nodeid_ra(nid) |
+			  (remote ? CMN_remote_ra : 0);
 		cmn_writeq_mask(CMN_phys_id(ldid, phys_id),
 				CMN_phys_id(ldid, CMN_phys_id_MASK),
 				CMN_hnf_rn_phys_id(CMN_HNF_BASE(cmn_hnf_ids[i]),
@@ -376,6 +384,7 @@ static void cmn_cml_setup(void)
 	unsigned int i;
 	unsigned int block;
 	cmn_id_t raid;
+	cmn_id_t chipid;
 
 #ifdef CONFIG_CMN600_CML_RA_RAID_NO_CXRA
 	local_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count - 1;
@@ -412,12 +421,13 @@ static void cmn_cml_setup(void)
 		/* The HN-F ldid to CHI node id valid bit for local RN-F
 		 * agents is already programmed.
 		 */
-		cmn_writeq(CMN_ccix_haid(cmn600_hw_chip_id()),
+		cmn_writeq(CMN_ccix_haid(cmn600_hw_ha_id(cmn600_hw_chip_id())),
 			   CMN_cxg_ha_id(CMN_CXHA_BASE),
 			   "CMN_cxg_ha_id", -1);
 
 #ifdef CONFIG_CMN600_CML_HA_RAID_RNF_LOCAL
-		cmn_cml_ha_config_rnf(agent_id, rnf_ldid, 0);
+		cmn_cml_ha_config_rnf(agent_id, rnf_ldid, 1, 0,
+				      cmn600_hw_chip_id());
 #endif
 	}
 
@@ -425,7 +435,7 @@ static void cmn_cml_setup(void)
 	 * remote RNF agents.
 	 */
 	unique_remote_rnf_ldid = cmn_rnf_count;
-	for (i = 0; i < cmn_rnf_count; i++) {
+	for (i = 0; i < cml_rnf_count_remote; i++) {
 		block = i / cmn_rnf_count;
 
 		/* The remote_agent_id should not include the current
@@ -441,8 +451,12 @@ static void cmn_cml_setup(void)
 			remote_agent_id = i + (cmn_rnf_count * block) +
 					  local_ra_count;
 
-		cmn_cml_ha_config_rnf(remote_agent_id,
-				      unique_remote_rnf_ldid, 1);
+		for (chipid = 0; chipid < cmn600_hw_max_chips(); chipid++) {
+			if (chipid == cmn600_hw_chip_id())
+				continue;
+			cmn_cml_ha_config_rnf(remote_agent_id,
+					      unique_remote_rnf_ldid, 1, 1, chipid);
+		}
 		unique_remote_rnf_ldid++;
 	}
 
