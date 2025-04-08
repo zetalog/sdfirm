@@ -58,18 +58,11 @@ cmn_id_t cml_ha_mmap_count_local;
 
 uint64_t cmn600_cml_base(caddr_t base, uint16_t chip_id, bool ccix)
 {
-	uint16_t local_chip_id = cmn600_hw_chip_id();
-
 	if (chip_id == CMN600_CHIP_LOCAL)
 		return base;
-
-	if (local_chip_id != 0) {
-		if (ccix)
-			return base - (cmn600_hw_chip_base(base, chip_id, ccix) * local_chip_id);
-		else
-			return base + (cmn600_hw_chip_base(base, chip_id, ccix) * local_chip_id);
-	} else
+	if (ccix)
 		return base;
+	return (cmn600_hw_chip_base(base));
 }
 
 int cmn600_cml_get_config(void)
@@ -94,10 +87,18 @@ static bool cmn_cml_smp_enable(void)
 	} else if (cmn_revision() >= CMN_r3p0) {
 		cmn_setq(CMN_ra_smp_mode_en, CMN_cxg_ra_aux_ctl(CMN_CXRA_BASE),
 			 "CMN_cxg_ra_aux_ctl", -1);
-		cmn_setq(CMN_ha_smp_mode_en, CMN_cxg_ra_aux_ctl(CMN_CXHA_BASE),
-			 "CMN_cxg_ra_aux_ctl", -1);
+		cmn_setq(CMN_ha_smp_mode_en, CMN_cxg_ha_aux_ctl(CMN_CXHA_BASE),
+			 "CMN_cxg_ha_aux_ctl", -1);
 		cmn_setq(CMN_la_smp_mode_en, CMN_cxla_aux_ctl(CMN_CXLA_BASE),
 			 "CMN_cxla_aux_ctl", -1);
+#ifdef CML_DEBUG
+		printf("CMN_cxg_ra_aux_ctl addr:%llx, value:%llx\n",
+			CMN_cxg_ra_aux_ctl(CMN_CXRA_BASE), __raw_readq(CMN_cxg_ra_aux_ctl(CMN_CXRA_BASE)));
+		printf("CMN_cxg_ha_aux_ctl addr:%llx, value:%llx\n",
+			CMN_cxg_ha_aux_ctl(CMN_CXHA_BASE), __raw_readq(CMN_cxg_ha_aux_ctl(CMN_CXHA_BASE)));
+		printf("CMN_cxla_aux_ctl addr:%llx, value:%llx\n",
+			CMN_cxla_aux_ctl(CMN_CXLA_BASE), __raw_readq(CMN_cxla_aux_ctl(CMN_CXLA_BASE)));
+#endif
 		return true;
 	}
 	return false;
@@ -140,10 +141,11 @@ static void cmn_cml_setup_ra_sam_addr_region(void)
 	uint64_t blocks;
 	uint64_t sz;
 	cmn_id_t ha_id;
+	uint64_t reg_value;
 
 	for (i = 0; i < cml_ha_mmap_count_remote; i++) {
 		ha_id = cml_ha_mmap_table_remote[i].ha_id;
-		if (ha_id != cmn600_hw_chip_id()) {
+		if (ha_id == cmn600_hw_chip_haid()) {
 			BUG_ON(cml_ha_mmap_table_remote[i].size % SZ_64K);
 			BUG_ON(cml_ha_mmap_table_remote[i].size &
 			       (cml_ha_mmap_table_remote[i].size - 1));
@@ -151,12 +153,17 @@ static void cmn_cml_setup_ra_sam_addr_region(void)
 			       cml_ha_mmap_table_remote[i].size);
 			blocks = cml_ha_mmap_table_remote[i].size / SZ_64K;
 			sz = __ilog2_u64(blocks);
+
 			cmn_writeq(CMN_reg_size(sz) |
-				   CMN_reg_base_addr(cml_ha_mmap_table_remote[i].base) |
-				   CMN_reg_ha_tgtid(ha_id) |
+				   CMN_reg_base_addr(cml_ha_mmap_table_remote[i].base >> __ilog2_u64(SZ_64))  |
+				   CMN_reg_ha_tgtid(cmn600_hw_chip_haid()) |
 				   CMN_reg_valid,
 				   CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i),
 				   "CMN_cxg_ra_sam_addr_region", i);
+#ifdef CML_DEBUG
+			printf("CMN_cxg_ra_sam_addr_region%d, addr:%llx, value:%llx\n",
+				i, CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i), __raw_readq(CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i)));
+#endif
 		}
 	}
 }
@@ -271,10 +278,12 @@ static void cmn_cml_start_ccix_link(void)
 
 	cmn_writeq_mask(CMN_link_pcie_bdf(cml_link_id, cml_pcie_bus_num),
 			CMN_link_pcie_bdf(cml_link_id, CMN_link_pcie_bdf_MASK),
-			CMN_cxla_linkid_to_pcie_bus_num(CMN_CXLA_BASE,
-							cml_link_id),
+			CMN_cxla_linkid_to_pcie_bus_num(CMN_CXLA_BASE, cml_link_id),
 			"CMN_cxla_linkid_to_pcie_bus_num", cml_link_id);
-
+#ifdef CML_DEBUG
+	printf("CMN_cxla_linkid_to_pcie_bus_num, addr:%llx, value:%llx\n",
+		CMN_cxla_linkid_to_pcie_bus_num(CMN_CXLA_BASE, cml_link_id), __raw_readq(CMN_cxla_linkid_to_pcie_bus_num(CMN_CXLA_BASE, cml_link_id)));
+#endif
 	/* Set up TC1 for PCIe so CCIx uses VC1. */
 	cmn_writeq_mask(CMN_tlp_vendor(CCIX_VENDOR_ID) |
 			CMN_tlp_tc(cml_pcie_tlp_tc),
@@ -416,7 +425,7 @@ static void cmn_cml_setup(void)
 	 * remote RNF agents.
 	 */
 	unique_remote_rnf_ldid = cmn_rnf_count;
-	for (i = 0; i < cml_rnf_count_remote; i++) {
+	for (i = 0; i < cmn_rnf_count; i++) {
 		block = i / cmn_rnf_count;
 
 		/* The remote_agent_id should not include the current
