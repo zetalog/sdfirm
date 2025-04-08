@@ -123,53 +123,6 @@ uint8_t spi_txrx(uint8_t byte)
 	return spi_rx();
 }
 
-void spi_master_commit(spi_len_t len)
-{
-	BUG_ON(spi_current + spi_commit > spi_limit);
-	spi_commit = len;
-}
-
-void spi_master_submit(spi_addr_t slave, spi_len_t txlen, spi_len_t rxlen)
-{
-	spi_target = slave;
-
-	/* IDLE means start, STOP means repeated start */
-	if (spi_state == SPI_STATE_IDLE) {
-		spi_current = 0;
-		spi_txsubmit = txlen;
-		spi_rxsubmit = rxlen;
-		if (spi_txsubmit > 0) {
-			spi_limit = spi_txsubmit;
-			spi_config_mode(SPI_MODE_MASTER_TX);
-		} else if (spi_rxsubmit > 0) {
-			spi_limit = spi_rxsubmit;
-			spi_config_mode(SPI_MODE_MASTER_RX);
-		}
-	} else if (spi_state == SPI_STATE_XFER) {
-		spi_txsubmit += txlen;
-		spi_limit += txlen;
-		spi_rxsubmit += rxlen;
-		spi_limit += rxlen;
-	}
-
-	while (spi_state != SPI_STATE_IDLE)
-		bh_sync();
-}
-
-uint8_t spi_master_write(spi_addr_t slave, spi_len_t txlen)
-{
-	spi_master_submit(slave, txlen, 0);
-	return spi_current;
-}
-
-uint8_t spi_master_read(spi_addr_t slave, spi_len_t rxlen)
-{
-	spi_master_submit(slave, 0, rxlen);
-	while (spi_state != SPI_STATE_IDLE)
-		bh_sync();
-	return spi_current;
-}
-
 void spi_config_mode(uint8_t mode)
 {
 	spi_mode = mode;
@@ -179,8 +132,6 @@ void spi_set_status(uint8_t status)
 {
 	spi_dbg("spi: status = %s\n", spi_status_name(status));
 	spi_status = status;
-	if (status == SPI_STATUS_IDLE)
-		spi_enter_state(SPI_STATE_IDLE);
 	if (status == SPI_STATUS_XFER) {
 		spi_raise_event(SPI_EVENT_XFER);
 		spi_current++;
@@ -209,7 +160,7 @@ static void spi_handle_xfr(void)
 	spi_unraise_event(event);
 	switch (spi_state) {
 	case SPI_STATE_XFER:
-		spi_enter_state(SPI_STATE_IDLE);
+		spi_enter_state(SPI_STATE_XFER);
 		break;
 	case SPI_STATE_IDLE:
 		break;

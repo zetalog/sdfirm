@@ -141,7 +141,7 @@ static void dw_i2c_calc_timing(const struct dw_i2c_mode_info *info,
 	fall_cnt = calc_counts(ic_clk, scl_fall_time_ns);
 	min_tlow_cnt = calc_counts(ic_clk, info->min_scl_lowtime_ns);
 	min_thigh_cnt = calc_counts(ic_clk, info->min_scl_hightime_ns);
-	con_dbg("dw_i2c: ic_clk %lld/speed %d, period %d rise %d fall %d tlow %d thigh %d spk %d\n",
+	dw_i2c_dbg("dw_i2c: ic_clk %lld/speed %d, period %d rise %d fall %d tlow %d thigh %d spk %d\n",
 		ic_clk, info->speed, period_cnt, rise_cnt, fall_cnt,
 		min_tlow_cnt, min_thigh_cnt, spk_cnt);
 
@@ -162,7 +162,7 @@ static void dw_i2c_calc_timing(const struct dw_i2c_mode_info *info,
 	sda_hold_time_ns = DW_I2C_SDA_HOLD_TIME ?
 			   DW_I2C_SDA_HOLD_TIME : DEFAULT_SDA_HOLD_TIME;
 	config->sda_hold = calc_counts(ic_clk, sda_hold_time_ns);
-	con_dbg("dw_i2c: SCL_HCNT=%d SCL_LCNT=%d SDA_HOLD=%d\n", hcnt, lcnt,
+	dw_i2c_dbg("dw_i2c: SCL_HCNT=%d SCL_LCNT=%d SDA_HOLD=%d\n", hcnt, lcnt,
 		config->sda_hold);
 }
 #else
@@ -183,7 +183,7 @@ static void dw_i2c_calc_timing(const struct dw_i2c_mode_info *info,
 	fall_cnt = calc_counts(ic_clk, scl_fall_time_ns);
 	min_tlow_cnt = calc_counts(ic_clk, info->min_scl_lowtime_ns);
 	min_thigh_cnt = calc_counts(ic_clk, info->min_scl_hightime_ns);
-	con_dbg("dw_i2c: ic_clk %lld, speed %d, period %d rise %d fall %d tlow %d thigh %d spk %d\n",
+	dw_i2c_dbg("dw_i2c: ic_clk %lld, speed %d, period %d rise %d fall %d tlow %d thigh %d spk %d\n",
 		ic_clk, info->speed, period_cnt, rise_cnt, fall_cnt,
 		min_tlow_cnt, min_thigh_cnt, spk_cnt);
 
@@ -218,7 +218,7 @@ static void dw_i2c_calc_timing(const struct dw_i2c_mode_info *info,
 	sda_hold_time_ns = DW_I2C_SDA_HOLD_TIME ?
 			   DW_I2C_SDA_HOLD_TIME : DEFAULT_SDA_HOLD_TIME;
 	config->sda_hold = calc_counts(ic_clk, sda_hold_time_ns);
-	con_dbg("dw_i2c: SCL_HCNT=%d SCL_LCNT=%d SDA_HOLD=%d\n", hcnt, lcnt,
+	dw_i2c_dbg("dw_i2c: SCL_HCNT=%d SCL_LCNT=%d SDA_HOLD=%d\n", hcnt, lcnt,
 		config->sda_hold);
 }
 #endif

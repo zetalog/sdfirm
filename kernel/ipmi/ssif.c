@@ -27,7 +27,8 @@ static void __ssif_hw_i2c_iocb(i2c_len_t len)
 	} else {
 		while (len) {
 			ssif_rxbuf[ssif_rxlen] = i2c_read_byte();
-			printf("ssif rx: %d - %x\n", ssif_rxlen, ssif_rxbuf[ssif_rxlen]);
+			if (ssif_rxlen < ssif_rxbuf[SSIF_R_LEN] + 1)
+				printf("ssif rx: %d - %x\n", ssif_rxlen, ssif_rxbuf[ssif_rxlen]);
 			ssif_rxlen++;
 			len--;
 		}
@@ -76,13 +77,13 @@ uint8_t ssif_write_single(uint8_t *txdata, uint8_t txlen, uint8_t txnetfn, uint8
 
 uint8_t ssif_read_single(uint8_t *rxdata)
 {
-	int i;
 	uint8_t rxlen, rxnetfn, rxlun, rxcmd, rxcpcode;
+	ssif_rxbuf[SSIF_R_LEN] = SSIF_MAX_LEN;
 	i2c_register_device(&ssif_i2c);
 	ssif_txbuf[SSIF_W_SMBUS_CMD] = SSIF_SINGLE_READ;
 	ssif_txlen = 0;
 	ssif_rxlen = 0;
-	i2c_master_submit(ssif_addr, 1, 4);
+	i2c_master_submit(ssif_addr, 1, SSIF_MAX_LEN);
 	rxlen = ssif_rxbuf[SSIF_R_LEN];
 	rxnetfn = ssif_rxbuf[SSIF_R_NETFN_LUN] >> 2;
 	rxlun = ssif_rxbuf[SSIF_R_NETFN_LUN] & 0x3;
@@ -90,13 +91,8 @@ uint8_t ssif_read_single(uint8_t *rxdata)
 	rxcpcode = ssif_rxbuf[SSIF_R_COMPLETION_CODE];
 	printf("ssif read: len = %x, netfn = %x, lun = %x, ipmi_cmd = %x, compcode = %x\n", 
 		rxlen, rxnetfn, rxlun, rxcmd, rxcpcode);
-	for (i = 0; i < rxlen; i++) {
-		ssif_rxbuf[ssif_rxlen] = i2c_read_byte();
-		printf("ssif rx: %d - %x\n", ssif_rxlen, ssif_rxbuf[ssif_rxlen]);
-		ssif_rxlen++;
-	}
 	rxdata = ssif_rxbuf;
-	return ssif_rxlen;
+	return rxlen + 1;
 }
 
 int do_ssif_read(int argc, char *argv[])
