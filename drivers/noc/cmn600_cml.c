@@ -388,7 +388,8 @@ static void cmn_cml_setup(void)
 	cmn_id_t hnf_count_remote;
 
 #ifdef CONFIG_CMN600_CML_RA_RAID_NO_CXRA
-	local_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count - 1;
+	local_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count -
+			 (cmn600_hw_max_chips() - 1);
 #else
 	local_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count;
 #endif
