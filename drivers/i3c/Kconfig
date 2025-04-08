@@ -5,10 +5,10 @@
 
 menu "I3C controller drivers"
 
-config ARCH_IS_DW_MIPI_I3C_MASTER
+config ARCH_IS_DW_MIPI_I3C_MASTER_ONLY
 	bool
 
-config ARCH_IS_DW_MIPI_I3C_SLAVE
+config ARCH_IS_DW_MIPI_I3C_SLAVE_ONLY
 	bool
 
 config ARCH_IS_DW_MIPI_I3C_MASTER_SLAVE
@@ -91,28 +91,45 @@ config DW_MIPI_I3C_DEBUG
 
 menu "Role Configuration Parameters"
 
+config DW_MIPI_I3C_MASTER
+	bool
+
+config DW_MIPI_I3C_SLAVE
+	bool
+
+config DW_MIPI_I3C_LITE
+	bool
+
 choice
 	prompt "Device Role"
 
-config DW_MIPI_I3C_MASTER
+config DW_MIPI_I3C_MASTER_ONLY
 	bool "Master-only"
-	depends ARCH_IS_DW_MIPI_I3C_MASTER
+	depends ARCH_IS_DW_MIPI_I3C_MASTER_ONLY
+	select DW_MIPI_I3C_MASTER
+	select DW_MIPI_I3C_LITE
 
-config DW_MIPI_I3C_SLAVE
+config DW_MIPI_I3C_SLAVE_ONLY
 	bool "Slave-only"
-	depends ARCH_IS_DW_MIPI_I3C_SLAVE
+	depends ARCH_IS_DW_MIPI_I3C_SLAVE_ONLY
+	select DW_MIPI_I3C_SLAVE
 
 config DW_MIPI_I3C_MASTER_SLAVE
 	bool "Programmable Master and Slave"
 	depends ARCH_IS_DW_MIPI_I3C_MASTER_SLAVE
+	select DW_MIPI_I3C_MASTER
+	select DW_MIPI_I3C_SLAVE
 
 config DW_MIPI_I3C_SECONDARY_MASTER
 	bool "Secondary Master"
 	depends ARCH_IS_DW_MIPI_I3C_SECONDARY_MASTER
+	select DW_MIPI_I3C_MASTER
 
 config DW_MIPI_I3C_SLAVE_LITE
 	bool "Slave-Lite"
 	depends ARCH_IS_DW_MIPI_I3C_SLAVE_LITE
+	select DW_MIPI_I3C_SLAVE
+	select DW_MIPI_I3C_LITE
 
 endchoice
 

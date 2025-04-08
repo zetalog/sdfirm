@@ -76,6 +76,9 @@ if CMN600_CML
 config CMN600_CML_TLP
 	bool "Enable PCIe TLP header support"
 
+config CMN600_CML_NO_MESSAGE_PACK
+	bool "Force no message packing support"
+
 config CMN600_CML_RA_RAID_NO_CXRA
 	bool "Enable counting CXRA as agent ID"
 	help
