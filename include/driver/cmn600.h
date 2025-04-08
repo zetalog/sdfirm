@@ -1558,12 +1558,12 @@ struct cmn600_memregion {
 	caddr_t base;
 	uint64_t size;
 	uint16_t type;
-	uint16_t node_id;
-	uint16_t chip_id;
+	cmn_nid_t node_id;
+	cmn_id_t chip_id;
 };
 
 struct cmn600_ccix_ha_mmap {
-	cmn_id_t ha_id;
+	cmn_id_t chip_id;
 	caddr_t base;
 	uint64_t size;
 };
@@ -1618,7 +1618,7 @@ int cmn600_cml_get_config(void);
 void cmn600_cml_set_config(void);
 void cmn600_cml_enable_sf(void);
 void cmn600_cml_enable_dvm(void);
-uint64_t cmn600_cml_base(caddr_t base, uint16_t chip_id, bool ccix);
+uint64_t cmn600_cml_base(caddr_t base, cmn_id_t chip_id, bool ccix);
 void cmn600_cml_init(void);
 #else
 #define cmn600_cml_detect_mmap()			do { } while (0)
@@ -1645,6 +1645,8 @@ void cmn600_ras_init(void);
 #define cmn600_hw_snf_count()				1
 #define cmn600_hw_snf_hashed(hnf)			cmn_snf_table[0]
 #endif
+
+#define cmn600_hw_max_chips()				2
 
 #ifndef ARCH_HAVE_DTC_DOMAIN
 #define cmn600_hw_dtc_domain(nid)			0
