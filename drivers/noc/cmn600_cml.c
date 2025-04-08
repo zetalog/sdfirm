@@ -154,7 +154,7 @@ static void cmn_cml_setup_ra_sam_addr_region(void)
 			sz = __ilog2_u64(blocks);
 
 			cmn_writeq(CMN_reg_size(sz) |
-				   CMN_reg_base_addr(cml_ha_mmap_table_remote[i].base >> __ilog2_u64(SZ_64))  |
+				   CMN_reg_base_addr(cml_ha_mmap_table_remote[i].base) |
 				   CMN_reg_ha_tgtid(cmn600_hw_ha_id(chip_id)) |
 				   CMN_reg_valid,
 				   CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i),
@@ -385,6 +385,7 @@ static void cmn_cml_setup(void)
 	unsigned int block;
 	cmn_id_t raid;
 	cmn_id_t chipid;
+	cmn_id_t hnf_count_remote;
 
 #ifdef CONFIG_CMN600_CML_RA_RAID_NO_CXRA
 	local_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count - 1;
@@ -435,7 +436,8 @@ static void cmn_cml_setup(void)
 	 * remote RNF agents.
 	 */
 	unique_remote_rnf_ldid = cmn_rnf_count;
-	for (i = 0; i < cml_rnf_count_remote; i++) {
+	hnf_count_remote = cmn_rnf_count * (cmn600_hw_max_chips() - 1);
+	for (i = 0; i < hnf_count_remote; i++) {
 		block = i / cmn_rnf_count;
 
 		/* The remote_agent_id should not include the current
