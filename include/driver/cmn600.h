@@ -1649,8 +1649,6 @@ void cmn600_ras_init(void);
 #define cmn600_hw_snf_hashed(hnf)			cmn_snf_table[0]
 #endif
 
-#define cmn600_hw_max_chips()				2
-
 #ifndef ARCH_HAVE_DTC_DOMAIN
 #define cmn600_hw_dtc_domain(nid)			0
 #define CMN_MAX_DTCS					1
