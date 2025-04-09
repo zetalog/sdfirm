@@ -55,8 +55,9 @@
 #ifdef CONFIG_K1MXLITE_D2D
 #define n100_hw_max_chips()			2
 #define n100_hw_chip_id()			sysreg_die_id()
-#define n100_hw_ha_id(chip)			(chip)
 #define n100_hw_ha_nid(chip)			0x40
+#define n100_hw_ra_nid(chip)			0x40
+#define n100_hw_la_nid(chip)			0x40
 #define n100_hw_chip_base(base, chip)		DIE1_BASE
 #endif
 #ifdef CONFIG_K1MXLITE_N100
