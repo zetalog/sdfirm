@@ -844,14 +844,20 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
 		/* TODO: Should rely on chip id to fill remote regions */
-		if (region->type == CMN600_REGION_TYPE_CCIX)
+		if (region->type == CMN600_REGION_TYPE_CCIX) {
+			if (region->chip_id == cmn600_hw_chip_id())
+				continue;
 			base = cmn600_cml_base(region->base, region->chip_id, true);
+			//printf("type:%d, ccix_base:%lx\n", region->chip_id, base);
+		}
 #ifdef CONFIG_CMN600_SAM_RANGE
 		else if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
 			base = region->base;
 #endif
-		else
-			base = cmn600_cml_base(region->base, region->chip_id, false);
+		else {
+			base = cmn600_cml_base(region->base, 0, false);
+			//printf("type:%d, base:%lx\n", region->chip_id, base);
+		}
 #ifdef CONFIG_CMN600_DEBUG_CONFIGURE
 		con_dbg(CMN_MODNAME "configuring...\n");
 		con_dbg(CMN_MODNAME ": %s-%d: RN SAM %d/%d: ID: %d, [%016llx - %016llx]\n",
