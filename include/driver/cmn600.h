@@ -1131,7 +1131,7 @@ typedef uint8_t cmn_did_t;
 #define CMN_reg_base_addr(value)			\
 	_SET_FV_ULL(CMN_reg_base_addr, (value) >> CMN_reg_base_addr_OFFSET)
 #define CMN_reg_ha_tgtid_OFFSET				52
-#define CMN_reg_ha_tgtid_MASK				REG_5BIT_MASK
+#define CMN_reg_ha_tgtid_MASK				REG_6BIT_MASK
 #define CMN_reg_ha_tgtid(value)				_SET_FV_ULL(CMN_reg_ha_tgtid, value)
 #define CMN_reg_valid					_BV_ULL(63)
 
