@@ -1231,42 +1231,42 @@ static bool cmn_datacheck(cmn_nid_t nid)
 	return !!(cmn_mxp_datacheck(cmn_bases[cmn_xp_ids[xp]], CMN_PID(nid)));
 }
 
-caddr_t cmn600_cxha_base(cmn_id_t chip)
+caddr_t cmn600_cxha_base(cmn_id_t link)
 {
 	cmn_id_t i;
 	caddr_t base = 0;
 
 	for (i = 0; i < cmn_cxha_count; i++) {
 		base = cmn_bases[cmn_cxha_ids[i]];
-		if (cmn600_hw_ha_nid(chip) == cmn_node_id(base))
+		if (cmn600_hw_link_nid(link) == cmn_node_id(base))
 			return base;
 	}
 	BUG();
 	return 0;
 }
 
-caddr_t cmn600_cxra_base(cmn_id_t chip)
+caddr_t cmn600_cxra_base(cmn_id_t link)
 {
 	cmn_id_t i;
 	caddr_t base = 0;
 
 	for (i = 0; i < cmn_cxra_count; i++) {
 		base = cmn_bases[cmn_cxra_ids[i]];
-		if (cmn600_hw_ra_nid(chip) == cmn_node_id(base))
+		if (cmn600_hw_link_nid(link) == cmn_node_id(base))
 			return base;
 	}
 	BUG();
 	return 0;
 }
 
-caddr_t cmn600_cxla_base(cmn_id_t chip)
+caddr_t cmn600_cxla_base(cmn_id_t link)
 {
 	cmn_id_t i;
 	caddr_t base = 0;
 
 	for (i = 0; i < cmn_cxla_count; i++) {
 		base = cmn_bases[cmn_cxla_ids[i]];
-		if (cmn600_hw_la_nid(chip) == cmn_node_id(base))
+		if (cmn600_hw_link_nid(link) == cmn_node_id(base))
 			return base;
 	}
 	BUG();
