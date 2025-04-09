@@ -1612,6 +1612,7 @@ bool cmn600_rnsam_is_rnd(cmn_nid_t nid);
 bool cmn600_rnsam_is_rni(cmn_nid_t nid);
 bool cmn600_rnsam_is_rnf(cmn_nid_t nid);
 bool cmn600_rnsam_is_cxha(cmn_nid_t nid);
+cmn_nid_t cmn600_local_rnf_nid(cmn_id_t id);
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid);
 cmn_id_t cmn600_max_tgt_nodes(void);
 cmn_id_t cmn600_nid2xp(cmn_nid_t nid);

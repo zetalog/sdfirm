@@ -1229,6 +1229,37 @@ static bool cmn_datacheck(cmn_nid_t nid)
 	return !!(cmn_mxp_datacheck(cmn_bases[cmn_xp_ids[xp]], CMN_PID(nid)));
 }
 
+cmn_nid_t cmn600_local_rnf_nid(cmn_id_t id)
+{
+	cmn_id_t i, j;
+	caddr_t base;
+
+	j = 0;
+	for (i = 0; i < cmn_rn_sam_int_count; i++) {
+		base = cmn_bases[cmn_rn_sam_int_ids[i]];
+		if (!cmn600_rnsam_is_rnf(cmn_node_id(base)))
+			continue;
+		if (cmn600_rnsam_is_cxha(cmn_node_id(base)))
+			continue;
+		if (j == id)
+			return cmn_node_id(base);
+		j++;
+	}
+	for (i = 0; i < cmn_rn_sam_ext_count; i++) {
+		base = cmn_bases[cmn_rn_sam_ext_ids[i]];
+		if (!cmn600_rnsam_is_rnf(cmn_node_id(base)))
+			continue;
+		if (cmn600_rnsam_is_cxha(cmn_node_id(base)))
+			continue;
+		if (j == id)
+			return cmn_node_id(base);
+		j++;
+	}
+	con_err(CMN_MODNAME ": Invalid local RNF %d\n", id);
+	BUG();
+	return 0;
+}
+
 static int do_cmn600_dump(int argc, char *argv[])
 {
 	cmn_id_t x, y;
