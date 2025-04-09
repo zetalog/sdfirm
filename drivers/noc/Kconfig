@@ -79,13 +79,6 @@ config CMN600_CML_TLP
 config CMN600_CML_NO_MESSAGE_PACK
 	bool "Force no message packing support"
 
-config CMN600_CML_RA_RAID_NO_CXRA
-	bool "Enable counting CXRA as agent ID"
-	help
-	  According to silicon verification, CXRA needn't be assigned of
-	  an agent ID. However, this is the default behavior according to
-	  ARM reference driver.
-
 config CMN600_CML_HA_RAID_RNF_LOCAL
 	bool "Enable programming local RN-F agent IDs"
 	help
