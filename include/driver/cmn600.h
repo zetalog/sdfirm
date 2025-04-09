@@ -1292,16 +1292,16 @@ typedef uint8_t cmn_did_t;
 	CMN_ppu_op_mode_status(__raw_readq(CMN_hnf_ppu_pwsr(base)))
 
 /* CXG capabilities */
-#define cmn_ccix_request_credits(chip)		\
-	CMN_ra_request_tracker_depth(__raw_readq(CMN_cxg_ra_unit_info(cmn600_cxra_base(chip))))
-#define cmn_ccix_snoop_credits(chip)		\
-	CMN_ha_snoop_tracker_depth(__raw_readq(CMN_cxg_ha_unit_info(cmn600_cxha_base(chip))))
-#define cmn_ccix_data_credits(chip)		\
-	CMN_ha_wdb_depth(__raw_readq(CMN_cxg_ha_unit_info(cmn600_cxha_base(chip))))
-#define cmn_ccix_max_packet_size(chip)		\
-	CMN_LA_MAXPACKETSIZE(__raw_readq(CMN_cxla_ccix_prop_capabilities(cmn600_cxla_base(chip))))
-#define cmn_ccix_no_message_pack(chip)		\
-	(!!(__raw_readq(CMN_cxla_ccix_prop_capabilities(cmn600_cxla_base(chip))) & CMN_la_nomessagepack))
+#define cmn_ccix_request_credits(link)		\
+	CMN_ra_request_tracker_depth(__raw_readq(CMN_cxg_ra_unit_info(cmn600_cxra_base(link))))
+#define cmn_ccix_snoop_credits(link)		\
+	CMN_ha_snoop_tracker_depth(__raw_readq(CMN_cxg_ha_unit_info(cmn600_cxha_base(link))))
+#define cmn_ccix_data_credits(link)		\
+	CMN_ha_wdb_depth(__raw_readq(CMN_cxg_ha_unit_info(cmn600_cxha_base(link))))
+#define cmn_ccix_max_packet_size(link)		\
+	CMN_LA_MAXPACKETSIZE(__raw_readq(CMN_cxla_ccix_prop_capabilities(cmn600_cxla_base(link))))
+#define cmn_ccix_no_message_pack(link)		\
+	(!!(__raw_readq(CMN_cxla_ccix_prop_capabilities(cmn600_cxla_base(link))) & CMN_la_nomessagepack))
 
 /* RAS options */
 #define cmn_ras_support_ed(base)		\
@@ -1609,9 +1609,9 @@ bool cmn600_rnsam_is_rni(cmn_nid_t nid);
 bool cmn600_rnsam_is_rnf(cmn_nid_t nid);
 bool cmn600_rnsam_is_cxha(cmn_nid_t nid);
 cmn_nid_t cmn600_local_rnf_nid(cmn_id_t id);
-caddr_t cmn600_cxha_base(cmn_id_t chip);
-caddr_t cmn600_cxra_base(cmn_id_t chip);
-caddr_t cmn600_cxla_base(cmn_id_t chip);
+caddr_t cmn600_cxha_base(cmn_id_t link);
+caddr_t cmn600_cxra_base(cmn_id_t link);
+caddr_t cmn600_cxla_base(cmn_id_t link);
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid);
 cmn_id_t cmn600_max_tgt_nodes(void);
 cmn_id_t cmn600_nid2xp(cmn_nid_t nid);
