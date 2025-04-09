@@ -139,35 +139,34 @@ static void cmn_cml_setup_ra_sam_addr_region(void)
 {
 	cmn_id_t local_ra_count;
 	cmn_id_t i;
-	uint64_t blocks;
-	uint64_t sz;
 	cmn_id_t chip_id;
 	cmn_id_t offset_id;
 
 	local_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count -
-			 (cmn600_hw_max_chips() - 1);
+			 cmn_cxha_count;
 
 	for (i = 0; i < cml_ha_mmap_count_remote; i++) {
 		chip_id = cml_ha_mmap_table_remote[i].chip_id;
-		if (chip_id != cmn600_hw_chip_id()) {
-			BUG_ON(cml_ha_mmap_table_remote[i].size % SZ_64K);
-			BUG_ON(cml_ha_mmap_table_remote[i].size &
-			       (cml_ha_mmap_table_remote[i].size - 1));
-			BUG_ON(cml_ha_mmap_table_remote[i].base %
-			       cml_ha_mmap_table_remote[i].size);
-			
-			offset_id = chip_id * local_ra_count;
-			cmn_writeq(CMN_reg_size(cml_ha_mmap_table_remote[i].size) |
-				   CMN_reg_base_addr(cml_ha_mmap_table_remote[i].base) |
-				   CMN_reg_ha_tgtid(offset_id) |
-				   CMN_reg_valid,
-				   CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i),
-				   "CMN_cxg_ra_sam_addr_region", i);
+		if (chip_id == cmn600_hw_chip_id())
+			continue;
+
+		BUG_ON(cml_ha_mmap_table_remote[i].size % SZ_64K);
+		BUG_ON(cml_ha_mmap_table_remote[i].size &
+		       (cml_ha_mmap_table_remote[i].size - 1));
+		BUG_ON(cml_ha_mmap_table_remote[i].base %
+		       cml_ha_mmap_table_remote[i].size);
+		
+		offset_id = chip_id * local_ra_count;
+		cmn_writeq(CMN_reg_size(cml_ha_mmap_table_remote[i].size) |
+			   CMN_reg_base_addr(cml_ha_mmap_table_remote[i].base) |
+			   CMN_reg_ha_tgtid(offset_id) |
+			   CMN_reg_valid,
+			   CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i),
+			   "CMN_cxg_ra_sam_addr_region", i);
 #ifdef CML_DEBUG3
-			printf("CMN_cxg_ra_sam_addr_region%d, addr:%llx, value:%llx\n",
-				i, CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i), __raw_readq(CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i)));
+		printf("CMN_cxg_ra_sam_addr_region%d, addr:%llx, value:%llx\n",
+			i, CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i), __raw_readq(CMN_cxg_ra_sam_addr_region(CMN_CXRA_BASE, i)));
 #endif
-		}
 	}
 }
 
@@ -388,7 +387,6 @@ static void cmn_cml_setup(void)
 	unsigned int i;
 	unsigned int block;
 	cmn_id_t raid;
-	cmn_id_t chipid;
 	cmn_id_t rnf_count_remote;
 
 	local_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count -
@@ -442,7 +440,7 @@ static void cmn_cml_setup(void)
 	 * remote RNF agents.
 	 */
 	unique_remote_rnf_ldid = cmn_rnf_count;
-	rnf_count_remote = cmn_rnf_count * (cmn600_hw_max_chips() - 1);
+	rnf_count_remote = cmn_rnf_count * (CMN_MAX_CHIPS - 1);
 	for (i = 0; i < rnf_count_remote; i++) {
 		block = i / cmn_rnf_count;
 
