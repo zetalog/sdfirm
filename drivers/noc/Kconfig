@@ -53,6 +53,9 @@ if CMN600
 config ARCH_HAS_CMN600_CML
 	bool
 
+config ARCH_HAS_CMN600_CML_NO_TLP
+	bool
+
 config CMN600_HNF_CAL
 	bool "Enable Component Aggregation Layer (CAL) mode on HN-F support"
 
@@ -75,9 +78,14 @@ if CMN600_CML
 
 config CMN600_CML_TLP
 	bool "Enable PCIe TLP header support"
+	depends !ARCH_HAS_CMN600_CML_NO_TLP
 
 config CMN600_CML_NO_MESSAGE_PACK
 	bool "Force no message packing support"
+	help
+	  By default 'nomessagepack' is automatically configured according
+	  to the capability. Enabling this to force 'nomessagepack' option
+	  checked.
 
 config CMN600_CML_HA_RAID_RNF_LOCAL
 	bool "Enable programming local RN-F agent IDs"
@@ -86,6 +94,15 @@ config CMN600_CML_HA_RAID_RNF_LOCAL
 	  local RN-F should be programmed to CMN_cxg_ha_rnf_raid_to_ldid
 	  with RNF feild filling with 0.
 	  However, ARM reference driver never fills such entries.
+
+config CMN600_CML_RA_COUNT_ALIGNED
+	bool "Enable aligned HNF RAID of local RA count"
+	help
+	  By default, remote HNF RAID is aligned put at the beginning of
+	  the RAID array. Enabling this option can help to avoid conflict
+	  that may occur when the local RNI count is less than the local
+	  RNF count.
+	  If unsure, say 'N'.
 
 endif
 

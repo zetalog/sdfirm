@@ -1523,6 +1523,8 @@ typedef uint8_t cmn_did_t;
 #define CMN_DEVEVENT_LINE_HIT_NO_SNOOP		3
 
 #ifdef CONFIG_CMN600_DEBUG
+void cmn_debug_enable(void);
+void cmn_debug_disable(void);
 void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i);
 #define cmn_setq(v,a,n,i)				\
 	do {						\
@@ -1545,6 +1547,8 @@ void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i);
 	} while (0)
 #else
 #define cmn_debug_init()		do { } while (0)
+#define cmn_debug_enable()		do { } while (0)
+#define cmn_debug_disable()		do { } while (0)
 #define cmn_writeq(v,a,n,i)		__raw_writeq(v,a)
 #define cmn_setq(v,a,n,i)		__raw_setq(v,a)
 #define cmn_clearq(v,a,n,i)		__raw_clearq(v,a)
@@ -1608,29 +1612,30 @@ bool cmn600_rnsam_is_rnd(cmn_nid_t nid);
 bool cmn600_rnsam_is_rni(cmn_nid_t nid);
 bool cmn600_rnsam_is_rnf(cmn_nid_t nid);
 bool cmn600_rnsam_is_cxha(cmn_nid_t nid);
-cmn_nid_t cmn600_local_rnf_nid(cmn_id_t id);
-caddr_t cmn600_cxha_base(cmn_id_t link);
-caddr_t cmn600_cxra_base(cmn_id_t link);
-caddr_t cmn600_cxla_base(cmn_id_t link);
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid);
 cmn_id_t cmn600_max_tgt_nodes(void);
 cmn_id_t cmn600_nid2xp(cmn_nid_t nid);
 #ifdef CONFIG_CMN600_CML
 void cmn600_cml_detect_mmap(void);
 int cmn600_cml_get_config(void);
-void cmn600_cml_set_config(void);
-void cmn600_cml_enable_sf(void);
-void cmn600_cml_enable_dvm(void);
 uint64_t cmn600_cml_base(caddr_t base, cmn_id_t chip_id, bool ccix);
 void cmn600_cml_init(void);
+caddr_t cmn600_cxha_base(cmn_id_t link);
+caddr_t cmn600_cxra_base(cmn_id_t link);
+caddr_t cmn600_cxla_base(cmn_id_t link);
 #else
 #define cmn600_cml_detect_mmap()			do { } while (0)
 #define cmn600_cml_get_config()				(-ENODEV)
-#define cmn600_cml_set_config()				do { } while (0)
-#define cmn600_cml_enable_sf()				do { } while (0)
-#define cmn600_cml_enable_dvm()				do { } while (0)
 #define cmn600_cml_base(base, chip_id, ccix)		base
 #define cmn600_cml_init()				do { } while (0)
+#define cmn600_cxha_base(link)				cmn_bases[cmn_cxha_ids[link]]
+#define cmn600_cxra_base(link)				cmn_bases[cmn_cxha_ids[link]]
+#define cmn600_cxla_base(link)				cmn_bases[cmn_cxla_ids[link]]
+#endif
+#ifdef CONFIG_CMN600_CML_HA_RAID_RNF_LOCAL
+cmn_nid_t cmn600_local_rnf_nid(cmn_id_t id);
+#else
+#define cmn600_local_rnf_nid(id)			0
 #endif
 
 #ifdef CONFIG_CMN600_RAS
