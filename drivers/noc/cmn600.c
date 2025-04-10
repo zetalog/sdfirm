@@ -194,6 +194,18 @@ cmn_nid_t cmn_cxha_ids[CMN_MAX_CXG_COUNT];
 cmn_nid_t cmn_hnf_scgs[CMN_MAX_HNF_COUNT];
 
 #ifdef CONFIG_CMN600_DEBUG
+static bool cmn_debugging;
+
+void cmn_debug_enable(void)
+{
+	cmn_debugging = true;
+}
+
+void cmn_debug_disable(void)
+{
+	cmn_debugging = false;
+}
+
 static void cmn_debug_init(void)
 {
 	console_init();
@@ -201,12 +213,14 @@ static void cmn_debug_init(void)
 
 void cmn_writeq(uint64_t v, caddr_t a, const char *n, int i)
 {
-	if (i < 0)
-		con_dbg(CMN_MODNAME ": %016llx=%016llx %s\n",
-			(uint64_t)a, v, n);
-	else
-		con_dbg(CMN_MODNAME ": %016llx=%016llx %s%d\n",
-			(uint64_t)a, v, n, i);
+	if (cmn_debugging) {
+		if (i < 0)
+			con_dbg(CMN_MODNAME ": %016llx=%016llx %s\n",
+				(uint64_t)a, v, n);
+		else
+			con_dbg(CMN_MODNAME ": %016llx=%016llx %s%d\n",
+				(uint64_t)a, v, n, i);
+	}
 	__raw_writeq(v, a);
 }
 #endif
