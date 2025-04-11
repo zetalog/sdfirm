@@ -360,8 +360,7 @@ static void cmn_cml_ha_config_rnf(cmn_id_t link,
 			  (remote ? CMN_remote_ra : 0);
 		cmn_writeq_mask(CMN_phys_id(ldid, phys_id),
 				CMN_phys_id(ldid, CMN_phys_id_MASK),
-				CMN_hnf_rn_phys_id(CMN_HNF_BASE(cmn_hnf_ids[i]),
-						   ldid),
+				CMN_hnf_rn_phys_id(CMN_HNF_BASE(cmn_hnf_ids[i]), ldid),
 				"CMN_hnf_rn_phys_id", ldid);
 	}
 }
