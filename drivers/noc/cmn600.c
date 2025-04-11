@@ -397,7 +397,7 @@ static void cmn_hnf_cal_config_ocm(caddr_t hnf)
 		   "CMN_hnf_cfg_ctl", -1);
 }
 
-static void cmn_hnf_cal_disable_ocm(caddr_t hnf)
+void cmn_hnf_cal_disable_ocm(caddr_t hnf)
 {
 	cmn_writeq(hnf_cfg_ctl(hnf) | ~CMN_hnf_ocm_en,
 		   CMN_hnf_cfg_ctl(hnf),
@@ -866,8 +866,10 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 		else if (region->type == CMN600_MEMORY_REGION_TYPE_SYSCACHE)
 			base = region->base;
 #endif
-		else
-			base = cmn600_cml_base(region->base, 0, false);
+		else {
+			base = cmn600_cml_base(region->base, region->chip_id, false);
+			//printf("type:%d, base:%lx\n", region->chip_id, base);
+		}
 #ifdef CONFIG_CMN600_DEBUG_CONFIGURE
 		con_dbg(CMN_MODNAME "configuring...\n");
 		con_dbg(CMN_MODNAME ": %s-%d: RN SAM %d/%d: ID: %d, [%016llx - %016llx]\n",
