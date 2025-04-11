@@ -1247,6 +1247,7 @@ static bool cmn_datacheck(cmn_nid_t nid)
 	return !!(cmn_mxp_datacheck(cmn_bases[cmn_xp_ids[xp]], CMN_PID(nid)));
 }
 
+#ifdef CONFIG_CMN600_CML
 caddr_t cmn600_cxha_base(cmn_id_t link)
 {
 	cmn_id_t i;
@@ -1319,7 +1320,7 @@ cmn_nid_t cmn600_local_rnf_nid(cmn_id_t id)
 	BUG();
 	return 0;
 }
-
+#endif
 static int do_cmn600_dump(int argc, char *argv[])
 {
 	cmn_id_t x, y;
