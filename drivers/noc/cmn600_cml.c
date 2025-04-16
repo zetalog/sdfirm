@@ -76,7 +76,18 @@ int cmn600_cml_get_config(void)
 	return 0;
 }
 
-static bool cmn_cml_smp_enable(cmn_id_t link)
+/* 3.5.3 Program CML system to enable CCIX communication
+ *  1. SMP mode
+ *   SMP mode is enabled by setting the smp_mode_en bit in the following
+ *   registers:
+ *    por_cxg_ra_aux_ctl
+ *    por_cxg_ha_aux_ctl
+ *    por_cxla_aux_ctl
+ *   You must configure SMP mode in the same way for the CXRA, CXHA, and
+ *   CXLA of a specific CXG instance. You must also configure SMP mode in
+ *   the same way for all communicating CXG pairs.
+ */
+static bool cmn_cml_smp_mode(cmn_id_t link)
 {
 	if (cmn_revision() == CMN_r2p0) {
 		if (!(__raw_readq(CMN_cxg_ra_unit_info(cmn600_cxra_base(link))) &
@@ -144,7 +155,18 @@ static cmn_id_t cmn_cml_ha_id(cmn_id_t chip, cmn_id_t local_ra_count)
 	return offset_id;
 }
 
-static void cmn_cml_setup_ra_sam_addr_region(cmn_id_t link)
+/* 3.5.3 Program CML system to enable CCIX communication
+ *  6. Program RA SAM
+ *     Program the following properties for each remote HA into the
+ *     por_cxg_ra_sam_addr_region_reg<X> register that is present in each
+ *     CXRA, and set the corresponding valid bit.
+ *     — The base address of the address region and the corresponding size
+ *       of the address region
+ *     — The HAID that requests for the address range are mapped to
+ *     If CXSA mode is enabled, RA SAM must be programmed with the address
+ *     range and the Agent ID of the remote CCIX Slave Agent.
+ */
+static void cmn_cml_program_ra_sam(cmn_id_t link)
 {
 	cmn_id_t local_ra_count;
 	cmn_id_t i;
@@ -251,7 +273,19 @@ static void cmn_cml_wait_link_status(cmn_id_t link, uint8_t type,
 	while (!cmn_cml_read_link_reg(link, type, cond, false, set));
 }
 
-static void cmn_cml_start_ccix_link(cmn_id_t link)
+/* 3.5.2 Bring up a CML system
+ *
+ *  3. Read the CCIX capabilities of each CCIX device.
+ *   a. Read the por_cxla_ccix_prop_capabilities register, which is
+ *      present in each CXLA, to determine the CCIX capabilities of
+ *      CMN-600.
+ *  4. Determine the common properties and capabilities that all CCIX
+ *     devices support and configure them in each CCIX device.
+ *  5. Program the properties that are determined in the preceding step in
+ *     the por_cxla_ccix_prop_configured register, which is present in each
+ *     CMN-600 CXLA
+ */
+static void cmn_cml_config_prop(cmn_id_t link)
 {
 	uint8_t max_pkt_size;
 
@@ -279,7 +313,19 @@ static void cmn_cml_start_ccix_link(cmn_id_t link)
 			CMN_la_maxpacketsize(CMN_la_maxpacketsize_MASK),
 			CMN_cxla_ccix_prop_configured(cmn600_cxla_base(link)),
                         "CMN_cxla_ccix_prop_configured", -1);
+}
 
+/* 3.5.3 Program CML system to enable CCIX communication
+ *  4. Assign PCIe bus numbers for LinkIDs
+ *     Use this procedure to set up the LinkID to PCIe bus number LUT in
+ *     the CXLA. This programming is only required if the PCIe header is
+ *     used to route a CCIX TLP.
+ *     Program the PCIe bus number for each remote link in the
+ *     por_cxla_linkid_to_pcie_bus_num register, which is present in each
+ *     CXLA.
+ */
+static void cmn_cml_config_pcie_bus(cmn_id_t link)
+{
 	cmn_writeq_mask(CMN_link_pcie_bdf(link, cml_pcie_bus_num),
 			CMN_link_pcie_bdf(link, CMN_link_pcie_bdf_MASK),
 			CMN_cxla_linkid_to_pcie_bus_num(cmn600_cxla_base(link), link),
@@ -293,7 +339,32 @@ static void cmn_cml_start_ccix_link(cmn_id_t link)
 			"CMN_cxla_tlp_hdr_fields", -1);
 	con_dbg(CMN_MODNAME ": PCIe TLP header: %016llx\n",
 		__raw_readq(CMN_cxla_tlp_hdr_fields(cmn600_cxla_base(link))));
+}
 
+/* 3.5.3 Program CML system to enable CCIX communication
+ *  8. Program CCIX protocol link control registers
+ *   1. Program the por_cxg_ra_cxprtcl_link<X>_ctl and
+ *      por_cxg_ha_cxprtcl_link<X>_ctl registers that are present in each
+ *      CXRA and CXHA.
+ *      If CXSA mode is enabled, it is not necessary to program the
+ *      protocol link control registers of the CXHA. In this case, the
+ *      lnk0_num_snpcrds of the CXRA can be set to 4'hF.
+ *   2. Set the lnk<X>_link_en bit for each CCIX protocol link that can be
+ *      used in the future.
+ *      If this bit is not set, credits are not set aside for this link.
+ *   3. Program the lnk<X>_num_{snpcrds, reqcrds, datcrds} fields with the
+ *      percentage of protocol credits that must be assigned or granted for
+ *      a given link.
+ *      This step is optional. Default credits are equally assigned or
+ *      granted to each enabled link as determined by the link enable bit
+ *      (lnk<X>_link_en). For more information about credit distribution
+ *      and the permitted configurations.
+ *      You must ensure that the total percentage of credits that are
+ *      allocated to all links does not exceed 100.
+ *  9. CCIX protocol link credit distribution
+ */
+static void cmn_cml_program_ccix_link(cmn_id_t link)
+{
 	con_dbg(CMN_MODNAME ": Enabling CCIX %d...\n", link);
 	cmn_writeq(CMN_lnk_link_en,
 		   CMN_cxg_cxprtcl_link_ctl(cmn600_cxra_base(link), link),
@@ -301,6 +372,31 @@ static void cmn_cml_start_ccix_link(cmn_id_t link)
 	cmn_writeq(CMN_lnk_link_en,
 		   CMN_cxg_cxprtcl_link_ctl(cmn600_cxha_base(link), link),
 		   "CMN_cxg_ha_cxprtcl_link_ctl", link);
+}
+
+/* 3.5.4 Program CMN-600 CML system at runtime
+ *  1. Bring up CCIX protocol link.
+ *     For more information, see 3.5.5 Establish protocol link up between
+ *     CXG and remote CCIX link.
+ *  2. Add a CCIX protocol link in system coherency and DVM domains.
+ *     For more information, see 3.5.7 CCIX entry and exit protocol links
+ *     from coherency domains and DVM domains.
+ *     - Note -
+ *     If CXSA mode is enabled, this programming is not necessary.
+ *  3. Program the remote address range and corresponding CXRA node ID for
+ *     each remote memory region in RN SAM present in CMN-600 RN-F, RN-I,
+ *     and RN-D.
+ *     RN SAM must not be programmed to target CXRA when enabled for CXSA
+ *     mode.
+ *     - Note -
+ *     If the software can guarantee that there is no traffic to the remote
+ *     address range until CCIX-related initial programming is complete and
+ *     CCIX protocol links are up, then this programming should be done
+ *     when programming RN SAMs with local address map.
+ * 3.5.5 Establish protocol link up between CXG and remote CCIX link
+ */
+static void cmn_cml_establish_ccix_link(cmn_id_t link)
+{
 	cmn_cml_wait_link_ctl(link, CMN_MXP_CXRH,
 			      CMN_lnk_link_en, true);
 	cmn_cml_wait_link_ctl(link, CMN_MXP_CXRH, CMN_lnk_link_up, false);
@@ -381,13 +477,51 @@ static void cmn_cml_setup(cmn_id_t link)
 	cmn_id_t raid;
 	cmn_id_t rnf_count_remote;
 
-	cmn_cml_smp_enable(link);
-
 	/* HA_ID and RA count calculation */
 	local_ra_count = cmn_cml_local_ra_count();
 	local_chip = cmn600_hw_chip_id();
 	offset_id = cmn_cml_ha_id(local_chip, local_ra_count);
 
+	/* 3.5.3 Program CML system to enable CCIX communication
+	 *  2. Assign IDs for local CXRAs and CXHAs
+	 *   • Assign Requesting Agent IDs (RAIDs) for local CXRAs.
+	 *   1. Program all the local RAIDs in the following registers for all
+	 *      CXRAs:
+	 *      — por_cxg_ra_rnf_ldid_to_raid_reg<X>
+	 *      — por_cxg_ra_rni_ldid_to_raid_reg<X>
+	 *      — por_cxg_ra_rnd_ldid_to_raid_reg<X>
+	 *      This programming sets up the LDID to RAID LUT.
+	 *   2. Set the corresponding valid bit in the following registers that
+	 *      are present in each CXRA:
+	 *      — por_cxg_ra_rnf_ldid_to_raid_val
+	 *      — por_cxg_ra_rni_ldid_to_raid_val
+	 *      — por_cxg_ra_rnd_ldid_to_raid_val
+	 *   3. Program the following items if CXSA mode is enabled:
+	 *      — CCIX Source ID (Agent ID) in entry 0 of the
+	 *        por_cxg_ra_rnf_ldid_to_raid_reg0 register
+	 *      — Corresponding valid bit in the
+	 *        por_cxg_ra_rnf_ldid_to_raid_val register
+	 *   • Program Home Agent IDs (HAIDs) for all local CXHAs into the
+	 *     por_cxg_ha_id registers that are present in each CXHA.
+	 *     This programming is not required if CXSA mode is enabled.
+	 *  3. Assign LinkIDs to remote CCIX protocol links
+	 *   1. Determine the LinkID of each remote agent, in other words
+	 *      the targets, of the CXG.
+	 *   2. Program these LinkIDs in the following registers, which are
+	 *      present in the CXRA, CXHA, and CXLA:
+	 *      - por_cxg_ra_agentid_to_linkid_reg<X>
+	 *      - por_cxg_ha_agentid_to_linkid_reg<X>
+	 *      - por_cxla_agentid_to_linkid_reg<X>
+	 *      This step sets up the AgentID (RAID or HAID) to LinkID LUT.
+	 *      If CXSA mode is enabled for a link, it is not necessary to
+	 *      program the por_cxg_ha_agentid_to_linkid_reg<X> register.
+	 *      The por_cxg_ra_agentid_to_linkid_reg<X> register must be
+	 *      programmed with the CCIX Slave Agent ID for the link.
+	 *   3. Set the respective valid bits in the following registers:
+	 *      - por_cxg_ra_agentid_to_linkid_val
+	 *      - por_cxg_ha_agentid_to_linkid_val
+	 *      - por_cxla_agentid_to_linkid_val
+	 */
 	raid = 0;
 	for (rnf_ldid = 0; rnf_ldid < cmn_rnf_count; rnf_ldid++) {
 		/* TODO: use logical_id of RN-F */
@@ -424,6 +558,23 @@ static void cmn_cml_setup(cmn_id_t link)
 #endif
 	}
 
+	cmn_cml_config_pcie_bus(link);
+
+	/* 3.5.3 Program CML system to enable CCIX communication
+	 *  5. Assign LDIDs to remote caching agents
+	 *   1. Program unique LDIDs for each remote caching agent in the
+	 *      por_cxg_ha_rnf_raid_to_ldid_reg<X> register that is
+	 *      present in each CXHA.
+	 *      The LDID values for remote RN‑Fs must be greater than those
+	 *      values that are used by the local RN‑F nodes.
+	 *   2. Set the ldid<X>_rnf bit to mark the remote agent as a
+	 *      caching agent.
+	 *   3. Set the respective valid bit in the
+	 *      por_cxg_ha_rnf_raid_to_ldid_val register.
+	 *   4. Program the NodeID of each CXHA in the
+	 *      por_hnf_rn_phys_id<X> register in the HN‑F. Program each
+	 *      remote RN‑F (caching agent) that is proxied through that CXHA.
+	 */
 	/* unique_remote_rnf_ldid is used to keep track of the ldid of the
 	 * remote RNF agents.
 	 */
@@ -501,9 +652,6 @@ static void cmn_cml_setup(cmn_id_t link)
 		/* Program agentid to linkid LUT for remote agents */
 		cmn_cml_setup_agentid_to_linkid(agent_id, link);
 	}
-
-	cmn_cml_setup_ra_sam_addr_region(link);
-	cmn_cml_start_ccix_link(link);
 }
 
 void cmn600_cml_set_config(cmn_id_t link)
@@ -511,17 +659,31 @@ void cmn600_cml_set_config(cmn_id_t link)
 	cmn_id_t region_index;
 	struct cmn600_memregion *region;
 
-	cmn_debug_enable();
+	cmn_cml_config_prop(link);
+	cmn_cml_smp_mode(link);
 	cmn_cml_setup(link);
-	cmn_debug_disable();
+	cmn_cml_program_ra_sam(link);
+	/* 3.5.3 Program CML system to enable CCIX communication
+	 *  7. Program RN SAM in CXHA
+	 *     You can program CXHA RN SAM as part of local system bring
+	 *     up.
+	 *     This programming is not required if CXSA mode is enabled.
+	 *     Program the RN SAM present in each CXHA with the address
+	 *     and memory map of the local HNs.
+	 */
 	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
 		region = &cmn_mmap_table[region_index];
 		if (region->type == CMN600_REGION_TYPE_CCIX)
 			cmn600_configure_rn_sam_ext(region->node_id);
 	}
+	cmn_cml_program_ccix_link(link);
+	/* 3.5.3 Program CML system to enable CCIX communication
+	 *  10. Program CPA functionality in RN SAM
+	 *  11. Program CPA functionality in HN-F SAM
+	 */
 }
 
-void cmn600_cml_enable_sf(cmn_id_t link)
+static void cmn_cml_enable_sf(cmn_id_t link)
 {
 	cmn_setq(CMN_lnk_snoopdomain_req,
 		 CMN_cxg_cxprtcl_link_ctl(cmn600_cxha_base(link), link),
@@ -530,7 +692,7 @@ void cmn600_cml_enable_sf(cmn_id_t link)
 				 CMN_lnk_snoopdomain_ack, true);
 }
 
-void cmn600_cml_enable_dvm(cmn_id_t link)
+static void cmn_cml_enable_dvm(cmn_id_t link)
 {
 	cmn_setq(CMN_lnk_dvmdomain_req,
 		 CMN_cxg_cxprtcl_link_ctl(cmn600_cxra_base(link), link),
@@ -563,6 +725,12 @@ void cmn600_cml_init(void)
 	if (ret < 0)
 		return;
 	cmn600_cml_set_config(cml_link_id);
-	cmn600_cml_enable_sf(cml_link_id);
-	cmn600_cml_enable_dvm(cml_link_id);
+	cmn600_cml_start();
+}
+
+void cmn600_cml_start(void)
+{
+	cmn_cml_establish_ccix_link(cml_link_id);
+	cmn_cml_enable_sf(cml_link_id);
+	cmn_cml_enable_dvm(cml_link_id);
 }
