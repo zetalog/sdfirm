@@ -5,6 +5,12 @@
 config ARCH_HAS_I3C
 	bool
 
+config ARCH_HAS_I3C_AAO
+	bool
+
+config ARCH_HAS_I3C_TC
+	bool
+
 menuconfig I3C
 	bool "Improved inter integrated circuit (I3C) support"
 
@@ -13,6 +19,31 @@ if I3C
 config I3C_MAX_MASTERS
 	int "Number of masters"
 	default 1
+
+config I3C_AAO
+	bool "Enable optional address arbitration optimization"
+	depends ARCH_HAS_I3C_AAO
+	help
+	  An I3C Master Device assigns 7-bit Dynamic Addresses in the range
+	  7’h03 to 7’h7B. However because the I3C Master treats the entire
+	  9-bit Arbitrable Address Header as Open Drain, it has no way to
+	  detect whether a Slave Device might be transmitting its 617 own
+	  Address during some (or all) of the Address Header.
+	  Note that for I3C Secondary Masters and I3C In-Band Interrupt
+	  Slaves, the I3C Master is free to restrict assigned Dynamic
+	  Addresses to the lower half of the available range (7’h03 to
+	  7’h3F), thus leaving the value of Address bit A6 (the first
+	  Address bit after the START) as value 0 in all assigned Dynamic
+	  Addresses.
+
+config I3C_TC
+	bool "Enable optional timing control support"
+	depends ARCH_HAS_I3C_TC
+	help
+	  This Timing Control framework allows uncertainties affecting the
+	  transmission or reception of timing information (for example: Bus
+	  activity, busy Master or Slave, operation latency, system jitter,
+	  etc.) to be nullified.
 
 config I3C_HCI
 	bool "I3C host controller interface (I3C HCI) support"

@@ -56,9 +56,9 @@ extern i2c_t i2c_mid;
 #define i2c_current	i2c_masters[i2c_mid].current
 #define i2c_commit	i2c_masters[i2c_mid].commit
 #define i2c_status	i2c_masters[i2c_mid].status
-#define i2c_device	i2c_masters[i2c_mid].device
 #define i2c_state	i2c_masters[i2c_mid].state
 #define i2c_event	i2c_masters[i2c_mid].event
+#define i2c_device	i2c_masters[i2c_mid].device
 #define i2c_abrt_slave	i2c_masters[i2c_mid].abrt_slave
 
 void i2c_master_select(i2c_t i2c);
