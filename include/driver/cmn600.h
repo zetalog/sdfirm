@@ -1563,7 +1563,16 @@ struct cmn600_memregion {
 	uint16_t type;
 	cmn_nid_t node_id;
 	cmn_id_t chip_id;
+	uint8_t flags;
 };
+/* When flagged, non CCIX region shouldn't be converted into a local
+ * memory region for another chip_id.
+ */
+#define CMN600_MEMORY_REGION_NO_CCIX_LOCAL	0x01
+/* When flagged, CCIX region shouldn't be converted into multiple remote
+ * memory for all other chip_id.
+ */
+#define CMN600_MEMORY_REGION_NO_CCIX_REMOTE	0x02
 
 struct cmn600_ccix_ha_mmap {
 	cmn_id_t chip_id;

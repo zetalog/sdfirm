@@ -143,4 +143,54 @@
 #define DEV_ADDR_TABLE_LOC1(n)			DW_MIPI_I3C_REG(n, 0x220)
 #endif /* CONFIG_ARCH_HAS_DW_MIPI_I3C_SNPS */
 
+/* 5.2.21 QUEUE_STATUS_LEVEL */
+#define CMD_QUEUE_EMPTY_LOC_OFFSET		0
+#define CMD_QUEUE_EMPTY_LOC_MASK		REG_8BIT_MASK
+#define CMD_QUEUE_EMPTY_LOC(value)		_GET_FV(CMD_QUEUE_EMPTY_LOC, value)
+#define RESP_BUF_BLR_OFFSET			8
+#define RESP_BUF_BLR_MASK			REG_8BIT_MASK
+#define RESP_BUF_BLR(value)			_GET_FV(RESP_BUF_BLR, value)
+#define IBI_BUF_BLR_OFFSET			16
+#define IBI_BUF_BLR_MASK			REG_8BIT_MASK
+#define IBI_BUF_BLR(value)			_GET_FV(IBI_BUF_BLR, value)
+#define IBI_STS_CNT_OFFSET			24
+#define IBI_STS_CNT_MASK			REG_5BIT_MASK
+#define IBI_STS_CNT(value)			_GET_FV(IBI_STS_CNT, value)
+/* 5.2.22 DATA_BUFFER_STATUS_LEVEL */
+#define TX_BUF_EMPTY_LOC_OFFSET			0
+#define TX_BUF_EMPTY_LOC_MASK			REG_8BIT_MASK
+#define TX_BUF_EMPTY_LOC(value)			_GET_FV(TX_BUF_EMPTY_LOC, value)
+#define RX_BUF_BLR_OFFSET			DW_MIPI_I3C_HW_BLR_REG_BIT_WD
+#define RX_BUF_BLR_MASK				REG_8BIT_MASK
+#define RX_BUF_BLR(value)			_GET_FV(RX_BUF_BLR, value)
+/* 5.2.25 DEVICE_ADDR_TABLE_POINTER */
+#define P_DEV_ADDR_TABLE_START_ADDR_OFFSET	0
+#define P_DEV_ADDR_TABLE_START_ADDR_MASK	REG_16BIT_MASK
+#define P_DEV_ADDR_TABLE_START_ADDR(value)	_GET_FV(P_DEV_ADDR_TABLE_START_ADDR, value)
+#define DEV_ADDR_TABLE_DEPTH_OFFSET		16
+#define DEV_ADDR_TABLE_DEPTH_MASK		REG_16BIT_MASK
+#define DEV_ADDR_TABLE_DEPTH(value)		_GET_FV(DEV_ADDR_TABLE_DEPTH, value)
+
+#define dw_mipi_i3c_cmd_fifo_depth(n)		\
+	CMD_QUEUE_EMPTY_LOC(__raw_readl(QUEUE_STATUS_LEVEL(n)))
+#define dw_mipi_i3c_data_fifo_depth(n)		\
+	TX_BUF_EMPTY_LOC(__raw_readl(DATA_BUFFER_STATUS_LEVEL(n)))
+#define dw_mipi_i3c_data_start_addr(n)		\
+	P_DEV_ADDR_TABLE_START_ADDR(__raw_readl(DEVICE_ADDR_TABLE_POINTER(n)))
+#define dw_mipi_i3c_max_devs(n)			\
+	DEV_ADDR_TABLE_DEPTH(__raw_readl(DEVICE_ADDR_TABLE_POINTER(n)))
+
+struct dw_mipi_i3c_ctx {
+	uint8_t addr_mode;
+	uint8_t last_tx_byte;
+	int state;
+	uint8_t status;
+};
+
+uint32_t dw_i3c_readl(caddr_t reg);
+void dw_i3c_writel(uint32_t val, caddr_t reg);
+void dw_mipi_i3c_ctrl_init(void);
+void dw_mipi_i3c_handle_irq(void);
+void dw_mipi_i3c_transfer_reset(void);
+
 #endif /* __DW_MIPI_I3C_H_INCLUDE__ */
