@@ -2,6 +2,7 @@
 #define __PECI_H_INCLUDE__
 
 #include <target/arch.h>
+#include <target/spi.h>
 
 #define PECI_GET_DIB_CMD		0xf7
 #define  PECI_GET_DIB_WR_LEN		1

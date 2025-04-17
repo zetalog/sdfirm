@@ -41,17 +41,20 @@ spi_device_t *spi_device = NULL;
 
 const char *spi_status_names[] = {
 	"IDLE",
-	"XFER",
+	"READ",
+	"WRITE",
 };
 
 const char *spi_state_names[] = {
 	"IDLE",
-	"XFER",
+	"READ",
+	"WRITE",
 };
 
 const char *spi_event_names[] = {
 	"IDLE",
-	"XFER",
+	"READ",
+	"WRITE",
 };
 
 const char *spi_status_name(uint8_t status)
@@ -92,9 +95,14 @@ void spi_enter_state(uint8_t state)
 {
 	spi_dbg("spi: state = %s\n", spi_state_name(state));
 	spi_state = state;
-	if (state == SPI_STATE_XFER)
+	if (state == SPI_STATE_READ) {
 		if (spi_current < spi_limit)
 			spi_device->iocb(1);
+	}
+	else if (state == SPI_STATE_WRITE) {
+		if (spi_current < spi_limit)
+			spi_device->iocb(1);
+	}
 }
 
 static void spi_unraise_event(uint8_t event)
@@ -123,6 +131,38 @@ uint8_t spi_txrx(uint8_t byte)
 	return spi_rx();
 }
 
+void spi_submit_write(spi_len_t txlen)
+{
+	if (spi_state == SPI_STATE_IDLE) {
+		spi_current = 0;
+		spi_txsubmit = txlen;
+		spi_limit = spi_txsubmit;
+		spi_config_mode(SPI_MODE_TX);
+	} else if (spi_state == SPI_STATE_WRITE) {
+		spi_txsubmit += txlen;
+		spi_limit += txlen;
+	}
+
+	while (spi_state != SPI_STATE_IDLE)
+		bh_sync();
+}
+
+void spi_submit_read(spi_len_t rxlen)
+{
+	if (spi_state == SPI_STATE_IDLE) {
+		spi_current = 0;
+		spi_rxsubmit = rxlen;
+		spi_limit = spi_rxsubmit;
+		spi_config_mode(SPI_MODE_RX);
+	} else if (spi_state == SPI_STATE_READ) {
+		spi_rxsubmit += rxlen;
+		spi_limit += rxlen;
+	}
+
+	while (spi_state != SPI_STATE_IDLE)
+		bh_sync();
+}
+
 void spi_config_mode(uint8_t mode)
 {
 	spi_mode = mode;
@@ -132,10 +172,15 @@ void spi_set_status(uint8_t status)
 {
 	spi_dbg("spi: status = %s\n", spi_status_name(status));
 	spi_status = status;
-	if (status == SPI_STATUS_XFER) {
-		spi_raise_event(SPI_EVENT_XFER);
+	if (status == SPI_STATUS_READ) {
+		spi_raise_event(SPI_EVENT_READ);
 		spi_current++;
 	}
+	else if (status == SPI_STATUS_WRITE) {
+		spi_raise_event(SPI_EVENT_WRITE);
+		spi_current++;
+	}
+
 }
 
 static void spi_handle_irq(void)
@@ -159,8 +204,11 @@ static void spi_handle_xfr(void)
 
 	spi_unraise_event(event);
 	switch (spi_state) {
-	case SPI_STATE_XFER:
-		spi_enter_state(SPI_STATE_XFER);
+	case SPI_STATE_READ:
+		spi_enter_state(SPI_STATE_READ);
+		break;
+	case SPI_STATE_WRITE:
+		spi_enter_state(SPI_STATE_WRITE);
 		break;
 	case SPI_STATE_IDLE:
 		break;
@@ -204,7 +252,13 @@ void spi_select_device(spi_t spi)
 			  spi_devices[spi]->mode);
 	spi_hw_chip_select(spi_devices[spi]->chip);
 }
-#endif
+#else /* CONFIG_SPI_SLAVE */
+void spi_register_device(spi_device_t *dev)
+{
+	spi_devices[spi_last_id] = dev;
+	spi_last_id++;
+}
+#endif /* CONFIG_SPI_SLAVE */
 
 void spi_sync_status(void)
 {

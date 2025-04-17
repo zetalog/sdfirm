@@ -373,8 +373,8 @@ void dw_ssi_handle_irq(irq_t irq)
 	}
 	if (status & SSI_RXFI) {
 		dw_ssi_dbg("dw_ssi: SSI_RXFI\n");
-		dw_ssi.status = SPI_STATUS_XFER;
-		spi_set_status(SPI_STATUS_XFER);
+		dw_ssi.status = SPI_STATUS_READ;
+		spi_set_status(SPI_STATUS_READ);
 	}
 	if (status & SSI_RXOI) {
 		dw_ssi_dbg("dw_ssi: SSI_RXOI\n");
@@ -390,14 +390,14 @@ void dw_ssi_handle_irq(irq_t irq)
 	}
 	if (status & SSI_TXEI) {
 		dw_ssi_dbg("dw_ssi: SSI_TXEI\n");
-		dw_ssi.status = SPI_STATUS_XFER;
-		spi_set_status(SPI_STATUS_XFER);
+		dw_ssi.status = SPI_STATUS_WRITE;
+		spi_set_status(SPI_STATUS_WRITE);
 	}
 }
 
-void dw_ssi_irq_init(void)
+void dw_ssi_irq_init(spi_t spi)
 {
-	irqc_configure_irq(IRQ_SPI, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_SPI, dw_ssi_handle_irq);
-	irqc_enable_irq(IRQ_SPI);
+	irqc_configure_irq(IRQ_SPI + spi, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(IRQ_SPI + spi, dw_ssi_handle_irq);
+	irqc_enable_irq(IRQ_SPI + spi);
 }
