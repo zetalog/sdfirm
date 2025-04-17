@@ -78,6 +78,56 @@ typedef uint8_t i3c_t;
 #define I3C_CCC_GETXTIME	(I3C_CCC_DIRECT | 0x19)
 #define I3C_CCC_DEVCAPS		(I3C_CCC_DIRECT | 0x60)
 
+/* I3C_CCC_ENEC/I3C_CCC_DISEC: 8-bits */
+#define I3C_CCC_EC_INT		_BV(0)
+#define I3C_CCC_EC_MR		_BV(1)
+#define I3C_CCC_EC_HJ		_BV(3)
+struct i3c_ccc_ec {
+	uint8_t ec;
+};
+
+struct i3c_ccc_dev {
+	uint8_t da;
+	union {
+		uint8_t dcr;
+		uint8_t lvr;
+	};
+	uint8_t bcr;
+	uint8_t sa;
+};
+
+struct i3c_ccc_defslvs {
+	uint8_t count;
+	struct i3c_ccc_dev master;
+	struct i3c_ccc_dev slaves[];
+} __packed;
+
+struct i3c_ccc_dest {
+	uint8_t addr;
+	uint16_t len;
+	uint8_t *data;
+};
+
+struct i3c_ccc {
+	uint8_t rnw;
+	uint8_t id;
+	uint8_t ndests;
+	struct i3c_ccc_dest *dests;
+	uint8_t err;
+};
+
+typedef uint8_t i3c_bus_t;
+#define I3C_BUS_PURE			0
+#define I3C_BUS_MIXED_FAST		1
+#define I3C_BUS_MIXED_LIMITED		2
+#define I3C_BUS_MIXED_SLOW		3
+
+#define I3C_SCL_RATE_I3C_MAX		12900000
+#define I3C_SCL_RATE_I3C_TYP		12500000
+#define I3C_SCL_RATE_I2C_FAST_PLUS	1000000
+#define I3C_SCL_RATE_I2C_FAST		400000
+#define I3C_I3C_TLOW_OD_MIN_NS		200
+
 #define I3C_MODE_SLAVE		0x00
 #define I3C_MODE_MASTER		0x02
 #define I3C_BUS_MASK		0x02
@@ -139,6 +189,10 @@ typedef uint8_t i3c_t;
 #endif
 #define INVALID_I3C		NR_I3C_MASTERS
 
+#define I3C_MAX_ADDR		0x7F
+#define I3C_NR_ADDRS		(I3C_MAX_ADDR + 1)
+#define INVALID_I3C_ADDR	I3C_NR_ADDRS
+
 typedef uint16_t i3c_event_t;
 
 struct i3c_device {
@@ -150,6 +204,8 @@ struct i3c_master {
 	uint16_t freq;
 	uint8_t mode;
 
+	i3c_addr_t dev_addr;
+
 	i3c_len_t rxsubmit;
 	i3c_len_t txsubmit;
 	i3c_len_t limit;
@@ -160,6 +216,8 @@ struct i3c_master {
 	uint8_t state;
 	i3c_event_t event;
 	i3c_device_t *device;
+	DECLARE_BITMAP(addr_slot, I3C_NR_ADDRS);
+	DECLARE_BITMAP(addr_i2c, I3C_NR_ADDRS);
 };
 
 #if NR_I3C_MASTERS > 1
@@ -168,6 +226,7 @@ extern i3c_t i3c_mid;
 
 #define i3c_freq	i3c_masters[i3c_mid].freq
 #define i3c_mode	i3c_masters[i3c_mid].mode
+#define i3c_dev_addr	i3c_masters[i3c_mid].dev_addr
 #define i3c_txsubmit	i3c_masters[i3c_mid].txsubmit
 #define i3c_rxsubmit	i3c_masters[i3c_mid].rxsubmit
 #define i3c_limit	i3c_masters[i3c_mid].limit
@@ -177,6 +236,8 @@ extern i3c_t i3c_mid;
 #define i3c_state	i3c_masters[i3c_mid].state
 #define i3c_event	i3c_masters[i3c_mid].event
 #define i3c_device	i3c_masters[i3c_mid].device
+#define i3c_addr_slot	i3c_masters[i3c_mid].addr_slot
+#define i3c_addr_i2c	i3c_masters[i3c_mid].addr_i2c
 
 void i3c_master_select(i3c_t i3c);
 i3c_t i3c_master_save(i3c_t i3c);
@@ -184,6 +245,7 @@ i3c_t i3c_master_save(i3c_t i3c);
 #else
 extern uint16_t i3c_freq;
 extern uint8_t i3c_mode;
+extern i3c_addr_t i3c_dev_addr;
 extern i3c_len_t i3c_txsubmit;
 extern i3c_len_t i3c_rxsubmit;
 extern i3c_len_t i3c_limit;
@@ -193,6 +255,8 @@ extern uint8_t i3c_status;
 extern uint8_t i3c_state;
 extern i3c_event_t i3c_event;
 extern i3c_device_t *i3c_device;
+extern DECLARE_BITMAP(i3c_addr_slot, I3C_NR_ADDRS);
+extern DECLARE_BITMAP(i3c_addr_i2c, I3C_NR_ADDRS);
 
 #define i3c_mid				0
 #define i3c_master_save(i3c)		0
@@ -255,5 +319,7 @@ void i3c_master_stop(void);
 void i3c_config_mode(uint8_t mode, bool freq);
 void i3c_sync_status(void);
 void i3c_set_status(uint8_t status);
+
+i3c_addr_t i3c_get_free_addr(i3c_addr_t start_addr);
 
 #endif /* __I3C_H_INCLUDE__ */

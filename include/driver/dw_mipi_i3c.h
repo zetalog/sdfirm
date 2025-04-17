@@ -52,18 +52,16 @@
 #define NR_DW_I3CS			CONFIG_I3C_MAX_MASTERS
 #endif
 
-#ifdef CONFIG_ARCH_HAS_DW_MIPI_I3C_HCI
+#ifdef CONFIG_ARCH_IS_DW_MIPI_I3C_HCI
 #include <target/i3c_hci.h>
-#endif /* CONFIG_ARCH_HAS_DW_MIPI_I3C_HCI */
-
-#ifdef CONFIG_ARCH_HAS_DW_MIPI_I3C_SNPS
+#else /* CONFIG_ARCH_IS_DW_MIPI_I3C_HCI */
 #ifndef CONFIG_DW_MIPI_I3C_SLAVE_LITE
 #define DEVICE_CTRL(n)				DW_MIPI_I3C_REG(n, 0x000)
 #define DEVICE_ADDR(n)				DW_MIPI_I3C_REG(n, 0x004)
 #define COMMAND_QUEUE_PORT(n)			DW_MIPI_I3C_REG(n, 0x00C)
 #define RESPONSE_QUEUE_PORT(n)			DW_MIPI_I3C_REG(n, 0x010)
-#define RX_DATA_QUEUE_PORT(n)			DW_MIPI_I3C_REG(n, 0x014)
-#define TX_DATA_QUEUE_PORT(n)			DW_MIPI_I3C_REG(n, 0x014)
+#define RX_DATA_PORT(n)				DW_MIPI_I3C_REG(n, 0x014)
+#define TX_DATA_PORT(n)				DW_MIPI_I3C_REG(n, 0x014)
 #define QUEUE_THLD_CTRL(n)			DW_MIPI_I3C_REG(n, 0x01C)
 #define DATA_BUFFER_THLD_CTRL(n)		DW_MIPI_I3C_REG(n, 0x020)
 #define RESET_CTRL(n)				DW_MIPI_I3C_REG(n, 0x034)
@@ -105,7 +103,7 @@
 #ifndef CONFIG_DW_MIPI_I3C_LITE
 #ifdef CONFIG_DW_MIPI_I3C_SLV_UNIQUE_ID_PROG
 #define SLV_MIPI_ID_VALUE(n)			DW_MIPI_I3C_REG(n, 0x070)
-#endif
+#endif /* CONFIG_DW_MIPI_I3C_SLV_UNIQUE_ID_PROG */
 #define SLV_PID_VALUE(n)			DW_MIPI_I3C_REG(n, 0x074)
 #define SLV_CHAR_CTRL(n)			DW_MIPI_I3C_REG(n, 0x078)
 #define SLV_MAX_LEN(n)				DW_MIPI_I3C_REG(n, 0x07C)
@@ -118,8 +116,8 @@
 #define DEVICE_CTRL_EXTENDED(n)			DW_MIPI_I3C_REG(n, 0x0B0)
 #define SCL_I3C_OD_TIMING(n)			DW_MIPI_I3C_REG(n, 0x0B4)
 #define SCL_I3C_PP_TIMING(n)			DW_MIPI_I3C_REG(n, 0x0B8)
-#define SCL_I3C_FM_TIMING(n)			DW_MIPI_I3C_REG(n, 0x0BC)
-#define SCL_I3C_FMP_TIMING(n)			DW_MIPI_I3C_REG(n, 0x0C0)
+#define SCL_I2C_FM_TIMING(n)			DW_MIPI_I3C_REG(n, 0x0BC)
+#define SCL_I2C_FMP_TIMING(n)			DW_MIPI_I3C_REG(n, 0x0C0)
 #define SCL_EXT_LCNT_TIMING(n)			DW_MIPI_I3C_REG(n, 0x0C8)
 #define SCL_EXT_TERMN_LCNT_TIMING(n)		DW_MIPI_I3C_REG(n, 0x0CC)
 #define SDA_HOLD_SWITCH_DLY_TIMING(n)		DW_MIPI_I3C_REG(n, 0x0D0)
@@ -141,44 +139,190 @@
 #define DEV_CHAR_TABLE1_LOC4(n)			DW_MIPI_I3C_REG(n, 0x20C)
 #define DEV_ADDR_TABLE1_LOC1(n)			DW_MIPI_I3C_REG(n, 0x220)
 #define DEV_ADDR_TABLE_LOC1(n)			DW_MIPI_I3C_REG(n, 0x220)
-#endif /* CONFIG_ARCH_HAS_DW_MIPI_I3C_SNPS */
+#endif /* CONFIG_ARCH_IS_DW_MIPI_I3C_HCI */
 
+/* 5.2.1 DEVICE_CTRL */
+#define DW_IBA_INCLUDE				_BV(0)
+#define DW_I2C_SLAVE_PRESENT			_BV(7)
+#define DW_HOT_JOIN_CTRL			_BV(8)
+#define DW_IDLE_CNT_MULTIPLIER_OFFSET		24
+#define DW_IDLE_CNT_MULTIPLIER_MASK		REG_2BIT_MASK
+#define DW_IDLE_CNT_MULTIPLIER(value)		_SET_FV(DW_IDLE_CNT_MULTIPLIER, value)
+#define DW_ADAPTIVE_I2C_I3C			_BV(27)
+#define DW_DMA_ENABLE				_BV(28)
+#define DW_ABORT				_BV(29)
+#define DW_RESUME				_BV(30)
+#define DW_ENABLE				_BV(31)
+/* 5.2.2 DEVICE_ADDR */
+#define DW_STATIC_ADDR_OFFSET			0
+#define DW_STATIC_ADDR_MASK			REG_7BIT_MASK
+#define DW_STATIC_ADDR(value)			_SET_FV(DW_STATIC_ADDR, value)
+#define DW_STATIC_ADDR_VALID			_BV(15)
+#define DW_DYNAMIC_ADDR_OFFSET			16
+#define DW_DYNAMIC_ADDR_MASK			REG_6BIT_MASK
+#define DW_DYNAMIC_ADDR(value)			_SET_FV(DW_DYNAMIC_ADDR, value)
+#define DW_DYNAMIC_ADDR_VALID			_BV(31)
+/* 5.2.10 QUEUE_THLD_CTRL */
+#define DW_CMD_EMPTY_BUF_THLD_OFFSET		0
+#define DW_CMD_EMPTY_BUF_THLD_MASK		REG_8BIT_MASK
+#define DW_CMD_EMPTY_BUF_THLD(value)		_SET_FV(DW_CMD_EMPTY_BUF_THLD, value)
+#define DW_RESP_BUF_THLD_OFFSET			8
+#define DW_RESP_BUF_THLD_MASK			REG_8BIT_MASK
+#define DW_RESP_BUF_THLD(value)			_SET_FV(DW_RESP_BUF_THLD, value)
+#define DW_IBI_DATA_THLD_OFFSET			16
+#define DW_IBI_DATA_THLD_MASK			REG_8BIT_MASK
+#define DW_IBI_DATA_THLD(value)			_SET_FV(DW_IBI_DATA_THLD, value)
+#define DW_IBI_STATUS_THLD_OFFSET		24
+#define DW_IBI_STATUS_THLD_MASK			REG_8BIT_MASK
+#define DW_IBI_STATUS_THLD(value)		_SET_FV(DW_IBI_STATUS_THLD, value)
+/* 5.2.11 DATA_BUFFER_THLD_CTRL */
+#define DW_TX_EMPTY_BUF_THLD_OFFSET		0
+#define DW_TX_EMPTY_BUF_THLD_MASK		REG_3BIT_MASK
+#define DW_TX_EMPTY_BUF_THLD(value)		_SET_FV(DW_TX_EMPTY_BUF_THLD, value)
+#define DW_RX_BUF_THLD_OFFSET			8
+#define DW_RX_BUF_THLD_MASK			REG_3BIT_MASK
+#define DW_RX_BUF_THLD(value)			_SET_FV(DW_RX_BUF_THLD, value)
+#define DW_TX_START_THLD_OFFSET			16
+#define DW_TX_START_THLD_MASK			REG_3BIT_MASK
+#define DW_TX_START_THLD(value)			_SET_FV(DW_TX_START_THLD, value)
+#define DW_RX_START_THLD_OFFSET			24
+#define DW_RX_START_THLD_MASK			REG_3BIT_MASK
+#define DW_RX_START_THLD(value)			_SET_FV(DW_TX_START_THLD, value)
+/* 5.2.13 IBI_MR_REQ_REJECT
+ * 5.2.14 IBI_SIR_REQ_REJECT
+ */
+#define IBI_REQ_REJECT_ALL			GENMASK(31, 0)
+/* 5.2.17 INTR_STATUS
+ * 5.2.18 INTR_STATUS_EN
+ * 5.2.19 INTR_SIGNAL_EN
+ * 5.2.20 INTR_FORCE
+ */
+#define INTR_BUS_RESET_DONE			_BV(15)
+#define INTR_BUSOWNER_UPDATED			_BV(13)
+#define INTR_IBI_UPDATED			_BV(12)
+#define INTR_READ_REQ_RECV			_BV(11)
+#define INTR_DEFSLV				_BV(10)
+#define INTR_TRANSFER_ERR			_BV(9)
+#define INTR_DYN_ADDR_ASSIGN			_BV(8)
+#define INTR_CCC_UPDATED			_BV(6)
+#define INTR_TRANSFER_ABORT			_BV(5)
+#define INTR_RESP_READY				_BV(4)
+#define INTR_CMD_QUEUE_READY			_BV(3)
+#define INTR_IBI_THLD				_BV(2)
+#define INTR_RX_THLD				_BV(1)
+#define INTR_TX_THLD				_BV(0)
+#define INTR_ALL					\
+	(INTR_BUS_RESET_DONE | INTR_BUSOWNER_UPDATED |	\
+	 INTR_IBI_UPDATED | INTR_READ_REQ_RECV |	\
+	 INTR_DEFSLV | INTR_TRANSFER_ERR |		\
+	 INTR_DYN_ADDR_ASSIGN | INTR_CCC_UPDATED |	\
+	 INTR_TRANSFER_ABORT | INTR_RESP_READY |	\
+	 INTR_CMD_QUEUE_READY | INTR_IBI_THLD |		\
+	 INTR_RX_THLD | INTR_TX_THLD)
+#define INTR_MST				\
+	(INTR_TRANSFER_ERR | INTR_RESP_READY)
 /* 5.2.21 QUEUE_STATUS_LEVEL */
-#define CMD_QUEUE_EMPTY_LOC_OFFSET		0
-#define CMD_QUEUE_EMPTY_LOC_MASK		REG_8BIT_MASK
-#define CMD_QUEUE_EMPTY_LOC(value)		_GET_FV(CMD_QUEUE_EMPTY_LOC, value)
-#define RESP_BUF_BLR_OFFSET			8
-#define RESP_BUF_BLR_MASK			REG_8BIT_MASK
-#define RESP_BUF_BLR(value)			_GET_FV(RESP_BUF_BLR, value)
-#define IBI_BUF_BLR_OFFSET			16
-#define IBI_BUF_BLR_MASK			REG_8BIT_MASK
-#define IBI_BUF_BLR(value)			_GET_FV(IBI_BUF_BLR, value)
-#define IBI_STS_CNT_OFFSET			24
-#define IBI_STS_CNT_MASK			REG_5BIT_MASK
-#define IBI_STS_CNT(value)			_GET_FV(IBI_STS_CNT, value)
+#define DW_CMD_QUEUE_EMPTY_LOC_OFFSET		0
+#define DW_CMD_QUEUE_EMPTY_LOC_MASK		REG_8BIT_MASK
+#define DW_CMD_QUEUE_EMPTY_LOC(value)		_GET_FV(DW_CMD_QUEUE_EMPTY_LOC, value)
+#define DW_RESP_BUF_BLR_OFFSET			8
+#define DW_RESP_BUF_BLR_MASK			REG_8BIT_MASK
+#define DW_RESP_BUF_BLR(value)			_GET_FV(DW_RESP_BUF_BLR, value)
+#define DW_IBI_BUF_BLR_OFFSET			16
+#define DW_IBI_BUF_BLR_MASK			REG_8BIT_MASK
+#define DW_IBI_BUF_BLR(value)			_GET_FV(DW_IBI_BUF_BLR, value)
+#define DW_IBI_STS_CNT_OFFSET			24
+#define DW_IBI_STS_CNT_MASK			REG_5BIT_MASK
+#define DW_IBI_STS_CNT(value)			_GET_FV(DW_IBI_STS_CNT, value)
 /* 5.2.22 DATA_BUFFER_STATUS_LEVEL */
-#define TX_BUF_EMPTY_LOC_OFFSET			0
-#define TX_BUF_EMPTY_LOC_MASK			REG_8BIT_MASK
-#define TX_BUF_EMPTY_LOC(value)			_GET_FV(TX_BUF_EMPTY_LOC, value)
-#define RX_BUF_BLR_OFFSET			DW_MIPI_I3C_HW_BLR_REG_BIT_WD
-#define RX_BUF_BLR_MASK				REG_8BIT_MASK
-#define RX_BUF_BLR(value)			_GET_FV(RX_BUF_BLR, value)
+#define DW_TX_BUF_EMPTY_LOC_OFFSET		0
+#define DW_TX_BUF_EMPTY_LOC_MASK		REG_8BIT_MASK
+#define DW_TX_BUF_EMPTY_LOC(value)		_GET_FV(DW_TX_BUF_EMPTY_LOC, value)
+#define DW_RX_BUF_BLR_OFFSET			DW_MIPI_I3C_HW_BLR_REG_BIT_WD
+#define DW_RX_BUF_BLR_MASK			REG_8BIT_MASK
+#define DW_RX_BUF_BLR(value)			_GET_FV(DW_RX_BUF_BLR, value)
 /* 5.2.25 DEVICE_ADDR_TABLE_POINTER */
-#define P_DEV_ADDR_TABLE_START_ADDR_OFFSET	0
-#define P_DEV_ADDR_TABLE_START_ADDR_MASK	REG_16BIT_MASK
-#define P_DEV_ADDR_TABLE_START_ADDR(value)	_GET_FV(P_DEV_ADDR_TABLE_START_ADDR, value)
-#define DEV_ADDR_TABLE_DEPTH_OFFSET		16
-#define DEV_ADDR_TABLE_DEPTH_MASK		REG_16BIT_MASK
-#define DEV_ADDR_TABLE_DEPTH(value)		_GET_FV(DEV_ADDR_TABLE_DEPTH, value)
+#define DW_P_DEV_ADDR_TABLE_START_ADDR_OFFSET	0
+#define DW_P_DEV_ADDR_TABLE_START_ADDR_MASK	REG_16BIT_MASK
+#define DW_P_DEV_ADDR_TABLE_START_ADDR(value)	_GET_FV(DW_P_DEV_ADDR_TABLE_START_ADDR, value)
+#define DW_DEV_ADDR_TABLE_DEPTH_OFFSET		16
+#define DW_DEV_ADDR_TABLE_DEPTH_MASK		REG_16BIT_MASK
+#define DW_DEV_ADDR_TABLE_DEPTH(value)		_GET_FV(DW_DEV_ADDR_TABLE_DEPTH, value)
+/* 5.2.37 SCL_I3C_OD_TIMING */
+#define DW_I3C_OD_LCNT_OFFSET			0
+#define DW_I3C_OD_LCNT_MASK			REG_8BIT_MASK
+#define DW_I3C_OD_LCNT(value)			_SET_FV(DW_I3C_OD_LCNT, value)
+#define DW_I3C_OD_HCNT_OFFSET			16
+#define DW_I3C_OD_HCNT_MASK			REG_8BIT_MASK
+#define DW_I3C_OD_HCNT(value)			_SET_FV(DW_I3C_OD_LCNT, value)
+/* 5.2.38 SCL_I3C_PP_TIMING */
+#define DW_I3C_PP_LCNT_OFFSET			0
+#define DW_I3C_PP_LCNT_MASK			REG_8BIT_MASK
+#define DW_I3C_PP_LCNT(value)			_SET_FV(DW_I3C_PP_LCNT, value)
+#define DW_I3C_PP_HCNT_OFFSET			16
+#define DW_I3C_PP_HCNT_MASK			REG_8BIT_MASK
+#define DW_I3C_PP_HCNT(value)			_SET_FV(DW_I3C_PP_HCNT, value)
+#define DW_I3C_PP_CNT_MIN			5
+/* 5.2.39 SCL_I2C_FM_TIMING */
+#define DW_I2C_FM_LCNT_OFFSET			0
+#define DW_I2C_FM_LCNT_MASK			REG_16BIT_MASK
+#define DW_I2C_FM_LCNT(value)			_SET_FV(DW_I2C_FM_LCNT, value)
+#define DW_I2C_FM_HCNT_OFFSET			16
+#define DW_I2C_FM_HCNT_MASK			REG_16BIT_MASK
+#define DW_I2C_FM_HCNT(value)			_SET_FV(DW_I2C_FM_HCNT, value)
+/* 5.2.41 SCL_EXT_LCNT_TIMING */
+#define DW_I3C_EXT_LCNT_1_OFFSET		0
+#define DW_I3C_EXT_LCNT_1_MASK			REG_8BIT_MASK
+#define DW_I3C_EXT_LCNT_1(value)		_SET_FV(DW_I3C_EXT_LCNT_1, value)
+#define DW_I3C_EXT_LCNT_2_OFFSET		8
+#define DW_I3C_EXT_LCNT_2_MASK			REG_8BIT_MASK
+#define DW_I3C_EXT_LCNT_2(value)		_SET_FV(DW_I3C_EXT_LCNT_2, value)
+#define DW_I3C_EXT_LCNT_3_OFFSET		16
+#define DW_I3C_EXT_LCNT_3_MASK			REG_8BIT_MASK
+#define DW_I3C_EXT_LCNT_3(value)		_SET_FV(DW_I3C_EXT_LCNT_3, value)
+#define DW_I3C_EXT_LCNT_4_OFFSET		24
+#define DW_I3C_EXT_LCNT_4_MASK			REG_8BIT_MASK
+#define DW_I3C_EXT_LCNT_4(value)		_SET_FV(DW_I3C_EXT_LCNT_4, value)
+/* 5.2.44 BUS_FREE_AVAIL_TIMING */
+#define DW_BUS_FREE_TIME_OFFSET			0
+#define DW_BUS_FREE_TIME_MASK			REG_16BIT_MASK
+#define DW_BUS_FREE_TIME(value)			_SET_FV(DW_BUS_FREE_TIME, value)
+#define DW_BUS_AVAILABLE_TIME_OFFSET		16
+#define DW_BUS_AVAILABLE_TIME_MASK		REG_16BIT_MASK
+#define DW_BUS_AVAILABLE_TIME(value)		_SET_FV(DW_BUS_AVAILABLE_TIME, value)
 
 #define dw_mipi_i3c_cmd_fifo_depth(n)		\
-	CMD_QUEUE_EMPTY_LOC(__raw_readl(QUEUE_STATUS_LEVEL(n)))
+	DW_CMD_QUEUE_EMPTY_LOC(__raw_readl(QUEUE_STATUS_LEVEL(n)))
 #define dw_mipi_i3c_data_fifo_depth(n)		\
-	TX_BUF_EMPTY_LOC(__raw_readl(DATA_BUFFER_STATUS_LEVEL(n)))
+	DW_TX_BUF_EMPTY_LOC(__raw_readl(DATA_BUFFER_STATUS_LEVEL(n)))
 #define dw_mipi_i3c_data_start_addr(n)		\
-	P_DEV_ADDR_TABLE_START_ADDR(__raw_readl(DEVICE_ADDR_TABLE_POINTER(n)))
+	DW_P_DEV_ADDR_TABLE_START_ADDR(__raw_readl(DEVICE_ADDR_TABLE_POINTER(n)))
 #define dw_mipi_i3c_max_devs(n)			\
-	DEV_ADDR_TABLE_DEPTH(__raw_readl(DEVICE_ADDR_TABLE_POINTER(n)))
+	DW_DEV_ADDR_TABLE_DEPTH(__raw_readl(DEVICE_ADDR_TABLE_POINTER(n)))
+#define dw_mipi_i3c_config_sa(n, addr)					\
+	dw_i3c_writel_mask(DW_STATIC_ADDR(addr) |			\
+			   DW_STATIC_ADDR_VALID,			\
+			   DW_STATIC_ADDR(DW_STATIC_ADDR_MASK) |	\
+			   DW_STATIC_ADDR_VALID,			\
+			   DEVICE_ADDR(n))
+#define dw_mipi_i3c_config_da(n, addr)					\
+	dw_i3c_writel_mask(DW_DYNAMIC_ADDR(addr) |			\
+			   DW_DYNAMIC_ADDR_VALID,			\
+			   DW_DYNAMIC_ADDR(DW_DYNAMIC_ADDR_MASK) |	\
+			   DW_DYNAMIC_ADDR_VALID,			\
+			   DEVICE_ADDR(n))
+#define dw_mipi_i3c_disable_all_irqs(n)		\
+	dw_i3c_writel(INTR_ALL, INTR_STATUS(n))
+#define dw_mipi_i3c_enable_mst_irqs(n)					\
+	do {								\
+		dw_i3c_writel(INTR_MST, INTR_STATUS_EN(dw_i3cd));	\
+		dw_i3c_writel(INTR_MST, INTR_SIGNAL_EN(dw_i3cd));	\
+	} while (0)
+#define dw_mipi_i3c_enable_irq(n, irq)		dw_i3c_setl(irq, INTR_STATUS_EN(n))
+#define dw_mipi_i3c_disable_irq(n, irq)		dw_i3c_clearl(irq, INTR_STATUS_EN(n))
+#define dw_mipi_i3c_unmask_irq(n, irq)		dw_i3c_setl(irq, INTR_SIGNAL_EN(n))
+#define dw_mipi_i3c_mask_irq(n, irq)		dw_i3c_clearl(irq, INTR_SIGNAL_EN(n))
+#define dw_mipi_i3c_irq_pending(n, irq)		(!!(dw_i3c_readl(INTR_STATUS(n)) & (irq)))
 
 struct dw_mipi_i3c_ctx {
 	uint8_t addr_mode;
@@ -187,9 +331,29 @@ struct dw_mipi_i3c_ctx {
 	uint8_t status;
 };
 
+#define dw_i3c_setl(v,a)				\
+	do {						\
+		uint32_t __v = dw_i3c_readl(a);		\
+		__v |= (v);				\
+		dw_i3c_writel(__v, (a));		\
+	} while (0)
+#define dw_i3c_clearl(v,a)				\
+	do {						\
+		uint32_t __v = dw_i3c_readl(a);		\
+		__v &= ~(v);				\
+		dw_i3c_writel(__v, (a));		\
+	} while (0)
+#define dw_i3c_writel_mask(v,m,a)			\
+	do {						\
+		uint32_t __v = dw_i3c_readl(a);		\
+		__v &= ~(m);				\
+		__v |= (v);				\
+		dw_i3c_writel(__v, (a));		\
+	} while (0)
 uint32_t dw_i3c_readl(caddr_t reg);
 void dw_i3c_writel(uint32_t val, caddr_t reg);
-void dw_mipi_i3c_ctrl_init(void);
+
+void dw_mipi_i3c_ctrl_init(i3c_bus_t bus, clk_freq_t core_rate);
 void dw_mipi_i3c_handle_irq(void);
 void dw_mipi_i3c_transfer_reset(void);
 
