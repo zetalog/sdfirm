@@ -37,6 +37,7 @@ i3c_t i3c_master_save(i3c_t i3c)
 #else
 uint8_t i3c_state;
 uint8_t i3c_mode;
+i3c_addr_t i3c_dev_addr;
 i3c_len_t i3c_txsubmit;
 i3c_len_t i3c_rxsubmit;
 i3c_len_t i3c_limit;
@@ -46,6 +47,8 @@ uint8_t i3c_status;
 uint8_t i3c_state;
 i3c_event_t i3c_event;
 i3c_device_t *i3c_device = NULL;
+DECLARE_BITMAP(i3c_addr_slot, I3C_NR_ADDRS);
+DECLARE_BITMAP(i3c_addr_i2c, I3C_NR_ADDRS);
 #endif
 
 const char *i3c_state_names[] = {
@@ -161,8 +164,31 @@ void i3c_set_status(uint8_t status)
 	}
 }
 
+i3c_addr_t i3c_get_free_addr(i3c_addr_t start_addr)
+{
+	i3c_addr_t addr;
+
+	addr = find_next_clear_bit(i3c_addr_slot, I3C_NR_ADDRS, start_addr);
+	if (addr == I3C_NR_ADDRS)
+		return INVALID_I3C_ADDR;
+	set_bit(addr, i3c_addr_slot);
+	return addr;
+}
+
+static void i3c_addr_slot_init(void)
+{
+	uint8_t i;
+
+	for (i = 0; i < 8; i++)
+		set_bit(i, i3c_addr_slot);
+	set_bit(I3C_ADDR_BROADCAST, i3c_addr_slot);
+	for (i = 0; i < 7; i++)
+		set_bit(I3C_ADDR_BROADCAST ^ _BV(i), i3c_addr_slot);
+}
+
 void i3c_master_init(void)
 {
+	i3c_addr_slot_init();
 	i3c_hw_ctrl_init();
 }
 
