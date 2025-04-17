@@ -48,6 +48,9 @@
 #ifndef DW_I2C_REG
 #define DW_I2C_REG(n, offset)	(DW_I2C_BASE(n) + (offset))
 #endif
+#ifndef DW_I2C_IRQ
+#define DW_I2C_IRQ(n)		(IRQ_I2C##n##)
+#endif
 #ifndef NR_DW_I2CS
 #define NR_DW_I2CS		CONFIG_I2C_MAX_MASTERS
 #endif

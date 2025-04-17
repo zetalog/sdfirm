@@ -253,10 +253,10 @@ void spi_select_device(spi_t spi)
 	spi_hw_chip_select(spi_devices[spi]->chip);
 }
 #else /* CONFIG_SPI_SLAVE */
-void spi_register_device(spi_device_t *dev)
+spi_t spi_register_device(spi_device_t *dev)
 {
-	spi_devices[spi_last_id] = dev;
-	spi_last_id++;
+	spi_devices[0] = dev;
+	return 0;
 }
 #endif /* CONFIG_SPI_SLAVE */
 

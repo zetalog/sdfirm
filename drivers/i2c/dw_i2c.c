@@ -585,9 +585,10 @@ static void dw_i2c_irq_handler(irq_t irq)
 
 void dw_i2c_irq_init(void)
 {
-	irqc_configure_irq(IRQ_I2C0 + dw_i2cd, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_I2C0 + dw_i2cd, dw_i2c_irq_handler);
-	irqc_enable_irq(IRQ_I2C0 + dw_i2cd);
+	irqc_configure_irq(DW_I2C_IRQ(dw_i2cd), 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(DW_I2C_IRQ(dw_i2cd), dw_i2c_irq_handler);
+	irqc_enable_irq(DW_I2C_IRQ(dw_i2cd));
+	dw_i2c_dbg("dw_i2c: Enable IRQ %d\n", DW_I2C_IRQ(dw_i2cd));
 }
 #endif
 

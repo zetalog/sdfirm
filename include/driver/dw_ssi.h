@@ -402,9 +402,10 @@ static void dw_writer(int n);
 #define dw_reader(n)			1
 #define dw_writer(n)			do { } while (0)
 #endif
-void dw_ssi_handle_irq(irq_t irq);
-void dw_ssi_irq_init(spi_t spi);
-
+#ifndef SYS_REALTIME
+void dw_ssi_irq_init(void);
+#endif
+void dw_ssi_handle_irq(void);
 static inline void dw_ssi_mask_intr(int n, u32 mask)
 {
 	u32 new_mask;
