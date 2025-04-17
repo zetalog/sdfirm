@@ -403,7 +403,7 @@ static void dw_writer(int n);
 #define dw_writer(n)			do { } while (0)
 #endif
 void dw_ssi_handle_irq(irq_t irq);
-void dw_ssi_irq_init(void);
+void dw_ssi_irq_init(spi_t spi);
 
 static inline void dw_ssi_mask_intr(int n, u32 mask)
 {
