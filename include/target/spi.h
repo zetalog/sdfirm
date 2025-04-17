@@ -130,14 +130,14 @@ void spi_sync_status(void);
 
 void spi_set_status(uint8_t status);
 
-#ifdef CONFIG_SPI_MASTER
 spi_t spi_register_device(spi_device_t *dev);
+
+#ifdef CONFIG_SPI_MASTER
 void spi_select_device(spi_t spi);
 #define spi_deselect_device()	spi_hw_deselect_chips();
 #define spi_set_address(addr, call)
 #define spi_apply_address()
 #else
-#define spi_register_device(dev)	(-1)
 #define spi_select_device(spi)		do { } while (0)
 #define spi_deselect_device(spi)	do { } while (0)
 void spi_set_address(uint8_t addr, boolean call);

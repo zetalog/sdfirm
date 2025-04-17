@@ -360,10 +360,10 @@ int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata)
 }
 #endif
 
-void dw_ssi_handle_irq(irq_t irq)
+void dw_ssi_handle_irq(void)
 {
 	/* dw_ssi_transfer_handler */
-	int n = irq - IRQ_SPI;
+	int n = dw_ssid;
 
 	uint32_t status = __raw_readl(SSI_ISR(n));
 
@@ -395,9 +395,19 @@ void dw_ssi_handle_irq(irq_t irq)
 	}
 }
 
-void dw_ssi_irq_init(spi_t spi)
+#ifndef SYS_REALTIME
+static void dw_ssi_irq_handler(irq_t irq)
 {
-	irqc_configure_irq(IRQ_SPI + spi, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_SPI + spi, dw_ssi_handle_irq);
-	irqc_enable_irq(IRQ_SPI + spi);
+	dw_ssi_handle_irq();
+	irqc_ack_irq(irq);
 }
+
+void dw_ssi_irq_init(void)
+{
+	irqc_configure_irq(IRQ_SPI, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(IRQ_SPI, dw_ssi_irq_handler);
+	irqc_enable_irq(IRQ_SPI);
+	dw_ssi_dbg("dw_ssi: Enable IRQ %d\n", IRQ_SPI);
+}
+
+#endif
