@@ -93,6 +93,7 @@
 #define SBI_EXT_DBCN				0x4442434E
 #define SBI_EXT_SUSP				0x53555350
 #define SBI_EXT_CPPC				0x43505043
+#define SBI_EXT_CLK				0x434C4B
 
 /* SBI function IDs for BASE extension*/
 #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
@@ -123,6 +124,12 @@
 #define SBI_EXT_HSM_HART_STOP			0x1
 #define SBI_EXT_HSM_HART_GET_STATUS		0x2
 #define SBI_EXT_HSM_HART_SUSPEND		0x3
+
+/* SBI function IDs for CLK extension */
+#define SBI_EXT_CLK_GET_FREQUENCY		0x0
+#define SBI_EXT_CLK_SET_FREQUENCY		0x1
+#define SBI_EXT_CLK_ENABLE			0x2
+#define SBI_EXT_CLK_DISABLE			0x3
 
 #define SBI_HSM_STATE_STARTED			0x0
 #define SBI_HSM_STATE_STOPPED			0x1

@@ -33,6 +33,7 @@ obj-$(CONFIG_SBI_ECALL_HSM) += sbi_ecall_hsm.rel
 obj-$(CONFIG_SBI_ECALL_HSM) += sbi_hsm.rel
 obj-y += sbi_tlb.rel
 obj-$(CONFIG_SBI_ECALL_PMU) += sbi_ecall_pmu.rel
+obj-$(CONFIG_SBI_ECALL_CLK) += sbi_ecall_clk.rel
 
 obj-$(CONFIG_CONSOLE_OUTPUT) += sbi_console.rel
 obj-$(CONFIG_ARCH_HAS_SBI_IPI) += sbi_ipi.rel
