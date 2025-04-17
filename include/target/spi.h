@@ -70,16 +70,16 @@ typedef struct spi_device spi_device_t;
 #define SPI_DIR_MASK		0x01
 
 #define SPI_STATUS_IDLE		0x00
-#define SPI_STATUS_XFER		0x01
-#define SPI_STATUS_STOP		0x02
+#define SPI_STATUS_READ		0x01
+#define SPI_STATUS_WRITE	0x02
 
 #define SPI_STATE_IDLE		0x00
-#define SPI_STATE_WAIT		0x01
-#define SPI_STATE_XFER		0x02
+#define SPI_STATE_READ		0x01
+#define SPI_STATE_WRITE		0x02
 
 #define SPI_EVENT_IDLE		_BV(SPI_STATUS_IDLE)
-#define SPI_EVENT_XFER		_BV(SPI_STATUS_XFER)
-#define SPI_EVENT_STOP		_BV(SPI_STATUS_STOP)
+#define SPI_EVENT_READ		_BV(SPI_STATUS_READ)
+#define SPI_EVENT_WRITE		_BV(SPI_STATUS_WRITE)
 
 #define SPI_BUS(x)		(x & SPI_BUS_MASK)
 #define SPI_DIR(x)		(x & SPI_DIR_MASK)

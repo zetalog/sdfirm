@@ -5,8 +5,12 @@
 #define PECI_DATA	2
 #define PECI_RESP	3
 
-uint8_t peci_txbuf[32];
-uint8_t peci_rxbuf[32];
+#ifndef PECI_MAX_LEN
+#define PECI_MAX_LEN					32
+#endif
+
+uint8_t peci_txbuf[PECI_MAX_LEN];
+uint8_t peci_rxbuf[PECI_MAX_LEN];
 
 uint8_t peci_state;
 uint8_t peci_req_len;
@@ -35,11 +39,15 @@ void peci_submit_request(void)
 void peci_handle_request(void)
 {
 	switch (peci_rxbuf[0]) {
-	case 0x30..0x3f:
+	case 0x30 ... 0x3F:
 		peci_submit_response(0x40, 0);
 		break;
 	}
 }
+
+spi_device_t peci_spi = {
+	peci_iocb,
+};
 
 void peci_iocb(uint8_t len)
 {
