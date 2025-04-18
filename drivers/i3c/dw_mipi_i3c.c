@@ -38,6 +38,9 @@ void dw_mipi_i3c_master_select(i3c_t i3c)
 static struct dw_mipi_i3c_ctx dw_i3c;
 #endif
 
+#define dw_i3c_ncmds			dw_i3c.ncmds
+#define dw_i3c_cmds			dw_i3c.cmds
+
 #ifndef SYS_REALTIME
 static void dw_mipi_i3c_irq_handler(irq_t irq)
 {
@@ -73,6 +76,54 @@ void dw_mipi_i3c_transfer_reset(void)
 {
 }
 
+static void dw_mipi_i3c_write_tx_fifo(uint8_t *bytes, uint16_t nbytes)
+{
+	uint32_t *buf = (uint32_t *)bytes;
+	uint16_t i;
+
+	for (i = 0; i < nbytes/4; i++) {
+		dw_i3c_writel(*buf, TX_DATA_PORT(dw_i3cd));
+		buf++;
+	}
+	if (nbytes & 3) {
+		uint32_t tmp;
+
+		memcpy(&tmp, bytes + (nbytes & ~3), nbytes & 3);
+		dw_i3c_writel(tmp, TX_DATA_PORT(dw_i3cd));
+	}
+}
+
+static void dw_mipi_i3c_begin_xfer(void)
+{
+	int i;
+	struct dw_mipi_i3c_cmd *cmd;
+
+	for (i = 0; i < dw_i3c_ncmds; i++) {
+		cmd = &dw_i3c_cmds[i];
+		dw_mipi_i3c_write_tx_fifo(cmd->tx_buf, cmd->tx_len);
+	}
+	dw_i3c_writel_mask(DW_RESP_BUF_THLD(dw_i3c_ncmds),
+			   DW_RESP_BUF_THLD(DW_RESP_BUF_THLD_MASK),
+			   QUEUE_THLD_CTRL(dw_i3cd));
+	for (i = 0; i < dw_i3c_ncmds; i++) {
+		cmd = &dw_i3c_cmds[i];
+		dw_i3c_writel(cmd->cmd_hi, COMMAND_QUEUE_PORT(dw_i3cd));
+		dw_i3c_writel(cmd->cmd_lo, COMMAND_QUEUE_PORT(dw_i3cd));
+	}
+}
+
+static void dw_mipi_i3c_end_xfer(void)
+{
+	int i;
+	struct dw_mipi_i3c_cmd *cmd;
+	uint32_t nresp;
+	uint32_t resp;
+
+	nresp = DW_RESP_BUF_BLR(dw_i3c_readl(QUEUE_STATUS_LEVEL(dw_i3cd)));
+	for (i = 0; i < nresp; i++) {
+	}
+}
+
 void dw_mipi_i3c_handle_irq(void)
 {
 	uint32_t status;
@@ -82,6 +133,7 @@ void dw_mipi_i3c_handle_irq(void)
 		dw_i3c_writel(INTR_ALL, INTR_STATUS(dw_i3cd));
 		return;
 	}
+	dw_mipi_i3c_end_xfer();
 }
 
 void dw_mipi_i3c_cfg_i2c_clk(clk_freq_t core_rate)
@@ -139,11 +191,11 @@ void dw_mipi_i3c_cfg_i3c_clk(i3c_bus_t bus, clk_freq_t core_rate)
 	dw_i3c_writel(scl_timing, SCL_EXT_LCNT_TIMING(dw_i3cd));
 }
 
-void dw_mipi_i3c_ccc_set(struct i3c_ccc *ccc)
+static void dw_mipi_i3c_ccc_set(struct i3c_ccc *ccc)
 {
 }
 
-void dw_mipi_i3c_ccc_get(struct i3c_ccc *ccc)
+static void dw_mipi_i3c_ccc_get(struct i3c_ccc *ccc)
 {
 }
 
@@ -197,4 +249,5 @@ void dw_mipi_i3c_ctrl_init(i3c_bus_t bus, clk_freq_t core_rate)
 	i3c_dev_addr = addr;
 	dw_mipi_i3c_config_da(dw_i3cd, addr);
 	dw_mipi_i3c_ibi_init();
+	dw_mipi_i3c_dev_enable(dw_i3cd);
 }

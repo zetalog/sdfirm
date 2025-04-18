@@ -162,6 +162,100 @@
 #define DW_DYNAMIC_ADDR_MASK			REG_6BIT_MASK
 #define DW_DYNAMIC_ADDR(value)			_SET_FV(DW_DYNAMIC_ADDR, value)
 #define DW_DYNAMIC_ADDR_VALID			_BV(31)
+/* 5.2.4 COMMAND_QUEUE_PORT
+ * 2.6.6.1 Command Data Structure
+ */
+#define DW_COMMAND_CMD_ATTR_OFFSET		0
+#define DW_COMMAND_CMD_ATTR_MASK		REG_2BIT_MASK
+#define DW_COMMAND_CMD_ATTR(value)		_SET_FV(DW_COMMAND_CMD_ATTR, value)
+#define DW_COMMAND_TRANSFER_COMMAND		0x0
+#define DW_COMMAND_TRANSFER_ARGUMENT		0x1
+#define DW_COMMAND_SHORT_DATA_ARGUMENT		0x2
+#define DW_COMMAND_ADDRESS_ASIGNMENT_COMMAND	0x3
+/* Transfer Command Data Structure
+ * Address Assignment Command Data Structure
+ */
+#define DW_COMMAND_TID_OFFSET			3
+#define DW_COMMAND_TID_MASK			REG_4BIT_MASK
+#define DW_COMMAND_TID(value)			_SET_FV(DW_COMMAND_TID, value)
+#define DW_COMMAND_CMD_OFFSET			7
+#define DW_COMMAND_CMD_MASK			REG_8BIT_MASK
+#define DW_COMMAND_CMD(value)			_SET_FV(DW_COMMAND_CMD, value)
+#define DW_COMMAND_DEV_INDEX_OFFSET		16
+#define DW_COMMAND_DEV_INDEX_MASK		REG_5BIT_MASK
+#define DW_COMMAND_DEV_INDEX(value)		_SET_FV(DW_COMMAND_DEV_INDEX, value)
+#define DW_COMMAND_ROC				_BV(26)
+#define DW_COMMAND_TOC				_BV(30)
+/* Transfer Command Data Structure */
+#define DW_COMMAND_CP				_BV(15)
+#define DW_COMMAND_SPEED_OFFSET			21
+#define DW_COMMAND_SPEED_MASK			REG_3BIT_MASK
+#define DW_COMMAND_SPEED(value)			_SET_FV(DW_COMMAND_SPEED, value)
+#define DW_COMMAND_I3C_SDR0			0
+#define DW_COMMAND_I3C_SDR1			1
+#define DW_COMMAND_I3C_SDR2			2
+#define DW_COMMAND_I3C_SDR3			3
+#define DW_COMMAND_I3C_SDR4			4
+#define DW_COMMAND_I3C_HDR_TS			5
+#define DW_COMMAND_I3C_HDR_DDR			6
+#define DW_COMMAND_I3C_I2C_FAST			7
+#define DW_COMMAND_I2C_FAST			0
+#define DW_COMMAND_I2C_FAST_PLUS		1
+#define DW_COMMAND_DBP				_BV(25)
+#define DW_COMMAND_SDAP				_BV(27)
+#define DW_COMMAND_RnW				_BV(28)
+#define DW_COMMAND_PEC				_BV(31)
+/* Address Assignment Command Data Structure */
+#define DW_COMMAND_DEV_COUNT_OFFSET		21
+#define DW_COMMAND_DEV_COUNT_MASK		REG_5BIT_MASK
+#define DW_COMMAND_DEV_COUNT(value)		_SET_FV(DW_COMMAND_DEV_COUNT, value)
+/* Transfer Argument Data Structure */
+#define DW_COMMAND_DB_OFFSET			8
+#define DW_COMMAND_DB_MASK			REG_8BIT_MASK
+#define DW_COMMAND_DB(value)			_SET_FV(DW_COMMAND_DB, value)
+#define DW_COMMAND_DATA_LENGTH_OFFSET		16
+#define DW_COMMAND_DATA_LENGTH_MASK		REG_16BIT_MASK
+#define DW_COMMAND_DATA_LENGTH(value)		_SET_FV(DW_COMMAND_DATA_LENGTH, value)
+/* Shot Data Argument Data Structure */
+#define DW_COMMAND_BYTE_STRB_OFFSET		3
+#define DW_COMMAND_BYTE_STRB_MASK		REG_3BIT_MASK
+#define DW_COMMAND_BYTE_STRB(value)		_SET_FV(DW_COMMAND_BYTE_STRB, value)
+#define DW_COMMAND_DATA_BYTE_1_OFFSET		8
+#define DW_COMMAND_DATA_BYTE_1_MASK		REG_8BIT_MASK
+#define DW_COMMAND_DATA_BYTE_1(value)		_SET_FV(DW_COMMAND_DATA_BYTE_1, value)
+#define DW_COMMAND_DATA_BYTE_2_OFFSET		16
+#define DW_COMMAND_DATA_BYTE_2_MASK		REG_8BIT_MASK
+#define DW_COMMAND_DATA_BYTE_2(value)		_SET_FV(DW_COMMAND_DATA_BYTE_2, value)
+#define DW_COMMAND_DATA_BYTE_3_OFFSET		24
+#define DW_COMMAND_DATA_BYTE_3_MASK		REG_8BIT_MASK
+#define DW_COMMAND_DATA_BYTE_3(value)		_SET_FV(DW_COMMAND_DATA_BYTE_3, value)
+/* 5.2.5 RESPONSE_QUEUE_PORT
+ * 2.6.6.2 Response Data Structure
+ */
+#define DW_RESPONSE_DL_OFFSET			0
+#define DW_RESPONSE_DL_MASK			REG_16BIT_MASK
+#define DW_RESPONSE_DL(value)			_GET_FV(DW_RESPONSE_DL, value)
+#define DW_RESPONSE_CCCT_OFFSET			16
+#define DW_RESPONSE_CCCT_MASK			REG_8BIT_MASK
+#define DW_RESPONSE_CCCT(value)			_GET_FV(DW_RESPONSE_CCCT, value)
+#define DW_RESPONSE_TID_OFFSET			24
+#define DW_RESPONSE_TID_MASK			REG_4BIT_MASK
+#define DW_RESPONSE_TID(value)			_GET_FV(DW_RESPONSE_TID, value)
+#define DW_RESPONSE_ERR_STS_OFFSET		28
+#define DW_RESPONSE_ERR_STS_MASK		REG_4BIT_MASK
+#define DW_RESPONSE_ERR_STS(value)		_GET_FV(DW_RESPONSE_ERR_STS, value)
+#define DW_RESPONSE_NO_ERROR			0
+#define DW_RESPONSE_CRC_ERROR			1
+#define DW_RESPONSE_PARITY_ERROR		2
+#define DW_RESPONSE_FRAME_ERROR			3
+#define DW_RESPONSE_I3C_BRAODCAST_ADDRESS_NACK	4
+#define DW_RESPONSE_ADDRESS_NACK		5
+#define DW_RESPONSE_RX_OVERFLOW_TX_UNDERFLOW	6
+#define DW_RESPONSE_TRANSFER_ABORTED		8
+#define DW_RESPONSE_I2C_SLAVE_WRITE_DATA_NACK	9
+#define DW_RESPONSE_PEC_ERROR			12
+/* 2.6.6.3 IBI Status and Data Structure
+ */
 /* 5.2.10 QUEUE_THLD_CTRL */
 #define DW_CMD_EMPTY_BUF_THLD_OFFSET		0
 #define DW_CMD_EMPTY_BUF_THLD_MASK		REG_8BIT_MASK
@@ -323,13 +417,27 @@
 #define dw_mipi_i3c_unmask_irq(n, irq)		dw_i3c_setl(irq, INTR_SIGNAL_EN(n))
 #define dw_mipi_i3c_mask_irq(n, irq)		dw_i3c_clearl(irq, INTR_SIGNAL_EN(n))
 #define dw_mipi_i3c_irq_pending(n, irq)		(!!(dw_i3c_readl(INTR_STATUS(n)) & (irq)))
+#define dw_mipi_i3c_dev_enable(n)		dw_i3c_setl(DW_ENABLE, DEVICE_CTRL(n))
+#define dw_mipi_i3c_dev_disable(n)		dw_i3c_clearl(DW_ENABLE, DEVICE_CTRL(n))
+
+struct dw_mipi_i3c_cmd {
+	uint32_t cmd_hi;
+	uint32_t cmd_lo;
+	uint16_t tx_len;
+	uint8_t *tx_buf;
+	uint16_t rx_len;
+	uint8_t *rx_buf;
+	uint8_t error;
+};
 
 struct dw_mipi_i3c_ctx {
-	uint8_t addr_mode;
-	uint8_t last_tx_byte;
-	int state;
-	uint8_t status;
+	unsigned int ncmds;
+	struct dw_mipi_i3c_cmd cmds[1];
 };
+
+#if NR_DW_I3CS > 1
+void dw_mipi_i3c_master_select(i3c_t i3c);
+#endif
 
 #define dw_i3c_setl(v,a)				\
 	do {						\
