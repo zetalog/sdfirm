@@ -659,7 +659,6 @@ void cmn600_cml_set_config(cmn_id_t link)
 	cmn_id_t region_index;
 	struct cmn600_memregion *region;
 
-	cmn_cml_config_prop(link);
 	cmn_cml_smp_mode(link);
 	cmn_cml_setup(link);
 	cmn_cml_program_ra_sam(link);
@@ -717,13 +716,26 @@ void cmn600_cml_detect_mmap(void)
 	}
 }
 
-void cmn600_cml_init(void)
+void cmn600_cml_early_init(void)
 {
 	int ret;
 
 	ret = cmn600_cml_get_config();
 	if (ret < 0)
 		return;
+	cmn_cml_config_prop(cml_link_id);
+}
+
+void cmn600_cml_init(void)
+{
+#ifndef USE_EARLY_INIT
+	int ret;
+
+	ret = cmn600_cml_get_config();
+	if (ret < 0)
+		return;
+	cmn_cml_config_prop(cml_link_id);
+#endif
 	cmn600_cml_set_config(cml_link_id);
 	cmn600_cml_start();
 }

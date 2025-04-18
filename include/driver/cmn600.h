@@ -1638,6 +1638,7 @@ caddr_t cmn600_cxla_base(cmn_id_t link);
 #define cmn600_cml_detect_mmap()			do { } while (0)
 #define cmn600_cml_get_config()				(-ENODEV)
 #define cmn600_cml_base(base, chip_id, ccix)		base
+#define cmn600_early_init()				do { } while (0)
 #define cmn600_cml_init()				do { } while (0)
 #define cmn600_cml_start()				do { } while (0)
 #define cmn600_cxha_base(link)				cmn_bases[cmn_cxha_ids[link]]
