@@ -369,6 +369,8 @@ static void cmn_cml_program_ccix_link(cmn_id_t link)
 	cmn_writeq(CMN_lnk_link_en,
 		   CMN_cxg_cxprtcl_link_ctl(cmn600_cxra_base(link), link),
 		   "CMN_cxg_ra_cxprtcl_link_ctl", link);
+	//udelay(1);
+	//printf("CMN_cxla_ccix_prop_configured, addr:7c9520c08, value:540\n");
 	cmn_writeq(CMN_lnk_link_en,
 		   CMN_cxg_cxprtcl_link_ctl(cmn600_cxha_base(link), link),
 		   "CMN_cxg_ha_cxprtcl_link_ctl", link);
@@ -412,7 +414,6 @@ static void cmn_cml_establish_ccix_link(cmn_id_t link)
 		 "CMN_cxg_ha_cxprtcl_link_ctl", link);
 	cmn_cml_wait_link_status(link, CMN_MXP_CXRH, CMN_lnk_link_ack, true);
 	cmn_cml_wait_link_status(link, CMN_MXP_CXRH, CMN_lnk_link_down, false);
-
 	con_dbg(CMN_MODNAME ": Bringing up CCIX %d...\n", link);
 	cmn_setq(CMN_lnk_link_up,
 		 CMN_cxg_cxprtcl_link_ctl(cmn600_cxra_base(link), link),
