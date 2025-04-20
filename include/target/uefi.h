@@ -113,9 +113,9 @@ typedef void (*gpt_loader_t)(uint8_t *boot, uint32_t addr, uint32_t size);
 
 #ifdef CONFIG_UEFI
 #ifdef GPT_LOCAL_TEST
-int gpt_pgpt_init(gpt_loader_t *loader, uint8_t *image_start);
+int gpt_pgpt_init(gpt_loader_t loader, uint8_t *image_start);
 #else
-int gpt_pgpt_init(gpt_loader_t *loader);
+int gpt_pgpt_init(gpt_loader_t loader);
 #endif
 int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 			 mtd_addr_t *offset, mtd_size_t *size,
