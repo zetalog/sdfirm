@@ -4,6 +4,8 @@
 #ifdef CONFIG_UEFI_GPT_DEBUG
 #define gpt_dbg(fmt, ...) printf(fmt, ##__VA_ARGS__)
 
+gpt_loader_t gpt_loader;
+
 static void gpt_header_print(struct gpt_header *header)
 {
 	unsigned char *byte_ptr;
@@ -58,8 +60,9 @@ static void gpt_entry_print(struct gpt_entry *entry)
 #define gpt_entry_print(entry)		do { } while (0)
 #endif
 
-int gpt_pgpt_init(void)
+int gpt_pgpt_init(gpt_loader_t loader)
 {
+	gpt_loader = loader;
 	return 0;
 }
 
@@ -99,8 +102,7 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 	if (part_name == NULL || offset == NULL || size == NULL)
 		return -EINVAL;
 
-	mtd_load(mtd, sector_buffer,
-		     flash_addr_header, copy_size_header);
+	gpt_loader(sector_buffer, flash_addr_header, copy_size_header);
 	gpt_header_print((struct gpt_header *)sector_buffer);
 	hexdump(flash_addr_header, sector_buffer, 1, GPT_SECTOR_SIZE);
 	for (i = 0; i < GPT_PGPT_PART_CNT; i++) {
@@ -110,7 +112,7 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 			(unsigned char *)(&entry_ptr->partition_guid);
 		gpt_dbg("uefi_gpt: Copying partion%d addr=0x%x size=0x%x..\n",
 			i, flash_addr, copy_size);
-		mtd_load(mtd, entry_ptr, flash_addr, copy_size);
+		gpt_loader(entry_ptr, flash_addr, copy_size);
 		flash_addr += copy_size;
 		gpt_dbg("uefi_gpt: Checking partition%d...\n", (i + 1));
 		gpt_entry_print(entry_ptr);
@@ -180,14 +182,14 @@ void gpt_mtd_dump(mtd_t mtd)
 		printf("Error: Invalid MTD device\n");
 		return;
 	}
-	mtd_load(mtd, &hdr, GPT_HEADER_LBA * GPT_LBA_SIZE,
-		     GPT_HEADER_BYTES);
+	gpt_loader(&hdr, GPT_HEADER_LBA * GPT_LBA_SIZE,
+		   GPT_HEADER_BYTES);
 	partition_entries_lba_end = (hdr.partition_entries_lba +
 		(hdr.num_partition_entries * hdr.partition_entry_size +
 		 GPT_LBA_SIZE - 1) / GPT_LBA_SIZE);
 	for (i = hdr.partition_entries_lba;
 	     i < partition_entries_lba_end; i++) {
-		mtd_load(mtd, gpt_buf, i * GPT_LBA_SIZE, GPT_LBA_SIZE);
+		gpt_loader(gpt_buf, i * GPT_LBA_SIZE, GPT_LBA_SIZE);
 		gpt_entries = (gpt_partition_entry *)gpt_buf;
 		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
 		for (j = 0; j < num_entries; j++) {
@@ -215,6 +217,6 @@ bool gpt_mtd_test(mtd_t mtd)
 		printf("Error: Invalid MTD device\n");
 		return false;
 	}
-	mtd_load(mtd, &hdr, GPT_HEADER_LBA * GPT_LBA_SIZE, 8);
+	gpt_loader(&hdr, GPT_HEADER_LBA * GPT_LBA_SIZE, 8);
 	return !!(hdr.signature == (uint64_t)gsig.sig);
 }

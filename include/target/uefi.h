@@ -109,11 +109,13 @@ struct gpt_header {
 	uint8_t  reserved2[512 - 92];
 } __attribute__ ((packed));
 
+typedef void (*gpt_loader_t)(uint8_t *boot, uint32_t addr, uint32_t size);
+
 #ifdef CONFIG_UEFI
 #ifdef GPT_LOCAL_TEST
-int gpt_pgpt_init(uint8_t *image_start);
+int gpt_pgpt_init(gpt_loader_t *loader, uint8_t *image_start);
 #else
-int gpt_pgpt_init(void);
+int gpt_pgpt_init(gpt_loader_t *loader);
 #endif
 int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 			 mtd_addr_t *offset, mtd_size_t *size,
@@ -123,7 +125,7 @@ int gpt_get_file_by_name(mtd_t mtd, const char *file_name,
 void gpt_mtd_dump(mtd_t mtd);
 bool gpt_mtd_test(mtd_t mtd);
 #else
-#define gpt_pgpt_init()				do { } while (0)
+#define gpt_pgpt_init(loader)			do { } while (0)
 #define gpt_get_file_by_name(mtd, n, o, s)	-EINVAL
 #define gpt_get_part_by_name(mtd, n, o, s, p)	-EINVAL
 #define gpt_mtd_dump(mtd)			do { } while (0)
