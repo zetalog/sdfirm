@@ -74,6 +74,10 @@ config CMN600_SAM_RANGE_BASED
 config CMN600_OCM
 	bool "Enable On Chip Memory configuration"
 
+if CMN600_OCM
+
+endif
+
 if CMN600_CML
 
 config CMN600_CML_TLP

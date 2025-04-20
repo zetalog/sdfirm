@@ -397,7 +397,7 @@ typedef uint32_t cmn_id_t;
 #define CMN_hnf_sf_ecc_scrub_disable		_BV_ULL(6)
 #define CMN_hnf_ncdevcmo_mc_comp		_BV_ULL(8)
 #define CMN_hnf_ocm_en				_BV_ULL(9)
-#define CMN_hnf_ocm_always_en			_BV_ULL(10)
+#define CMN_hnf_ocm_allways_en			_BV_ULL(10)
 #define CMN_hnf_dmt_disable			_BV_ULL(11)
 
 
@@ -1624,6 +1624,13 @@ bool cmn600_rnsam_is_cxha(cmn_nid_t nid);
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid);
 cmn_id_t cmn600_max_tgt_nodes(void);
 cmn_id_t cmn600_nid2xp(cmn_nid_t nid);
+#ifdef CONFIG_CMN600_OCM
+void cmn600_enable_ocm(void);
+void cmn600_disable_ocm(void);
+#else
+#define cmn600_enable_ocm()				do { } while (0)
+#define cmn600_disable_ocm()				do { } while (0)
+#endif
 #ifdef CONFIG_CMN600_CML
 void cmn600_cml_detect_mmap(void);
 int cmn600_cml_get_config(void);
@@ -1638,6 +1645,7 @@ caddr_t cmn600_cxla_base(cmn_id_t link);
 #define cmn600_cml_detect_mmap()			do { } while (0)
 #define cmn600_cml_get_config()				(-ENODEV)
 #define cmn600_cml_base(base, chip_id, ccix)		base
+#define cmn600_cml_early_init()				do { } while (0)
 #define cmn600_early_init()				do { } while (0)
 #define cmn600_cml_init()				do { } while (0)
 #define cmn600_cml_start()				do { } while (0)
