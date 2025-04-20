@@ -164,6 +164,23 @@ void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 		__boot_jump(boot);
 }
 
+void duowen_gpt_load(uint8_t *dst, uint32_t addr, uint32_t size)
+{
+	int i;
+
+#define is_last(index, length)		(((index) + 1) == length)
+
+	__boot_dbg('|');
+	for (i = 0; i < size; i++, addr++) {
+		dst[i] = __duowen_ssi_flash_read(addr);
+		__boot_dump8(dst[i], is_last(i, size));
+		if ((i % 0x200) == 0)
+			__boot_dbg('.');
+	}
+	__boot_dbg('|');
+	__boot_dbg('\n');
+}
+
 void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
 	volatile boot_cb boot_func;
@@ -174,6 +191,11 @@ void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 	boot_func(boot, addr, size, jump);
 }
 #else
+void duowen_gpt_load(uint8_t *dst, uint32_t addr, uint32_t size)
+{
+	mtd_load(board_flash, dst, addr, size);
+}
+
 void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 {
 	mtd_load(board_flash, boot, addr, size);
