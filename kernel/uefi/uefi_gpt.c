@@ -1,10 +1,10 @@
 #include <target/uefi.h>
 #include <target/console.h>
 
+gpt_loader_t gpt_loader;
+
 #ifdef CONFIG_UEFI_GPT_DEBUG
 #define gpt_dbg(fmt, ...) printf(fmt, ##__VA_ARGS__)
-
-gpt_loader_t gpt_loader;
 
 static void gpt_header_print(struct gpt_header *header)
 {
