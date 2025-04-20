@@ -363,7 +363,7 @@ int dw_ssi_xfer(int n, const void *txdata, size_t txbytes, void *rxdata)
 void dw_ssi_handle_irq(void)
 {
 	/* dw_ssi_transfer_handler */
-	int n = dw_ssid;
+	__unused int n = dw_ssid;
 
 	uint32_t status = __raw_readl(SSI_ISR(n));
 
