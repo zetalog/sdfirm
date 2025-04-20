@@ -344,7 +344,7 @@ static void duowen_load_flash(mtd_t mtd, boot_cb boot, const char *name)
 {
 	int ret;
 
-	ret = gpt_pgpt_init();
+	ret = gpt_pgpt_init(duowen_gpt_load);
 	if (ret != 0) {
 		con_err("boot(%s): primary GPT failure.\n", name);
 		bh_panic();
