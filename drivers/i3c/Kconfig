@@ -23,6 +23,9 @@ config ARCH_IS_DW_MIPI_I3C_SLAVE_LITE
 config ARCH_IS_DW_MIPI_I3C_HCI
 	bool
 
+config ARCH_HAS_DW_MIPI_I3C_DAA
+	bool
+
 config ARCH_HAS_DW_MIPI_I3C_DAT
 	bool
 
@@ -79,6 +82,7 @@ config ARCH_HAS_DW_MIPI_I3C_FW_RAM_RETIMING
 menuconfig DW_MIPI_I3C
 	bool "Synopsys DesignWare MIPI I3C support"
 	depends I3C
+	select ARCH_HAS_DW_MIPI_I3C_DAA
 
 if DW_MIPI_I3C
 
@@ -151,7 +155,11 @@ config DW_MIPI_H3C_HCI
 
 endchoice
 
-config DW_MIPI_H3C_DAT
+config DW_MIPI_I3C_DAA
+	bool "Support dynamic address assignment functionality"
+	depends ARCH_HAS_DW_MIPI_I3C_DAA
+
+config DW_MIPI_I3C_DAT
 	bool "Support default DAT section"
 	depends ARCH_HAS_DW_MIPI_I3C_DAT
 
