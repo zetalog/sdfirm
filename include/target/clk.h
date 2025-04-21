@@ -52,10 +52,6 @@
 #include <driver/clk.h>
 
 #ifndef ARCH_HAVE_CLK_TYPES
-typedef uint16_t clk_t;
-typedef uint8_t clk_cat_t;
-typedef uint8_t clk_clk_t;
-
 #ifndef clkid
 #define clkid(cat, clk)		((clk_t)MAKEWORD(clk, cat))
 #define invalid_clk		clkid(0xFF, 0xFF)

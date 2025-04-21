@@ -52,6 +52,15 @@
 #endif
 #endif
 
+#define ARCH_HAVE_CLK_TYPES	1
+typedef uint16_t clk_t;
+typedef uint8_t clk_cat_t;
+typedef uint8_t clk_clk_t;
+#define clkid(cat, clk)		((clk_t)MAKEWORD(clk, cat))
+#define invalid_clk		clkid(0xFF, 0xFF)
+#define clk_clk(clkid)		LOBYTE(clkid)
+#define clk_cat(clkid)		HIBYTE(clkid)
+
 #define NR_FREQPLANS		5
 #define FREQPLAN_RUN		0
 #define INVALID_FREQPLAN	(-1)

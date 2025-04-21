@@ -10,11 +10,6 @@
 
 mtd_t board_flash = INVALID_MTD_ID;
 
-void dpu_ssi_flash_init(void)
-{
-	board_flash = spiflash_register_bank(0);
-}
-
 typedef void (*dpu_boot_cb)(void *, uint32_t, uint32_t);
 
 static __always_inline void dpu_ssi_flash_select(uint32_t chips)
@@ -163,6 +158,44 @@ void dpu_ssi_flash_boot(void *boot, uint32_t addr, uint32_t size)
 #endif
 	boot_func(boot, addr, size);
 	unreachable();
+}
+
+void dpu_ssi_flash_load(uint8_t *dst, uint32_t addr, uint32_t size)
+{
+	int i;
+
+#define is_last(index, length)		(((index) + 1) == length)
+
+	__boot_dbg('|');
+	for (i = 0; i < size; i++, addr++) {
+		dst[i] = dpu_ssi_flash_read(addr);
+		__boot_dump8(dst[i], is_last(i, size));
+		if ((i % 0x200) == 0)
+			__boot_dbg('.');
+	}
+	__boot_dbg('|');
+	__boot_dbg('\n');
+}
+
+static void dpu_ssi_flash_4byte(void)
+{
+	dpu_ssi_flash_writeb(SF_ENTER_ADDR_4BYTE);
+	dpu_ssi_flash_txbegin(0);
+	dpu_ssi_flash_select(_BV(0));
+	dpu_ssi_flash_txend();
+	(void)dpu_ssi_flash_readb();
+	dpu_ssi_flash_select(0);
+}
+
+void dpu_ssi_flash_init(void)
+{
+	int ret;
+
+	board_flash = spiflash_register_bank(0);
+	ret = gpt_pgpt_init(dpu_ssi_flash_load);
+	BUG_ON(ret != 0);
+	spi_select_device(0);
+	dpu_ssi_flash_4byte();
 }
 
 static int do_flash_dump(int argc, char *argv[])

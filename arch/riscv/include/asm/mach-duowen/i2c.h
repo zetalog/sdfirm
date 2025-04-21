@@ -31,6 +31,7 @@
 #define i2c_hw_read_byte()		dw_i2c_read_byte()
 #define i2c_hw_write_byte(byte)		dw_i2c_write_byte(byte)
 #define i2c_hw_transfer_reset()		dw_i2c_transfer_reset()
+#define i2c_hw_handle_irq()		dw_i2c_handle_irq()
 void i2c_hw_ctrl_init(void);
 #endif
 

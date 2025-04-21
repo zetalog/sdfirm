@@ -43,6 +43,14 @@
 #define __IOMMU_H_INCLUDE__
 
 #include <target/generic.h>
+
+typedef uint64_t iommu_t;
+typedef uint8_t iommu_dev_t;
+typedef uint8_t iommu_dom_t;
+typedef uint8_t iommu_grp_t;
+typedef uint8_t iommu_mst_t;
+typedef uint32_t iommu_map_t;
+
 #include <driver/iommu.h>
 
 #ifdef CONFIG_IOMMU_MAX_DEVICES
@@ -67,12 +75,6 @@
 #define NR_IOMMU_DOMAINS	1
 #endif
 #define INVALID_IOMMU_DOM	NR_IOMMU_DOMAINS
-
-typedef uint8_t iommu_dev_t;
-typedef uint8_t iommu_dom_t;
-typedef uint8_t iommu_grp_t;
-typedef uint8_t iommu_mst_t;
-typedef uint32_t iommu_map_t;
 
 #define IOMMU_READ	(1 << 0)
 #define IOMMU_WRITE	(1 << 1)
@@ -123,7 +125,6 @@ struct iommu_iotlb_gather {
 /* SoC specific descriptor, used to indicate an IOMMU master controlling a
  * translation group.
  */
-typedef uint64_t iommu_t;
 typedef uint16_t iommu_rid_t;
 /* RID base and RID mask, RID map can be directly converted into RID if
  * mask is omitted.
