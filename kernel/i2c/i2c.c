@@ -1,6 +1,7 @@
 #include <target/i2c.h>
 #include <target/panic.h>
 #include <target/bh.h>
+#include <target/irq.h>
 
 #ifdef CONFIG_I2C_DEBUG
 #define i2c_dbg(...)	con_dbg(__VA_ARGS__)

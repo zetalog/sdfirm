@@ -342,13 +342,6 @@ void duowen_boot_file(mtd_t mtd, boot_cb boot, const char *file,
 
 static void duowen_load_flash(mtd_t mtd, boot_cb boot, const char *name)
 {
-	int ret;
-
-	ret = gpt_pgpt_init(duowen_gpt_load);
-	if (ret != 0) {
-		con_err("boot(%s): primary GPT failure.\n", name);
-		bh_panic();
-	}
 	duowen_boot_ddr();
 #ifdef CONFIG_DUOWEN_ZSBL
 	duowen_boot_file(mtd, boot, "fsbl.bin", IMC_BOOT_ENTRY, name);

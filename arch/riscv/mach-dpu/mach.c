@@ -134,11 +134,6 @@ static void dpu_load_ssi(void *boot_entry, const char *boot_file)
 	int ret;
 
 	__boot_init();
-	ret = gpt_pgpt_init();
-	if (ret != 0) {
-		__boot_msg(BOOT_ERROR_INIT);
-		printf("boot(ssi): failed to init gpt.\n");
-	}
 	printf("boot(ssi): loading %s to 0x%016llx...\n",
 	       boot_file, (uint64_t)boot_entry);
 	ret = gpt_get_file_by_name(board_flash, boot_file, &addr, &size);

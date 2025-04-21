@@ -40,6 +40,8 @@
  */
 
 #include <target/spi.h>
+#include <target/bh.h>
+#include <target/irq.h>
 #include <target/console.h>
 #include <target/jiffies.h>
 

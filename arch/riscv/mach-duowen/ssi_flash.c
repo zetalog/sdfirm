@@ -71,13 +71,6 @@ void spi_hw_ctrl_init(void)
 			8, 24, 0);
 }
 
-void duowen_ssi_init(void)
-{
-	board_flash = spiflash_register_bank(0);
-	if (board_flash == INVALID_MTD_ID)
-		bh_panic();
-}
-
 #ifdef CONFIG_DUOWEN_BOOT_PROT
 typedef void (*boot_cb)(void *, uint32_t, uint32_t, bool);
 
@@ -164,6 +157,20 @@ void __duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 		__boot_jump(boot);
 }
 
+#ifdef CONFIG_SPIFLASH_ADDR_4BYTE
+static void duowen_ssi_4byte(void)
+{
+	__duowen_ssi_flash_writeb(SF_ENTER_ADDR_4BYTE);
+	__duowen_ssi_flash_txbegin(0);
+	__duowen_ssi_flash_select(_BV(0));
+	__duowen_ssi_flash_txend();
+	(void)__duowen_ssi_flash_readb();
+	__duowen_ssi_flash_select(0);
+}
+#else
+#define duowen_ssi_4byte()		do { } while (0)
+#endif
+
 void duowen_gpt_load(uint8_t *dst, uint32_t addr, uint32_t size)
 {
 	int i;
@@ -191,6 +198,7 @@ void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 	boot_func(boot, addr, size, jump);
 }
 #else
+#define duowen_ssi_4byte()		do { } while (0)
 void duowen_gpt_load(uint8_t *dst, uint32_t addr, uint32_t size)
 {
 	mtd_load(board_flash, dst, addr, size);
@@ -203,6 +211,19 @@ void duowen_ssi_boot(void *boot, uint32_t addr, uint32_t size, bool jump)
 		__boot_jump(boot);
 }
 #endif
+
+void duowen_ssi_init(void)
+{
+	int ret;
+
+	board_flash = spiflash_register_bank(0);
+	if (board_flash == INVALID_MTD_ID)
+		bh_panic();
+	ret = gpt_pgpt_init(duowen_gpt_load);
+	BUG_ON(ret != 0);
+	spi_select_device(0);
+	duowen_ssi_4byte();
+}
 
 static int do_flash_read(int argc, char *argv[])
 {

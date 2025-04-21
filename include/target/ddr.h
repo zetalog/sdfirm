@@ -107,6 +107,7 @@ struct ddr_slot {
 	bool present;
 	uint8_t smbus;
 	uint8_t lsa;
+	uint32_t spd_addr;
 	uint8_t spd_buf[DDR_SPD_SIZE];
 };
 
