@@ -2,6 +2,8 @@
 #include <target/spi.h>
 #include <target/console.h>
 #include <target/cmdline.h>
+#include <target/bh.h>
+#include <target/irq.h>
 
 #ifdef CONFIG_SPI_DEBUG
 #define spi_dbg(...)	con_dbg(__VA_ARGS__)

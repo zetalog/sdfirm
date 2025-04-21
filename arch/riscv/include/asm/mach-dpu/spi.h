@@ -95,6 +95,8 @@
 		dw_ssi_init_spi(SSI_ID, SSI_SPI_FRF_STD,	\
 				8, DW_SSI_ADDR_LEN, 0);		\
 	} while (0)
+#define spi_hw_irq_init()		dw_ssi_irq_init()
+#define spi_hw_handle_irq()		dw_ssi_handle_irq()
 #define spi_hw_ctrl_start()		dw_ssi_start_ctrl(SSI_ID)
 #define spi_hw_ctrl_stop()		dw_ssi_stop_ctrl(SSI_ID)
 #endif
