@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Mon Apr 21 17:07:05 2025
+# Tue Apr 22 15:36:50 2025
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -575,6 +575,7 @@ CONFIG_DDR_SPD_2400=y
 # CONFIG_DDR_SPD_200 is not set
 CONFIG_DDR3=y
 CONFIG_DDR4=y
+# CONFIG_DDR5 is not set
 
 #
 # DDR4 Options

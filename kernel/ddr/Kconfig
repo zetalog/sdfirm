@@ -104,6 +104,9 @@ config DDR4
 	select SPD_EE1004 if (DDR_SPD && !DDR_TS)
 	#select SPD_TS2004AV if (DDR_SPD && DDR_TS)
 
+config DDR5
+	bool "Enalbe DDR5 support"
+
 if DDR4
 
 menu "DDR4 Options"
