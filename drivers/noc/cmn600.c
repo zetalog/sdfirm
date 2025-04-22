@@ -352,27 +352,54 @@ static void cmn_hnf_slc_lock_disable(caddr_t hnf)
 }
 #endif
 
-static void cmn_hnf_cal_enable_ocm(caddr_t hnf)
+#ifdef CONFIG_CMN600_OCM_DDR
+static void __cmn_hnf_ocm_enable(caddr_t hnf)
 {
-	uint64_t pwsr = 0;
-	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
-		   CMN_ppu_op_mode(CMN_ppu_op_mode_SFONLY) |
-		   CMN_ppu_dyn_en,
-		   CMN_hnf_ppu_pwpr(hnf),
-		   "CMN_hnf_ppu_pwpr", -1);
-	while (1) {
-		pwsr = __raw_readq(CMN_hnf_ppu_pwsr(hnf));
-		if (((pwsr >> CMN_ppu_op_mode_status_OFFSET) & CMN_ppu_op_mode_status_MASK) == CMN_ppu_op_mode_status_SFONLY)
-			break;
-		}
-	//while (cmn_hnf_op_mode_status(hnf) != CMN_ppu_op_mode_status_SFONLY);
-//#ifdef CONFIG_ALLWAYS_ENABLE
-#if 1
-cmn_writeq(CMN_hnf_ocm_en |
-	   CMN_hnf_ocm_allways_en,
-	   CMN_hnf_cfg_ctl(hnf),
-	   "CMN_hnf_cfg_ctl", -1);
-#else
+	cmn_writeq(CMN_hnf_ocm_en |
+		   CMN_hnf_ocm_allways_en,
+		   CMN_hnf_cfg_ctl(hnf),
+		   "CMN_hnf_cfg_ctl", -1);
+}
+#endif
+
+#ifdef CONFIG_CMN600_OCM_RAM
+static void __cmn_hnf_ocm_enable(caddr_t hnf)
+{
+	uint8_t ways = CMN_OCM_SIZE / (CMN_SLC_SIZE / 16);
+	uint8_t size;
+	uint8_t regions;
+	uint8_t i;
+	caddr_t base;
+
+	BUG_ON(ways != 1 && ways != 2 &&
+	       ways != 4 && ways != 8 && ways != 12);
+
+	cmn_writeq(CMN_hnf_ocm_en,
+		   CMN_hnf_cfg_ctl(hnf),
+		   "CMN_hnf_cfg_ctl", -1);
+	cmn_writeq(CMN_hnf_slc_lock_ways(ways),
+		   CMN_hnf_slc_lock_ways(hnf),
+		   "CMN_hnf_slc_lock_ways", -1);
+	regions = min(4, ways);
+	/* OCM can use up to 3/4 SLC locked ways, for 12/16 ways,
+	 * caculation should be done using 16.
+	 */
+	if (ways == 12)
+		ways = 16;
+	size = CMN_OCM_SIZE / ways;
+	for (i = 0; i < regions; i++) {
+		if (ways == 16 && i > 1)
+			base = CMN_OCM_BASE +
+			       (size * (ways / regions / 2));
+		else
+			base = CMN_OCM_BASE +
+			       (size * (ways / regions));
+		cmn_writeq(CMN_hnf_slc_lock_basen(base) |
+			   CMN_hnf_slc_lock_basen_vld,
+			   CMN_hnf_slc_lock_base(hnf, i),
+			   "CMN_hnf_slc_lock_base", i);
+	}
+#if 0
 	cmn_writeq(CMN_hnf_ocm_en,
 		   CMN_hnf_cfg_ctl(hnf),
 		   "CMN_hnf_cfg_ctl", -1);
@@ -383,28 +410,29 @@ cmn_writeq(CMN_hnf_ocm_en |
 		   CMN_hnf_slc_lock_basen_vld,
 		   CMN_hnf_slc_lock_base(hnf, 0),
 		   "CMN_hnf_slc_lock_base", 0);	
-#if 0
-	cmn_writeq(CMN_hnf_slc_lock_ways(4),
-		   CMN_hnf_slc_lock_ways(hnf),
-		   "CMN_hnf_slc_lock_ways", -1);
-	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cc000000) |
-		   CMN_hnf_slc_lock_basen_vld,
-		   CMN_hnf_slc_lock_base(hnf, 0),
-		   "CMN_hnf_slc_lock_base", 0);
-	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cd000000) |
-		   CMN_hnf_slc_lock_basen_vld,
-		   CMN_hnf_slc_lock_base(hnf, 1),
-		   "CMN_hnf_slc_lock_base", 1);
-	cmn_writeq(CMN_hnf_slc_lock_basen(0x5e0000000) |
-		   CMN_hnf_slc_lock_basen_vld,
-		   CMN_hnf_slc_lock_base(hnf, 2),
-		   "CMN_hnf_slc_lock_base", 2);
-	cmn_writeq(CMN_hnf_slc_lock_basen(0x5cf000000) |
-		   CMN_hnf_slc_lock_basen_vld,
-		   CMN_hnf_slc_lock_base(hnf, 3),
-		   "CMN_hnf_slc_lock_base", 3);
 #endif
+}
 #endif
+
+static void cmn_hnf_ocm_enable(caddr_t hnf)
+{
+	uint64_t pwsr = 0;
+
+	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
+		   CMN_ppu_op_mode(CMN_ppu_op_mode_SFONLY) |
+		   CMN_ppu_dyn_en,
+		   CMN_hnf_ppu_pwpr(hnf),
+		   "CMN_hnf_ppu_pwpr", -1);
+	while (1) {
+		pwsr = __raw_readq(CMN_hnf_ppu_pwsr(hnf));
+		if (((pwsr >> CMN_ppu_op_mode_status_OFFSET) &
+		     CMN_ppu_op_mode_status_MASK) ==
+		    CMN_ppu_op_mode_status_SFONLY)
+			break;
+	}
+	//while (cmn_hnf_op_mode_status(hnf) != CMN_ppu_op_mode_status_SFONLY);
+
+	__cmn_hnf_ocm_enable(hnf);
 	cmn_writeq(CMN_ppu_policy(CMN_ppu_policy_ON) |
 		   CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
 		   CMN_ppu_dyn_en,
@@ -412,13 +440,15 @@ cmn_writeq(CMN_hnf_ocm_en |
 		   "CMN_hnf_ppu_pwpr", -1);
 	while (1) {
 		pwsr = __raw_readq(CMN_hnf_ppu_pwsr(hnf));
-		if (((pwsr >> CMN_ppu_op_mode_status_OFFSET) & CMN_ppu_op_mode_status_MASK) == CMN_ppu_op_mode_status_FAM)
+		if (((pwsr >> CMN_ppu_op_mode_status_OFFSET) &
+		     CMN_ppu_op_mode_status_MASK) ==
+		    CMN_ppu_op_mode_status_FAM)
 			break;
-		}
+	}
 	//while (cmn_hnf_op_mode_status(hnf) != CMN_ppu_op_mode_status_FAM);
 }
 
-static void cmn_hnf_cal_config_ocm(caddr_t hnf)
+static void cmn_hnf_ocm_config(caddr_t hnf)
 {
 	cmn_writeq(hnf_cfg_ctl(hnf) |
 		   CMN_hnf_ocm_en |
@@ -427,7 +457,7 @@ static void cmn_hnf_cal_config_ocm(caddr_t hnf)
 		   "CMN_hnf_cfg_ctl", -1);
 }
 
-void cmn_hnf_cal_disable_ocm(caddr_t hnf)
+void cmn_hnf_ocm_disable(caddr_t hnf)
 {
 	cmn_writeq(hnf_cfg_ctl(hnf) | ~CMN_hnf_ocm_en,
 		   CMN_hnf_cfg_ctl(hnf),
@@ -439,7 +469,7 @@ void cmn600_enable_ocm(void)
 	int i;
 
 	for (i = 0; i < cmn_hnf_count; i++)
-		cmn_hnf_cal_enable_ocm(CMN_HNF_BASE(cmn_hnf_ids[i]));
+		cmn_hnf_ocm_enable(CMN_HNF_BASE(cmn_hnf_ids[i]));
 }
 
 void cmn600_disable_ocm(void)
@@ -447,7 +477,7 @@ void cmn600_disable_ocm(void)
 	int i;
 
 	for (i = 0; i < cmn_hnf_count; i++)
-		cmn_hnf_cal_disable_ocm(CMN_HNF_BASE(cmn_hnf_ids[i]));
+		cmn_hnf_ocm_disable(CMN_HNF_BASE(cmn_hnf_ids[i]));
 }
 #endif
 
@@ -1684,17 +1714,17 @@ static int do_cmn600_ocm(int argc, char *argv[])
 		return -EINVAL;
 	if (strcmp(argv[2], "enable") == 0) {
 		for (i = 0; i < cmn_hnf_count; i++)
-			cmn_hnf_cal_enable_ocm(CMN_HNF_BASE(cmn_hnf_ids[i]));
+			cmn_hnf_ocm_enable(CMN_HNF_BASE(cmn_hnf_ids[i]));
 		return 0;
 	}
 	if (strcmp(argv[2], "config") == 0) {
 		for (i = 0; i < cmn_hnf_count; i++)
-			cmn_hnf_cal_config_ocm(CMN_HNF_BASE(cmn_hnf_ids[i]));
+			cmn_hnf_ocm_config(CMN_HNF_BASE(cmn_hnf_ids[i]));
 		return 0;
 	}
 	if (strcmp(argv[2], "disable") == 0) {
 		for (i = 0; i < cmn_hnf_count; i++)
-			cmn_hnf_cal_disable_ocm(CMN_HNF_BASE(cmn_hnf_ids[i]));
+			cmn_hnf_ocm_disable(CMN_HNF_BASE(cmn_hnf_ids[i]));
 		return 0;
 	}
 	return -EINVAL;
