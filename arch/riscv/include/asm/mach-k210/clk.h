@@ -43,6 +43,16 @@
 #define __CLK_K210_H_INCLUDE__
 
 #include <target/arch.h>
+
+#define ARCH_HAVE_CLK_TYPES	1
+typedef uint16_t clk_t;
+typedef uint8_t clk_cat_t;
+typedef uint8_t clk_clk_t;
+#define clkid(cat, clk)		((clk_t)MAKEWORD(clk, cat))
+#define invalid_clk		clkid(0xFF, 0xFF)
+#define clk_clk(clkid)		LOBYTE(clkid)
+#define clk_cat(clkid)		HIBYTE(clkid)
+
 #include <asm/mach/sysctl.h>
 
 #ifdef CONFIG_K210_SYSCTL
@@ -71,7 +81,7 @@
 #define GEMGXLCLK_FREQ		UL(125000000)
 
 #define I2C_FREQ		UL(400000)
-#define SPI_FREQ		UL(50000000)
+#define SPI_HW_FREQ		UL(50000000)
 
 #define CLK_INPUT		((clk_cat_t)0)
 #define HFCLK			((clk_clk_t)0)

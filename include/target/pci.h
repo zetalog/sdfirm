@@ -344,14 +344,20 @@
 	 uint32_t BridgeControl            : 16;    /* 16-bits */
 	 uint32_t InterruptLine            : 8;     /*  8-bits */
 	 uint32_t InterruptPin             : 8;     /*  8-bits */
-     } cfg1;
-     uint32_t value[16];
- } pci_cfg;
+	} cfg1;
+	uint32_t value[16];
+} pci_cfg;
  
+/* CapabilityID */
+#define PCI_CAP_PowerManagement				0x01
+
+#ifdef CONFIG_PCIE_DEBUG
+void pcie_dbg(const char *fmt, ...);
+#else
+#define pcie_dbg(...)	do { } while (0)
+#endif
  
- /* CapabilityID */
- #define PCI_CAP_PowerManagement				0x01
- 
- int pci_enum(int bus, int index);
- #endif /* __PCI_H_INCLUDE__ */
+int pci_enum(int bus, int index);
+
+#endif /* __PCI_H_INCLUDE__ */
  

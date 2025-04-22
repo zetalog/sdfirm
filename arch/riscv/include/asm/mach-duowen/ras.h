@@ -47,4 +47,6 @@
 #include <asm/vaisra_ras.h>
 #endif
 
+#define ras_hw_ctrl_init()		do { } while (0)
+
 #endif /* __RAS_DUOWEN_H_INCLUDE__ */
