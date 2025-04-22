@@ -53,6 +53,12 @@ if CMN600
 config ARCH_HAS_CMN600_CML
 	bool
 
+config ARCH_IS_CMN600_OCM_RAM
+	bool
+
+config ARCH_IS_CMN600_OCM_DDR
+	bool
+
 config ARCH_HAS_CMN600_CML_NO_TLP
 	bool
 
@@ -75,6 +81,28 @@ config CMN600_OCM
 	bool "Enable On Chip Memory configuration"
 
 if CMN600_OCM
+
+choice
+	prompt "OCM usage model"
+
+config CMN600_OCM_RAM
+	bool "Allocate redundant OCM as RAM"
+	depends ARCH_IS_CMN600_OCM_RAM
+	help
+	  This mode is useful for VIVT platform where SLC is too much to
+	  map shared regions. In this way, OCM are always used as locked
+	  ways, the locked amount can be determined by the SoC specific
+	  settings.
+
+config CMN600_OCM_DDR
+	bool "Overlap OCM on DDR"
+	depends ARCH_IS_CMN600_OCM_DDR
+	help
+	  This mode is useful for bootloaders like UEFI, where DDR driver
+	  has not been invoked while the bootloader itself is required to
+	  run in the DDR address space.
+
+endchoice
 
 endif
 
