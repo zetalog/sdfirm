@@ -32,6 +32,10 @@
 #define i2c_hw_write_byte(byte)		dw_i2c_write_byte(byte)
 #define i2c_hw_transfer_reset()		dw_i2c_transfer_reset()
 #define i2c_hw_handle_irq()		dw_i2c_handle_irq()
+#define i2c_hw_handle_irq()		dw_i2c_handle_irq()
+#ifndef SYS_REALTIME
+#define i2c_hw_irq_init()		dw_i2c_irq_init()
+#endif /* SYS_REALTIME */
 void i2c_hw_ctrl_init(void);
 #endif
 
