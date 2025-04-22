@@ -9,8 +9,7 @@
 #include <target/fdt.h>
 #include <target/sbi.h>
 #include <sbi/sbi_bitops.h>
-#include <asm/imsic.h>
-#include <asm/aplic.h>
+#include <target/irq.h>
 
 #define DEFAULT_UART_FREQ		0
 #define DEFAULT_UART_BAUD		115200
