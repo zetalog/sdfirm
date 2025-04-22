@@ -9,6 +9,7 @@
  */
 #define DW_I2C_BASE(n)		(I2C0_BASE + 0x100 * n)
 #define DW_I2C_FREQ		APB_CLK_FREQ
+#define DW_I2C_IRQ(n)		(IRQ_I2C0 + (n))
 
 #ifdef CONFIG_DW_I2C
 #include <driver/dw_i2c.h>
@@ -35,6 +36,10 @@
 #define i2c_hw_read_byte()		dw_i2c_read_byte()
 #define i2c_hw_write_byte(byte)		dw_i2c_write_byte(byte)
 #define i2c_hw_transfer_reset()		dw_i2c_transfer_reset()
+#define i2c_hw_handle_irq()		dw_i2c_handle_irq()
+#ifndef SYS_REALTIME
+#define i2c_hw_irq_init()		dw_i2c_irq_init()
+#endif /* SYS_REALTIME */
 #endif /* ARCH_HAVE_I2C */
 
 #endif /* __I2C_DPU_H_INCLUDE__ */

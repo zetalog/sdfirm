@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jun 19 16:30:04 2024
+# Tue Apr 22 15:36:23 2025
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -37,13 +37,14 @@ CONFIG_ARCH_DUOWEN=y
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_K1MAX is not set
+# CONFIG_ARCH_STEV20 is not set
 # CONFIG_ARCH_K1X is not set
 # CONFIG_ARCH_K1MXLITE is not set
-# CONFIG_ARCH_K1MATRIX is not set
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
 # CONFIG_ARCH_VIRT is not set
 CONFIG_CPU_VAISRA=y
+# CONFIG_CPU_CVA6 is not set
 CONFIG_CPU_64G=y
 CONFIG_CPU_WMO=y
 CONFIG_CPU_64I=y
@@ -73,6 +74,7 @@ CONFIG_RISCV_M=y
 # CONFIG_RISCV_D is not set
 # CONFIG_RISCV_COUNTERS is not set
 # CONFIG_RISCV_PMP is not set
+# CONFIG_RISCV_H is not set
 # CONFIG_RISCV_ZIFENCEI is not set
 
 #
@@ -82,6 +84,14 @@ CONFIG_RISCV_WMO=y
 # CONFIG_RISCV_TSO is not set
 # CONFIG_VAISRA_ATOMIC is not set
 CONFIG_ARCH_IS_ATOMIC_UNFAIR=y
+
+#
+# CPU options
+#
+
+#
+# Debugging options
+#
 
 #
 # Compiler options
@@ -110,7 +120,6 @@ CONFIG_ARCH_HAS_BOOT2=y
 #
 # System peripherals
 #
-# CONFIG_IMSIC is not set
 CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
 # CONFIG_CLINT_XCHG_LLSC is not set
@@ -119,6 +128,13 @@ CONFIG_ARCH_HAS_PLIC=y
 CONFIG_ARCH_HAS_PLIC_EOI_EARLY=y
 # CONFIG_PLIC is not set
 # CONFIG_HPM is not set
+# CONFIG_RERI is not set
+
+#
+# RISC-V ACPI adoptions
+#
+# CONFIG_RISCV_GHES is not set
+# CONFIG_RISCV_PCC is not set
 # CONFIG_VAISRA_TBOX is not set
 CONFIG_VAISRA_PMA=y
 
@@ -135,11 +151,51 @@ CONFIG_VAISRA_PMA=y
 # CONFIG_VAISRA_PMA_GATHERING is not set
 # CONFIG_VAISRA_PMA_RE_ORDERING is not set
 # CONFIG_VAISRA_PMA_EARLY_WRITE_ACK is not set
+
+#
+# SpacemiT RAS features
+#
+
+#
+# System tests
+#
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_ARCH_HAS_SBI_CLOCK=y
 CONFIG_ARCH_HAS_SBI_PINCTRL=y
 # CONFIG_SBI is not set
+
+#
+# RISC-V device tree peripherals
+#
+
+#
+# CPPC Device Support
+#
+
+#
+# HSM Device Support
+#
+
+#
+# Mailbox Support
+#
+
+#
+# MPXY Device Support
+#
+
+#
+# System Reset Support
+#
+
+#
+# System Suspend Support
+#
+
+#
+# RAS Agent Driver Support
+#
 
 #
 # Smart Core Duowen board options
@@ -207,6 +263,7 @@ CONFIG_DUOWEN_TLMM=y
 CONFIG_DUOWEN_GPIO=y
 # CONFIG_DUOWEN_GPIO_PORT is not set
 # CONFIG_DUOWEN_SPI_FLASH is not set
+# CONFIG_DUOWEN_SSI_FLASH is not set
 # CONFIG_DUOWEN_SD is not set
 CONFIG_DUOWEN_PCIE=y
 CONFIG_DUOWEN_PCIE_LINK_MODE_0=y
@@ -276,6 +333,10 @@ CONFIG_SMP_BOOT=y
 # CONFIG_SMP is not set
 
 #
+# Scheduling facility (MSI) support
+#
+
+#
 # Timing facility (jiffy) support
 #
 CONFIG_TICKLESS=y
@@ -306,6 +367,7 @@ CONFIG_STACK_SHIFT=9
 # CONFIG_PAGE is not set
 CONFIG_ARCH_HAS_DMAC=y
 # CONFIG_DMA is not set
+# CONFIG_MBOX is not set
 CONFIG_ARCH_HAS_FP=y
 # CONFIG_FP is not set
 
@@ -320,6 +382,7 @@ CONFIG_REBOOT=y
 # CONFIG_TERM is not set
 CONFIG_ARCH_HAS_GPIO=y
 CONFIG_GPIO=y
+# CONFIG_GPIO_COMMANDS is not set
 CONFIG_ARCH_HAS_CLK=y
 CONFIG_CLK=y
 CONFIG_CLK_MAX_DRIVERS=6
@@ -348,6 +411,7 @@ CONFIG_ARCH_HAS_SPI=y
 # CONFIG_SPI is not set
 CONFIG_ARCH_HAS_I2C=y
 # CONFIG_I2C is not set
+# CONFIG_I3C is not set
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 # CONFIG_MTD is not set
@@ -357,9 +421,15 @@ CONFIG_ARCH_HAS_I2C=y
 CONFIG_ARCH_HAS_SD=y
 # CONFIG_MMCSD is not set
 CONFIG_SD_LEGACY_ONLY=y
+
+#
+# Double data rate (DDR) support
+#
+CONFIG_ARCH_HAS_DDR_SPD=y
+# CONFIG_DDR_SPD is not set
+# CONFIG_DDR_TS is not set
 CONFIG_ARCH_HAS_DDR=y
 # CONFIG_DDR is not set
-CONFIG_ARCH_HAS_DDR_SPD=y
 CONFIG_ARCH_HAS_PCI=y
 CONFIG_PCI=y
 CONFIG_ARCH_HAS_IOMMU=y
@@ -367,11 +437,21 @@ CONFIG_ARCH_HAS_IOMMU=y
 CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
 # CONFIG_UEFI is not set
+
+#
+# Mangement interfaces support
+#
 # CONFIG_IPMI is not set
+# CONFIG_LPC is not set
+# CONFIG_ESPI is not set
+# CONFIG_PECI is not set
+# CONFIG_MCTP is not set
+# CONFIG_SSIF is not set
 CONFIG_ARCH_HAS_ETH=y
 CONFIG_ARCH_HAS_RAS=y
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
+# CONFIG_WDT is not set
 
 #
 # Driver setup
@@ -407,9 +487,8 @@ CONFIG_DW_GPIO_MAX_PORTS=1
 # CONFIG_DW_UART_BIRD is not set
 
 #
-# I2C host drivers
+# I2C controller drivers
 #
-# CONFIG_DW_I2C is not set
 
 #
 # I2C slave drivers
@@ -417,7 +496,7 @@ CONFIG_DW_GPIO_MAX_PORTS=1
 # CONFIG_DW_I2CS is not set
 
 #
-# SPI Master drivers
+# SPI controller drivers
 #
 CONFIG_ARCH_HAS_SSI_FIFO=y
 CONFIG_ARCH_HAS_SSI_XFER_32=y
@@ -425,6 +504,10 @@ CONFIG_ARCH_HAS_SSI_FRF=y
 CONFIG_ARCH_HAS_SSI_SPI=y
 CONFIG_ARCH_HAS_SSI_SPI_1WIRE=y
 # CONFIG_DW_SSI is not set
+
+#
+# I3C controller drivers
+#
 
 #
 # DMA host drivers
@@ -444,11 +527,6 @@ CONFIG_ARCH_HAS_SSI_SPI_1WIRE=y
 # CONFIG_SMMU_MMU600 is not set
 # CONFIG_IOMMU_PGTABLE_ARMv8 is not set
 # CONFIG_IOMMU_PGTABLE_RISCV is not set
-
-#
-# eSPI Master drivers
-#
-# CONFIG_SPACEMIT_ESPI is not set
 
 #
 # STM drivers
@@ -526,10 +604,38 @@ CONFIG_NCORE_RECONF=y
 #
 # LPC drivers
 #
+# CONFIG_AST2600_SIO is not set
 
 #
 # KCS drivers
 #
+
+#
+# eSPI Master drivers
+#
+
+#
+# PECI slave drivers
+#
+
+#
+# MCTP Bus Owner Proxy drivers
+#
+
+#
+# PMU drivers
+#
+# CONFIG_CMN600_PMU is not set
+# CONFIG_CORESIGHT is not set
+
+#
+# RAS drivers
+#
+
+#
+# WatchDog drivers
+#
+# CONFIG_DW_WDTS is not set
 
 #
 # Test setup
@@ -538,12 +644,14 @@ CONFIG_NCORE_RECONF=y
 # CONFIG_TEST_BENCH is not set
 # CONFIG_TEST_LITMUS is not set
 # CONFIG_TEST_MEMTESTER is not set
-# CONFIG_TEST_ESPI is not set
 
 #
 # RISCV system tests
 #
 # CONFIG_TESTS_RISCV is not set
+# CONFIG_TESTS_IOMMU_RISCV is not set
+# CONFIG_TESTS_NEXUS_RISCV is not set
+# CONFIG_TESTS_TRACE_RISCV is not set
 
 #
 # Library setup
@@ -561,6 +669,7 @@ CONFIG_BIT_FFS16=y
 CONFIG_BIT_FFS64=y
 # CONFIG_BIT_HWEIGHT32 is not set
 # CONFIG_BIT_HWEIGHT64 is not set
+# CONFIG_BIT_REV16 is not set
 
 #
 # Bitmap operations

@@ -11,7 +11,7 @@ config SPD_BUS_KHZ
 menuconfig SPD_EE1004
 	bool "JEDEC EE1004 SPD EEPROM"
 	depends I2C && I2C_MASTER
-	default y
+	default y if DDR4
 
 if SPD_EE1004
 
@@ -20,7 +20,7 @@ endif
 menuconfig SPD5118
 	bool "JEDEC SPD5118 Hub and SPD device"
 	depends I2C && I2C_MASTER
-	default y
+	default y if DDR5
 
 if SPD5118
 

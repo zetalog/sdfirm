@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Small Device version: 1.0.0.0
-# Wed Jun 19 16:29:00 2024
+# Tue Apr 22 15:34:58 2025
 #
 CONFIG_64BIT=y
 CONFIG_RISCV=y
@@ -69,12 +69,13 @@ CONFIG_CONSOLE_BANNER=y
 # CONFIG_ARCH_K210 is not set
 # CONFIG_ARCH_VEGA is not set
 # CONFIG_ARCH_K1MAX is not set
+# CONFIG_ARCH_STEV20 is not set
 # CONFIG_ARCH_K1X is not set
 # CONFIG_ARCH_K1MXLITE is not set
-# CONFIG_ARCH_K1MATRIX is not set
 # CONFIG_ARCH_COREV is not set
 # CONFIG_ARCH_SPIKE is not set
 CONFIG_ARCH_VIRT=y
+# CONFIG_CPU_CVA6 is not set
 CONFIG_CPU_VIRT64=y
 CONFIG_CPU_64G=y
 CONFIG_CPU_WMO=y
@@ -97,6 +98,7 @@ CONFIG_CPU_H=y
 CONFIG_CPU_COUNTERS=y
 CONFIG_CPU_ZIFENCEI=y
 CONFIG_CPU_ZICSR=y
+CONFIG_CPU_SSTC=y
 CONFIG_CPU_PMP=y
 CONFIG_CPU_SV39=y
 CONFIG_RISCV_S=y
@@ -106,6 +108,7 @@ CONFIG_RISCV_F=y
 CONFIG_RISCV_D=y
 CONFIG_RISCV_C=y
 CONFIG_RISCV_COUNTERS=y
+# CONFIG_RISCV_SSTC is not set
 CONFIG_RISCV_PMP=y
 # CONFIG_RISCV_H is not set
 CONFIG_RISCV_SV=y
@@ -125,6 +128,14 @@ CONFIG_RISCV_ATOMIC_COUNT_64=y
 CONFIG_RISCV_SPINLOCK_RAW=y
 # CONFIG_RISCV_SPINLOCK_TICKET is not set
 # CONFIG_RISCV_SPINLOCK_GENERIC is not set
+
+#
+# CPU options
+#
+
+#
+# Debugging options
+#
 
 #
 # Compiler options
@@ -152,7 +163,6 @@ CONFIG_SYS_MONITOR=y
 #
 # System peripherals
 #
-# CONFIG_IMSIC is not set
 CONFIG_ARCH_HAS_CLINT=y
 CONFIG_CLINT=y
 # CONFIG_CLINT_XCHG_LLSC is not set
@@ -162,6 +172,22 @@ CONFIG_PLIC=y
 # CONFIG_PLIC_COMPLETION_ENTRY is not set
 CONFIG_PLIC_COMPLETION_EXIT=y
 # CONFIG_HPM is not set
+# CONFIG_RERI is not set
+
+#
+# RISC-V ACPI adoptions
+#
+# CONFIG_RISCV_GHES is not set
+# CONFIG_RISCV_PCC is not set
+
+#
+# SpacemiT RAS features
+#
+
+#
+# System tests
+#
+# CONFIG_RISCV_ATOMIC_TEST is not set
 CONFIG_ARCH_HAS_SBI_IPI=y
 CONFIG_ARCH_HAS_SBI_TIMER=y
 CONFIG_SBI=y
@@ -190,6 +216,38 @@ CONFIG_SBI_DEFAULT=y
 # CONFIG_SBI_FDT is not set
 # CONFIG_SBI_LDST_MISALIGNED_DELEG is not set
 # CONFIG_SBI_CSR_MIMPID is not set
+
+#
+# RISC-V device tree peripherals
+#
+
+#
+# CPPC Device Support
+#
+
+#
+# HSM Device Support
+#
+
+#
+# Mailbox Support
+#
+
+#
+# MPXY Device Support
+#
+
+#
+# System Reset Support
+#
+
+#
+# System Suspend Support
+#
+
+#
+# RAS Agent Driver Support
+#
 
 #
 # QEMU RISCV (VIRT) board options
@@ -236,6 +294,10 @@ CONFIG_ARCH_HAS_SMP=y
 CONFIG_SMP_BOOT=y
 CONFIG_SMP=y
 CONFIG_SMP_WAIT_BOOT=y
+
+#
+# Scheduling facility (MSI) support
+#
 
 #
 # Timing facility (jiffy) support
@@ -298,6 +360,7 @@ CONFIG_MMU_MAP_MEM=y
 # CONFIG_MMU_TEXT_MODIFY is not set
 # CONFIG_MMU_NO_EARLY_TABLE_ZEROING is not set
 # CONFIG_DMA is not set
+# CONFIG_MBOX is not set
 CONFIG_ARCH_HAS_FP=y
 CONFIG_FP=y
 
@@ -336,20 +399,36 @@ CONFIG_UART_115200=y
 # CONFIG_UART is not set
 # CONFIG_SPI is not set
 # CONFIG_I2C is not set
+# CONFIG_I3C is not set
 # CONFIG_USB is not set
 # CONFIG_SCS is not set
 # CONFIG_MTD is not set
 # CONFIG_SCSI is not set
 # CONFIG_NET is not set
 # CONFIG_VIDEO is not set
+
+#
+# Double data rate (DDR) support
+#
+# CONFIG_DDR_TS is not set
 # CONFIG_DDR is not set
 # CONFIG_IOMMU is not set
 CONFIG_ARCH_HAS_FDT=y
 # CONFIG_FDT is not set
 # CONFIG_UEFI is not set
+
+#
+# Mangement interfaces support
+#
 # CONFIG_IPMI is not set
+# CONFIG_LPC is not set
+# CONFIG_ESPI is not set
+# CONFIG_PECI is not set
+# CONFIG_MCTP is not set
+# CONFIG_SSIF is not set
 # CONFIG_RAS is not set
 # CONFIG_PERF is not set
+# CONFIG_WDT is not set
 
 #
 # Driver setup
@@ -391,9 +470,8 @@ CONFIG_NS16550=y
 # CONFIG_DW_UART_BIRD is not set
 
 #
-# I2C host drivers
+# I2C controller drivers
 #
-# CONFIG_DW_I2C is not set
 
 #
 # I2C slave drivers
@@ -401,9 +479,13 @@ CONFIG_NS16550=y
 # CONFIG_DW_I2CS is not set
 
 #
-# SPI Master drivers
+# SPI controller drivers
 #
 # CONFIG_DW_SSI is not set
+
+#
+# I3C controller drivers
+#
 
 #
 # DMA host drivers
@@ -423,11 +505,6 @@ CONFIG_NS16550=y
 # CONFIG_SMMU_MMU600 is not set
 # CONFIG_IOMMU_PGTABLE_ARMv8 is not set
 # CONFIG_IOMMU_PGTABLE_RISCV is not set
-
-#
-# eSPI Master drivers
-#
-# CONFIG_SPACEMIT_ESPI is not set
 
 #
 # STM drivers
@@ -496,10 +573,38 @@ CONFIG_SPD_BUS_KHZ=60
 #
 # LPC drivers
 #
+# CONFIG_AST2600_SIO is not set
 
 #
 # KCS drivers
 #
+
+#
+# eSPI Master drivers
+#
+
+#
+# PECI slave drivers
+#
+
+#
+# MCTP Bus Owner Proxy drivers
+#
+
+#
+# PMU drivers
+#
+# CONFIG_CMN600_PMU is not set
+# CONFIG_CORESIGHT is not set
+
+#
+# RAS drivers
+#
+
+#
+# WatchDog drivers
+#
+# CONFIG_DW_WDTS is not set
 
 #
 # Test setup
@@ -525,7 +630,6 @@ CONFIG_TEST_LITMUS_FINISH=y
 # CONFIG_TEST_LITMUS_CPU_CUSTOMIZED is not set
 # CONFIG_TEST_LITMUS_DEBUG is not set
 # CONFIG_TEST_MEMTESTER is not set
-# CONFIG_TEST_ESPI is not set
 
 #
 # RISCV system tests
@@ -533,6 +637,11 @@ CONFIG_TEST_LITMUS_FINISH=y
 # CONFIG_TESTS_RISCV is not set
 CONFIG_TESTS_LITMUS_RISCV=y
 CONFIG_LITMUS_RISCV_DUMMY=y
+# CONFIG_LB_2B_amoadd_2D_data_2D_amoadd_2E_rl_2B_amoadd_2E_aq_2D_data_2D_amoadd is not set
+# CONFIG_WRC_2B_fence_2E_rw_2E_rws_2B_fence_2E_rw_2E_rwsxx is not set
+# CONFIG_TESTS_IOMMU_RISCV is not set
+# CONFIG_TESTS_NEXUS_RISCV is not set
+# CONFIG_TESTS_TRACE_RISCV is not set
 
 #
 # Library setup
@@ -550,6 +659,7 @@ CONFIG_BIT_FFS32=y
 CONFIG_BIT_FFS64=y
 # CONFIG_BIT_HWEIGHT32 is not set
 CONFIG_BIT_HWEIGHT64=y
+# CONFIG_BIT_REV16 is not set
 
 #
 # Bitmap operations

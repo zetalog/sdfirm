@@ -177,6 +177,7 @@ void dpu_ssi_flash_load(uint8_t *dst, uint32_t addr, uint32_t size)
 	__boot_dbg('\n');
 }
 
+#ifdef CONFIG_SPIFLASH_ADDR_4BYTE
 static void dpu_ssi_flash_4byte(void)
 {
 	dpu_ssi_flash_writeb(SF_ENTER_ADDR_4BYTE);
@@ -186,6 +187,9 @@ static void dpu_ssi_flash_4byte(void)
 	(void)dpu_ssi_flash_readb();
 	dpu_ssi_flash_select(0);
 }
+#else
+#define dpu_ssi_flash_4byte()		do { } while (0)
+#endif
 
 void dpu_ssi_flash_init(void)
 {
