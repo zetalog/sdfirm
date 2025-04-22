@@ -74,6 +74,8 @@
 #define spi_hw_write_byte(byte)		sifive_qspi_tx(SPI_FLASH_ID, (byte))
 #define spi_hw_read_byte()		sifive_qspi_rx(SPI_FLASH_ID)
 #define spi_hw_ctrl_init()		board_init_clock()
+#define spi_hw_irq_init()		do { } while (0)
+#define spi_hw_handle_irq()		do { } while (0)
 
 /* select/deselect: should be implemented in vise versa way? */
 #define spi_hw_chip_select(chip)				\

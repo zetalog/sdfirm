@@ -391,6 +391,9 @@ uint32_t dw_get_pci_conf_reg(int bus, int dev, int fun, int reg,
 void dw_set_pci_conf_reg(int bus, int dev, int fun, int reg,
 			 uint32_t val, uint8_t index);
 
+extern struct dw_pcie duowen_pcie_ctrls[PCIE_MAX_CORES];
+#define pcie_ctrls	duowen_pcie_ctrls
+
 #ifndef CONFIG_DUOWEN_PCIE_IPDV
 uint32_t dw_pcie_read_apb(uint64_t addr);
 void dw_pcie_write_apb(uint64_t addr, uint32_t data);
