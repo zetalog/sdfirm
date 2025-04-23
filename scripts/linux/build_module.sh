@@ -488,6 +488,9 @@ function build_linux()
 		if [ "xyes" = "x${BUILD_KVM}" ]; then
 			apply_modcfg linux my_defconfig e_kvm.cfg
 		fi
+		if [ "xyes" = "x${BUILD_DMA}" ]; then
+			apply_modcfg linux my_defconfig e_dma.cfg
+		fi
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 		# Starting the build process
 		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
@@ -568,6 +571,12 @@ function build_sdfirm()
 	fi
 	if [ "xyes" = "x${BUILD_KVM}" ]; then
 		apply_modcfg sdfirm my_defconfig e_kvm.cfg
+	fi
+	if [ "x" != "x${SPACET_SIM}" ]; then
+		apply_modcfg sdfirm my_defconfig e_k1m_sim${SPACET_SIM}.cfg
+	fi
+	if [ "xyes" = "${SPACET_KMH}" ]; then
+		apply_modcfg sdfirm my_defconfig e_k1m_cpukmh.cfg
 	fi
 	if [ "xno" = "x${SPACET_S2C_SPEEDUP}" ]; then
 		apply_modcfg sdfirm my_defconfig d_k1m_s2c_speedup.cfg

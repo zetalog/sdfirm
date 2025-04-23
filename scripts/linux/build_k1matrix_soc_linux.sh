@@ -32,6 +32,18 @@ SPACET_CPU=4
 # Supports 256m/512m/1g/2g/3g
 SPACET_DDR=3g
 
+# Simulation environments:
+# asic: real hardware and EDA environment
+# s2c: FPGA S2C
+# pro: ProFPGA
+# pz1: Palladium Z1 emulator
+# Can be configured for all spacemit platforms
+SPACET_SIM=asic
+
+# By default X60/X100/X200 is used for booting Linux
+# Enabling this to boot KMH.
+SPACET_KMH=no
+
 LITMUS_CORES=4
 LITMUS_UPDATE=no
 LITMUS_DUMP=no
