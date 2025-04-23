@@ -448,18 +448,10 @@ static void cmn_hnf_ocm_enable(caddr_t hnf)
 	//while (cmn_hnf_op_mode_status(hnf) != CMN_ppu_op_mode_status_FAM);
 }
 
-static void cmn_hnf_ocm_config(caddr_t hnf)
-{
-	cmn_writeq(hnf_cfg_ctl(hnf) |
-		   CMN_hnf_ocm_en |
-		   CMN_hnf_ocm_allways_en,
-		   CMN_hnf_cfg_ctl(hnf),
-		   "CMN_hnf_cfg_ctl", -1);
-}
-
 void cmn_hnf_ocm_disable(caddr_t hnf)
 {
-	cmn_writeq(hnf_cfg_ctl(hnf) | ~CMN_hnf_ocm_en,
+	cmn_clearq(CMN_hnf_ocm_en |
+		   CMN_hnf_ocm_allways_en,
 		   CMN_hnf_cfg_ctl(hnf),
 		   "CMN_hnf_cfg_ctl", -1);
 }
@@ -1715,11 +1707,6 @@ static int do_cmn600_ocm(int argc, char *argv[])
 	if (strcmp(argv[2], "enable") == 0) {
 		for (i = 0; i < cmn_hnf_count; i++)
 			cmn_hnf_ocm_enable(CMN_HNF_BASE(cmn_hnf_ids[i]));
-		return 0;
-	}
-	if (strcmp(argv[2], "config") == 0) {
-		for (i = 0; i < cmn_hnf_count; i++)
-			cmn_hnf_ocm_config(CMN_HNF_BASE(cmn_hnf_ids[i]));
 		return 0;
 	}
 	if (strcmp(argv[2], "disable") == 0) {
