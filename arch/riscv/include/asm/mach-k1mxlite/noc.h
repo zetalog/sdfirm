@@ -60,7 +60,7 @@
 #define n100_hw_chip_base(base, chip)		DIE1_BASE
 #endif
 #ifdef CONFIG_K1MXLITE_N100
-#define k1mxlite_n100_init()			spacemit_n100_init()
+#define k1mxlite_n100_init()			spacemit_n100_noc_init()
 #define k1mxlite_n100_d2d_init()		spacemit_n100_d2d_init()
 #else
 #define k1mxlite_n100_init()			do { } while (0)
