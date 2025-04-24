@@ -785,18 +785,19 @@ typedef uint8_t cmn_did_t;
 #define CMN_scg_hnf_num(n, value)	_SET_FV_ULLn(n, CMN_scg_hnf_num, value)
 
 /* CMN_hnf_slc_lock_ways */
-#define CMN_hnf_slc_lock_ways_ways_OFFSET		0
-#define CMN_hnf_slc_lock_ways_ways_MASK			REG_4BIT_MASK
-#define CMN_hnf_slc_lock_ways_ways(value)		_SET_FV_ULL(CMN_hnf_slc_lock_ways_ways, value)
-#define CMN_hnf_slc_lock_ways_num_hnf_OFFSET		8
-#define CMN_hnf_slc_lock_ways_num_hnf_MASK		REG_7BIT_MASK
-#define CMN_hnf_slc_lock_ways_num_hnf(value)		_SET_FV_ULL(CMN_hnf_slc_lock_num_hnf, value)
+#define CMN_slc_lock_ways_OFFSET		0
+#define CMN_slc_lock_ways_MASK			REG_4BIT_MASK
+#define CMN_slc_lock_ways(value)		_SET_FV_ULL(CMN_slc_lock_ways, value)
+#define CMN_slc_lock_num_hnf_OFFSET		8
+#define CMN_slc_lock_num_hnf_MASK		REG_7BIT_MASK
+#define CMN_slc_lock_num_hnf(value)		_SET_FV_ULL(CMN_slc_lock_num_hnf, value)
 
 /* CMN_hnf_slc_lock_base(base, n) */
-#define CMN_hnf_slc_lock_basen_OFFSET		0
-#define CMN_hnf_slc_lock_basen_MASK		REG_48BIT_MASK
-#define CMN_hnf_slc_lock_basen(value)		_SET_FV_ULL(CMN_hnf_slc_lock_basen, value)
-#define CMN_hnf_slc_lock_basen_vld		_BV_ULL(63)
+#define CMN_slc_lock_base_OFFSET		0
+#define CMN_slc_lock_base_MASK			REG_48BIT_MASK
+#define CMN_slc_lock_base(value)		_SET_FV_ULL(CMN_slc_lock_base, value)
+#define CMN_slc_lock_base_vld			_BV_ULL(63)
+
 /* CMN_hnf_ppu_pwpr */
 #define CMN_ppu_policy_OFFSET			0
 #define CMN_ppu_policy_MASK			REG_4BIT_MASK

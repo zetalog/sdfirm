@@ -47,6 +47,6 @@ void spacemit_n100_d2d_init(void)
 {
 }
 
-void spacemit_n100_init(void)
+void spacemit_n100_noc_init(void)
 {
 }
