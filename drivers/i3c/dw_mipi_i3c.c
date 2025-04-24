@@ -222,9 +222,9 @@ static void dw_mipi_i3c_ibi_init(void)
 	dw_mipi_i3c_disable_all_irqs(dw_i3cd);
 	dw_mipi_i3c_enable_mst_irqs(dw_i3cd);
 #ifdef CONFIG_DW_MIPI_I3C_SECONDARY_MASTER
-	dw_i3c_writel(IBI_REQ_REJECT_ALL, IBI_MR_REQ_REJECT(dw_i3cd));
+	dw_i3c_writel(DW_IBI_REQ_REJECT_ALL, IBI_MR_REQ_REJECT(dw_i3cd));
 #endif
-	dw_i3c_writel(IBI_REQ_REJECT_ALL, IBI_SIR_REQ_REJECT(dw_i3cd));
+	dw_i3c_writel(DW_IBI_REQ_REJECT_ALL, IBI_SIR_REQ_REJECT(dw_i3cd));
 }
 
 void dw_mipi_i3c_ctrl_init(i3c_bus_t bus, clk_freq_t core_rate)
