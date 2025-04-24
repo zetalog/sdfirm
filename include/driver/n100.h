@@ -50,10 +50,10 @@
 #define spacemit_n100_chip_base()	0
 #endif
 #ifdef CONFIG_N100
-void spacemit_n100_init(void);
+void spacemit_n100_noc_init(void);
 void spacemit_n100_d2d_init(void);
 #else
-#define spacemit_n100_init()		do { } while (0)
+#define spacemit_n100_noc_init()	do { } while (0)
 #define spacemit_n100_d2d_init()	do { } while (0)
 #endif
 

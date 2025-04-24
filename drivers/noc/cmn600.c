@@ -355,10 +355,14 @@ static void cmn_hnf_slc_lock_disable(caddr_t hnf)
 #ifdef CONFIG_CMN600_OCM_DDR
 static void __cmn_hnf_ocm_enable(caddr_t hnf)
 {
-	cmn_writeq(CMN_hnf_ocm_en |
-		   CMN_hnf_ocm_allways_en,
-		   CMN_hnf_cfg_ctl(hnf),
-		   "CMN_hnf_cfg_ctl", -1);
+	cmn_setq(CMN_hnf_ocm_en | CMN_hnf_ocm_allways_en,
+		 CMN_hnf_cfg_ctl(hnf), "CMN_hnf_cfg_ctl", -1);
+}
+
+static void __cmn_hnf_ocm_disable(caddr_t hnf)
+{
+	cmn_clearq(CMN_hnf_ocm_en | CMN_hnf_ocm_allways_en,
+		   CMN_hnf_cfg_ctl(hnf), "CMN_hnf_cfg_ctl", -1);
 }
 #endif
 
@@ -374,12 +378,13 @@ static void __cmn_hnf_ocm_enable(caddr_t hnf)
 	BUG_ON(ways != 1 && ways != 2 &&
 	       ways != 4 && ways != 8 && ways != 12);
 
-	cmn_writeq(CMN_hnf_ocm_en,
-		   CMN_hnf_cfg_ctl(hnf),
-		   "CMN_hnf_cfg_ctl", -1);
-	cmn_writeq(CMN_hnf_slc_lock_ways(ways),
-		   CMN_hnf_slc_lock_ways(hnf),
-		   "CMN_hnf_slc_lock_ways", -1);
+	cmn_writeq_mask(CMN_hnf_ocm_en,
+			CMN_hnf_ocm_en | CMN_hnf_ocm_allways_en,
+			CMN_hnf_cfg_ctl(hnf), "CMN_hnf_cfg_ctl", -1);
+	cmn_writeq_mask(CMN_slc_lock_ways(ways),
+			CMN_slc_lock_ways(CMN_slc_lock_ways_MASK),
+			CMN_hnf_slc_lock_ways(hnf),
+			"CMN_hnf_slc_lock_ways", -1);
 	regions = min(4, ways);
 	/* OCM can use up to 3/4 SLC locked ways, for 12/16 ways,
 	 * caculation should be done using 16.
@@ -394,8 +399,8 @@ static void __cmn_hnf_ocm_enable(caddr_t hnf)
 		else
 			base = CMN_OCM_BASE +
 			       (size * (ways / regions));
-		cmn_writeq(CMN_hnf_slc_lock_basen(base) |
-			   CMN_hnf_slc_lock_basen_vld,
+		cmn_writeq(CMN_slc_lock_base(base) |
+			   CMN_slc_lock_base_vld,
 			   CMN_hnf_slc_lock_base(hnf, i),
 			   "CMN_hnf_slc_lock_base", i);
 	}
@@ -411,6 +416,17 @@ static void __cmn_hnf_ocm_enable(caddr_t hnf)
 		   CMN_hnf_slc_lock_base(hnf, 0),
 		   "CMN_hnf_slc_lock_base", 0);	
 #endif
+}
+
+static void __cmn_hnf_ocm_disable(caddr_t hnf)
+{
+	cmn_writeq_mask(0,
+			CMN_hnf_ocm_en | CMN_hnf_ocm_allways_en,
+			CMN_hnf_cfg_ctl(hnf), "CMN_hnf_cfg_ctl", -1);
+	cmn_writeq_mask(CMN_slc_lock_ways(0),
+			CMN_slc_lock_ways(CMN_slc_lock_ways_MASK),
+			CMN_hnf_slc_lock_ways(hnf),
+			"CMN_hnf_slc_lock_ways", -1);
 }
 #endif
 
@@ -450,10 +466,7 @@ static void cmn_hnf_ocm_enable(caddr_t hnf)
 
 void cmn_hnf_ocm_disable(caddr_t hnf)
 {
-	cmn_clearq(CMN_hnf_ocm_en |
-		   CMN_hnf_ocm_allways_en,
-		   CMN_hnf_cfg_ctl(hnf),
-		   "CMN_hnf_cfg_ctl", -1);
+	__cmn_hnf_ocm_disable(hnf);
 }
 
 void cmn600_enable_ocm(void)
@@ -1741,8 +1754,6 @@ DEFINE_COMMAND(cmn600, do_cmn600, "Coherent mesh network (" CMN_MODNAME ") comma
 	"    - dump CMN ndoe information\n"
 	CMN_MODNAME " ocm enable\n"
 	"    - enable CMN OCM configuration\n"
-	CMN_MODNAME " ocm config <size>\n"
-	"    - configure size of locked OCM ways\n"
 	CMN_MODNAME " ocm disable\n"
 	"    - disable CMN OCM configuration\n"
 );
