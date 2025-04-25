@@ -272,15 +272,23 @@
 /* 5.2.9 IBI_QUEUE_STATUS
  * 2.6.6.3 IBI Status and Data Structure
  */
-#define DW_IBI_DL_OFFSET			0
-#define DW_IBI_DL_MASK				REG_8BIT_MASK
-#define DW_IBI_DL(value)			_GET_FV(DW_IBI_DL, value)
-#define DW_IBI_ID_OFFSET			8
-#define DW_IBI_ID_MASK				REG_8BIT_MASK
-#define DW_IBI_ID(value)			_GET_FV(DW_IBI_ID, value)
-#define DW_IBI_STS_OFFSET			28
-#define DW_IBI_STS_MASK				REG_4BIT_MASK
-#define DW_IBI_STS(value)			_GET_FV(DW_IBI_STS, value)
+#define DW_IBI_STATUS_DL_OFFSET			0
+#define DW_IBI_STATUS_DL_MASK			REG_8BIT_MASK
+#define DW_IBI_STATUS_DL(value)			_GET_FV(DW_IBI_STATUS_DL, value)
+#define DW_IBI_STATUS_ID_OFFSET			8
+#define DW_IBI_STATUS_ID_MASK			REG_8BIT_MASK
+#define DW_IBI_STATUS_ID(value)			_GET_FV(DW_IBI_STATUS_ID, value)
+#define DW_IBI_STATUS_STS_OFFSET		28
+#define DW_IBI_STATUS_STS_MASK			REG_4BIT_MASK
+#define DW_IBI_STATUS_STS(value)		_GET_FV(DW_IBI_STATUS_STS, value)
+#define DW_IBI_QUEUE_ADDR(x)			(DW_IBI_STATUS_ID(x) >> 1)
+#define DW_IBI_QUEUE_RNW(x)			(DW_IBI_STATUS_ID(x) & _BV(0))
+#define DW_IBI_TYPE_MR(x)			\
+	((DW_IBI_QUEUE_ADDR(x) != I3C_ADDR_HOTJOIN) && !DW_IBI_QUEUE_RNW(x))
+#define DW_IBI_TYPE_HJ(x)			\
+	((DW_IBI_QUEUE_ADDR(x) == I3C_ADDR_HOTJOIN) && !DW_IBI_QUEUE_RNW(x))
+#define DW_IBI_TYPE_SIRQ(x)			\
+	((DW_IBI_QUEUE_ADDR(x) != I3C_ADDR_HOTJOIN) && DW_IBI_QUEUE_RNW(x))
 /* 5.2.10 QUEUE_THLD_CTRL */
 #define DW_CMD_EMPTY_BUF_THLD_OFFSET		0
 #define DW_CMD_EMPTY_BUF_THLD_MASK		REG_8BIT_MASK
