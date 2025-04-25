@@ -57,6 +57,9 @@ void dw_mipi_i3c_irq_init(void)
 }
 #endif
 
+static void dw_mipi_i3c_begin_xfer(void);
+static void dw_mipi_i3c_end_xfer(void);
+
 uint32_t dw_i3c_readl(caddr_t reg)
 {
 	uint32_t val;
@@ -93,6 +96,36 @@ static void dw_mipi_i3c_write_tx_fifo(uint8_t *bytes, uint16_t nbytes)
 	}
 }
 
+static void dw_mipi_i3c_enqueue_xfer(struct dw_i3c_xfer *xfer)
+{
+	if (dw_i3c_xfer_cur) {
+		list_add_tail(&xfer->node, &dw_i3c_xfer_list);
+	} else {
+		dw_i3c_xfer_cur = xfer;
+		dw_mipi_i3c_begin_xfer(master);
+        }
+}
+
+static void dw_mipi_i3c_dequeue_xfer(struct dw_i3c_xfer *xfer)
+{
+        if (dw_i3c_xfer_cur == xfer) {
+                uint32_t status;
+
+                dw_i3c_xfer_cur = NULL;
+
+#if 0
+                writel(RESET_CTRL_RX_FIFO | RESET_CTRL_TX_FIFO |
+                       RESET_CTRL_RESP_QUEUE | RESET_CTRL_CMD_QUEUE,
+                       master->regs + RESET_CTRL);
+
+                readl_poll_timeout_atomic(master->regs + RESET_CTRL, status,
+                                          !status, 10, 1000000);
+#endif
+        } else {
+                list_del_init(&xfer->node);
+        }
+}
+
 static void dw_mipi_i3c_begin_xfer(void)
 {
 	int i;
@@ -118,22 +151,107 @@ static void dw_mipi_i3c_end_xfer(void)
 	struct dw_mipi_i3c_cmd *cmd;
 	uint32_t nresp;
 	uint32_t resp;
+	int ret = 0;
 
 	nresp = DW_RESP_BUF_BLR(dw_i3c_readl(QUEUE_STATUS_LEVEL(dw_i3cd)));
 	for (i = 0; i < nresp; i++) {
+		struct dw_i3c_cmd *cmd;
+		uint32_t resp;
+
+		resp = dw_i3c_readl(RESPONSE_QUEUE_PORT(dw_i3cd));
+	}
+
+	for (i = 0; i < nresp; i++) {
+		switch (dw_i3c_cmds[i].error) {
+		case DW_RESPONSE_NO_ERROR:
+			break;
+		case DW_RESPONSE_CRC_ERROR:
+		case DW_RESPONSE_PARITY_ERROR:
+		case DW_RESPONSE_TRANSFER_ABORTED:
+		case DW_RESPONSE_FRAME_ERROR:
+		case DW_RESPONSE_PEC_ERROR:
+		case DW_RESPONSE_I3C_BRAODCAST_ADDRESS_NACK:
+			ret = -EIO;
+			break;
+		case DW_RESPONSE_RX_OVERFLOW_TX_UNDERFLOW:
+			ret = -ENOSPC;
+			break;
+		case DW_RESPONSE_I2C_SLAVE_WRITE_DATA_NACK:
+		case DW_RESPONSE_ADDRESS_NACK:
+		default:
+			ret = -EINVAL;
+			break;
+		}
+	}
+
+	/* TODO: iocb */
+
+	if (ret < 0) {
+		dw_mipi_i3c_dequeue_xfer(xfer);
+		dw_i3c_setl(DW_RESUME, DEVICE_CTRL(dw_i3cd));
+	}
+
+	xfer = list_first_entry(&dw_i3c_xfer_list,
+				struct dw_i3c_xfer, node);
+	if (xfer)
+		list_del_init(&xfer->node);
+
+	dw_i3c_xfer_cur = xfer;
+	dw_mipi_i3c_begin_xfer();
+}
+
+static void dw_mipi_i3c_drain_ibi(int len)
+{
+}
+
+static void dw_mipi_i3c_handle_sir(uint32_t status)
+{
+}
+
+static void dw_mipi_i3c_handle_hj(uint32_t status)
+{
+}
+
+static void dw_mipi_i3c_irq_handle_ibi(void)
+{
+	uint32_t n_ibis;
+	uint32_t status;
+	int len;
+	int i;
+
+	n_ibis = DW_IBI_STS_CNT(__raw_readl(QUEUE_STATUS_LEVEL(dw_i3cd)));
+	if (!n_ibis)
+		return;
+
+	for (i = 0; i < n_ibis; i++) {
+		status = __raw_readl(IBI_QUEUE_STATUS(dw_i3cd));
+		if (DW_IBI_TYPE_SIRQ(status))
+			dw_mipi_i3c_handle_sir(status);
+		else if (DW_IBI_TYPE_HJ(status))
+			dw_mipi_i3c_handle_hj(status);
+		else {
+			len = DW_IBI_STATUS_DL(status);
+			con_err("dw_i3c: Unsupported IBI type=%d, len=%d\n",
+				(int)DW_IBI_STATUS_ID(status), len);
+			dw_mipi_i3c_drain_ibi(len);
+		}
 	}
 }
 
 void dw_mipi_i3c_handle_irq(void)
 {
-	uint32_t status;
+	uint32_t pending;
+	uint32_t enabled;
 
-	dw_i3c_readl(INTR_STATUS(dw_i3cd));
-	if (dw_i3c_readl(INTR_STATUS_EN(dw_i3cd))) {
+	pending = __raw_readl(INTR_STATUS(dw_i3cd));
+	enabled = __raw_readl(INTR_STATUS_EN(dw_i3cd));
+	if (!(pending & enabled)) {
 		dw_i3c_writel(INTR_ALL, INTR_STATUS(dw_i3cd));
 		return;
 	}
 	dw_mipi_i3c_end_xfer();
+	if (pending & INTR_IBI_THLD)
+		dw_mipi_i3c_irq_handle_ibi();
 }
 
 void dw_mipi_i3c_cfg_i2c_clk(clk_freq_t core_rate)
@@ -230,6 +348,8 @@ static void dw_mipi_i3c_ibi_init(void)
 void dw_mipi_i3c_ctrl_init(i3c_bus_t bus, clk_freq_t core_rate)
 {
 	i3c_addr_t addr;
+
+	dw_i3c_writel(INTR_ALL, INTR_STATUS(dw_i3cd));
 
 	switch (bus) {
 	case I3C_BUS_MIXED_FAST:
