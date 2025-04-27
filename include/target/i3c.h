@@ -82,9 +82,45 @@ typedef uint8_t i3c_t;
 #define I3C_CCC_EC_INT		_BV(0)
 #define I3C_CCC_EC_MR		_BV(1)
 #define I3C_CCC_EC_HJ		_BV(3)
+
+/* ENEC/DISEC */
 struct i3c_ccc_ec {
-	uint8_t ec;
-};
+	uint8_t event;
+} __packed;
+
+/* MWL */
+struct i3c_ccc_mwl {
+	uint16_t len;
+} __packed;
+
+/* MRL */
+struct i3c_ccc_mrl {
+	uint16_t read_len;
+	uint8_t ibi_len;
+} __packed;
+
+/* Dynamic address: DA */
+struct i3c_ccc_da {
+	uint8_t addr;
+} __packed;
+
+struct i3c_ccc_pid {
+	uint8_t pid[6];
+} __packed;
+
+/* BCR */
+struct i3c_ccc_bcr {
+	uint8_t bcr;
+} __packed;
+
+/* DCR */
+struct i3c_ccc_dcr {
+	uint8_t dcr;
+} __packed;
+
+struct i3c_ccc_status {
+	uint16_t status;
+} __packed;
 
 struct i3c_ccc_dev {
 	uint8_t da;
@@ -94,7 +130,7 @@ struct i3c_ccc_dev {
 	};
 	uint8_t bcr;
 	uint8_t sa;
-};
+} __packed;
 
 struct i3c_ccc_defslvs {
 	uint8_t count;
@@ -105,7 +141,7 @@ struct i3c_ccc_defslvs {
 struct i3c_ccc_dest {
 	uint8_t addr;
 	uint16_t len;
-	uint8_t *data;
+	void *data;
 };
 
 struct i3c_ccc {

@@ -36,6 +36,9 @@ config BIT_HWEIGHT64
 config BIT_REV16
 	bool "rev16"
 
+config BIT_PARITY8
+	bool "parity8"
+
 endmenu
 
 menu "Bitmap operations"
