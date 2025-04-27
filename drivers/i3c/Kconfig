@@ -83,6 +83,8 @@ menuconfig DW_MIPI_I3C
 	bool "Synopsys DesignWare MIPI I3C support"
 	depends I3C
 	select ARCH_HAS_DW_MIPI_I3C_DAA
+	select BIT_FFS32
+	select BIT_PARITY8
 
 if DW_MIPI_I3C
 

@@ -199,6 +199,7 @@ uint8_t hweight64(uint64_t quad);
 	(((uint64_t)(x) & (uint64_t)ULL(0xff00000000000000)) >> 56)))
 #define swapb(d, bit)			\
 	 ((d) ^ ((uint8_t)0x01 << (bit)))
+uint8_t parity8(uint8_t val);
 
 #define LOHALF(b)			(b & 0x0F)
 #define HIHALF(b)			(b >> 4)

@@ -574,3 +574,14 @@ unsigned long __cmpxchg(volatile void *ptr,
 	}
 }
 #endif
+
+#ifdef CONFIG_BIT_PARITY8
+uint8_t parity8(uint8_t val)
+{
+        /* One explanation of this algorithm:
+	 * https://funloop.org/codex/problem/parity/README.html
+	 */
+	val ^= val >> 4;
+	return (0x6996 >> (val & 0xf)) & 1;
+}
+#endif
