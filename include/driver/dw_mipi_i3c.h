@@ -52,6 +52,17 @@
 #define NR_DW_I3CS			CONFIG_I3C_MAX_MASTERS
 #endif
 
+#ifdef CONFIG_DW_MIPI_I3C_MAX_XFERS
+#define DW_MIPI_I3C_MAX_XFERS		CONFIG_DW_MIPI_I3C_MAX_XFERS
+#else
+#define DW_MIPI_I3C_MAX_XFERS		2
+#endif
+#ifdef CONFIG_DW_MIPI_I3C_MAX_DEVS
+#define DW_MIPI_I3C_MAX_DEVS		CONFIG_DW_MIPI_I3C_MAX_DEVS
+#else
+#define DW_MIPI_I3C_MAX_DEVS		32
+#endif
+
 #ifdef CONFIG_ARCH_IS_DW_MIPI_I3C_HCI
 #include <target/i3c_hci.h>
 #else /* CONFIG_ARCH_IS_DW_MIPI_I3C_HCI */
@@ -128,6 +139,7 @@
 #define I3C_VER_TYPE(n)				DW_MIPI_I3C_REG(n, 0x0E4)
 #define QUEUE_SIZE_CAPABILITY(n)		DW_MIPI_I3C_REG(n, 0x0E8)
 
+#define DEV_ADDR_TABLE_LOC(n, dat, i)		DW_MIPI_I3C_REG(n, (dat) + ((i) << 2))
 #ifdef CONFIG_DW_MIPI_I3C_MASTER
 #define DEV_CHAR_TABLE1_LOC1(n)			DW_MIPI_I3C_REG(n, 0x200)
 #endif /* CONFIG_DW_MIPI_I3C_MASTER */
@@ -595,6 +607,25 @@
 #define DW_IBI_BUF_SIZE_OFFSET			16
 #define DW_IBI_BUF_SIZE_MASK			REG_4BIT_MASK
 #define DW_IBI_BUF_SIZE(value)			_GET_FV(DW_IBI_BUF_SIZE, value)
+/* 5.2.55 DEV_ADDR_TABLE1_LOC1 */
+/* 5.2.56 DEV_ADDR_TABLE_LOC1 */
+#define DW_DEV_DYNAMIC_ADDR_OFFSET		16
+#define DW_DEV_DYNAMIC_ADDR_MASK		REG_8BIT_MASK
+#define DW_DEV_DYNAMIC_ADDR(value)		_SET_FV(DW_DEV_DYNAMIC_ADDR, value)
+/* 5.2.55 DEV_ADDR_TABLE1_LOC1 */
+#define DW_STATIC_ADDRESS			_BV(0)
+#define DW_IBI_PEC_EN				_BV(11)
+#define DW_SIR_REJECT				_BV(13)
+#define DW_MR_REJECT				_BV(14)
+#define DW_DEVICE				_BV(31)
+/* 5.2.56 DEV_ADDR_TABLE_LOC1 */
+#define DW_DEV_STATIC_ADDR_OFFSET		0
+#define DW_DEV_STATIC_ADDR_MASK			REG_7BIT_MASK
+#define DW_DEV_STATIC_ADDR(value)		_SET_FV(DW_DEV_STATIC_ADDR, value)
+#define DW_DEV_NACK_RETRY_CNT_OFFSET		29
+#define DW_DEV_NACK_RETRY_CNT_MASK		REG_2BIT_MASK
+#define DW_DEV_NACK_RETRY_CNT(value)		_SET_FV(DW_DEV_NACK_RETRY_CNT, value)
+#define DW_LEGACY_I2C_DEVICE			_BV(31)
 
 #define dw_mipi_i3c_cmd_fifo_depth(n)		\
 	DW_CMD_QUEUE_EMPTY_LOC(__raw_readl(QUEUE_STATUS_LEVEL(n)))
@@ -641,9 +672,28 @@ struct dw_mipi_i3c_cmd {
 	uint8_t error;
 };
 
+struct dw_mipi_i3c_xfer {
+	struct list_head node;
+	int ret;
+        uint8_t ncmds;
+        struct dw_mipi_i3c_cmd cmds[]; /* __counted_by(ncmds) */
+};
+
+struct dw_mipi_i3c_dat_entry {
+	uint8_t addr;
+	bool is_i2c_addr;
+};
+
 struct dw_mipi_i3c_ctx {
+	uint16_t dat_base;
+	uint16_t maxdevs;
+	uint32_t free_pos;
 	unsigned int ncmds;
 	struct dw_mipi_i3c_cmd cmds[1];
+	struct list_head xfer_list;
+	struct dw_mipi_i3c_xfer *xfer_curr;
+	struct dw_mipi_i3c_xfer xfer_pool[DW_MIPI_I3C_MAX_XFERS];
+	struct dw_mipi_i3c_dat_entry devs[DW_MIPI_I3C_MAX_DEVS];
 };
 
 #if NR_DW_I3CS > 1
