@@ -386,7 +386,8 @@ static void __cmn_hnf_ocm_enable(caddr_t hnf)
 
 static void __cmn_hnf_ocm_disable(caddr_t hnf)
 {
-	cmn_clearq(CMN_hnf_ocm_en,
+	cmn_clearq(CMN_hnf_ocm_en |
+		   CMN_hnf_ocm_allways_en,
 		   CMN_hnf_cfg_ctl(hnf), "CMN_hnf_cfg_ctl", -1);
 }
 
