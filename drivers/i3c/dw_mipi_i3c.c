@@ -48,22 +48,6 @@ static struct dw_mipi_i3c_ctx dw_i3c;
 #define dw_i3c_free_pos			dw_i3c.free_pos
 #define dw_i3c_devs			dw_i3c.devs
 
-#ifndef SYS_REALTIME
-static void dw_mipi_i3c_irq_handler(irq_t irq)
-{
-	dw_mipi_i3c_master_select(irq - IRQ_I3C0);
-	dw_mipi_i3c_handle_irq();
-	irqc_ack_irq(irq);
-}
-
-void dw_mipi_i3c_irq_init(void)
-{
-	irqc_configure_irq(IRQ_I3C0 + dw_i3cd, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_I3C0 + dw_i3cd, dw_mipi_i3c_irq_handler);
-	irqc_enable_irq(IRQ_I3C0 + dw_i3cd);
-}
-#endif
-
 static void dw_mipi_i3c_begin_xfer(void);
 static void dw_mipi_i3c_end_xfer(void);
 
@@ -80,6 +64,23 @@ void dw_i3c_writel(uint32_t val, caddr_t reg)
 {
 	dw_i3c_dbg("dw_i3c: W %016lx=%08x\n", reg, val);
 	__raw_writel(val, reg);
+}
+
+void dw_mipi_i3c_stop_condition(void)
+{
+}
+
+void dw_mipi_i3c_start_condition(bool sr)
+{
+}
+
+void dw_mipi_i3c_write_byte(uint8_t byte)
+{
+}
+
+uint8_t dw_mipi_i3c_read_byte(void)
+{
+	return 0;
 }
 
 void dw_mipi_i3c_transfer_reset(void)
@@ -469,6 +470,22 @@ void dw_mipi_i3c_handle_irq(void)
 		dw_mipi_i3c_irq_handle_ibi();
 }
 
+#ifndef SYS_REALTIME
+static void dw_mipi_i3c_irq_handler(irq_t irq)
+{
+	dw_mipi_i3c_master_select(irq - IRQ_I3C0);
+	dw_mipi_i3c_handle_irq();
+	irqc_ack_irq(irq);
+}
+
+void dw_mipi_i3c_irq_init(void)
+{
+	irqc_configure_irq(IRQ_I3C0 + dw_i3cd, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(IRQ_I3C0 + dw_i3cd, dw_mipi_i3c_irq_handler);
+	irqc_enable_irq(IRQ_I3C0 + dw_i3cd);
+}
+#endif
+
 void dw_mipi_i3c_cfg_i2c_clk(clk_freq_t core_rate)
 {
 	uint32_t core_period;
@@ -544,9 +561,15 @@ static void dw_mipi_i3c_ibi_init(void)
 	dw_i3c_writel(DW_IBI_REQ_REJECT_ALL, IBI_SIR_REQ_REJECT(dw_i3cd));
 }
 
-void dw_mipi_i3c_ctrl_start(i3c_bus_t bus, clk_freq_t core_rate)
+void dw_mipi_i3c_set_speed(bool od_normal)
+{
+	return;
+}
+
+void dw_mipi_i3c_ctrl_start(clk_freq_t core_rate)
 {
 	i3c_addr_t addr;
+	uint8_t bus = i3c_i3c_mode();
 
 	switch (bus) {
 	case I3C_BUS_MIXED_FAST:
@@ -569,7 +592,7 @@ void dw_mipi_i3c_ctrl_start(i3c_bus_t bus, clk_freq_t core_rate)
 	dw_mipi_i3c_dev_enable(dw_i3cd);
 }
 
-void dw_mipi_i3c_ctrl_init(i3c_bus_t bus, clk_freq_t core_rate)
+void dw_mipi_i3c_ctrl_init(clk_freq_t core_rate)
 {
 	uint32_t reg;
 
@@ -580,5 +603,5 @@ void dw_mipi_i3c_ctrl_init(i3c_bus_t bus, clk_freq_t core_rate)
 	dw_i3c_dat_base = DW_P_DEV_ADDR_TABLE_START_ADDR(reg);
 	dw_i3c_maxdevs = DW_DEV_ADDR_TABLE_DEPTH(reg);
 	dw_i3c_free_pos = GENMASK(dw_i3c_maxdevs - 1, 0);
-	dw_mipi_i3c_ctrl_start(bus, core_rate);
+	dw_mipi_i3c_ctrl_start(core_rate);
 }
