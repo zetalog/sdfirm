@@ -35,7 +35,6 @@ i3c_t i3c_master_save(i3c_t i3c)
 	return i3cs;
 }
 #else
-uint8_t i3c_state;
 uint8_t i3c_mode;
 i3c_addr_t i3c_dev_addr;
 i3c_len_t i3c_txsubmit;
@@ -43,12 +42,16 @@ i3c_len_t i3c_rxsubmit;
 i3c_len_t i3c_limit;
 i3c_len_t i3c_current;
 i3c_len_t i3c_commit;
-uint8_t i3c_status;
 uint8_t i3c_state;
 i3c_event_t i3c_event;
+uint8_t i3c_status;
 i3c_device_t *i3c_device = NULL;
 DECLARE_BITMAP(i3c_addr_slot, I3C_NR_ADDRS);
 DECLARE_BITMAP(i3c_addr_i2c, I3C_NR_ADDRS);
+clk_freq_t i3c_scl_rate;
+clk_freq_t i2c_scl_rate;
+uint8_t i3c_payld_data[2];
+uint8_t i3c_payld_len;
 #endif
 
 const char *i3c_state_names[] = {
@@ -95,6 +98,35 @@ void i3c_raise_event(uint8_t event)
 	bh_resume(i3c_bh);
 }
 
+static void i3c_write_address(void)
+{
+	if (i3c_txsubmit <= I3C_ADDR_LEN)
+		i3c_write_byte(i3c_addr_mode(i3c_dev_addr, I3C_MODE_RX));
+	else
+		i3c_write_byte(i3c_addr_mode(i3c_dev_addr, I3C_MODE_TX));
+}
+
+uint8_t i3c_read_byte(void)
+{
+	uint8_t byte;
+
+	BUG_ON(!i3c_device);
+	if (i3c_state != I3C_STATE_READ)
+		return 0;
+
+	byte = i3c_hw_read_byte();
+	return byte;
+}
+
+void i3c_write_byte(uint8_t byte)
+{
+	BUG_ON(!i3c_device);
+	if (i3c_state != I3C_STATE_WRITE)
+		return;
+
+	i3c_hw_write_byte(byte);
+}
+
 void i3c_enter_state(uint8_t state)
 {
 	i3c_dbg("i3c: state = %s\n", i3c_state_name(state));
@@ -130,6 +162,11 @@ uint8_t i3c_bus_mode(void)
 	return I3C_BUS(i3c_mode);
 }
 
+uint8_t i3c_i3c_mode(void)
+{
+	return I3C_MODE(i3c_mode);
+}
+
 uint8_t i3c_dir_mode(void)
 {
 	return I3C_DIR(i3c_mode);
@@ -137,18 +174,68 @@ uint8_t i3c_dir_mode(void)
 
 static void i3c_transfer_reset(void)
 {
-	i3c_set_status(I3C_STATUS_IDLE);
+	i3c_bus_set_status(I3C_STATUS_IDLE);
 	i3c_hw_transfer_reset();
 }
 
-void i3c_set_status(uint8_t status)
+static void i3c_ccc_submit(struct i3c_ccc *ccc)
+{
+	i3c_hw_submit_ccc(ccc);
+}
+
+static void i3c_ccc_dest_init(struct i3c_ccc_dest *dest, uint8_t addr,
+			      uint8_t *data, uint16_t len)
+{
+	dest->addr = addr;
+	dest->len = len;
+	if (len)
+		dest->data = data;
+	else
+		dest->data = NULL;
+}
+
+static void i3c_ccc_cmd_init(struct i3c_ccc *cmd,
+			     bool rnw, uint8_t id,
+			     struct i3c_ccc_dest *dests, uint8_t ndests)
+{
+	cmd->rnw = rnw ? 1 : 0;
+	cmd->id = id;
+	cmd->dests = dests;
+	cmd->ndests = ndests;
+	cmd->err = I3C_ERROR_UNKNOWN;
+}
+
+static void i3c_ccc_rstdaa(uint8_t addr)
+{
+	struct i3c_ccc_dest dest;
+	struct i3c_ccc ccc;
+
+	i3c_ccc_dest_init(&dest, addr, NULL, 0);
+	i3c_ccc_cmd_init(&ccc, false,
+			 I3C_CCC_RSTDAA(addr != I3C_ADDR_BROADCAST),
+			 &dest, 1);
+	i3c_ccc_submit(&ccc);
+}
+
+static void i3c_ccc_disec(uint8_t addr, uint8_t event)
+{
+	struct i3c_ccc_dest dest;
+	struct i3c_ccc ccc;
+
+	i3c_ccc_dest_init(&dest, addr, NULL, 0);
+	i3c_ccc_cmd_init(&ccc, false,
+			 I3C_CCC_DISEC(addr != I3C_ADDR_BROADCAST),
+			 &dest, 1);
+	i3c_ccc_submit(&ccc);
+}
+
+void i3c_bus_set_status(uint8_t status)
 {
 	i3c_dbg("i3c: status = %s\n", i3c_status_name(status));
+
 	i3c_status = status;
-#if 0
 	if (status == I3C_STATUS_IDLE)
 		i3c_enter_state(I3C_STATE_IDLE);
-#endif
 	if (status == I3C_STATUS_START)
 		i3c_raise_event(I3C_EVENT_START);
 	if (status == I3C_STATUS_STOP)
@@ -186,10 +273,73 @@ static void i3c_addr_slot_init(void)
 		set_bit(I3C_ADDR_BROADCAST ^ _BV(i), i3c_addr_slot);
 }
 
+#ifdef I3C_HW_I3C_RATE
+static clk_freq_t i3c_default_i3c_rate(void)
+{
+	return I3C_HW_I3C_RATE;
+}
+#else
+static clk_freq_t i3c_default_i3c_rate(void)
+{
+	return I3C_SCL_RATE_I3C_TYP;
+}
+#endif
+#ifdef I3C_HW_I2C_RATE
+static clk_freq_t i3c_default_i2c_rate(void)
+{
+	return I3C_HW_I2C_RATE;
+}
+#else
+static clk_freq_t i3c_default_i2c_rate(void)
+{
+	return I3C_SCL_RATE_I2C_FAST_PLUS;
+}
+#endif
+
+static void i3c_bus_set_mode(uint8_t mode)
+{
+	i3c_mode &= ~I3C_MODE_MASK;
+	i3c_mode |= mode;
+
+	switch (mode) {
+	case I3C_BUS_PURE:
+		i3c_scl_rate = i3c_default_i3c_rate();
+		break;
+	case I3C_BUS_MIXED_FAST:
+	case I3C_BUS_MIXED_LIMITED:
+		i3c_scl_rate = i3c_default_i3c_rate();
+		i2c_scl_rate = i3c_default_i2c_rate();
+		break;
+	case I3C_BUS_MIXED_SLOW:
+		i2c_scl_rate = i3c_default_i2c_rate();
+		i3c_scl_rate = min(i3c_default_i3c_rate(),
+				   i3c_default_i2c_rate());
+	default:
+		BUG();
+		break;
+	}
+
+	con_dbg("dw_i3c: I2C=%dHz I3C=%dHz\n",
+		(int)i2c_scl_rate, (int)i3c_scl_rate);
+
+	BUG_ON(i3c_scl_rate > I3C_SCL_RATE_I3C_MAX);
+	BUG_ON(i2c_scl_rate > I3C_SCL_RATE_I2C_FAST_PLUS);
+}
+
+void i3c_set_speed(bool od_normal)
+{
+	i3c_hw_set_speed(od_normal);
+}
+
 void i3c_master_init(void)
 {
+	i3c_bus_set_mode(I3C_HW_BUS_MODE);
 	i3c_addr_slot_init();
 	i3c_hw_ctrl_init();
+	i3c_set_speed(false);
+	i3c_ccc_rstdaa(I3C_ADDR_BROADCAST);
+	i3c_set_speed(true);
+	i3c_ccc_disec(I3C_ADDR_BROADCAST, I3C_CCC_EC_ALL);
 }
 
 static void i3c_handle_irq(void)
@@ -230,7 +380,6 @@ static void i3c_handle_xfr(void)
 			if (i3c_rxsubmit > 0) {
 				i3c_current = 0;
 				i3c_limit = i3c_rxsubmit;
-				i3c_config_mode(I3C_MODE_MASTER_RX, false);
 				i3c_enter_state(I3C_STATE_READ);
 			} else
 				i3c_enter_state(I3C_STATE_IDLE);
@@ -288,7 +437,7 @@ void i3c_init(void)
 	i3c_bh = bh_register_handler(i3c_bh_handler);
 	for (i3c = 0; i3c < NR_I3C_MASTERS; i3c++) {
 		si3c = i3c_master_save(i3c);
-		//i3c_set_status(I3C_STATUS_IDLE);
+		i3c_bus_set_status(I3C_STATUS_IDLE);
 		i3c_master_init();
 		i3c_irq_init();
 		i3c_transfer_reset();

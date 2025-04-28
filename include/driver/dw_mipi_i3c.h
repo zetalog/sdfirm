@@ -722,8 +722,14 @@ void dw_mipi_i3c_master_select(i3c_t i3c);
 uint32_t dw_i3c_readl(caddr_t reg);
 void dw_i3c_writel(uint32_t val, caddr_t reg);
 
-void dw_mipi_i3c_ctrl_init(i3c_bus_t bus, clk_freq_t core_rate);
+void dw_mipi_i3c_ctrl_init(clk_freq_t core_rate);
+void dw_mipi_i3c_set_speed(bool od_normal);
+void dw_mipi_i3c_submit_ccc(struct i3c_ccc *ccc);
 void dw_mipi_i3c_handle_irq(void);
 void dw_mipi_i3c_transfer_reset(void);
+void dw_mipi_i3c_start_condition(bool sr);
+void dw_mipi_i3c_stop_condition(void);
+void dw_mipi_i3c_write_byte(uint8_t byte);
+uint8_t dw_mipi_i3c_read_byte(void);
 
 #endif /* __DW_MIPI_I3C_H_INCLUDE__ */
