@@ -544,10 +544,15 @@ int NexusDeco(FILE *f, int disp)
 static int do_nexrvdeco(int argc, char *argv[])
 {
 	if (strcmp(argv[1], "cfg") == 0)
-		if (strcmp(argv[2], "mem") == 0)
+		if (strcmp(argv[2], "mem") == 0) {
 			InitMemoryInput((caddr_t)strtoull(argv[3], 0, 0), (size_t)strtoull(argv[4], 0, 0));
-	if (strcmp(argv[1], "deco") == 0)
-		NexusDeco(NULL, 4);
+			return 0;
+		}
+	if (strcmp(argv[1], "deco") == 0) {
+		int disp = 4 | 2 | 1;
+		NexusDeco(NULL, disp);
+		return 0;
+	}
 	return -EINVAL;
 }
 
@@ -555,7 +560,7 @@ DEFINE_COMMAND(nexrvdeco, do_nexrvdeco, "Nexus RISC-V Trace Decode commands",
 	"cfg mem <addr> <length>\n"
 	"    - config memory address to read\n"
 	"deco\n"
-	"    - Enable/Disable devices\n"
+	"    - Start nexrv deco\n"
 );
 
 //****************************************************************************
