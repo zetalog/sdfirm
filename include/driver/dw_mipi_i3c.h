@@ -697,7 +697,10 @@ struct dw_mipi_i3c_ctx {
 };
 
 #if NR_DW_I3CS > 1
+extern i3c_t dw_i3cd;
 void dw_mipi_i3c_master_select(i3c_t i3c);
+#else
+#define dw_i3cd						0
 #endif
 
 #define dw_i3c_setl(v,a)				\
