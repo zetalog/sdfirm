@@ -21,6 +21,11 @@ void spi_init(void);
 #else
 #define spi_init()
 #endif
+#ifdef CONFIG_I3C
+void i3c_init(void);
+#else
+#define i3c_init()
+#endif
 #ifdef CONFIG_USB
 void usb_init(void);
 #else
@@ -194,6 +199,7 @@ void modules_init(void)
 	uart_init();
 	i2c_init();
 	spi_init();
+	i3c_init();
 	peci_init();
 	net_init();
 	mmcsd_init();
