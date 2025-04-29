@@ -319,8 +319,11 @@ static void i3c_bus_set_mode(uint8_t mode)
 		break;
 	}
 
-	con_dbg("dw_i3c: I2C=%dHz I3C=%dHz\n",
-		(int)i2c_scl_rate, (int)i3c_scl_rate);
+	if (mode == I3C_BUS_PURE)
+		con_log("i3c: I3C=%dHz\n", (int)i3c_scl_rate);
+	else
+		con_log("i3c: I2C=%dHz I3C=%dHz\n",
+			(int)i2c_scl_rate, (int)i3c_scl_rate);
 
 	BUG_ON(i3c_scl_rate > I3C_SCL_RATE_I3C_MAX);
 	BUG_ON(i2c_scl_rate > I3C_SCL_RATE_I2C_FAST_PLUS);
