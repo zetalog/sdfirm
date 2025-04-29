@@ -4,7 +4,7 @@
 #include <target/irq.h>
 #include <target/panic.h>
 
-#ifdef CONFIG_DW_MIPI_I2C_DEBUG
+#ifdef CONFIG_DW_MIPI_I3C_DEBUG
 #define dw_i3c_dbg(...)		con_dbg(__VA_ARGS__)
 #else
 #define dw_i3c_dbg(...)		do { } while (0)
