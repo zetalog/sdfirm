@@ -19,10 +19,10 @@
 #define DW_MIPI_I3C_SCL_RATE_SDR3		4000000
 #define DW_MIPI_I3C_SCL_RATE_SDR4		2000000
 
-#if NR_DW_MIPI_I3CS > 1
+#if NR_DW_I3CS > 1
 #define dw_i3c				dw_i3cs[dw_i3cd]
 
-static i3c_t dw_i3cd = 0;
+i3c_t dw_i3cd = 0;
 static struct dw_mipi_i3c_ctx dw_i3cs[NR_DW_MIPI_I3CS] = {0};
 
 void dw_mipi_i3c_master_select(i3c_t i3c)
