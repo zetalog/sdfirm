@@ -16,6 +16,9 @@ menuconfig I3C
 
 if I3C
 
+config I3C_MASTER
+	bool "Enable I3C master controller support"
+
 config I3C_MAX_MASTERS
 	int "Number of masters"
 	default 1
