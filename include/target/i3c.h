@@ -246,7 +246,7 @@ typedef struct i3c_device i3c_device_t;
 
 struct i3c_master {
 	uint16_t freq;
-	uint8_t mode;
+	uint8_t bus;
 
 	i3c_addr_t dev_addr;
 
@@ -281,7 +281,7 @@ extern struct i3c_master i3c_masters[NR_I3C_MASTERS];
 extern i3c_t i3c_mid;
 
 #define i3c_freq	i3c_masters[i3c_mid].freq
-#define i3c_mode	i3c_masters[i3c_mid].mode
+#define i3c_bus		i3c_masters[i3c_mid].bus
 #define i3c_dev_addr	i3c_masters[i3c_mid].dev_addr
 #define i3c_txsubmit	i3c_masters[i3c_mid].txsubmit
 #define i3c_rxsubmit	i3c_masters[i3c_mid].rxsubmit

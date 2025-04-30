@@ -31,11 +31,11 @@ void i3c_master_select(i3c_t i3c)
 i3c_t i3c_master_save(i3c_t i3c)
 {
 	i3c_t i3cs = i3c_mid;
-	i3c_mid = i3c;
+	i3c_master_select(i3c);
 	return i3cs;
 }
 #else
-uint8_t i3c_mode;
+uint8_t i3c_bus;
 i3c_addr_t i3c_dev_addr;
 i3c_len_t i3c_txsubmit;
 i3c_len_t i3c_rxsubmit;
@@ -154,22 +154,22 @@ static void i3c_unraise_event(uint8_t event)
 
 uint8_t i3c_bus_dir_mode(void)
 {
-	return I3C_BUS_DIR(i3c_mode);
+	return I3C_BUS_DIR(i3c_bus);
 }
 
 uint8_t i3c_bus_mode(void)
 {
-	return I3C_BUS(i3c_mode);
+	return I3C_BUS(i3c_bus);
 }
 
 uint8_t i3c_i3c_mode(void)
 {
-	return I3C_MODE(i3c_mode);
+	return I3C_MODE(i3c_bus);
 }
 
 uint8_t i3c_dir_mode(void)
 {
-	return I3C_DIR(i3c_mode);
+	return I3C_DIR(i3c_bus);
 }
 
 static void i3c_transfer_reset(void)
@@ -298,8 +298,8 @@ static clk_freq_t i3c_default_i2c_rate(void)
 
 static void i3c_bus_set_mode(uint8_t mode)
 {
-	i3c_mode &= ~I3C_MODE_MASK;
-	i3c_mode |= mode;
+	i3c_bus &= ~I3C_MODE_MASK;
+	i3c_bus |= mode;
 
 	switch (mode) {
 	case I3C_BUS_PURE:

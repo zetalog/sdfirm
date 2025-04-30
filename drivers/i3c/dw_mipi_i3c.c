@@ -23,12 +23,13 @@
 #define dw_i3c				dw_i3cs[dw_i3cd]
 
 i3c_t dw_i3cd = 0;
-static struct dw_mipi_i3c_ctx dw_i3cs[NR_DW_MIPI_I3CS] = {0};
+static struct dw_mipi_i3c_ctx dw_i3cs[NR_DW_I3CS] = {0};
 
 void dw_mipi_i3c_master_select(i3c_t i3c)
 {
-	BUG_ON(i3c >= NR_DW_MIPI_I3CS);
+	BUG_ON(i3c >= NR_DW_I3CS);
 
+	printf("selecting %d\n", i3c);
 	dw_i3cd = i3c;
 }
 #else
@@ -571,6 +572,9 @@ void dw_mipi_i3c_ctrl_start(clk_freq_t core_rate)
 	i3c_addr_t addr;
 	uint8_t bus = i3c_i3c_mode();
 
+	con_log("dw_i3c: id=%d input=%ldHz, output i3c=%ldHz\n",
+		dw_i3cd, (unsigned long)core_rate,
+		(unsigned long)i3c_scl_rate);
 	switch (bus) {
 	case I3C_BUS_MIXED_FAST:
 	case I3C_BUS_MIXED_LIMITED:
