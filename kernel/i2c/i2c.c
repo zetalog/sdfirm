@@ -32,7 +32,7 @@ void i2c_master_select(i2c_t i2c)
 i2c_t i2c_master_save(i2c_t i2c)
 {
 	i2c_t i2cs = i2c_mid;
-	i2c_mid = i2c;
+	i2c_master_select(i2c);
 	return i2cs;
 }
 #else
