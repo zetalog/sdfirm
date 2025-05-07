@@ -173,7 +173,7 @@ extern i2c_addr_t i2c_abrt_slave;
 /* Target address and mode suffix */
 #define i2c_addr_mode(addr, mode)	(((addr) << 1) | (mode))
 #define i2c_addr(addr_mode)		((addr_mode) >> 1)
-#define i2c_mode(addr_mode)		((addr_mode) & 0x01)
+#define i2c_target_mode(addr_mode)	((addr_mode) & 0x01)
 
 #ifdef CONFIG_I2C_MASTER
 void i2c_apply_frequency(void);
