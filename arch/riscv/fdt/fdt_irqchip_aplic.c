@@ -57,7 +57,7 @@ struct fdt_irqchip fdt_irqchip_aplic = {
 	.warm_init = irqchip_aplic_warm_init,
 	.exit = NULL,
 };
-
+#if 0
 int aplic_sbi_init_cold(void)
 {
 	void *fdt = sbi_scratch_thishart_arg1_ptr();
@@ -65,3 +65,4 @@ int aplic_sbi_init_cold(void)
                                                 irqchip_aplic_match[0].compatible);
 	return irqchip_aplic_cold_init(fdt, nodeoff, fdt_irqchip_aplic.match_table);
 }
+#endif
