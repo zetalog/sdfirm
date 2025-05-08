@@ -44,18 +44,7 @@
 #include <target/panic.h>
 #include <target/msi.h>
 
-#ifdef CONFIG_APLIC_MSI
-static void aplic_check_msicfg(void)
-{
-	BUG_ON(APLIC_LHXS_MASK < APLIC_MSI_LHXS);
-	BUG_ON(APLIC_LHXW_MASK < APLIC_MSI_LHXW);
-	BUG_ON(APLIC_HHXS_MASK < APLIC_MSI_HHXS);
-	BUG_ON(APLIC_HHXW_MASK < APLIC_MSI_HHXW);
-}
-#else
-#define aplic_write_msicfg(cfg, addr)	do { } while (0)
-#define aplic_check_msicfg(cfg)		do { } while (0)
-
+#ifdef CONFIG_APLIC_WSI
 void irqc_hw_mask_irq(irq_t irq)
 {
 	irq_t msi;
@@ -85,9 +74,7 @@ void irqc_hw_unmask_irq(irq_t irq)
 	else
 		aplic_hw_enable_int(irq);
 }
-#endif
 
-#ifdef CONFIG_APLIC_WSI
 void aplic_wsi_init(uint8_t soc)
 {
 	uint32_t i;
@@ -104,17 +91,26 @@ void aplic_wsi_init(uint8_t soc)
 #else
 #define aplic_wsi_init(soc)		do { } while (0)
 
+static void aplic_check_msicfg(void)
+{
+	BUG_ON(APLIC_LHXS_MASK < APLIC_MSI_LHXS);
+	BUG_ON(APLIC_LHXW_MASK < APLIC_MSI_LHXW);
+	BUG_ON(APLIC_HHXS_MASK < APLIC_MSI_HHXS);
+	BUG_ON(APLIC_HHXW_MASK < APLIC_MSI_HHXW);
+}
+
 void aplic_msi_init(uint8_t soc)
 {
 	if (APLIC_MODE_MSIADDR)
-		aplic_config_msiaddr(soc, APLIC_MODE_MSIADDR,
-				     APLIC_IS_MMODE);
+		aplic_config_msiaddr(soc, APLIC_MODE_MSIADDR);
 }
 
 void aplic_msi_deleg_init(uint8_t soc)
 {
-	if (APLIC_HW_SMODE_MSIADDR)
-		aplic_config_msiaddr(soc, APLIC_HW_SMODE_MSIADDR, false);
+	if (APLIC_HW_MMODE_MSIADDR && !APLIC_IS_MMODE)
+		__aplic_config_msiaddr(soc, APLIC_HW_MMODE_MSIADDR, true);
+	if (APLIC_HW_SMODE_MSIADDR && APLIC_IS_MMODE)
+		__aplic_config_msiaddr(soc, APLIC_HW_SMODE_MSIADDR, false);
 }
 #endif
 
@@ -301,14 +297,15 @@ void irqc_hw_handle_irq(void)
 	if (irq >= IMSIC_NR_SIRQS) {
 		/* Handle EXT MSIs */
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
-		printf("Dynamic MSI %d\n", irq);
+		printf("Dynamic MSI %d on %d\n", irq, cpu);
 #endif
 		eirq = irq_locate_mapping(cpu, MSI_IRQ(irq));
 		if (eirq == IMSIC_NO_IRQ)
 			imsic_disable_irq(irq);
 		else {
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
-			printf("External IRQ %d\n", irq_ext(eirq));
+			printf("External IRQ %d on %d\n",
+			       irq_ext(eirq), cpu);
 #endif
 			if (!do_IRQ(eirq))
 				aplic_disable_irq(eirq);
@@ -316,7 +313,7 @@ void irqc_hw_handle_irq(void)
 	} else {
 		/* Handle INT MSIs */
 #ifdef CONFIG_RISCV_IRQ_VERBOSE
-		printf("Static MSI %d\n", irq);
+		printf("Static MSI %d on %d\n", irq, cpu);
 #endif
 		if (!do_IRQ(MSI_IRQ(irq)))
 			/* No IRQ handler registered, disabling... */
