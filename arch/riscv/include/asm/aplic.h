@@ -225,11 +225,11 @@ struct aplic_data {
 #define APLIC_MSI_LHXW			IMSIC_HART_WIDTH
 #define APLIC_MSI_LHXS			IMSIC_GUEST_WIDTH
 
-#define aplic_config_msiaddr(soc, base, mmode)				\
+#define aplic_config_msiaddr(soc, base)					\
 	do {								\
 		unsigned long base_ppn;					\
-		uint8_t lhxs = (mmode) ? 0 : APLIC_MSI_LHXS;		\
-		if (aplic_msiaddr_locked(soc))				\
+		uint8_t lhxs = APLIC_IS_MMODE ? 0 : APLIC_MSI_LHXS;	\
+		if (aplic_msiaddr_locked(soc, APLIC_IS_MMODE))		\
 			return;						\
 		base_ppn = APLIC_ADDR2PFN(base);			\
 		base_ppn &= ~APLIC_PPN_HART(lhxs);			\
@@ -244,6 +244,28 @@ struct aplic_data {
 			     APLIC_LHXS(lhxs) |				\
 			     APLIC_HHXS(APLIC_MSI_HHXS),		\
 			     APLIC_MSICFGADDRH(soc));			\
+	} while (0)
+#define __aplic_config_msiaddr(soc, base, mmode)			\
+	do {								\
+		unsigned long base_ppn;					\
+		uint8_t lhxs = (mmode) ? 0 : APLIC_MSI_LHXS;		\
+		if (aplic_msiaddr_locked(soc, mmode))			\
+			return;						\
+		base_ppn = APLIC_ADDR2PFN(base);			\
+		base_ppn &= ~APLIC_PPN_HART(lhxs);			\
+		base_ppn &= ~APLIC_PPN_LHX(APLIC_MSI_LHXW, lhxs);	\
+		base_ppn &= ~APLIC_PPN_HHX(APLIC_MSI_HHXW,		\
+					   APLIC_MSI_HHXS);		\
+		__raw_writel(LODWORD(base_ppn),				\
+			     (mmode) ? APLIC_MMSICFGADDR(soc) :		\
+				       APLIC_SMSICFGADDR(soc));		\
+		__raw_writel(APLIC_BASE_PPN_H(HIDWORD(base_ppn)) |	\
+			     APLIC_LHXW(APLIC_MSI_LHXW) |		\
+			     APLIC_HHXW(APLIC_MSI_HHXW) |		\
+			     APLIC_LHXS(lhxs) |				\
+			     APLIC_HHXS(APLIC_MSI_HHXS),		\
+			     (mmode) ? APLIC_MMSICFGADDRH(soc) :	\
+				       APLIC_SMSICFGADDRH(soc));	\
 	} while (0)
 #endif /* CONFIG_APLIC_MSI */
 
@@ -359,8 +381,9 @@ struct aplic_data {
 #define aplic_delegate_irq(irq, child)				\
 	__raw_writel(APLIC_D | APLIC_CHILD_INDEX(child),	\
 		APLIC_SOURCECFG(aplic_hw_irq_soc(irq), irq))
-#define aplic_msiaddr_locked(soc)				\
-	(__raw_readl(APLIC_MSICFGADDRH(soc)) & APLIC_L)
+#define aplic_msiaddr_locked(soc, mmode)			\
+	(__raw_readl((mmode) ? APLIC_MMSICFGADDRH(soc) :	\
+			       APLIC_SMSICFGADDRH(soc)) & APLIC_L)
 
 #define aplic_mask_irq(irq)				\
 	aplic_configure_pri(aplic_hw_irq_irq(irq),	\
