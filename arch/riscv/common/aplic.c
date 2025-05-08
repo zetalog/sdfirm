@@ -120,9 +120,9 @@ void aplic_msi_deleg_init(uint8_t soc)
 #define aplic_hw_deleg_num		1
 static struct aplic_delegate_data aplic_hw_deleg_data[] = {
 	{
-		.first_irq = 0,
+		.first_irq = 1,
 		.last_irq = APLIC_MAX_IRQS,	/* All delegated to S mode APLIC */
-		.child_index = APLIC_HW_SMODE_CHILD,
+		.child_index = 0,
 	},
 };
 #endif
