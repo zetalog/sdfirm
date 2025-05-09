@@ -99,8 +99,8 @@ const struct fdt_match *fdt_match_node(void *fdt, int nodeoff,
 int fdt_find_match(void *fdt, int startoff,
 		   const struct fdt_match *match_table,
 		   const struct fdt_match **out_match);
-int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
-			   unsigned long *size);
+int fdt_get_node_addr_size(const void *fdt, int node, uint64_t *addr,
+			   uint64_t *size);
 int fdt_parse_hart_id(void *fdt, int cpu_offset, uint32_t *hartid);
 int fdt_parse_max_hart_id(void *fdt, uint32_t *max_hartid);
 int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
