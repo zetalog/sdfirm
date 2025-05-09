@@ -593,7 +593,7 @@ static int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl,
 
 		/* get each queue share-memory base address and size*/
 		ret = fdt_get_node_addr_size((void *)fdt, nodeoff,
-					     (unsigned long *)&reg_addr, (unsigned long *)&reg_size);
+					     &reg_addr, &reg_size);
 		if (ret < 0 || !reg_addr || !reg_size)
 			return SBI_ENOENT;
 
@@ -637,8 +637,8 @@ static int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl,
 		return len;
 
 	/* fetch doorbell register address*/
-	ret = fdt_get_node_addr_size((void *)fdt, nodeoff, (unsigned long *)&reg_addr,
-				       (unsigned long *)&reg_size);
+	ret = fdt_get_node_addr_size((void *)fdt, nodeoff, &reg_addr,
+				       &reg_size);
 	if (!ret && !(strncmp(name, "db-reg", strlen("db-reg")))) {
 		mctl->mb_regs = (void *)(unsigned long)reg_addr;
 //		ret = sbi_domain_root_add_memrange(reg_addr, reg_size, reg_size,
