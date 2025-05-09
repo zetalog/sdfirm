@@ -184,7 +184,7 @@ static void __aplic_ctrl_init(uint8_t soc)
 	aplic_msi_init(soc);
 }
 
-void aplic_sbi_init(uint8_t soc)
+void aplic_sbi_init_cold(uint8_t soc)
 {
 	__aplic_ctrl_init(soc);
 	aplic_deleg_init(soc);
