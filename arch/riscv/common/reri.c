@@ -8,14 +8,11 @@
  */
 
 #include <target/sbi.h>
-#include <target/reri.h>
 #include <target/irq.h>
 #include <target/cmdline.h>
 #include <target/console.h>
 #include <target/arch.h>
 #include <target/ras.h>
-#include <asm/mach/ras.h>
-#include <asm/mach/reg.h>
 #include <target/panic.h>
 
 #define RERI_MODNAME			"reri"
@@ -43,20 +40,17 @@
 
 #if __riscv_xlen == 64
 #ifdef CONFIG_ARCH_IS_MMIO_32BIT
-static uint64_t reri_read(void *dev_addr)
+static uint64_t reri_read(caddr_t dev_addr)
 {
-	uint32_t hi, lo, tmp;
+	uint32_t hi, lo;
 
-	do {
-		hi = __raw_readl((caddr_t)((uintptr_t)(dev_addr) + 4));
-		lo = __raw_readl((caddr_t)dev_addr);
-		tmp = __raw_readl((caddr_t)((uintptr_t)(dev_addr) + 4));
-	} while (unlikely(hi != tmp));
+	hi = __raw_readl((caddr_t)((uintptr_t)(dev_addr) + 4));
+	lo = __raw_readl((caddr_t)dev_addr);
 
 	return (uint64_t)hi << 32 | lo;
 }
 
-static void reri_write(void *dev_addr, uint64_t val)
+static void reri_write(caddr_t dev_addr, uint64_t val)
 {
 	__raw_writel(HIDWORD(val), (caddr_t)((uintptr_t)(dev_addr) + 4));
 	__raw_writel(LODWORD(val), (caddr_t)dev_addr);
@@ -73,6 +67,26 @@ static void reri_write(void *dev_addr, uint64_t val)
 }
 #endif
 
+#define reri_set(v,a)					\
+	do {						\
+		uint32_t __v = reri_read(a);		\
+		__v |= (v);				\
+		reri_write((a), __v);			\
+	} while (0)
+#define reri_clear(v,a)					\
+	do {						\
+		uint32_t __v = reri_read(a);		\
+		__v &= ~(v);				\
+		reri_write((a), __v);			\
+	} while (0)
+#define reri_write_mask(v,m,a)				\
+	do {						\
+		uint32_t __v = reri_read(a);		\
+		__v &= ~(m);				\
+		__v |= (v);				\
+		reri_write((a), __v);			\
+	} while (0)
+
 static inline uint64_t reri_get_status(void *base, int record_idx)
 {
 	return reri_read(base + RERI_STATUS_I(record_idx));
@@ -83,26 +97,10 @@ static inline void reri_set_status(void *base, int record_idx, uint64_t val)
 	reri_write(base + RERI_STATUS_I(record_idx), val);
 }
 
-static inline uint64_t reri_get_control(void *base, int record_idx)
+static void reri_clear_valid_bit(caddr_t base, int record_idx)
 {
-	return reri_read(base + RERI_CONTROL_I(record_idx));
-}
-
-static inline void reri_set_control(void *base, int record_idx, uint64_t val)
-{
-	reri_write(base + RERI_CONTROL_I(record_idx), val);
-}
-
-static void reri_clear_valid_bit(void *control_addr, int record_idx)
-{
-	uint64_t control;
-
-	control = reri_get_control(control_addr, record_idx);
-
-	control |= RERI_CTRL_SINV_EN;
-	control |= RERI_CTRL_SRDP_EN;
-
-	reri_set_control(control_addr, record_idx, control);
+	reri_set(RERI_CTRL_SINV_EN | RERI_CTRL_SRDP_EN,
+		 RERI_CONTROL_I(base, record_idx));
 }
 
 struct reri_generic_dev {
@@ -224,7 +222,7 @@ void cpu_reri_irq_handler(void) {
 		return;
 
 	bank_addr = get_cluster_error_bank_addr(cluster_id);
-	valid_summary = reri_read((void *)(bank_addr + RERI_VALID_SUMMARY));
+	valid_summary = reri_read(bank_addr + RERI_VALID_SUMMARY);
 
 	if ((valid_summary & RERI_SV_EN) && (valid_summary & ~0x1ULL)) {
 		valid_bitmap = valid_summary & RERI_VALID_BITMAP_MASK;
@@ -333,71 +331,6 @@ static int do_reri_test(int argc, char *argv[])
 	uint64_t hart_addr, bank_addr, err_size;
 	uint64_t status, control;
 
-	struct {
-		uint32_t ec;    // Error Code
-		uint32_t tt;    // Transaction Type
-		uint32_t ce;    // Corrected Error (CE)
-		uint32_t uec;   // Uncorrected Urgent Error (UUE)
-		uint32_t ued;   // Uncorrected Deferred Error (UDE)
-		const char *desc;
-	} error_scenarios[] = {
-		/* L2C Errors */
-		{RERI_EC_SDC, RERI_TT_CUSTOM, 1, 0, 0, "L2C SnoopFilter ECC Error (CE)"},
-		{RERI_EC_SDC, RERI_TT_CUSTOM, 0, 1, 0, "L2C SnoopFilter ECC Error (UUE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 1, 0, 0, "L2C TAG ECC Error (CE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 0, 1, 0, "L2C TAG ECC Error (UUE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 1, 0, 0, "L2C DATA ECC Error (CE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 0, 0, 1, "L2C DATA ECC Error (UDE)"},
-
-		/* Core0 Errors */
-		{RERI_EC_CDA, RERI_TT_CUSTOM, 0, 1, 0, "core0 IFU consume poison (UUE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 1, 0, 0, "core0 ICACHE TAG parity Error (CE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 1, 0, 0, "core0 ICACHE DATA parity Error (CE)"},
-		{RERI_EC_TPA, RERI_TT_CUSTOM, 1, 0, 0, "core0 jTLB TAG parity Error (CE)"},
-		{RERI_EC_TPD, RERI_TT_CUSTOM, 1, 0, 0, "core0 jTLB DATA parity Error (CE)"},
-		{RERI_EC_CDA, RERI_TT_CUSTOM, 0, 1, 0, "core0 LSU consume poison (UUE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 1, 0, 0, "core0 DCACHE TAG ECC Error (CE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 0, 1, 0, "core0 DCACHE TAG ECC Error (UUE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 1, 0, 0, "core0 DCACHE DATA ECC Error (CE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 0, 0, 1, "core0 DCACHE DATA ECC Error (UDE)"},
-
-		/* Core1 Errors */
-		{RERI_EC_CDA, RERI_TT_CUSTOM, 0, 1, 0, "core1 IFU consume poison (UUE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 1, 0, 0, "core1 ICACHE TAG parity Error (CE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 1, 0, 0, "core1 ICACHE DATA parity Error (CE)"},
-		{RERI_EC_TPA, RERI_TT_CUSTOM, 1, 0, 0, "core1 jTLB TAG parity Error (CE)"},
-		{RERI_EC_TPD, RERI_TT_CUSTOM, 1, 0, 0, "core1 jTLB DATA parity Error (CE)"},
-		{RERI_EC_CDA, RERI_TT_CUSTOM, 0, 1, 0, "core1 LSU consume poison (UUE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 1, 0, 0, "core1 DCACHE TAG ECC Error (CE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 0, 1, 0, "core1 DCACHE TAG ECC Error (UUE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 1, 0, 0, "core1 DCACHE DATA ECC Error (CE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 0, 0, 1, "core1 DCACHE DATA ECC Error (UDE)"},
-
-		/* Core2 Errors */
-		{RERI_EC_CDA, RERI_TT_CUSTOM, 0, 1, 0, "core2 IFU consume poison (UUE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 1, 0, 0, "core2 ICACHE TAG parity Error (CE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 1, 0, 0, "core2 ICACHE DATA parity Error (CE)"},
-		{RERI_EC_TPA, RERI_TT_CUSTOM, 1, 0, 0, "core2 jTLB TAG parity Error (CE)"},
-		{RERI_EC_TPD, RERI_TT_CUSTOM, 1, 0, 0, "core2 jTLB DATA parity Error (CE)"},
-		{RERI_EC_CDA, RERI_TT_CUSTOM, 0, 1, 0, "core2 LSU consume poison (UUE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 1, 0, 0, "core2 DCACHE TAG ECC Error (CE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 0, 1, 0, "core2 DCACHE TAG ECC Error (UUE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 1, 0, 0, "core2 DCACHE DATA ECC Error (CE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 0, 0, 1, "core2 DCACHE DATA ECC Error (UDE)"},
-
-		/* Core3 Errors */
-		{RERI_EC_CDA, RERI_TT_CUSTOM, 0, 1, 0, "core3 IFU consume poison (UUE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 1, 0, 0, "core3 ICACHE TAG parity Error (CE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 1, 0, 0, "core3 ICACHE DATA parity Error (CE)"},
-		{RERI_EC_TPA, RERI_TT_CUSTOM, 1, 0, 0, "core3 jTLB TAG parity Error (CE)"},
-		{RERI_EC_TPD, RERI_TT_CUSTOM, 1, 0, 0, "core3 jTLB DATA parity Error (CE)"},
-		{RERI_EC_CDA, RERI_TT_CUSTOM, 0, 1, 0, "core3 LSU consume poison (UUE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 1, 0, 0, "core3 DCACHE TAG ECC Error (CE)"},
-		{RERI_EC_CAS, RERI_TT_CUSTOM, 0, 1, 0, "core3 DCACHE TAG ECC Error (UUE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 1, 0, 0, "core3 DCACHE DATA ECC Error (CE)"},
-		{RERI_EC_CBA, RERI_TT_CUSTOM, 0, 0, 1, "core3 DCACHE DATA ECC Error (UDE)"},
-	};
-
 	if (argc < 2) {
 		con_err("Usage: reri test [test_id]\n");
 		con_err("  test_id:\n");
@@ -458,30 +391,32 @@ static int do_reri_test(int argc, char *argv[])
 		return -EINVAL;
 	}
 
-	con_log(RERI_MODNAME ": Testing scenario: %s\n", error_scenarios[test_id].desc);
+	con_log(RERI_MODNAME ": Testing scenario: %s\n", reri_hw_error_scenarios[test_id].desc);
 
 	if (riscv_reri_get_hart_addr(hart_id, &hart_addr, &err_size) != 0)
 		return -EINVAL;
 
 	bank_addr = hart_addr;
 	status = reri_get_status((void *)bank_addr, 0) |
-		 RERI_STATUS_SET_CE(error_scenarios[test_id].ce)  |
-		 RERI_STATUS_SET_UEC(error_scenarios[test_id].uec) |
-		 RERI_STATUS_SET_UED(error_scenarios[test_id].ued) |
-	         RERI_STATUS_SET_TT(error_scenarios[test_id].tt)  |
-		 RERI_STATUS_SET_EC(error_scenarios[test_id].ec);
+		 RERI_STATUS_SET_CE(reri_hw_error_scenarios[test_id].ce)  |
+		 RERI_STATUS_SET_UEC(reri_hw_error_scenarios[test_id].uec) |
+		 RERI_STATUS_SET_UED(reri_hw_error_scenarios[test_id].ued) |
+	         RERI_STATUS_SET_TT(reri_hw_error_scenarios[test_id].tt)  |
+		 RERI_STATUS_SET_EC(reri_hw_error_scenarios[test_id].ec);
 	reri_set_status((void *)bank_addr, 0, status);
 
 	/* trigger: inject error */
-	control = reri_get_control((void *)bank_addr, 0)  |
-		  RERI_CTRL_ELSE_EN                        |
-		  RERI_CTRL_SET_CES(RAS_SIGNAL_HIGH_PRIORITY)  |
-		  RERI_CTRL_SET_UEDS(RAS_SIGNAL_HIGH_PRIORITY) |
-		  RERI_CTRL_SET_UECS(RAS_SIGNAL_HIGH_PRIORITY) |
-		  RERI_CTRL_SET_EID(100)                     |
-		  ~RERI_CTRL_SINV_EN;
-
-	reri_set_control((void *)bank_addr, 0, control);
+	reri_set(RERI_CTRL_ELSE_EN, RERI_CONTROL_I(bank_addr, 0));
+	reri_write_mask(RERI_CTRL_SET_CES(RAS_SIGNAL_HIGH_PRIORITY) |
+			RERI_CTRL_SET_UEDS(RAS_SIGNAL_HIGH_PRIORITY) |
+			RERI_CTRL_SET_UECS(RAS_SIGNAL_HIGH_PRIORITY) |
+			RERI_CTRL_SET_EID(100),
+			RERI_CTRL_SET_CES(RERI_CTRL_CES_MASK) |
+			RERI_CTRL_SET_UEDS(RERI_CTRL_UEDS_MASK) |
+			RERI_CTRL_SET_UECS(RERI_CTRL_UECS_MASK) |
+			RERI_CTRL_SET_EID(RERI_CTRL_EID_MASK),
+			RERI_CONTROL_I(bank_addr, 0));
+	reri_clear(RERI_CTRL_SINV_EN, RERI_CONTROL_I(bank_addr, 0));
 
 	con_log(RERI_MODNAME ": inst_id=0x%llx\n",
 		RERI_INST_ID(reri_read((void *)bank_addr + RERI_BANK_INFO)));
