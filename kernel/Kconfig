@@ -166,12 +166,15 @@ menu "Scheduling facility (SMP) support"
 config ARCH_HAS_SMP
 	bool
 
+config ARCH_HAS_SMP_BOOT
+	bool
+
 config ARCH_HAS_SMP_BOOT_QUIRK_INIT_WAIT_ENTRY
 	bool
 
 menuconfig SMP_BOOT
 	bool "Enable SMP bootloader support"
-	depends ARCH_HAS_SMP
+	depends ARCH_HAS_SMP_BOOT
 
 if SMP_BOOT
 
@@ -185,7 +188,7 @@ menuconfig SMP
 	bool "Enable SMP kernel support"
 	depends ARCH_HAS_SMP
 	select PAGE
-	select SMP_BOOT
+	select SMP_BOOT if ARCH_HAS_SMP_BOOT
 
 if SMP
 
