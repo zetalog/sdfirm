@@ -264,6 +264,7 @@ config CPU_M
 config CPU_A
 	bool
 	select ARCH_HAS_SMP
+	select ARCH_HAS_SMP_BOOT if !SBI
 
 config CPU_F
 	bool
