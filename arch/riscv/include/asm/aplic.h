@@ -440,24 +440,10 @@ void irqc_hw_clear_irq(irq_t irq);
 void irqc_hw_trigger_irq(irq_t irq);
 void irqc_hw_configure_irq(irq_t irq, uint8_t prio, uint8_t trigger);
 void irqc_hw_handle_irq(void);
-#ifdef CONFIG_SBI
-/* APLIC requires no special initialization other than that is done
- * in SBI.
- */
-#define irqc_hw_ctrl_init()	aplic_hw_ctrl_init()
+#define irqc_hw_ctrl_init()		aplic_hw_ctrl_init()
 #ifdef CONFIG_SMP
-#define irqc_hw_smp_init()	do { } while (0)
+#define irqc_hw_smp_init()		do { } while (0)
 #endif /* CONFIG_SMP */
-#else /* CONFIG_SBI */
-#define irqc_hw_ctrl_init()				\
-	do {						\
-		aplic_hw_ctrl_init();			\
-		aplic_sbi_init_cold();			\
-	} while (0)
-#ifdef CONFIG_SMP
-#define irqc_hw_smp_init()		aplic_sbi_init_warm(smp_processor_id())
-#endif /* CONFIG_SMP */
-#endif /* CONFIG_SBI */
 #ifdef CONFIG_MMU
 #define irqc_hw_mmu_init()		aplic_hw_mmu_init()
 #endif /* CONFIG_MMU */
@@ -487,18 +473,15 @@ void msi_hw_ctrl_init(void);
 #endif /* CONFIG_APLIC */
 #endif /* ARCH_HAVE_IRQC */
 
-void aplic_sbi_init(uint8_t soc);
 #ifdef CONFIG_SBI
 #ifdef CONFIG_ARCH_HAS_APLIC_DELEG
 int aplic_hw_deleg_num;
 struct aplic_deleg_data *aplic_hw_deleg_data[];
 #endif
-int aplic_sbi_init_cold(void);
-#define aplic_sbi_init_warm(cpu)	do { } while (0)
+void aplic_sbi_init_cold(uint8_t soc);
 int aplic_cold_irqchip_init(struct aplic_data *aplic);
 #else
-#define aplic_sbi_init_cold()		do { } while (0)
-#define aplic_sbi_init_warm(cpu)	do { } while (0)
+#define aplic_sbi_init_cold(soc)	do { } while (0)
 #define aplic_cold_irqchip_init(aplic)	do { } while (0)
 #endif
 
