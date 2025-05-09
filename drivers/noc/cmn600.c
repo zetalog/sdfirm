@@ -329,6 +329,12 @@ static void __cmn_hnf_ocm_config(caddr_t hnf)
 	cmn_setq(CMN_hnf_ocm_allways_en,
 		 CMN_hnf_cfg_ctl(hnf), "CMN_hnf_cfg_ctl", -1);
 }
+
+void __cmn_hnf_ocm_unconfig(caddr_t hnf)
+{
+	cmn_clearq(CMN_hnf_ocm_allways_en,
+		   CMN_hnf_cfg_ctl(hnf), "CMN_hnf_cfg_ctl", -1);
+}
 #endif
 
 #ifdef CONFIG_CMN600_OCM_RAM
@@ -376,6 +382,14 @@ static void __cmn_hnf_ocm_config(caddr_t hnf)
 			   "CMN_hnf_slc_lock_base", i);
 	}
 }
+
+void __cmn_hnf_ocm_unconfig(caddr_t hnf)
+{
+	cmn_writeq_mask(CMN_slc_lock_ways(0),
+			CMN_slc_lock_ways(CMN_slc_lock_ways_MASK),
+			CMN_hnf_slc_lock_ways(hnf),
+			"CMN_hnf_slc_lock_ways", -1);
+}
 #endif
 
 static void __cmn_hnf_ocm_enable(caddr_t hnf)
@@ -386,8 +400,7 @@ static void __cmn_hnf_ocm_enable(caddr_t hnf)
 
 static void __cmn_hnf_ocm_disable(caddr_t hnf)
 {
-	cmn_clearq(CMN_hnf_ocm_en |
-		   CMN_hnf_ocm_allways_en,
+	cmn_clearq(CMN_hnf_ocm_en,
 		   CMN_hnf_cfg_ctl(hnf), "CMN_hnf_cfg_ctl", -1);
 }
 
@@ -429,6 +442,7 @@ static void cmn_hnf_ocm_enable(caddr_t hnf)
 
 void cmn_hnf_ocm_disable(caddr_t hnf)
 {
+	__cmn_hnf_ocm_unconfig(hnf);
 	__cmn_hnf_ocm_disable(hnf);
 }
 
