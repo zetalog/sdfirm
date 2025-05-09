@@ -113,8 +113,8 @@ int fdt_parse_phandle_with_args(const void *fdt, int nodeoff,
 	return SBI_ENOENT;
 }
 
-int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
-			   unsigned long *size)
+int fdt_get_node_addr_size(const void *fdt, int node, uint64_t *addr,
+			   uint64_t *size)
 {
 	int parent, len, i;
 	int cell_addr, cell_size;
