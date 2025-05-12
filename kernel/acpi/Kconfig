@@ -5,10 +5,47 @@
 config ARCH_HAS_ACPI
 	bool
 
+config ARCH_HAS_ACPI_PM_EVENT
+	bool
+	depends !ACPI_HW_REDUCED
+
+config ARCH_HAS_ACPI_PM_TIMER
+	bool
+	depends !ACPI_HW_REDUCED
+
+config ARCH_HAS_ACPI_GPE
+	bool
+	depends !ACPI_HW_REDUCED
+
 menuconfig ACPI
 	bool "Advanced Configuration Power Management Interface (ACPI) support"
 
 if ACPI
+
+config ACPI_HW_REDUCED
+	bool "Enable hardware reduced ACPI support"
+	default y if ARM
+
+config ACPI_PM_EVENT
+	bool "Enable power management (PM) fixed event support"
+	depends ARCH_HAS_ACPI_PM_EVENT
+	default y if !ACPI_HW_REDUCED
+
+config ACPI_PM_TIMER
+	bool "Enable power management (PM) timer support"
+	depends ARCH_HAS_ACPI_PM_TIMER
+	default y if !ACPI_HW_REDUCED
+
+config ACPI_GPE
+	bool "Enable generic purpose event (GPE) support"
+	depends ARCH_HAS_ACPI_GPE
+	default y if !ACPI_HW_REDUCED
+
+config ACPI_AML
+	bool "Enable ACPI machine languate (AML) interpreter support"
+	default y
+
+if ACPI_AML
 
 config ACPI_AML_PREFIX_SIMPLE
 	bool "Allow AML_NONE ByteConst/WordConst/DwordConst/QwordConst/String encoding"
@@ -25,5 +62,7 @@ config ACPI_AML_PREFIX_SIMPLE
 	  And the content will be parsed along with the prefix.
 
 	  If unsure, say "N" here.
+
+endif
 
 endif
