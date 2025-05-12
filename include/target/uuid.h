@@ -45,6 +45,7 @@
 #include <target/generic.h>
 
 #define UUID_LEN_STR		36
+#define GUID_SIZE		16
 
 typedef struct {
 	uint32_t  time_low;
@@ -53,9 +54,8 @@ typedef struct {
 	uint8_t   clock_seq_hi_and_reserved;
 	uint8_t   clock_seq_low;
 	uint8_t   node[6];
-} uuid_t;
+} __packed uuid_t;
 
-#define GUID_SIZE		16
 typedef struct {
 	union {
 		uint8_t bytes[GUID_SIZE];
@@ -64,6 +64,6 @@ typedef struct {
 } guid_t;
 
 const char *uuid_export(uuid_t u);
-bool uuid_empty(uuid_t *u);
+bool uuid_empty(uuid_t u);
 
 #endif /* __UUID_TARGET_H_INCLUDE__ */

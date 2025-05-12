@@ -36,18 +36,8 @@
 #define GPT_PART_NAME_LEN	(72 / sizeof(uint16_t))
 #define GPT_NPARTITIONS		FDISK_GPT_NPARTITIONS_DEFAULT
 
-/* Globally unique identifier */
-struct gpt_guid {
-	uint32_t   time_low;
-	uint16_t   time_mid;
-	uint16_t   time_hi_and_version;
-	uint8_t    clock_seq_hi;
-	uint8_t    clock_seq_low;
-	uint8_t    node[6];
-};
-
 /* GUID 0 indicates an empty partition */
-#define GPT_UNUSED_ENTRY_GUID ((struct gpt_guid)	\
+#define GPT_UNUSED_ENTRY_GUID ((guid_t)			\
 	{	0x00000000, 0x0000, 0x0000, 0x00, 0x00,	\
 		{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }	\
 	})
@@ -74,8 +64,8 @@ enum {
 
 /* The GPT Partition entry array contains an array of GPT entries. */
 struct gpt_entry {
-	struct gpt_guid type; /* purpose and type of the partition */
-	struct gpt_guid partition_guid;
+	guid_t type; /* purpose and type of the partition */
+	guid_t partition_guid;
 	uint64_t lba_start;
 	uint64_t lba_end;
 	uint64_t attrs;
@@ -98,7 +88,7 @@ struct gpt_header {
 	/* last usable logical block for partitions */
 	uint64_t last_usable_lba;
 	/* unique disk identifier */
-	struct gpt_guid disk_guid;
+	guid_t disk_guid;
 	/* LBA of start of partition entries array */
 	uint64_t partition_entry_lba;
 	/* total partition entries - normally 128 */

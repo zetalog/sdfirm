@@ -106,19 +106,16 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 	gpt_header_print((struct gpt_header *)sector_buffer);
 	hexdump(flash_addr_header, sector_buffer, 1, GPT_SECTOR_SIZE);
 	for (i = 0; i < GPT_PGPT_PART_CNT; i++) {
-		uint32_t *guid_words =
-			(uint32_t *)(&entry_ptr->partition_guid);
-		unsigned char *guid_bytes =
-			(unsigned char *)(&entry_ptr->partition_guid);
+		uint8_t *guid_bytes =
+			(uint8_t *)(&entry_ptr->partition_guid);
 		gpt_dbg("uefi_gpt: Copying partion%d addr=0x%x size=0x%x..\n",
 			i, flash_addr, copy_size);
-		gpt_loader(entry_ptr, flash_addr, copy_size);
+		gpt_loader((uint8_t *)entry_ptr, flash_addr, copy_size);
 		flash_addr += copy_size;
 		gpt_dbg("uefi_gpt: Checking partition%d...\n", (i + 1));
 		gpt_entry_print(entry_ptr);
 		/* Stop searching at empty entry */
-		if (guid_words[0] == 0 && guid_words[1] == 0 &&
-		    guid_words[2] == 0 && guid_words[3] == 0)
+		if (uuid_empty(entry_ptr->partition_guid.u.uuid))
 			break;
 		if (gpt_entry_check_name(entry_ptr, part_name) != 0)
 			continue;
@@ -182,7 +179,7 @@ void gpt_mtd_dump(mtd_t mtd)
 		printf("Error: Invalid MTD device\n");
 		return;
 	}
-	gpt_loader(&hdr, GPT_HEADER_LBA * GPT_LBA_SIZE,
+	gpt_loader((uint8_t *)&hdr, GPT_HEADER_LBA * GPT_LBA_SIZE,
 		   GPT_HEADER_BYTES);
 	partition_entries_lba_end = (hdr.partition_entries_lba +
 		(hdr.num_partition_entries * hdr.partition_entry_size +
@@ -194,7 +191,7 @@ void gpt_mtd_dump(mtd_t mtd)
 		num_entries = GPT_LBA_SIZE / hdr.partition_entry_size;
 		for (j = 0; j < num_entries; j++) {
 			/* Stop with empty UUID */
-			if (uuid_empty(&gpt_entries[j].partition_guid.u.uuid))
+			if (uuid_empty(gpt_entries[j].partition_guid.u.uuid))
 				return;
 
 			part++;
@@ -217,6 +214,6 @@ bool gpt_mtd_test(mtd_t mtd)
 		printf("Error: Invalid MTD device\n");
 		return false;
 	}
-	gpt_loader(&hdr, GPT_HEADER_LBA * GPT_LBA_SIZE, 8);
+	gpt_loader((uint8_t *)&hdr, GPT_HEADER_LBA * GPT_LBA_SIZE, 8);
 	return !!(hdr.signature == (uint64_t)gsig.sig);
 }

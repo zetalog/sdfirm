@@ -64,11 +64,11 @@ const char *uuid_export(uuid_t u)
 	return s;
 }
 
-bool uuid_empty(uuid_t *u)
+bool uuid_empty(uuid_t u)
 {
 	uuid_t uuid_zero = { 0 };
 
-	return !!(memcmp(u, &uuid_zero, sizeof (uuid_t)) == 0);
+	return !!(memcmp(&u, &uuid_zero, sizeof (uuid_t)) == 0);
 }
 
 #if 0
