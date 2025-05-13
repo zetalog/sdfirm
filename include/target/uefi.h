@@ -99,7 +99,7 @@ struct gpt_header {
 	uint8_t  reserved2[512 - 92];
 } __attribute__ ((packed));
 
-typedef void (*gpt_loader_t)(uint8_t *boot, uint32_t addr, uint32_t size);
+typedef void (*gpt_loader_t)(void *boot, uint32_t addr, uint32_t size);
 
 #ifdef CONFIG_UEFI
 #ifdef GPT_LOCAL_TEST
