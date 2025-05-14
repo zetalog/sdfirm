@@ -71,6 +71,14 @@ const char *i3c_event_names[] = {
 	"ABORT",
 };
 
+const char *i3c_status_names[] = {
+	"IDLE",
+	"START",
+	"ACK",
+	"NACK",
+	"STOP",
+};
+
 const char *i3c_state_name(uint8_t state)
 {
 	if (state >= ARRAY_SIZE(i3c_state_names))
@@ -89,6 +97,12 @@ const char *i3c_event_name(uint8_t event)
 		}
 	}
 	return "NONE";
+}
+const char *i3c_status_name(uint8_t status)
+{
+	if (status >= ARRAY_SIZE(i3c_status_names))
+		return "UNKNOWN";
+	return i3c_status_names[status];
 }
 
 void i3c_raise_event(uint8_t event)
