@@ -462,13 +462,42 @@ void dw_mipi_i3c_handle_irq(void)
 
 	pending = __raw_readl(INTR_STATUS(dw_i3cd));
 	enabled = __raw_readl(INTR_STATUS_EN(dw_i3cd));
-	if (!(pending & enabled)) {
+	pending &= enabled;
+	if (pending) {
 		dw_i3c_writel(INTR_ALL, INTR_STATUS(dw_i3cd));
 		return;
 	}
+	if (pending & INTR_BUS_RESET_DONE)
+		dw_i3c_dbg("dw_i3c: Bus reset done\n");
+	if (pending & INTR_BUSOWNER_UPDATED)
+		dw_i3c_dbg("dw_i3c: Bus owner updated\n");
+	if (pending & INTR_IBI_UPDATED)
+		dw_i3c_dbg("dw_i3c: IBI updated\n");
+	if (pending & INTR_READ_REQ_RECV)
+		dw_i3c_dbg("dw_i3c: Read request received\n");
+	if (pending & INTR_DEFSLV)
+		dw_i3c_dbg("dw_i3c: Default slave\n");
+	if (pending & INTR_TRANSFER_ERR)
+		dw_i3c_dbg("dw_i3c: Transfer error\n");
+	if (pending & INTR_DYN_ADDR_ASSIGN)
+		dw_i3c_dbg("dw_i3c: Dynamic address assign\n");
+	if (pending & INTR_CCC_UPDATED)
+		dw_i3c_dbg("dw_i3c: CCC updated\n");
+	if (pending & INTR_TRANSFER_ABORT)
+		dw_i3c_dbg("dw_i3c: Transfer aborted\n");
+	if (pending & INTR_RESP_READY)
+		dw_i3c_dbg("dw_i3c: Response ready\n");
+	if (pending & INTR_CMD_QUEUE_READY)
+		dw_i3c_dbg("dw_i3c: Command queue ready\n");
+	if (pending & INTR_RX_THLD)
+		dw_i3c_dbg("dw_i3c: RX threshold\n");
+	if (pending & INTR_TX_THLD)
+		dw_i3c_dbg("dw_i3c: TX threshold\n");
 	dw_mipi_i3c_end_xfer();
-	if (pending & INTR_IBI_THLD)
+	if (pending & INTR_IBI_THLD) {
+		dw_i3c_dbg("dw_i3c: IBI threshold\n");
 		dw_mipi_i3c_irq_handle_ibi();
+	}
 }
 
 #ifndef SYS_REALTIME
