@@ -4,13 +4,34 @@
 #       unsets CROSS_COMPILE, which may affect your environment.
 
 update_defconfigs=
-build_all_defconfigs=
+BUILD_MACHS=
+build_mach_defconfigs=
+
+is_mach()
+{
+	if [ "x$build_mach_defconfigs" != "xyes" ]; then
+		return 0
+	fi
+	for m in $BUILD_MACHS; do
+		if [ "x$m" = "x$1" ]; then
+			return 0;
+		fi
+	done
+	return 1
+}
+
+extract_mach()
+{
+	echo $1 | awk -F '_' '{print $1}'
+}
 
 build_sdfirm()
 {
 	arch=$1
 	prog=$2
+	mach=`extract_mach $prog`
 
+	is_mach $mach || return 0
 	if [ "x${arch}" = "xriscv32" ]; then
 		export SUBARCH=riscv
 		export RISCV64=
@@ -46,9 +67,10 @@ build_sdfirm()
 usage()
 {
 	echo "Usage:"
-	echo "`basename $0` [-u] [arch]"
+	echo "`basename $0` [-m mach] [-u] [arch]"
 	echo "Where:"
 	echo " -u:          update default configurations"
+	echo " mach:        machine, can be"
 	echo " arch:        architecture, can be"
 	echo "              riscv32: RISC-V RISCV32"
 	echo "              riscv64: RISC-V RISCV64"
@@ -62,11 +84,12 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "ahu" opt
+while getopts "ahm:u" opt
 do
 	case $opt in
-	a) build_all_defconfigs=yes;;
 	h) usage 0;;
+	m) BUILD_MACHS="$BUILD_MACHS $OPTARG"
+	   build_mach_defconfigs=yes;;
 	u) update_defconfigs=yes;;
 	?) echo "Invalid argument $opt"
 	   fatal_usage;;
@@ -137,15 +160,11 @@ fi
 
 if [ "x${BUILD_RISCV32}" = "xyes" ]; then
 	# RV32M1 Vega
-	if [ "x$build_all_defconfigs" = "xyes" ]; then
-		build_sdfirm riscv32 vega_ri5cy
-	fi
+	build_sdfirm riscv32 vega_ri5cy
 	# Emulators
 	build_sdfirm riscv32 spike32_tb
 	# core-v-verif
-	if [ "x$build_all_defconfigs" = "xyes" ]; then
-		build_sdfirm riscv32 corev_cv32
-	fi
+	build_sdfirm riscv32 corev_cv32
 fi
 if [ "x${BUILD_RISCV64}" = "xyes" ]; then
 	build_sdfirm riscv64 spike64_tb
