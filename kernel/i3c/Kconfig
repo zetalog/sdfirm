@@ -51,4 +51,10 @@ config I3C_TC
 config I3C_HCI
 	bool "I3C host controller interface (I3C HCI) support"
 
+config I3C_DEBUG
+	bool "I3C debug support"
+	help
+	  Enable I3C debug support. This will enable the I3C debug
+	  interface and the I3C debug commands.
+
 endif
