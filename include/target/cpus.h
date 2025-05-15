@@ -49,7 +49,7 @@
 #define C(cpu)			CPU_TO_MASK(cpu)
 #define L(llc)			LLC_TO_MASK(llc)
 #ifndef CPU_ALL
-#define CPU_ALL			(CPU_TO_MASK(MAX_CPU_NUM)-1)
+#define CPU_ALL			((~ULL(0)) >> (64 - (MAX_CPU_NUM)))
 #endif
 #ifndef LLC_ALL
 #define LLC_ALL			(LLC_TO_MASK(MAX_LLC_NUM)-1)
