@@ -470,6 +470,9 @@ function build_linux()
 			fi
 			BUILD_NET=yes
 		fi
+		if [ "xyes" = "x${BUILD_NUMA}" ]; then
+			apply_modcfg linux my_defconfig e_numa.cfg
+		fi
 		if [ "xyes" = "x${BUILD_UEFI}" ]; then
 			apply_modcfg linux my_defconfig e_uefi.cfg
 		fi
@@ -566,6 +569,15 @@ function build_sdfirm()
 	fi
 	# Doing modcfgs in the original directory and save my_defconfig
 	cp arch/${ARCH}/configs/${MACH}_bbl_defconfig arch/riscv/configs/my_defconfig
+	if [ "xyes" = "x${BUILD_NUMA}" ]; then
+		apply_modcfg sdfirm my_defconfig e_numa.cfg
+	fi
+	if [ "xyes" = "x${BUILD_OCM}" ]; then
+		apply_modcfg sdfirm my_defconfig e_ocm.cfg
+	fi
+	if [ "xno" = "x${BUILD_OCM}" ]; then
+		apply_modcfg sdfirm my_defconfig d_ocm.cfg
+	fi
 	if [ "xno" = "x${BUILD_SMP}" ]; then
 		apply_modcfg sdfirm my_defconfig d_smp.cfg
 	fi
