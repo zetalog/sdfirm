@@ -136,8 +136,12 @@ config DW_PLL5GHZ_TSMC12FFC_TRACE
 
 endif
 
+config ARCH_HAS_SC_PLLTS12FFCLAFRAC2
+	bool
+
 menuconfig SC_PLLTS12FFCLAFRAC2
 	bool "Silicon creation fractional PLL TSMC 12nm FFC"
+	depends ARCH_HAS_SC_PLLTS12FFCLAFRAC2
 
 if SC_PLLTS12FFCLAFRAC2
 
