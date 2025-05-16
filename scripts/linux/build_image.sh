@@ -10,13 +10,27 @@ BUILD_SMP=yes
 BUILD_KVM=no
 BUILD_NET=yes
 BUILD_STO=yes
+BUILD_NUMA=no
+BUILD_SIM=asic
+BUILD_CPU=4
+BUILD_DDR=128m
+
+parse_feat()
+{
+	echo $1 | cut -d "=" -f 1
+}
+
+parse_opt()
+{
+	echo $1 | cut -d "=" -f 2
+}
 
 usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-a arch] [-c cores] [-f] [-m mach] [-n host] [-u]"
 	echo "              [-b spec] [-i input]"
-	echo "              [-d feat] [-e feat] [-r]"
+	echo "              [-d feat] [-e feat] [-g feat] [-r]"
 	echo "Where:"
 	echo " -a arch:     specify architecture"
 	echo " -m mach:     specify machine type"
@@ -51,7 +65,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:b:c:d:e:fi:m:n:ru" opt
+while getopts "a:b:c:d:e:fg:i:m:n:ru" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
@@ -78,6 +92,17 @@ do
 		BUILD_KVM=yes
 	   fi;;
 	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
+	g) feat=`parse_feat $OPTARG`
+	   option=`parse_opt $OPTARG`
+	   if [ "x$feat" = "xsim" ]; then
+		BUILD_SIM=$option
+	   fi
+	   if [ "x$feat" = "xcpu" ]; then
+		BUILD_CPU=$option
+	   fi
+	   if [ "x$feat" = "xddr" ]; then
+		BUILD_DDR=$option
+	   fi;;
 	i) CPU2006_OPTS="${CPU2006_OPTS} -d $OPTARG";;
 	m) MACH=$OPTARG;;
 	n) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -n $OPTARG";;
@@ -151,6 +176,15 @@ if [ "x${BUILD_APPS}" = "xyes" ]; then
 
 	#${SCRIPT}/build_lrzsz.sh
 fi
+if [ "x${BUILD_SIM}" != "x" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -c sim=${BUILD_SIM}"
+fi
+if [ "x${BUILD_CPU}" != "x" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -c cpu=${BUILD_CPU}"
+fi
+if [ "x${BUILD_DDR}" != "x" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -c ddr=${BUILD_DDR}"
+fi
 if [ "x${BUILD_TINY}" = "xyes" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e tiny"
 fi
@@ -162,6 +196,9 @@ if [ "x${BUILD_LIB}" = "xno" ]; then
 fi
 if [ "x${BUILD_SMP}" = "xno" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d smp"
+fi
+if [ "x${BUILD_NUMA}" = "xyes" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e numa"
 fi
 if [ "x${BUILD_NET}" = "xno" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d network"
