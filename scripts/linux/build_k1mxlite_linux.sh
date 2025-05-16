@@ -19,18 +19,14 @@ BUILD_SMP=no
 BUILD_NET=no
 BUILD_STO=no
 BUILD_KVM=no
+# Supports 4/8
+BUILD_CPU=4
+# Supports 256m/512m/1g/2g/3g
+BUILD_DDR=3g
 
 # If you only want to re-build kernel drivers, you can use no to omit
 # rebuilding whole busybox/linux
 FORCE_REBUILD=yes
-
-# yes: Baize emulation
-# no:  Xihe emulation
-SPACET_S2C_SPEEDUP=no
-# Supports 4/8
-SPACET_CPU=4
-# Supports 256m/512m/1g/2g/3g
-SPACET_DDR=3g
 
 LITMUS_CORES=4
 LITMUS_UPDATE=no
