@@ -200,9 +200,8 @@ static void dw_mipi_i3c_end_xfer(void)
 	struct dw_mipi_i3c_cmd *cmd;
 
 	xfer = dw_i3c_curr;
-	if (xfer)
+	if (!xfer)
 		return;
-
 	nresp = DW_RESP_BUF_BLR(dw_i3c_readl(QUEUE_STATUS_LEVEL(dw_i3cd)));
 	for (i = 0; i < nresp; i++) {
 		resp = dw_i3c_readl(RESPONSE_QUEUE_PORT(dw_i3cd));
@@ -465,39 +464,51 @@ void dw_mipi_i3c_handle_irq(void)
 	pending &= enabled;
 	if (pending) {
 		dw_i3c_writel(INTR_ALL, INTR_STATUS(dw_i3cd));
-		return;
 	}
-	if (pending & INTR_BUS_RESET_DONE)
+	if (pending & INTR_BUS_RESET_DONE){
 		dw_i3c_dbg("dw_i3c: Bus reset done\n");
-	if (pending & INTR_BUSOWNER_UPDATED)
+	}
+	if (pending & INTR_BUSOWNER_UPDATED){
 		dw_i3c_dbg("dw_i3c: Bus owner updated\n");
-	if (pending & INTR_IBI_UPDATED)
+	}
+	if (pending & INTR_IBI_UPDATED){
 		dw_i3c_dbg("dw_i3c: IBI updated\n");
-	if (pending & INTR_READ_REQ_RECV)
+	}
+	if (pending & INTR_READ_REQ_RECV){
 		dw_i3c_dbg("dw_i3c: Read request received\n");
-	if (pending & INTR_DEFSLV)
+	}
+	if (pending & INTR_DEFSLV){
 		dw_i3c_dbg("dw_i3c: Default slave\n");
-	if (pending & INTR_TRANSFER_ERR)
+	}
+	if (pending & INTR_TRANSFER_ERR){
 		dw_i3c_dbg("dw_i3c: Transfer error\n");
-	if (pending & INTR_DYN_ADDR_ASSIGN)
+	}
+	if (pending & INTR_DYN_ADDR_ASSIGN){
 		dw_i3c_dbg("dw_i3c: Dynamic address assign\n");
-	if (pending & INTR_CCC_UPDATED)
+	}
+	if (pending & INTR_CCC_UPDATED){
 		dw_i3c_dbg("dw_i3c: CCC updated\n");
-	if (pending & INTR_TRANSFER_ABORT)
+	}
+	if (pending & INTR_TRANSFER_ABORT){
 		dw_i3c_dbg("dw_i3c: Transfer aborted\n");
-	if (pending & INTR_RESP_READY)
+	}
+	if (pending & INTR_RESP_READY){
 		dw_i3c_dbg("dw_i3c: Response ready\n");
-	if (pending & INTR_CMD_QUEUE_READY)
+	}
+	if (pending & INTR_CMD_QUEUE_READY){
 		dw_i3c_dbg("dw_i3c: Command queue ready\n");
-	if (pending & INTR_RX_THLD)
+	}
+	if (pending & INTR_RX_THLD){
 		dw_i3c_dbg("dw_i3c: RX threshold\n");
-	if (pending & INTR_TX_THLD)
+	}
+	if (pending & INTR_TX_THLD){
 		dw_i3c_dbg("dw_i3c: TX threshold\n");
-	dw_mipi_i3c_end_xfer();
+	}
 	if (pending & INTR_IBI_THLD) {
 		dw_i3c_dbg("dw_i3c: IBI threshold\n");
 		dw_mipi_i3c_irq_handle_ibi();
 	}
+	dw_mipi_i3c_end_xfer();
 }
 
 #ifndef SYS_REALTIME
