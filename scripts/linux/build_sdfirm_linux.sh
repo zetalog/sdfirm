@@ -83,13 +83,13 @@ else
 fi
 # Simple environments
 if [ "x${BUILD_SIM}" != "x" ]; then
-	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -c sim=${BUILD_SIM}"
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -g sim=${BUILD_SIM}"
 fi
 if [ "x${BUILD_CPU}" != "x" ]; then
-	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -c cpu=${BUILD_CPU}"
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -g cpu=${BUILD_CPU}"
 fi
 if [ "x${BUILD_DDR}" != "x" ]; then
-	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -c ddr=${BUILD_DDR}"
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -g ddr=${BUILD_DDR}"
 fi
 if [ "x${BUILD_TINY}" = "xyes" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -e tiny"
