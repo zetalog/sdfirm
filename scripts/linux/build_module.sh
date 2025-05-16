@@ -4,6 +4,8 @@ TOP=`pwd`
 SCRIPT=`(cd \`dirname $0\`; pwd)`
 ARCH=riscv
 HOSTNAME=sdfirm
+
+# Configurability
 BUILD_TINY=no
 BUILD_LIB=yes
 BUILD_SMP=yes
@@ -11,6 +13,11 @@ BUILD_UEFI=no
 BUILD_NET=yes
 BUILD_STO=yes
 BUILD_KVM=no
+BUILD_NUMA=no
+BUILD_SIM=asic
+BUILD_CPU=
+BUILD_DDR=
+
 INSTALL_INITRAMFS=yes
 INSTALL_LINK=yes
 FORCE_REBUILD=no
@@ -569,38 +576,23 @@ function build_sdfirm()
 	fi
 	# Doing modcfgs in the original directory and save my_defconfig
 	cp arch/${ARCH}/configs/${MACH}_bbl_defconfig arch/riscv/configs/my_defconfig
+	if [ "x" != "x${BUILD_SIM}" ]; then
+		apply_modcfg sdfirm my_defconfig c_sim_${BUILD_SIM}.cfg
+	fi
+	if [ "x" != "x${BUILD_CPU}" ]; then
+		apply_modcfg sdfirm my_defconfig c_cpu_${BUILD_CPU}.cfg
+	fi
+	if [ "x" != "x${BUILD_DDR}" ]; then
+		apply_modcfg sdfirm my_defconfig c_ddr_${BUILD_DDR}.cfg
+	fi
 	if [ "xyes" = "x${BUILD_NUMA}" ]; then
 		apply_modcfg sdfirm my_defconfig e_numa.cfg
-	fi
-	if [ "xyes" = "x${BUILD_OCM}" ]; then
-		apply_modcfg sdfirm my_defconfig e_ocm.cfg
-	fi
-	if [ "xno" = "x${BUILD_OCM}" ]; then
-		apply_modcfg sdfirm my_defconfig d_ocm.cfg
 	fi
 	if [ "xno" = "x${BUILD_SMP}" ]; then
 		apply_modcfg sdfirm my_defconfig d_smp.cfg
 	fi
 	if [ "xyes" = "x${BUILD_KVM}" ]; then
 		apply_modcfg sdfirm my_defconfig e_kvm.cfg
-	fi
-	if [ "x" != "x${SPACET_SIM}" ]; then
-		apply_modcfg sdfirm my_defconfig e_k1m_sim${SPACET_SIM}.cfg
-	fi
-	if [ "xyes" = "${SPACET_KMH}" ]; then
-		apply_modcfg sdfirm my_defconfig e_k1m_cpukmh.cfg
-	fi
-	if [ "xno" = "x${SPACET_S2C_SPEEDUP}" ]; then
-		apply_modcfg sdfirm my_defconfig d_k1m_s2c_speedup.cfg
-	fi
-	if [ "x" != "x${SPACET_CPU}" ]; then
-		apply_modcfg sdfirm my_defconfig e_k1m_cpu${SPACET_CPU}.cfg
-	fi
-	if [ "x" != "x${SPACET_PG}" ]; then
-		apply_modcfg sdfirm my_defconfig e_k1m_pg${SPACET_PG}.cfg
-	fi
-	if [ "x" != "x${SPACET_DDR}" ]; then
-		apply_modcfg sdfirm my_defconfig e_k1m_ddr${SPACET_DDR}.cfg
 	fi
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
@@ -697,11 +689,22 @@ function build_boot()
 
 cd $TOP
 
+parse_feat()
+{
+	echo $1 | cut -d "=" -f 1
+}
+
+parse_opt()
+{
+	echo $1 | cut -d "=" -f 2
+}
+
 usage()
 {
 	echo "Usage:"
 	echo "`basename $0` [-m bbl] [-s] [-u] [-a] [-r] [-n hostname] [target]"
 	echo "              [-d feat] [-e feat]"
+	echo "              [-c feat=option]"
 	echo "Where:"
 	echo " -m bbl:      specify build of M-mode program (default sdfirm)"
 	echo "              bbl includes:"
@@ -726,6 +729,12 @@ usage()
 	echo "    tiny:     ultra tiny kernel/busybox support"
 	echo "    storage:  storage and NVME rootfs support"
 	echo "    kvm:      KVM virtualization support"
+	echo "    numa:     NUMA and chip link support"
+	echo " -c feat:     configure special features"
+	echo "              feature includes:"
+	echo "    sim=:     simulation type: asic, pz1, s2c, vps"
+	echo "    cpu=:     number of CPUs"
+	echo "    ddr=:     DDR memory capacity: 128m, 256m, 512m, 1g, 2g, 3g, 4g, 8g"
 	echo " target:      specify build type (default build)"
 	echo "  build       build specified modules (default mode)"
 	echo "  clean       build specified modules"
@@ -738,12 +747,23 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "ab:d:e:m:n:rsu" opt
+while getopts "ab:c:d:e:m:n:rsu" opt
 do
 	case $opt in
 	a) M_MODE=yes
 	   S_MODE=yes
 	   U_MODE=yes;;
+	c) feat=`parse_feat $OPTARG`
+	   option=`parse_opt $OPTARG`
+	   if [ "x$feat" = "xsim" ]; then
+		BUILD_SIM=$option
+	   fi
+	   if [ "x$feat" = "xcpu" ]; then
+		BUILD_CPU=$option
+	   fi
+	   if [ "x$feat" = "xddr" ]; then
+		BUILD_DDR=$option
+	   fi;;
 	d) if [ "x$OPTARG" = "xshared" ]; then
 		BUILD_LIB=no
 	   fi
@@ -761,6 +781,9 @@ do
 	   fi
 	   if [ "x$OPTARG" = "xkvm" ]; then
 		BUILD_KVM=yes
+	   fi
+	   if [ "x$OPTARG" = "xnuma" ]; then
+		BUILD_NUMA=yes
 	   fi;;
 	m) M_MODE=yes
 	   BBL=$OPTARG;;

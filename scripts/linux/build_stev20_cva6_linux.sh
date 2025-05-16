@@ -24,13 +24,10 @@ BUILD_KVM=no
 # rebuilding whole busybox/linux
 FORCE_REBUILD=yes
 
-# yes: Baize emulation
-# no:  Xihe emulation
-SPACET_S2C_SPEEDUP=no
 # Supports 4/8
-SPACET_CPU=4
+BUILD_CPU=4
 # Supports 256m/512m/1g/2g/3g
-SPACET_DDR=3g
+BUILD_DDR=3g
 
 LITMUS_CORES=4
 LITMUS_UPDATE=no
