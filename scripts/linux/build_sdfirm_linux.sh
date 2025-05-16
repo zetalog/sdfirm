@@ -81,6 +81,16 @@ else
 	# Enable busybox only
 	BUILD_IMAGE_OPS="-f -n sdfirm"
 fi
+# Simple environments
+if [ "x${BUILD_SIM}" != "x" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -c sim=${BUILD_SIM}"
+fi
+if [ "x${BUILD_CPU}" != "x" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -c cpu=${BUILD_CPU}"
+fi
+if [ "x${BUILD_DDR}" != "x" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -c ddr=${BUILD_DDR}"
+fi
 if [ "x${BUILD_TINY}" = "xyes" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -e tiny"
 fi
@@ -89,6 +99,9 @@ if [ "x${BUILD_LIB}" = "xno" ]; then
 fi
 if [ "x${BUILD_SMP}" = "xno" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d smp"
+fi
+if [ "x${BUILD_NUMA}" = "xno" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d numa"
 fi
 if [ "x${BUILD_KVM}" = "xyes" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -e kvm"
@@ -104,16 +117,6 @@ if [ "x${BUILD_STO}" = "xno" ]; then
 fi
 if [ "x${FORCE_REBUILD}" = "xyes" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -r"
-fi
-# Simple environments
-if [ "x${SPACET_S2C_SPEEDUP}" = "xno" ]; then
-	export SPACET_S2C_SPEEDUP
-fi
-if [ "x${SPACET_CPU}" != "x" ]; then
-	export SPACET_CPU
-fi
-if [ "x${SPACET_DDR}" != "x" ]; then
-	export SPACET_DDR
 fi
 
 # Control LITMUS partial builds

@@ -550,23 +550,23 @@ function build_sdfirm()
 	fi
 	# Doing modcfgs in the original directory and save my_defconfig
 	cp arch/${ARCH}/configs/${MACH}_bbl_defconfig arch/riscv/configs/my_defconfig
+	if [ "x" != "x${BUILD_SIM}" ]; then
+		apply_modcfg sdfirm my_defconfig c_sim_${BUILD_SIM}.cfg
+	fi
+	if [ "x" != "x${BUILD_CPU}" ]; then
+		apply_modcfg sdfirm my_defconfig c_cpu_${BUILD_CPU}.cfg
+	fi
+	if [ "x" != "x${BUILD_DDR}" ]; then
+		apply_modcfg sdfirm my_defconfig c_ddr_${BUILD_DDR}.cfg
+	fi
 	if [ "xno" = "x${BUILD_SMP}" ]; then
 		apply_modcfg sdfirm my_defconfig d_smp.cfg
 	fi
+	if [ "xyes" = "x${BUILD_NUMA}" ]; then
+		apply_modcfg sdfirm my_defconfig e_numa.cfg
+	fi
 	if [ "xyes" = "x${BUILD_KVM}" ]; then
 		apply_modcfg sdfirm my_defconfig e_kvm.cfg
-	fi
-	if [ "xno" = "x${SPACET_S2C_SPEEDUP}" ]; then
-		apply_modcfg sdfirm my_defconfig d_k1m_s2c_speedup.cfg
-	fi
-	if [ "x" != "x${SPACET_CPU}" ]; then
-		apply_modcfg sdfirm my_defconfig e_k1m_cpu${SPACET_CPU}.cfg
-	fi
-	if [ "x" != "x${SPACET_PG}" ]; then
-		apply_modcfg sdfirm my_defconfig e_k1m_pg${SPACET_PG}.cfg
-	fi
-	if [ "x" != "x${SPACET_DDR}" ]; then
-		apply_modcfg sdfirm my_defconfig e_k1m_ddr${SPACET_DDR}.cfg
 	fi
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \

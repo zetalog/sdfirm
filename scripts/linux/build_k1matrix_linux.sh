@@ -13,9 +13,20 @@ fi
 
 BUILD_ROOT=${SDFIRM_ROOT}/../
 BUILD_CUSTOMER=
-BUILD_TINY=no
+
+# Simulation environments:
+# asic: real hardware and EDA environment
+# s2c: FPGA S2C
+# vps: Veloca ProFPGA
+# pz1: Palladium Z1 emulator
+# Can be configured for all spacemit platforms
+BUILD_SIM=asic
+BUILD_CPU=64
+# support 4g/8g
+BUILD_DDR=4g
+BUILD_TINY=yes
 BUILD_LIB=no
-BUILD_SMP=no
+BUILD_SMP=yes
 BUILD_NET=no
 BUILD_STO=no
 BUILD_KVM=no
@@ -25,26 +36,6 @@ BUILD_NUMA=no
 # If you only want to re-build kernel drivers, you can use no to omit
 # rebuilding whole busybox/linux
 FORCE_REBUILD=yes
-
-# yes: Baize emulation
-# no:  Xihe emulation
-SPACET_S2C_SPEEDUP=no
-# Supports 4/8
-SPACET_CPU=4
-# Supports 256m/512m/1g/2g/3g
-SPACET_DDR=3g
-
-# Simulation environments:
-# asic: real hardware and EDA environment
-# s2c: FPGA S2C
-# pro: ProFPGA
-# pz1: Palladium Z1 emulator
-# Can be configured for all spacemit platforms
-SPACET_SIM=asic
-
-# By default X60/X100/X200 is used for booting Linux
-# Enabling this to boot KMH.
-SPACET_KMH=no
 
 LITMUS_CORES=4
 LITMUS_UPDATE=no
