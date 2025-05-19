@@ -158,6 +158,9 @@ const char *cmn600_revision_name(uint8_t revision)
 
 	return cmn_rev2name[revision];
 }
+#else
+#define cmn600_revision_name(revision)		NULL
+#define cmn600_node_type_name(node_type)	NULL
 #endif
 
 caddr_t cmn_bases[NR_CMN_NODES];
@@ -1487,7 +1490,7 @@ static int do_cmn600_dump(int argc, char *argv[])
 {
 	cmn_id_t x, y;
 	cmn_id_t i;
-	uint16_t node_type;
+	__unused uint16_t node_type;
 	cmn_nid_t nid;
 	unsigned long long base;
 
