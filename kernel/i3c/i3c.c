@@ -55,6 +55,7 @@ uint8_t i3c_payld_len;
 #endif
 
 const char *i3c_state_names[] = {
+	"INIT",
 	"IDLE",
 	"WAIT",
 	"READ",
@@ -64,6 +65,7 @@ const char *i3c_state_names[] = {
 };
 
 const char *i3c_event_names[] = {
+	"INIT",
 	"IDLE",
 	"START",
 	"ACK",
@@ -72,6 +74,7 @@ const char *i3c_event_names[] = {
 };
 
 const char *i3c_status_names[] = {
+	"INIT",
 	"IDLE",
 	"START",
 	"ACK",
@@ -248,6 +251,8 @@ void i3c_bus_set_status(uint8_t status)
 	i3c_dbg("i3c: status = %s\n", i3c_status_name(status));
 
 	i3c_status = status;
+	if (status == I3C_STATUS_INIT)
+		i3c_raise_event(I3C_EVENT_INIT);
 	if (status == I3C_STATUS_IDLE)
 		i3c_enter_state(I3C_STATE_IDLE);
 	if (status == I3C_STATUS_START)
@@ -348,6 +353,11 @@ void i3c_set_speed(bool od_normal)
 	i3c_hw_set_speed(od_normal);
 }
 
+void i3c_finish_init(void)
+{
+	i3c_hw_finish_init();
+}
+
 void i3c_master_init(void)
 {
 	i3c_bus_set_mode(I3C_HW_BUS_MODE);
@@ -357,6 +367,7 @@ void i3c_master_init(void)
 	i3c_ccc_rstdaa(I3C_ADDR_BROADCAST);
 	i3c_set_speed(true);
 	i3c_ccc_disec(I3C_ADDR_BROADCAST, I3C_CCC_EC_ALL);
+	i3c_finish_init();
 }
 
 static void i3c_handle_irq(void)
@@ -380,6 +391,13 @@ static void i3c_handle_xfr(void)
 
 	i3c_unraise_event(event);
 	switch (i3c_state) {
+	case I3C_STATE_INIT:
+		if (event & I3C_EVENT_INIT) {
+			unraise_bits(event, I3C_EVENT_INIT);
+			i3c_master_init();
+			i3c_transfer_reset();
+		}
+		break;
 	case I3C_STATE_READ:
 		if (event & I3C_EVENT_PAUSE)
 			i3c_enter_state(I3C_STATE_READ);
@@ -452,12 +470,12 @@ void i3c_init(void)
 	__unused i3c_t si3c;
 
 	i3c_bh = bh_register_handler(i3c_bh_handler);
+	i3c_state = I3C_STATE_INIT;
+	i3c_event = 0;
 	for (i3c = 0; i3c < NR_I3C_MASTERS; i3c++) {
 		si3c = i3c_master_save(i3c);
-		i3c_bus_set_status(I3C_STATUS_IDLE);
-		i3c_master_init();
+		i3c_bus_set_status(I3C_STATUS_INIT);
 		i3c_irq_init();
-		i3c_transfer_reset();
 		i3c_master_restore(si3c);
 	}
 	i3c_poll_init();

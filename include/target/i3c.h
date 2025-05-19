@@ -190,30 +190,33 @@ typedef uint8_t i3c_bus_t;
 #define I3C_SET_BUS(x, b)	(x &= ~I3C_BUS_MASK, x |= b)
 #define I3C_SET_DIR(x, d)	(x &= ~I3C_DIR_MASK, x |= d)
 
-#define I3C_STATUS_IDLE		0x00
-#define I3C_STATUS_START	0x01
-#define I3C_STATUS_ACK		0x02
-#define I3C_STATUS_NACK		0x03
-#define I3C_STATUS_STOP		0x04
+#define I3C_STATUS_INIT		0x00
+#define I3C_STATUS_IDLE		0x01
+#define I3C_STATUS_START	0x02
+#define I3C_STATUS_ACK		0x03
+#define I3C_STATUS_NACK		0x04
+#define I3C_STATUS_STOP		0x05
 
-#define I3C_STATE_IDLE			0x00
-#define I3C_STATE_START			0x01
-#define I3C_STATE_STOP			0x02
-#define I3C_STATE_WAIT			0x03
-#define I3C_STATE_WRITE			0x04
-#define I3C_STATE_READ			0x05
+#define I3C_STATE_INIT		0x00
+#define I3C_STATE_IDLE		0x01
+#define I3C_STATE_START		0x02
+#define I3C_STATE_STOP		0x03
+#define I3C_STATE_WAIT		0x04
+#define I3C_STATE_WRITE		0x05
+#define I3C_STATE_READ		0x06
 
 /* Dynamic Address Assignment (DAA) FSM */
-#define I3C_STATE_RSTDAA		0x06
-#define I3C_STATE_DISEC			0x07
+#define I3C_STATE_RSTDAA		0x07
+#define I3C_STATE_DISEC			0x08
 /* SET_STATUS */
-#define I3C_STATE_SETDASA		0x08
-#define I3C_STATE_GETPID		0x08
-#define I3C_STATE_BCAST_ENTDAA		0x09
-#define I3C_STATE_READ_PID		0x0A
-#define I3C_STATE_READ_BCR		0x0B
-#define I3C_STATE_READ_DCR		0x0C
+#define I3C_STATE_SETDASA		0x09
+#define I3C_STATE_GETPID		0x09
+#define I3C_STATE_BCAST_ENTDAA		0x0A
+#define I3C_STATE_READ_PID		0x0B
+#define I3C_STATE_READ_BCR		0x0C
+#define I3C_STATE_READ_DCR		0x0D
 
+#define I3C_EVENT_INIT		_BV(I3C_STATUS_INIT)
 #define I3C_EVENT_IDLE		_BV(I3C_STATUS_IDLE)
 #define I3C_EVENT_START		_BV(I3C_STATUS_START)
 #define I3C_EVENT_PAUSE		_BV(I3C_STATUS_ACK)

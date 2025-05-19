@@ -52,6 +52,8 @@ static struct dw_mipi_i3c_ctx dw_i3c;
 static void dw_mipi_i3c_begin_xfer(void);
 static void dw_mipi_i3c_end_xfer(void);
 
+static uint8_t dw_i3c_inited[NR_DW_I3CS] = {0};
+
 uint32_t dw_i3c_readl(caddr_t reg)
 {
 	uint32_t val;
@@ -175,7 +177,6 @@ static void dw_mipi_i3c_begin_xfer(void)
 	xfer = dw_i3c_curr;
 	if (!xfer)
 		return;
-
 	for (i = 0; i < xfer->ncmds; i++) {
 		cmd = &xfer->cmds[i];
 		dw_mipi_i3c_write_tx_fifo(cmd->tx_buf, cmd->tx_len);
@@ -350,7 +351,7 @@ static int dw_mipi_i3c_ccc_set(struct i3c_ccc *ccc)
 	xfer = dw_mipi_i3c_alloc_xfer(1);
 	if (!xfer)
 		return -ENOMEM;
-
+	xfer->ncmds = ccc->ndests;
 	cmd = &xfer->cmds[0];
 	cmd->tx_buf = ccc->dests[0].data;
 	cmd->tx_len = ccc->dests[0].len;
@@ -362,7 +363,6 @@ static int dw_mipi_i3c_ccc_set(struct i3c_ccc *ccc)
 		      DW_COMMAND_CMD(ccc->id) |
 		      DW_COMMAND_TOC |
 		      DW_COMMAND_ROC;
-
 	dw_mipi_i3c_enqueue_xfer(xfer);
 	bh_sync();
 	dw_mipi_i3c_dequeue_xfer(xfer);
@@ -414,6 +414,12 @@ void dw_mipi_i3c_submit_ccc(struct i3c_ccc *ccc)
 		dw_mipi_i3c_ccc_get(ccc);
 	else
 		dw_mipi_i3c_ccc_set(ccc);
+}
+
+void dw_mipi_i3c_finish_init()
+{
+	dw_i3c_inited[dw_i3cd] = 1;
+	dw_mipi_i3c_disable_all_irqs(dw_i3cd);
 }
 
 static void dw_mipi_i3c_drain_ibi(int len)
@@ -508,7 +514,8 @@ void dw_mipi_i3c_handle_irq(void)
 		dw_i3c_dbg("dw_i3c: IBI threshold\n");
 		dw_mipi_i3c_irq_handle_ibi();
 	}
-	dw_mipi_i3c_end_xfer();
+	if (dw_i3c_inited[dw_i3cd])
+		dw_mipi_i3c_end_xfer();
 }
 
 #ifndef SYS_REALTIME
