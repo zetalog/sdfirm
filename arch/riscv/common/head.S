@@ -5,6 +5,46 @@
 
 #define RV_LARGE_LOAD_OFFSET	(CONFIG_BOOT_BASE - CONFIG_LOAD_BASE)
 
+#ifdef CONFIG_XIP_LIB
+	.macro lib_enter
+	addi	sp, sp, -128
+	sd	ra, 120(sp)
+	sd	s0, 112(sp)
+	sd	s1, 104(sp)
+	sd	s2, 96(sp)
+	sd	s3, 88(sp)
+	sd	s4, 80(sp)
+	sd	s5, 72(sp)
+	sd	s6, 64(sp)
+	sd	s7, 56(sp)
+	sd	s8, 48(sp)
+	sd	s9, 40(sp)
+	sd	s10, 32(sp)
+	sd	s11, 24(sp)
+	.endm
+	.macro lib_exit
+	ld	ra, 120(sp)
+	ld	s0, 112(sp)
+	ld	s1, 104(sp)
+	ld	s2, 96(sp)
+	ld	s3, 88(sp)
+	ld	s4, 80(sp)
+	ld	s5, 72(sp)
+	ld	s6, 64(sp)
+	ld	s7, 56(sp)
+	ld	s8, 48(sp)
+	ld	s9, 40(sp)
+	ld	s10, 32(sp)
+	ld	s11, 24(sp)
+	addi	sp, sp, 128
+	.endm
+#else
+	.macro lib_enter
+	.endm
+	.macro lib_exit
+	.endm
+#endif /* CONFIG_XIP_LIB */
+
 	.macro disable_mirq
 	csrw	CSR_MIE, zero
 	csrw	CSR_MIP, zero
@@ -198,6 +238,7 @@
 	__HEAD
 
 ENTRY(__start)
+	lib_enter
 #ifdef CONFIG_ARCH_HAS_BOOT0
 	boot0_hook
 #endif
@@ -273,6 +314,7 @@ secondary_wait_for_abi_relocate:
 
 __abi_start_warm:
 #ifdef CONFIG_XIP_LIB
+	lib_exit
 	ret
 #else
 	la	ra, _start_hang
