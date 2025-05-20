@@ -436,6 +436,7 @@ config NO_ZERO_GPR
 
 config XIP_LIB
 	bool "Enable XIP shared library support"
+	select NO_ZERO_GPR
 
 endmenu
 
