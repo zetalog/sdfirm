@@ -72,6 +72,10 @@
 	csrr	\reg, CSR_MHARTID
 	.endm
 
+#ifdef CONFIG_XIP_LIB
+	.macro init_sp
+	.endm
+#else
 	.macro init_sp
 	get_smpid a3
 #ifdef CONFIG_SMP_BOOT
@@ -82,6 +86,7 @@
 	la	sp, ABI_PERCPU_STACKS_END
 #endif
 	.endm
+#endif
 
 	.macro init_gpsptp
 	init_gp
@@ -267,6 +272,9 @@ secondary_wait_for_abi_relocate:
 	bne	t0, t1, secondary_wait_for_abi_relocate
 
 __abi_start_warm:
+#ifdef CONFIG_XIP_LIB
+	ret
+#else
 	la	ra, _start_hang
 
 #ifdef CONFIG_ARCH_HAS_BOOT2
@@ -281,6 +289,7 @@ __abi_start_warm:
 	jal	ra, __sbi_entry
 #else
 	jal	ra, __sbi_exit
+#endif
 #endif
 ENDPROC(__start)
 

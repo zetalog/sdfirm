@@ -95,6 +95,10 @@ config ARCH_HAS_BOOT_LOAD
 	bool
 	select XIP
 
+config ARCH_IS_BOOT_LIB
+	bool
+	select XIP_LIB if XIP
+
 config ARCH_IS_BIG_ENDIAN
 	bool
 
@@ -429,6 +433,9 @@ config NO_ZERO_GPR
 	help
 	  On simulation environment, GPR zeroing can be skipped as the
 	  register memory model itself may have already been zeroed.
+
+config XIP_LIB
+	bool "Enable XIP shared library support"
 
 endmenu
 
