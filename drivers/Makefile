@@ -4,7 +4,7 @@
 
 obj-y:=
 
-obj-y += driver.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += driver.rel
 
 obj-y += timer/
 obj-y += uart/
