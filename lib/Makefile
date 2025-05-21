@@ -5,10 +5,10 @@
 obj-y:=
 
 obj-y += bitops.rel
-obj-y += muldiv.rel
-obj-y += string.rel
-obj-y += errno.rel
-obj-y += time.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += muldiv.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += string.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += errno.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += time.rel
 obj-$(CONFIG_PRINT_VSNPRINTF) += vsnprintf.rel
 obj-$(CONFIG_CONSOLE_OUTPUT) += printf.rel
 obj-$(CONFIG_CONSOLE_OUTPUT) += hexdump.rel
