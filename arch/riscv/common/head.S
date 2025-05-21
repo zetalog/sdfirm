@@ -243,6 +243,7 @@ ENTRY(__start)
 	boot0_hook
 #endif
 
+#ifndef CONFIG_XIP_LIB
 #ifdef CONFIG_RISCV_ENTR_M
 	/* Reset all registers, except ra, gp, sp */
 	init_gprs
@@ -254,6 +255,7 @@ ENTRY(__start)
 
 	/* Disable global interrupt. */
 	disable_entr_irq
+#endif
 
 	/* Jump to warm boot if it is not the boot core */
 	get_hartid a6
