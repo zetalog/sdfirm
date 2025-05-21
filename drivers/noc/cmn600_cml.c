@@ -365,8 +365,6 @@ static void cmn_cml_config_pcie_bus(cmn_id_t link)
  */
 static void cmn_cml_program_ccix_link(cmn_id_t link)
 {
-	if(cmn600_hw_chip_id() == 1)
-		udelay(1);
 	con_dbg(CMN_MODNAME ": Enabling CCIX %d...\n", link);
 	cmn_writeq(CMN_lnk_link_en,
 		   CMN_cxg_cxprtcl_link_ctl(cmn600_cxra_base(link), link),

@@ -95,6 +95,10 @@ config ARCH_HAS_BOOT_LOAD
 	bool
 	select XIP
 
+config ARCH_IS_BOOT_EXE
+	bool
+	default y if !ARCH_IS_BOOT_LIB
+
 config ARCH_IS_BOOT_LIB
 	bool
 	select XIP_LIB if XIP

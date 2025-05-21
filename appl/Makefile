@@ -4,6 +4,6 @@
 
 obj-y:=
 
-obj-y += appl.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += appl.rel
 obj-$(CONFIG_LCD_EZIO) += lcd_ezio.rel
 

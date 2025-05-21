@@ -1407,12 +1407,6 @@ bool cmn600_rnsam_is_rnf(cmn_nid_t nid)
 	return true;
 }
 
-static bool cmn_datacheck(cmn_nid_t nid)
-{
-	cmn_id_t xp = cmn600_nid2xp(nid);
-	return !!(cmn_mxp_datacheck(cmn_bases[cmn_xp_ids[xp]], CMN_PID(nid)));
-}
-
 #ifdef CONFIG_CMN600_CML
 caddr_t cmn600_cxha_base(cmn_id_t link)
 {
@@ -1487,6 +1481,14 @@ cmn_nid_t cmn600_local_rnf_nid(cmn_id_t id)
 	return 0;
 }
 #endif
+
+#ifdef CONFIG_COMMAND
+static bool cmn_datacheck(cmn_nid_t nid)
+{
+	cmn_id_t xp = cmn600_nid2xp(nid);
+	return !!(cmn_mxp_datacheck(cmn_bases[cmn_xp_ids[xp]], CMN_PID(nid)));
+}
+
 static int do_cmn600_dump(int argc, char *argv[])
 {
 	cmn_id_t x, y;
@@ -1738,3 +1740,4 @@ DEFINE_COMMAND(cmn600, do_cmn600, "Coherent mesh network (" CMN_MODNAME ") comma
 	CMN_MODNAME " ocm disable\n"
 	"    - disable CMN OCM configuration\n"
 );
+#endif

@@ -2,9 +2,9 @@
 # Makefile for the target kernel.
 #
 
-obj-y		:=
-obj-y           += main.rel
-obj-y           += init.rel
+obj-y :=
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += main.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += init.rel
 obj-${CONFIG_GEM5}	+= gem5/
 obj-${CONFIG_RIS}	+= ris/
 
