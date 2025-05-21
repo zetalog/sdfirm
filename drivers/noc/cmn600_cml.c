@@ -67,7 +67,7 @@ uint64_t cmn600_cml_base(caddr_t base, cmn_id_t chip, bool ccix)
 
 int cmn600_cml_get_config(void)
 {
-	if (cmn_rn_sam_int_count == 0)
+	if (cmn_cxla_count == 0)
 		return -ENODEV;
 
 	ccix_ra_count = cmn_rn_sam_int_count + cmn_rn_sam_ext_count;
@@ -656,11 +656,13 @@ static void cmn_cml_setup(cmn_id_t link)
 	}
 }
 
-void cmn600_cml_set_config(cmn_id_t link)
+int cmn600_cml_set_config(cmn_id_t link)
 {
 	cmn_id_t region_index;
 	struct cmn600_memregion *region;
 
+	if (cmn_cxla_count == 0)
+		return -ENODEV;
 	cmn_cml_smp_mode(link);
 	cmn_cml_setup(link);
 	cmn_cml_program_ra_sam(link);
@@ -682,6 +684,7 @@ void cmn600_cml_set_config(cmn_id_t link)
 	 *  10. Program CPA functionality in RN SAM
 	 *  11. Program CPA functionality in HN-F SAM
 	 */
+	return 0;
 }
 
 static void cmn_cml_enable_sf(cmn_id_t link)
@@ -730,15 +733,11 @@ void cmn600_cml_early_init(void)
 
 void cmn600_cml_init(void)
 {
-#ifndef USE_EARLY_INIT
 	int ret;
 
-	ret = cmn600_cml_get_config();
+	ret = cmn600_cml_set_config(cml_link_id);
 	if (ret < 0)
 		return;
-	cmn_cml_config_prop(cml_link_id);
-#endif
-	cmn600_cml_set_config(cml_link_id);
 	cmn600_cml_start();
 }
 

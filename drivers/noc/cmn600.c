@@ -159,8 +159,9 @@ const char *cmn600_revision_name(uint8_t revision)
 	return cmn_rev2name[revision];
 }
 #else
-#define cmn600_revision_name(revision)		NULL
-#define cmn600_node_type_name(node_type)	NULL
+#define cmn600_revision_name(revision)         NULL
+#define cmn600_mem_region_name(type)		NULL
+#define cmn600_node_type_name(node_type)       NULL
 #endif
 
 caddr_t cmn_bases[NR_CMN_NODES];
