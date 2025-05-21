@@ -388,7 +388,6 @@ ENTRY(relocate)
 	csrw	CSR_TVEC, a3
 	ret
 ENDPROC(relocate)
-#endif
 
 #define CONFIG_SMP_BOOT_QUIRK_INIT_WAIT_ENTRY	1
 secondary_start:
@@ -412,12 +411,14 @@ wait_for_cpu_up:
 	enable_abi
 	jr	a7
 #endif
+#endif
 
 .align 2
 secondary_park:
 	wfi
 	j	secondary_park
 
+#ifndef CONFIG_XIP_LIB
 #ifndef CONFIG_SPIKE_SHUTDOWN_OVPSIM
 ENTRY(_start_hang)
 1:
@@ -435,6 +436,7 @@ ENTRY(get_tp)
 	add	a0, tp, zero
 	ret
 ENDPROC(get_tp)
+#endif
 
 	.pushsection .data
 	.align 3

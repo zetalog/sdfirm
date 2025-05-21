@@ -65,7 +65,7 @@ uint64_t cmn600_cml_base(caddr_t base, cmn_id_t chip, bool ccix)
 	return (cmn600_hw_chip_base(base, chip));
 }
 
-int cmn600_cml_get_config(void)
+static int cmn600_cml_get_config(void)
 {
 	if (cmn_cxla_count == 0)
 		return -ENODEV;
@@ -654,7 +654,7 @@ static void cmn_cml_setup(cmn_id_t link)
 	}
 }
 
-int cmn600_cml_set_config(cmn_id_t link)
+static int cmn600_cml_set_config(cmn_id_t link)
 {
 	cmn_id_t region_index;
 	struct cmn600_memregion *region;
@@ -729,6 +729,13 @@ void cmn600_cml_early_init(void)
 	cmn_cml_config_prop(cml_link_id);
 }
 
+static void cmn600_cml_start(void)
+{
+	cmn_cml_establish_ccix_link(cml_link_id);
+	cmn_cml_enable_sf(cml_link_id);
+	cmn_cml_enable_dvm(cml_link_id);
+}
+
 void cmn600_cml_init(void)
 {
 	int ret;
@@ -737,11 +744,4 @@ void cmn600_cml_init(void)
 	if (ret < 0)
 		return;
 	cmn600_cml_start();
-}
-
-void cmn600_cml_start(void)
-{
-	cmn_cml_establish_ccix_link(cml_link_id);
-	cmn_cml_enable_sf(cml_link_id);
-	cmn_cml_enable_dvm(cml_link_id);
 }

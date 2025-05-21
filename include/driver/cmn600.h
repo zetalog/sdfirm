@@ -1623,7 +1623,6 @@ bool cmn600_rnsam_is_rni(cmn_nid_t nid);
 bool cmn600_rnsam_is_rnf(cmn_nid_t nid);
 bool cmn600_rnsam_is_cxha(cmn_nid_t nid);
 void cmn600_configure_rn_sam_ext(cmn_nid_t nid);
-cmn_id_t cmn600_max_tgt_nodes(void);
 cmn_id_t cmn600_nid2xp(cmn_nid_t nid);
 #ifdef CONFIG_CMN600_OCM
 void cmn600_enable_ocm(void);
@@ -1634,22 +1633,18 @@ void cmn600_disable_ocm(void);
 #endif
 #ifdef CONFIG_CMN600_CML
 void cmn600_cml_detect_mmap(void);
-int cmn600_cml_get_config(void);
 uint64_t cmn600_cml_base(caddr_t base, cmn_id_t chip_id, bool ccix);
 void cmn600_cml_early_init(void);
 void cmn600_cml_init(void);
-void cmn600_cml_start(void);
 caddr_t cmn600_cxha_base(cmn_id_t link);
 caddr_t cmn600_cxra_base(cmn_id_t link);
 caddr_t cmn600_cxla_base(cmn_id_t link);
 #else
 #define cmn600_cml_detect_mmap()			do { } while (0)
-#define cmn600_cml_get_config()				(-ENODEV)
 #define cmn600_cml_base(base, chip_id, ccix)		base
 #define cmn600_cml_early_init()				do { } while (0)
 #define cmn600_early_init()				do { } while (0)
 #define cmn600_cml_init()				do { } while (0)
-#define cmn600_cml_start()				do { } while (0)
 #define cmn600_cxha_base(link)				cmn_bases[cmn_cxha_ids[link]]
 #define cmn600_cxra_base(link)				cmn_bases[cmn_cxha_ids[link]]
 #define cmn600_cxla_base(link)				cmn_bases[cmn_cxla_ids[link]]
