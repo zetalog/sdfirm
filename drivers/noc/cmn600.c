@@ -444,7 +444,7 @@ static void cmn_hnf_ocm_enable(caddr_t hnf)
 	//while (cmn_hnf_op_mode_status(hnf) != CMN_ppu_op_mode_status_FAM);
 }
 
-void cmn_hnf_ocm_disable(caddr_t hnf)
+static void cmn_hnf_ocm_disable(caddr_t hnf)
 {
 	__cmn_hnf_ocm_unconfig(hnf);
 	__cmn_hnf_ocm_disable(hnf);
@@ -503,7 +503,7 @@ void cmn_hnf_abf_done(int hnf_id_idx)
 }
 */
 
-uint8_t cmn_hnf_mapping(void)
+static uint8_t cmn_hnf_mapping(void)
 {
 	if (cmn_snf_count == 3)
 		return CMN_HNF_MAPPING_HASHED_3SN;
@@ -605,7 +605,7 @@ static void cmn600_configure_hnf_sam(caddr_t hnf, cmn_id_t id)
 		   "CMN_hnf_ppu_pwpr", -1);
 }
 
-cmn_id_t cmn600_max_tgt_nodes(void)
+static cmn_id_t cmn600_max_tgt_nodes(void)
 {
 	switch (cmn_revision()) {
 	case CMN_r1p0:
@@ -770,7 +770,7 @@ static const uint8_t cmn_dev2count[] = {
 	[CMN_MXP_CXRH] = 4,
 };
 
-const uint8_t cmn600_dev_node_count(uint16_t dev_type)
+static const uint8_t cmn600_dev_node_count(uint16_t dev_type)
 {
 	if (dev_type <= CMN_MXP_CXRH)
 		return cmn_dev2count[dev_type];
@@ -778,7 +778,7 @@ const uint8_t cmn600_dev_node_count(uint16_t dev_type)
 	return cmn_dev2count[CMN_MXP_INVAL];
 }
 
-void cmn600_discover_xp(caddr_t xp)
+static void cmn600_discover_xp(caddr_t xp)
 {
 	cmn_id_t node_index, port_index, port_node_index;
 	cmn_id_t node_count;
@@ -821,7 +821,7 @@ void cmn600_discover_xp(caddr_t xp)
 	}
 }
 #else
-void cmn600_discover_xp(caddr_t xp)
+static void cmn600_discover_xp(caddr_t xp)
 {
 	cmn_id_t node_index;
 	cmn_id_t node_count;
@@ -838,7 +838,7 @@ void cmn600_discover_xp(caddr_t xp)
 }
 #endif
 
-void cmn600_discover(void)
+static void cmn600_discover(void)
 {
 	cmn_id_t xp_index;
 	cmn_id_t xp_count;
@@ -1230,6 +1230,7 @@ static void cmn600_configure_rn_sam(caddr_t rnsam)
 }
 #endif /* CONFIG_CMN600_SAM_RANGE_BASED */
 
+#if 0
 void cmn600_reconfigure(void)
 {
 	cmn_id_t i;
@@ -1247,8 +1248,9 @@ void cmn600_reconfigure(void)
 		cmn600_configure_rn_sam(CMN_RN_SAM_EXT_BASE(cmn_rn_sam_ext_ids[i]));
 	con_dbg(CMN_MODNAME ": Setup external RN-SAM nodes\n");
 }
+#endif
 
-void cmn600_configure(void)
+static void cmn600_configure(void)
 {
 	cmn_id_t i;
 

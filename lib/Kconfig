@@ -27,17 +27,37 @@ config BIT_FFS32
 config BIT_FFS64
 	bool "ffs64"
 
+config BIT_HWEIGHT8
+	bool "hweight8"
+	default y if ARCH_IS_BOOT_EXE
+
+config BIT_HWEIGHT16
+	bool "hweight16"
+	default y if ARCH_IS_BOOT_EXE
+
 config BIT_HWEIGHT32
 	bool "hweight32"
 
 config BIT_HWEIGHT64
 	bool "hweight64"
 
+config BIT_REV8
+	bool "rev8"
+	default y if ARCH_IS_BOOT_EXE
+
 config BIT_REV16
 	bool "rev16"
 
 config BIT_PARITY8
 	bool "parity8"
+
+config BIT_XCHG
+	bool "xchg"
+	default y if ARCH_IS_BOOT_EXE
+
+config BIT_CMPXCHG
+	bool "cmpxchg"
+	default y if ARCH_IS_BOOT_EXE
 
 endmenu
 
@@ -57,6 +77,30 @@ config ARCH_HAS_BITS_PER_UNIT_64
 	bool
 	select BIT_FFS64
 	select BIT_FLS64
+
+config BIT_TEST
+	bool "test_bit"
+	default y if ARCH_IS_BOOT_EXE
+
+config BIT_SET
+	bool "set_bit"
+	default y if ARCH_IS_BOOT_EXE
+
+config BIT_CLEAR
+	bool "clear_bit"
+	default y if ARCH_IS_BOOT_EXE
+
+config BIT_TEST_SET
+	bool "test_set_bit"
+	default y if ARCH_IS_BOOT_EXE
+
+config BIT_TEST_CLEAR
+	bool "test_clear_bit"
+	default y if ARCH_IS_BOOT_EXE
+
+config BIT_FIND_SET
+	bool "find_set_bit"
+	default y if ARCH_IS_BOOT_EXE
 
 config BIT_FIND_CLEAR
 	bool "find_clear_bit"

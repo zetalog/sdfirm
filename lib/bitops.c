@@ -29,6 +29,7 @@ uint8_t hweight32(uint32_t dword)
 }
 #endif
 
+#ifdef CONFIG_BIT_HWEIGHT16
 uint8_t hweight16(uint16_t word)
 {
 	uint16_t res = word - ((word >> 1) & 0x5555);
@@ -36,14 +37,18 @@ uint8_t hweight16(uint16_t word)
 	res = (res + (res >> 4)) & 0x0F0F;
 	return (res + (res >> 8)) & 0x00FF;
 }
+#endif
 
+#ifdef CONFIG_BIT_HWEIGHT8
 uint8_t hweight8(uint8_t byte)
 {
 	uint8_t res = byte - ((byte >> 1) & 0x55);
 	res = (res & 0x33) + ((res >> 2) & 0x33);
 	return (res + (res >> 4)) & 0x0F;
 }
+#endif
 
+#ifdef CONFIG_BIT_REV8
 uint8_t bitrev8(uint8_t byte)
 {
 	byte = ((byte & 0x55) << 1 | (byte & 0xAA) >> 1);
@@ -51,6 +56,7 @@ uint8_t bitrev8(uint8_t byte)
 	byte = ((byte & 0x0F) << 4 | (byte & 0xF0) >> 4);
 	return byte;
 }
+#endif
 
 #ifdef CONFIG_BIT_REV16
 uint16_t bitrev16(uint16_t word)
@@ -72,20 +78,25 @@ uint16_t bitrev16(uint16_t word)
  * If it's called on the same region of memory simultaneously, the effect
  * may be that only one operation succeeds.
  */
+#ifdef CONFIG_BIT_SET
 void __set_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
 	*p |= mask;
 }
+#endif
 
+#ifdef CONFIG_BIT_CLEAR
 void __clear_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
 	*p &= ~mask;
 }
+#endif
 
+#ifdef CONFIG_BIT_TEST_SET
 bool __test_and_set_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
@@ -95,7 +106,9 @@ bool __test_and_set_bit(bits_t nr, volatile bits_t *addr)
 	*p = old | mask;
 	return (old & mask) != 0;
 }
+#endif
 
+#ifdef CONFIG_BIT_TEST_CLEAR
 bool __test_and_clear_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
@@ -105,22 +118,28 @@ bool __test_and_clear_bit(bits_t nr, volatile bits_t *addr)
 	*p = old & ~mask;
 	return (old & mask) != 0;
 }
+#endif
 
 #ifdef CONFIG_SMP
+#ifdef CONFIG_BIT_SET
 void set_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
 	atomic_or(mask, (atomic_t *)p);
 }
+#endif
 
+#ifdef CONFIG_BIT_CLEAR
 void clear_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
 	bits_t *p = ((bits_t *)addr) + BITOP_WORD(nr);
 	atomic_andnot(mask, (atomic_t *)p);
 }
+#endif
 
+#ifdef CONFIG_BIT_TEST_SET
 bool test_and_set_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
@@ -130,7 +149,9 @@ bool test_and_set_bit(bits_t nr, volatile bits_t *addr)
 	old = atomic_fetch_or(mask, (atomic_t *)p);
 	return (old & mask) != 0;
 }
+#endif
 
+#ifdef CONFIG_BIT_TEST_CLEAR
 bool test_and_clear_bit(bits_t nr, volatile bits_t *addr)
 {
 	bits_t mask = BITOP_MASK(nr);
@@ -141,7 +162,9 @@ bool test_and_clear_bit(bits_t nr, volatile bits_t *addr)
 	return (old & mask) != 0;
 }
 #endif
+#endif
 
+#ifdef CONFIG_BIT_TEST
 /**
  * test_bit - Determine whether a bit is set
  * @nr: bit number to test
@@ -151,7 +174,9 @@ boolean test_bit(bits_t nr, const bits_t *addr)
 {
 	return (bits_t)1 & (addr[BITOP_WORD(nr)] >> (nr & (BITS_PER_UNIT-1)));
 }
+#endif
 
+#ifdef CONFIG_BIT_FIND_CLEAR
 bits_t find_next_set_bit(const bits_t *addr,
 			 bits_t size,
 			 bits_t offset)
@@ -191,6 +216,7 @@ found_first:
 found_middle:
 	return result + __ffs_unit(tmp);
 }
+#endif
 
 #ifdef CONFIG_BIT_FIND_CLEAR
 bits_t find_next_clear_bit(const bits_t *addr,
@@ -461,6 +487,7 @@ uint8_t __fls64(uint64_t quad)
 #endif
 
 #ifndef CONFIG_SMP
+#ifdef CONFIG_BIT_XCHG
 unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 {
 	unsigned long ret;
@@ -514,7 +541,9 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 		return x;
 	}
 }
+#endif
 
+#ifdef CONFIG_CMPXCHG
 unsigned long __cmpxchg(volatile void *ptr,
 			unsigned long old, unsigned long new, int size)
 {
@@ -573,6 +602,7 @@ unsigned long __cmpxchg(volatile void *ptr,
 		return new;
 	}
 }
+#endif
 #endif
 
 #ifdef CONFIG_BIT_PARITY8
