@@ -176,7 +176,7 @@ boolean test_bit(bits_t nr, const bits_t *addr)
 }
 #endif
 
-#ifdef CONFIG_BIT_FIND_CLEAR
+#ifdef CONFIG_BIT_FIND_SET
 bits_t find_next_set_bit(const bits_t *addr,
 			 bits_t size,
 			 bits_t offset)
