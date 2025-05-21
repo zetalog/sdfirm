@@ -337,6 +337,7 @@ __abi_start_warm:
 #endif
 ENDPROC(__start)
 
+#ifndef CONFIG_XIP_LIB
 ENTRY(__sbi_exit)
 	fence	rw, rw
 	init_gp
@@ -387,6 +388,7 @@ ENTRY(relocate)
 	csrw	CSR_TVEC, a3
 	ret
 ENDPROC(relocate)
+#endif
 
 #define CONFIG_SMP_BOOT_QUIRK_INIT_WAIT_ENTRY	1
 secondary_start:

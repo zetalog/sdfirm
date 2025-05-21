@@ -5,12 +5,12 @@
 obj-y:=
 
 obj-y += panic.rel
-obj-y += bh.rel
-obj-y += irq.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += bh.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += irq.rel
 obj-$(CONFIG_MSI) += msi.rel
-obj-y += delay.rel
-obj-y += stack.rel
-obj-y += smp.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += delay.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += stack.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += smp.rel
 obj-$(CONFIG_SMP) += percpu.rel
 obj-$(CONFIG_ARCH_HAS_QSPINLOCK) += spinlock.rel
 obj-$(CONFIG_MEM) += mem.rel
