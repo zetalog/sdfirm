@@ -543,7 +543,7 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 }
 #endif
 
-#ifdef CONFIG_CMPXCHG
+#ifdef CONFIG_BIT_CMPXCHG
 unsigned long __cmpxchg(volatile void *ptr,
 			unsigned long old, unsigned long new, int size)
 {
