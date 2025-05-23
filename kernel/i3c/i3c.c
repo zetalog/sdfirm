@@ -82,6 +82,85 @@ const char *i3c_status_names[] = {
 	"STOP",
 };
 
+const char *i3c_ccc_broadcast_names[] = {
+	"ENEC",
+	"DISEC",
+	"ENTAS0",
+	"ENTAS1",
+	"ENTAS2",
+	"ENTAS3",
+	"RSTDAA",
+	"ENTDAA",
+	"DEFSLVS",
+	"SETMWL",
+	"SETMRL",
+	"ENTTM",
+	"0x0C",
+	"0x0D",
+	"0x0E",
+	"0x0F",
+	"0x10",
+	"0x11",
+	"0x12",
+	"0x13",
+	"0x14",
+	"0x15",
+	"0x16",
+	"0x17",
+	"0x18",
+	"0x19",
+	"0x1A",
+	"0x1B",
+	"0x1C",
+	"0x1D",
+	"0x1E",
+	"0x1F",
+	"ENTHDR0",
+	"ENTHDR1",
+	"ENTHDR2",
+	"ENTHDR3",
+	"ENTHDR4",
+	"ENTHDR5",
+	"ENTHDR6",
+	"ENTHDR7",
+	"SETXTIME",
+};
+
+const char *i3c_ccc_direct_names[] = {
+	"ENEC",
+	"DISEC",
+	"ENTAS0",
+	"ENTAS1",
+	"ENTAS2",
+	"ENTAS3",
+	"RSTDAA",
+	"SETDASA",
+	"SETNEWDA",
+	"SETMWL",
+	"SETMRL",
+	"GETMWL",
+	"GETMRL",
+	"GETPID",
+	"GETBCR",
+	"GETDCR",
+	"GETSTATUS",
+	"GETACCMST",
+	"0x12",
+	"SETBRGTGT",
+	"GETMXDS",
+	"GETHDRCAP",
+	"0x16",
+	"0x17",
+	"SETXTIME",
+	"GETXTIME",
+	"0x1A",
+	"0x1B",
+	"0x1C",
+	"0x1D",
+	"0x1E",
+	"0x1F",
+};
+
 const char *i3c_state_name(uint8_t state)
 {
 	if (state >= ARRAY_SIZE(i3c_state_names))
@@ -101,11 +180,26 @@ const char *i3c_event_name(uint8_t event)
 	}
 	return "NONE";
 }
+
 const char *i3c_status_name(uint8_t status)
 {
 	if (status >= ARRAY_SIZE(i3c_status_names))
 		return "UNKNOWN";
 	return i3c_status_names[status];
+}
+
+const char *i3c_ccc_name(uint8_t cc)
+{
+	if (cc & I3C_CCC_DIRECT) {
+		cc ^= ~I3C_CCC_DIRECT;
+		if (cc >= ARRAY_SIZE(i3c_ccc_direct_names))
+			return "UNKNOWN";
+		return i3c_ccc_direct_names[cc];
+	} else {
+		if (cc >= ARRAY_SIZE(i3c_ccc_broadcast_names))
+			return "UNKNOWN";
+		return i3c_ccc_broadcast_names[cc];
+	}
 }
 
 void i3c_raise_event(uint8_t event)
@@ -197,6 +291,9 @@ static void i3c_transfer_reset(void)
 
 static void i3c_ccc_submit(struct i3c_ccc *ccc)
 {
+	i3c_dbg("i3c: ccc = %s (%c)\n",
+		i3c_ccc_name(ccc->id),
+		ccc->id & I3C_CCC_DIRECT ? 'D' : 'B');
 	i3c_hw_submit_ccc(ccc);
 }
 
