@@ -362,7 +362,6 @@ typedef uint32_t cmn_id_t;
 #define CMN_dtm_pmevcnt(base, n)	CMN_16BIT_REG(base, 0x2220, n)
 #define CMN_dtm_pmevcntsr(base)		CMN_16BIT_REG(base, 0x2240, n)
 
-//abf
 #define hnf_abf_lo_addr(base)		(__raw_readq(CMN_hnf_abf_lo_addr(base)))
 #define hnf_abf_hi_addr(base)		(__raw_readq(CMN_hnf_abf_hi_addr(base)))
 #define hnf_abf_pr(base)		(__raw_readq(CMN_hnf_abf_pr(base)))
@@ -797,6 +796,11 @@ typedef uint8_t cmn_did_t;
 #define CMN_slc_lock_base_MASK			REG_48BIT_MASK
 #define CMN_slc_lock_base(value)		_SET_FV_ULL(CMN_slc_lock_base, value)
 #define CMN_slc_lock_base_vld			_BV_ULL(63)
+
+/* CMN_hnf_r2_aux_ctl */
+#define CMN_hnf_r2_aux_chic_rdnosnpsep_dis	_BV_ULL(0)
+#define CMN_hnf_r2_aux_pcmo_terminate_en	_BV_ULL(1)
+#define CMN_hnf_r2_aux_force_flush_ewa0_en	_BV_ULL(2)
 
 /* CMN_hnf_ppu_pwpr */
 #define CMN_ppu_policy_OFFSET			0

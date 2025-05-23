@@ -603,6 +603,9 @@ static void cmn600_configure_hnf_sam(caddr_t hnf, cmn_id_t id)
 		   CMN_ppu_op_mode(CMN_ppu_op_mode_FAM) |
 		   CMN_ppu_dyn_en, CMN_hnf_ppu_pwpr(hnf),
 		   "CMN_hnf_ppu_pwpr", -1);
+	cmn_setq(CMN_hnf_r2_aux_chic_rdnosnpsep_dis,
+		   CMN_hnf_r2_aux_ctl(hnf),
+		   "CMN_hnf_r2_aux_ctl", -1);
 }
 
 static cmn_id_t cmn600_max_tgt_nodes(void)
