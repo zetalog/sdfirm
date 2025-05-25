@@ -6,14 +6,14 @@
 
 typedef uint8_t i3c_t;
 
-#define I3C_ADDR_LEN		1
+#define I3C_ADDR_LEN			1
 
-#define I3C_ADDR_BROADCAST	0x7E
-#define I3C_ADDR_HOTJOIN	0x02
+#define I3C_ADDR_BROADCAST		0x7E
+#define I3C_ADDR_HOTJOIN		0x02
 
-#define I3C_BCR			0x00
-#define I3C_DCR			0x01
-#define I3C_LVR			0x02
+#define I3C_BCR				0x00
+#define I3C_DCR				0x01
+#define I3C_LVR				0x02
 
 #define I3C_BCR_MaxDataSpeedLimitation	_BV(0)
 #define I3C_BCR_IBIRequestCapability	_BV(1)
@@ -84,6 +84,8 @@ typedef uint8_t i3c_t;
 #define I3C_CCC_EC_MR		_BV(1)
 #define I3C_CCC_EC_HJ		_BV(3)
 #define I3C_CCC_EC_ALL		(I3C_CCC_EC_INT | I3C_CCC_EC_MR | I3C_CCC_EC_HJ)
+
+#define I3C_CCC_NONE		0xff
 
 /* ENEC/DISEC */
 struct i3c_ccc_ec {
@@ -166,48 +168,50 @@ typedef uint8_t i3c_bus_t;
 #define I3C_SCL_RATE_I2C_FAST		400000
 #define I3C_I3C_TLOW_OD_MIN_NS		200
 
-#define I3C_BUS_PURE		0x00
-#define I3C_BUS_MIXED_FAST	0x04
-#define I3C_BUS_MIXED_LIMITED	0x08
-#define I3C_BUS_MIXED_SLOW	0x0C
-#define I3C_MODE_MASK		0x0C
-#define I3C_MODE_SLAVE		0x00
-#define I3C_MODE_MASTER		0x02
-#define I3C_BUS_MASK		0x02
-#define I3C_MODE_TX		0x00
-#define I3C_MODE_RX		0x01
-#define I3C_DIR_MASK		0x01
+#define I3C_BUS_PURE			0x00
+#define I3C_BUS_MIXED_FAST		0x04
+#define I3C_BUS_MIXED_LIMITED		0x08
+#define I3C_BUS_MIXED_SLOW		0x0C
+#define I3C_MODE_MASK			0x0C
+#define I3C_MODE_SLAVE			0x00
+#define I3C_MODE_MASTER			0x02
+#define I3C_BUS_MASK			0x02
+#define I3C_MODE_TX			0x00
+#define I3C_MODE_RX			0x01
+#define I3C_DIR_MASK			0x01
 
-#define I3C_MODE_SLAVE_TX	(I3C_MODE_SLAVE | I3C_MODE_TX)
-#define I3C_MODE_MASTER_TX	(I3C_MODE_MASTER | I3C_MODE_TX)
-#define I3C_MODE_SLAVE_RX	(I3C_MODE_SLAVE | I3C_MODE_RX)
-#define I3C_MODE_MASTER_RX	(I3C_MODE_MASTER | I3C_MODE_RX)
+#define I3C_MODE_SLAVE_TX		(I3C_MODE_SLAVE | I3C_MODE_TX)
+#define I3C_MODE_MASTER_TX		(I3C_MODE_MASTER | I3C_MODE_TX)
+#define I3C_MODE_SLAVE_RX		(I3C_MODE_SLAVE | I3C_MODE_RX)
+#define I3C_MODE_MASTER_RX		(I3C_MODE_MASTER | I3C_MODE_RX)
 
-#define I3C_MODE(x)		(x & I3C_MODE_MASK)
-#define I3C_BUS(x)		(x & I3C_BUS_MASK)
-#define I3C_DIR(x)		(x & I3C_DIR_MASK)
-#define I3C_BUS_DIR(x)		(x & (I3C_BUS_MASK | I3C_DIR_MASK))
-#define I3C_SET_BUS(x, b)	(x &= ~I3C_BUS_MASK, x |= b)
-#define I3C_SET_DIR(x, d)	(x &= ~I3C_DIR_MASK, x |= d)
+#define I3C_MODE(x)			(x & I3C_MODE_MASK)
+#define I3C_BUS(x)			(x & I3C_BUS_MASK)
+#define I3C_DIR(x)			(x & I3C_DIR_MASK)
+#define I3C_BUS_DIR(x)			(x & (I3C_BUS_MASK | I3C_DIR_MASK))
+#define I3C_SET_BUS(x, b)		(x &= ~I3C_BUS_MASK, x |= b)
+#define I3C_SET_DIR(x, d)		(x &= ~I3C_DIR_MASK, x |= d)
 
-#define I3C_STATUS_INIT		0x00
-#define I3C_STATUS_IDLE		0x01
-#define I3C_STATUS_START	0x02
-#define I3C_STATUS_ACK		0x03
-#define I3C_STATUS_NACK		0x04
-#define I3C_STATUS_STOP		0x05
+#define I3C_STATUS_INIT			0x00
+#define I3C_STATUS_IDLE			0x01
+#define I3C_STATUS_START		0x02
+#define I3C_STATUS_ACK			0x03
+#define I3C_STATUS_NACK			0x04
+#define I3C_STATUS_STOP			0x05
 
-#define I3C_STATE_INIT		0x00
-#define I3C_STATE_IDLE		0x01
-#define I3C_STATE_START		0x02
-#define I3C_STATE_STOP		0x03
-#define I3C_STATE_WAIT		0x04
-#define I3C_STATE_WRITE		0x05
-#define I3C_STATE_READ		0x06
+#define I3C_STATE_INIT			0x00
+#define I3C_STATE_IDLE			0x01
+#define I3C_STATE_START			0x02
+#define I3C_STATE_STOP			0x03
+#define I3C_STATE_WAIT			0x04
+#define I3C_STATE_WRITE			0x05
+#define I3C_STATE_READ			0x06
 
 /* Dynamic Address Assignment (DAA) FSM */
-#define I3C_STATE_RSTDAA		0x07
-#define I3C_STATE_DISEC			0x08
+#define I3C_BUS_INIT			0x00
+#define I3C_BUS_RSTDAA			0x01
+#define I3c_BUS_SETAASA			0x02
+
 /* SET_STATUS */
 #define I3C_STATE_SETDASA		0x09
 #define I3C_STATE_GETPID		0x09
@@ -216,29 +220,37 @@ typedef uint8_t i3c_bus_t;
 #define I3C_STATE_READ_BCR		0x0C
 #define I3C_STATE_READ_DCR		0x0D
 
-#define I3C_EVENT_INIT		_BV(I3C_STATUS_INIT)
-#define I3C_EVENT_IDLE		_BV(I3C_STATUS_IDLE)
-#define I3C_EVENT_START		_BV(I3C_STATUS_START)
-#define I3C_EVENT_PAUSE		_BV(I3C_STATUS_ACK)
-#define I3C_EVENT_ABORT		_BV(I3C_STATUS_NACK)
-#define I3C_EVENT_STOP		_BV(I3C_STATUS_STOP)
+#define I3C_EVENT_INIT			_BV(I3C_STATUS_INIT)
+#define I3C_EVENT_IDLE			_BV(I3C_STATUS_IDLE)
+#define I3C_EVENT_START			_BV(I3C_STATUS_START)
+#define I3C_EVENT_PAUSE			_BV(I3C_STATUS_ACK)
+#define I3C_EVENT_ABORT			_BV(I3C_STATUS_NACK)
+#define I3C_EVENT_STOP			_BV(I3C_STATUS_STOP)
+
+#define I3C_OP_NONE			0
+#define I3C_OP_SWITCH_I3C		1
+#define I3C_OP_SWITCH_I2C		2
+#define I3C_OP_PROBE			3
 
 #include <driver/i3c.h>
+
+#define i3c_op_busy()			(!!(i3c_op != I3C_OP_NONE))
+#define i3c_op_is(op)			(i3c_op == (op))
 
 #define i3c_addr_mode(addr, mode)	(((addr) << 1) | (mode))
 #define i3c_addr(addr_mode)		((addr_mode) >> 1)
 #define i3c_mode(addr_mode)		((addr_mode) & 0x01)
 
 #if CONFIG_I3C_MAX_MASTERS > I3C_HW_MAX_MASTERS
-#define NR_I3C_MASTERS		I3C_HW_MAX_MASTERS
+#define NR_I3C_MASTERS			I3C_HW_MAX_MASTERS
 #else
-#define NR_I3C_MASTERS		CONFIG_I3C_MAX_MASTERS
+#define NR_I3C_MASTERS			CONFIG_I3C_MAX_MASTERS
 #endif
-#define INVALID_I3C		NR_I3C_MASTERS
+#define INVALID_I3C			NR_I3C_MASTERS
 
-#define I3C_MAX_ADDR		0x7F
-#define I3C_NR_ADDRS		(I3C_MAX_ADDR + 1)
-#define INVALID_I3C_ADDR	I3C_NR_ADDRS
+#define I3C_MAX_ADDR			0x7F
+#define I3C_NR_ADDRS			(I3C_MAX_ADDR + 1)
+#define INVALID_I3C_ADDR		I3C_NR_ADDRS
 
 typedef uint16_t i3c_event_t;
 
@@ -246,10 +258,17 @@ struct i3c_device {
 	i3c_io_cb iocb;
 };
 typedef struct i3c_device i3c_device_t;
+typedef void (*i3c_cmpl_cb)(i3c_device_t slave, uint8_t op, bool result);
 
 struct i3c_master {
 	uint16_t freq;
 	uint8_t bus;
+
+	/* Runnning sequence */
+	bool is_i2c;
+	uint8_t op;
+	i3c_cmpl_cb op_cb;
+	struct i3c_ccc *ccc;
 
 	i3c_addr_t dev_addr;
 
@@ -264,6 +283,7 @@ struct i3c_master {
 
 	/* Current communication device */
 	i3c_device_t *device;
+	uint8_t bus_state;
 
 	/* State machine variables */
 	uint8_t state;
@@ -279,12 +299,18 @@ struct i3c_master {
 	uint8_t i3c_len;
 };
 
+#define i3c_ccc_is(ccc)		(((ccc) & ~I3C_CCC_DIRECT) == (i3c_current_ccc() & ~I3C_CCC_DIRECT))
+
 #if NR_I3C_MASTERS > 1
 extern struct i3c_master i3c_masters[NR_I3C_MASTERS];
 extern i3c_t i3c_mid;
 
 #define i3c_freq	i3c_masters[i3c_mid].freq
 #define i3c_bus		i3c_masters[i3c_mid].bus
+#define i3c_is_i2c	i3c_masters[i3c_mid].is_i2c
+#define i3c_op		i3c_masters[i3c_mid].op
+#define i3c_op_cb	i3c_masters[i3c_mid].op_cb
+#define i3c_ccc		i3c_masters[i3c_mid].ccc
 #define i3c_dev_addr	i3c_masters[i3c_mid].dev_addr
 #define i3c_txsubmit	i3c_masters[i3c_mid].txsubmit
 #define i3c_rxsubmit	i3c_masters[i3c_mid].rxsubmit
@@ -292,6 +318,7 @@ extern i3c_t i3c_mid;
 #define i3c_current	i3c_masters[i3c_mid].current
 #define i3c_commit	i3c_masters[i3c_mid].commit
 #define i3c_state	i3c_masters[i3c_mid].state
+#define i3c_bus_state	i3c_masters[i3c_mid].bus_state
 #define i3c_event	i3c_masters[i3c_mid].event
 #define i3c_status	i3c_masters[i3c_mid].status
 #define i3c_device	i3c_masters[i3c_mid].device
@@ -308,12 +335,17 @@ i3c_t i3c_master_save(i3c_t i3c);
 #else
 extern uint16_t i3c_freq;
 extern uint8_t i3c_mode;
+extern bool i3c_is_i2c;
+extern uint8_t i3c_op;
+extern i3c_cmpl_cb i3c_op_cb;
+extern struct i3c_ccc *i3c_ccc;
 extern i3c_addr_t i3c_dev_addr;
 extern i3c_len_t i3c_txsubmit;
 extern i3c_len_t i3c_rxsubmit;
 extern i3c_len_t i3c_limit;
 extern i3c_len_t i3c_current;
 extern i3c_len_t i3c_commit;
+extern uint8_t i3c_bus_state;
 extern uint8_t i3c_state;
 extern i3c_event_t i3c_event;
 extern uint8_t i3c_status;
@@ -369,6 +401,10 @@ extern i3c_t i3c_mid;
 void i3c_raise_event(uint8_t event);
 void i3c_enter_state(uint8_t state);
 
+int i3c_start_op(uint8_t op, i3c_cmpl_cb cb);
+bool i3c_op_complete(uint8_t result);
+void i3c_ccc_complete(bool success);
+
 /* called by device driver */
 void i3c_register_device(i3c_device_t *dev);
 uint8_t i3c_read_byte(void);
@@ -379,12 +415,13 @@ uint8_t i3c_bus_mode(void);
 uint8_t i3c_dir_mode(void);
 uint8_t i3c_bus_dir_mode(void);
 
+uint8_t i3c_current_ccc(void);
+
 void i3c_master_submit_async(i3c_addr_t slave, i3c_len_t txlen, i3c_len_t rxlen);
 void i3c_master_commit(i3c_len_t len);
 void i3c_master_abort(i3c_addr_t slave);
 void i3c_master_start(void);
 void i3c_master_stop(void);
-void i3c_config_mode(uint8_t mode, bool freq);
 void i3c_sync_status(void);
 void i3c_bus_set_status(uint8_t status);
 
