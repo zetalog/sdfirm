@@ -649,6 +649,8 @@
 			   DEVICE_ADDR(n))
 #define dw_mipi_i3c_disable_all_irqs(n)					\
 	dw_i3c_writel(0, INTR_STATUS_EN(n))
+#define dw_mipi_i3c_enable_all_irqs(n)					\
+	dw_i3c_writel(INTR_ALL, INTR_STATUS(n))
 #define dw_mipi_i3c_enable_mst_irqs(n)					\
 	do {								\
 		dw_i3c_writel(INTR_MST, INTR_STATUS_EN(dw_i3cd));	\
@@ -728,7 +730,6 @@ void dw_i3c_writel(uint32_t val, caddr_t reg);
 void dw_mipi_i3c_ctrl_init(clk_freq_t core_rate);
 void dw_mipi_i3c_set_speed(bool od_normal);
 void dw_mipi_i3c_submit_ccc(struct i3c_ccc *ccc);
-void dw_mipi_i3c_finish_init(void);
 void dw_mipi_i3c_handle_irq(void);
 void dw_mipi_i3c_transfer_reset(void);
 void dw_mipi_i3c_start_condition(bool sr);

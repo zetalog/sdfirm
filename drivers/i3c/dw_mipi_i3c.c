@@ -28,8 +28,6 @@ static struct dw_mipi_i3c_ctx dw_i3cs[NR_DW_I3CS] = {0};
 void dw_mipi_i3c_master_select(i3c_t i3c)
 {
 	BUG_ON(i3c >= NR_DW_I3CS);
-
-	printf("selecting %d\n", i3c);
 	dw_i3cd = i3c;
 }
 #else
@@ -51,8 +49,6 @@ static struct dw_mipi_i3c_ctx dw_i3c;
 
 static void dw_mipi_i3c_begin_xfer(void);
 static void dw_mipi_i3c_end_xfer(void);
-
-static uint8_t dw_i3c_inited[NR_DW_I3CS] = {0};
 
 uint32_t dw_i3c_readl(caddr_t reg)
 {
@@ -142,12 +138,23 @@ static void dw_mipi_i3c_read_rx_fifo(uint8_t *bytes, uint16_t nbytes)
 	}
 }
 
+static void dw_mipi_i3c_enable_xfer(void)
+{
+	dw_mipi_i3c_enable_all_irqs(dw_i3cd);
+}
+
+static void dw_mipi_i3c_disable_xfer(void)
+{
+	dw_mipi_i3c_disable_all_irqs(dw_i3cd);
+}
+
 static void dw_mipi_i3c_enqueue_xfer(struct dw_mipi_i3c_xfer *xfer)
 {
 	if (dw_i3c_curr) {
 		list_add_tail(&xfer->node, &dw_i3c_list);
 	} else {
 		dw_i3c_curr = xfer;
+		dw_mipi_i3c_enable_xfer();
 		dw_mipi_i3c_begin_xfer();
         }
 }
@@ -203,6 +210,7 @@ static void dw_mipi_i3c_end_xfer(void)
 	xfer = dw_i3c_curr;
 	if (!xfer)
 		return;
+
 	nresp = DW_RESP_BUF_BLR(dw_i3c_readl(QUEUE_STATUS_LEVEL(dw_i3cd)));
 	for (i = 0; i < nresp; i++) {
 		resp = dw_i3c_readl(RESPONSE_QUEUE_PORT(dw_i3cd));
@@ -237,18 +245,19 @@ static void dw_mipi_i3c_end_xfer(void)
 	}
 
 	xfer->ret = ret;
-	/* TODO: iocb */
+	i3c_ccc_complete(!!(ret == 0));
 
-	if (ret < 0) {
-		dw_mipi_i3c_dequeue_xfer(xfer);
+	/* TODO: async */
+	dw_mipi_i3c_dequeue_xfer(xfer);
+	if (ret < 0)
 		dw_i3c_setl(DW_RESUME, DEVICE_CTRL(dw_i3cd));
-	}
 
 	xfer = list_first_entry(&dw_i3c_list,
 				struct dw_mipi_i3c_xfer, node);
 	if (xfer)
 		list_del_init(&xfer->node);
-
+	else
+		dw_mipi_i3c_disable_xfer();
 	dw_i3c_curr = xfer;
 	dw_mipi_i3c_begin_xfer();
 }
@@ -316,8 +325,8 @@ static int dw_mipi_i3c_ccc_daa(struct i3c_ccc *ccc)
 		      DW_COMMAND_ROC;
 
 	dw_mipi_i3c_enqueue_xfer(xfer);
-	bh_sync();
-	dw_mipi_i3c_dequeue_xfer(xfer);
+	while (dw_i3c_curr)
+		bh_sync();
 
 	newdevs = GENMASK(dw_i3c_maxdevs - cmd->rx_len - 1, 0);
 	newdevs &= ~olddevs;
@@ -337,7 +346,7 @@ static int dw_mipi_i3c_ccc_set(struct i3c_ccc *ccc)
 {
 	struct dw_mipi_i3c_xfer *xfer;
 	struct dw_mipi_i3c_cmd *cmd;
-	int ret, pos = 0;
+	int ret = 0, pos = 0;
 
 	if (ccc->id == I3C_CCC_ENTDAA)
 		return dw_mipi_i3c_ccc_daa(ccc);
@@ -364,8 +373,8 @@ static int dw_mipi_i3c_ccc_set(struct i3c_ccc *ccc)
 		      DW_COMMAND_TOC |
 		      DW_COMMAND_ROC;
 	dw_mipi_i3c_enqueue_xfer(xfer);
-	bh_sync();
-	dw_mipi_i3c_dequeue_xfer(xfer);
+	while (dw_i3c_curr)
+		bh_sync();
 
 	ret = xfer->ret;
 	dw_mipi_i3c_free_xfer(xfer);
@@ -376,7 +385,7 @@ static int dw_mipi_i3c_ccc_get(struct i3c_ccc *ccc)
 {
 	struct dw_mipi_i3c_xfer *xfer;
 	struct dw_mipi_i3c_cmd *cmd;
-	int ret, pos = 0;
+	int ret = 0, pos = 0;
 
 	pos = dw_mipi_i3c_get_addr_pos(ccc->dests[0].addr);
 	if (pos < 0)
@@ -400,8 +409,8 @@ static int dw_mipi_i3c_ccc_get(struct i3c_ccc *ccc)
 		      DW_COMMAND_ROC;
 
 	dw_mipi_i3c_enqueue_xfer(xfer);
-	bh_sync();
-	dw_mipi_i3c_dequeue_xfer(xfer);
+	while (dw_i3c_curr)
+		bh_sync();
 
 	ret = xfer->ret;
 	dw_mipi_i3c_free_xfer(xfer);
@@ -418,8 +427,6 @@ void dw_mipi_i3c_submit_ccc(struct i3c_ccc *ccc)
 
 void dw_mipi_i3c_finish_init()
 {
-	dw_i3c_inited[dw_i3cd] = 1;
-	dw_mipi_i3c_disable_all_irqs(dw_i3cd);
 }
 
 static void dw_mipi_i3c_drain_ibi(int len)
@@ -468,54 +475,46 @@ void dw_mipi_i3c_handle_irq(void)
 	pending = __raw_readl(INTR_STATUS(dw_i3cd));
 	enabled = __raw_readl(INTR_STATUS_EN(dw_i3cd));
 	pending &= enabled;
-	if (pending) {
-		dw_i3c_writel(INTR_ALL, INTR_STATUS(dw_i3cd));
-	}
-	if (pending & INTR_BUS_RESET_DONE){
-		dw_i3c_dbg("dw_i3c: Bus reset done\n");
-	}
-	if (pending & INTR_BUSOWNER_UPDATED){
-		dw_i3c_dbg("dw_i3c: Bus owner updated\n");
-	}
-	if (pending & INTR_IBI_UPDATED){
-		dw_i3c_dbg("dw_i3c: IBI updated\n");
-	}
-	if (pending & INTR_READ_REQ_RECV){
-		dw_i3c_dbg("dw_i3c: Read request received\n");
-	}
-	if (pending & INTR_DEFSLV){
-		dw_i3c_dbg("dw_i3c: Default slave\n");
-	}
-	if (pending & INTR_TRANSFER_ERR){
-		dw_i3c_dbg("dw_i3c: Transfer error\n");
-	}
-	if (pending & INTR_DYN_ADDR_ASSIGN){
-		dw_i3c_dbg("dw_i3c: Dynamic address assign\n");
-	}
-	if (pending & INTR_CCC_UPDATED){
-		dw_i3c_dbg("dw_i3c: CCC updated\n");
-	}
-	if (pending & INTR_TRANSFER_ABORT){
-		dw_i3c_dbg("dw_i3c: Transfer aborted\n");
-	}
-	if (pending & INTR_RESP_READY){
-		dw_i3c_dbg("dw_i3c: Response ready\n");
-	}
-	if (pending & INTR_CMD_QUEUE_READY){
-		dw_i3c_dbg("dw_i3c: Command queue ready\n");
-	}
-	if (pending & INTR_RX_THLD){
-		dw_i3c_dbg("dw_i3c: RX threshold\n");
-	}
-	if (pending & INTR_TX_THLD){
-		dw_i3c_dbg("dw_i3c: TX threshold\n");
-	}
+
+	if (!pending)
+		return;
+
+	dw_i3c_writel(INTR_ALL, INTR_STATUS(dw_i3cd));
+	if (pending & INTR_BUS_RESET_DONE)
+		dw_i3c_dbg("dw_i3c: INTR_BUS_RESET_DONE\n");
+	if (pending & INTR_BUSOWNER_UPDATED)
+		dw_i3c_dbg("dw_i3c: INTR_BUSOWNER_UPDATED\n");
+#ifdef CONFIG_DW_MIPI_I3C_SLAVE
+	if (pending & INTR_IBI_UPDATED)
+		dw_i3c_dbg("dw_i3c: INTR_IBI_UPDATED\n");
+	if (pending & INTR_READ_REQ_RECV)
+		dw_i3c_dbg("dw_i3c: INTR_READ_REQ_RECV\n");
+	if (pending & INTR_DEFSLV)
+		dw_i3c_dbg("dw_i3c: INTR_DEFSLV\n");
+	if (pending & INTR_DYN_ADDR_ASSIGN)
+		dw_i3c_dbg("dw_i3c: INTR_DYN_ADDR_ASSIGN\n");
+	if (pending & INTR_CCC_UPDATED)
+		dw_i3c_dbg("dw_i3c: INTR_CCC_UPDATED\n");
+#endif
+	if (pending & INTR_TRANSFER_ERR)
+		dw_i3c_dbg("dw_i3c: INTR_TRANSFER_ERR\n");
+	if (pending & INTR_RESP_READY)
+		dw_i3c_dbg("dw_i3c: INTR_RESP_READY\n");
+	if (pending & INTR_CMD_QUEUE_READY)
+		dw_i3c_dbg("dw_i3c: INTR_CMD_QUEUE_READY\n");
+	if (pending & INTR_RX_THLD)
+		dw_i3c_dbg("dw_i3c: INTR_TX_THLD\n");
+	if (pending & INTR_TX_THLD)
+		dw_i3c_dbg("dw_i3c: INTR_TX_THLD\n");
+#ifdef CONFIG_DW_MIPI_I3C_MASTER
+	if (pending & INTR_TRANSFER_ABORT)
+		dw_i3c_dbg("dw_i3c: INTR_TRANSFER_ABORT\n");
 	if (pending & INTR_IBI_THLD) {
-		dw_i3c_dbg("dw_i3c: IBI threshold\n");
+		dw_i3c_dbg("dw_i3c: INTR_IBI_THLD\n");
 		dw_mipi_i3c_irq_handle_ibi();
 	}
-	if (dw_i3c_inited[dw_i3cd])
-		dw_mipi_i3c_end_xfer();
+#endif
+	dw_mipi_i3c_end_xfer();
 }
 
 #ifndef SYS_REALTIME
@@ -649,7 +648,7 @@ void dw_mipi_i3c_ctrl_init(clk_freq_t core_rate)
 
 	INIT_LIST_HEAD(&dw_i3c_list);
 	dw_i3c_curr = NULL;
-	dw_i3c_writel(INTR_ALL, INTR_STATUS(dw_i3cd));
+	dw_mipi_i3c_enable_all_irqs(dw_i3cd);
 	reg = dw_i3c_readl(DEVICE_ADDR_TABLE_POINTER(dw_i3cd));
 	dw_i3c_dat_base = DW_P_DEV_ADDR_TABLE_START_ADDR(reg);
 	dw_i3c_maxdevs = DW_DEV_ADDR_TABLE_DEPTH(reg);
