@@ -3,6 +3,7 @@
 
 #include <target/generic.h>
 #include <target/atomic.h>
+#include <mach/mbox.h>
 
 /** Representation of a mailbox channel */
 struct mbox_chan {
@@ -157,3 +158,4 @@ void mbox_chan_get(struct mbox_chan *chan, int attr_id, void *out_value);
 void mbox_chan_set(struct mbox_chan *chan, int attr_id, void *new_value);
 
 #endif /* __MBOX_H_INCLUDE__ */
+
