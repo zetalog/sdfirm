@@ -900,6 +900,17 @@ menuconfig ACLINT
 
 if ACLINT
 
+config ARCH_HAS_ACLINT_MULTI
+	bool
+	select ARCH_HAS_CLINT_MULTI
+
+config ACLINT_MULTI
+	bool "Enable multiple clint support"
+	select CLINT_MULTI
+	depends ARCH_HAS_ACLINT_MULTI
+	help
+	  Each ACLINT may work for one chip or one die in NUMA systems.
+
 config ACLINT_DT
 	bool "ACLINT specific device tree entries support"
 

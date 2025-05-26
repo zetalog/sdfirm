@@ -58,7 +58,7 @@
 #define CLINT_REG_BASE(n)	CLINT_BASE(n)
 #else
 #define CLINT_REG_BASE(n)	CLINT_BASE
-#define clint_hw_chip(hart)	0
+#define clint_hw_chip(hart)	aclint_hw_chip(hart)
 #endif
 
 #define CLINT_REG(n, offset)	(CLINT_REG_BASE(n) + (offset))
