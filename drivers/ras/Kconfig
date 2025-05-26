@@ -4,4 +4,14 @@ config CMN600_RAS
 	bool "Enable CMN600 realiability availability serviceability (RAS) support"
 	depends RAS
 
+config ECC_SRAM_RAS
+	bool "Enable ECC SRAM reliability availability serviceability (RAS) support"
+	depends on RAS
+	help
+	  This option enables ECC SRAM RAS support for error detection and handling.
+	  It includes features such as:
+	  - ECC error detection and correction for SRAM
+	  - Interrupt handling for SEC/DED errors
+	  - Error injection and threshold configuration
+
 endmenu
