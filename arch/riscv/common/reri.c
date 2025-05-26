@@ -13,15 +13,24 @@
 #include <target/console.h>
 #include <target/arch.h>
 #include <target/ras.h>
+#include <target/iommu.h>
 #include <target/panic.h>
-
+#include <target/reri.h>
+#include <target/percpu.h>
+#include <target/bench.h>
+#include <target/rpmi.h>
 #define RERI_MODNAME			"reri"
 
 #define HART_PER_CLUSTER		4
 #define MAX_CLUSTERS			16
+#define MAX_IOMMU_NUM			1
+#define MAX_IOMMU_ERROR_BANKS		64 // IOATS + 63 * IOATC
 
 #ifndef RERI_HART_DEV_ADDR
 #define RERI_HART_DEV_ADDR		(__ACPU_RAS_SPACE_BASE + ULL(0x4030000))
+
+#define IOMMU_STRIDE			ULL(0x800000000)
+#define IOMMU_CRTL_CFG_BASE(i)		(ULL(0x4780000000) + (i) * (IOMMU_STRIDE))
 
 /* RAS Signal Priority Levels */
 #define RAS_SIGNAL_DISABLED		0  /* Signaling is disabled */
@@ -38,70 +47,41 @@
 #define GHES_ERR_SIZE		(0x80000)
 #endif
 
-#if __riscv_xlen == 64
-#ifdef CONFIG_ARCH_IS_MMIO_32BIT
-static uint64_t reri_read(caddr_t dev_addr)
-{
-	uint32_t hi, lo;
-
-	hi = __raw_readl((caddr_t)((uintptr_t)(dev_addr) + 4));
-	lo = __raw_readl((caddr_t)dev_addr);
-
-	return (uint64_t)hi << 32 | lo;
-}
-
-static void reri_write(caddr_t dev_addr, uint64_t val)
-{
-	__raw_writel(HIDWORD(val), (caddr_t)((uintptr_t)(dev_addr) + 4));
-	__raw_writel(LODWORD(val), (caddr_t)dev_addr);
-}
-#else
-static uint64_t reri_read(void *dev_addr)
-{
-	return __raw_readq((caddr_t)dev_addr);
-}
-
-static void reri_write(void *dev_addr, uint64_t val)
-{
-	__raw_writeq(val, (caddr_t)dev_addr);
-}
-#endif
-
-#define reri_set(v,a)					\
-	do {						\
-		uint32_t __v = reri_read(a);		\
-		__v |= (v);				\
-		reri_write((a), __v);			\
-	} while (0)
-#define reri_clear(v,a)					\
-	do {						\
-		uint32_t __v = reri_read(a);		\
-		__v &= ~(v);				\
-		reri_write((a), __v);			\
-	} while (0)
-#define reri_write_mask(v,m,a)				\
-	do {						\
-		uint32_t __v = reri_read(a);		\
-		__v &= ~(m);				\
-		__v |= (v);				\
-		reri_write((a), __v);			\
-	} while (0)
-
-static inline uint64_t reri_get_status(void *base, int record_idx)
-{
-	return reri_read(base + RERI_STATUS_I(record_idx));
-}
-
-static inline void reri_set_status(void *base, int record_idx, uint64_t val)
-{
-	reri_write(base + RERI_STATUS_I(record_idx), val);
-}
-
 static void reri_clear_valid_bit(caddr_t base, int record_idx)
 {
 	reri_set(RERI_CTRL_SINV_EN | RERI_CTRL_SRDP_EN,
 		 RERI_CONTROL_I(base, record_idx));
+	con_log(RERI_MODNAME ": clear valid bit - record_idx=%d, reg_addr=0x%lx, reg_val=0x%llx\n",
+		record_idx, RERI_CONTROL_I(base, record_idx),
+		reri_read(RERI_CONTROL_I(base, record_idx)));
 }
+
+enum reri_event_source_type {
+	RERI_EVENT_SOURCE_CPU,
+	RERI_EVENT_SOURCE_IOMMU
+};
+
+struct reri_context {
+	int target_id;
+	int test_id;
+	int err_bank_id_iommu;
+	uint64_t target_addr;
+	uint64_t bank_addr;
+	uint64_t err_size;
+	enum reri_event_source_type test_target_type;
+	const struct reri_info *scenarios_to_use;
+	int num_scenarios;
+	int eid;
+	const reri_source_info_t *source_info;
+};
+
+#ifdef CONFIG_SMP
+DEFINE_PERCPU(struct reri_context, reri_ctx);
+#define get_reri        this_cpu_ptr(&reri_ctx)
+#else
+static struct reri_context reri_ctx;
+#define get_reri        (&reri_ctx)
+#endif
 
 struct reri_generic_dev {
 	uint64_t addr;
@@ -111,24 +91,53 @@ struct reri_generic_dev {
 	uint16_t res;
 };
 
-typedef struct reri_hart_dev {
+struct reri_hart_dev {
 	struct reri_generic_dev dev;
 	int hart_id;
-	int cluster_id;    /* Added cluster ID */
-	int local_hart_id; /* Added local hart ID within cluster */
-} reri_hart_dev_t;
+	int cluster_id;
+	int local_hart_id;
+};
 
-static reri_hart_dev_t *reri_hart_devices = NULL;
-static uint32_t reri_nr_harts = 0;
+/**
+ * IOMMU includes error banks:
+ *	IOATS: 1
+ *	IOATC: 0 ~ 62 (maximum, discover by dtisr)
+ */
+struct reri_iommu_err_dev {
+	struct reri_generic_dev dev;
+	uint32_t err_bank_id;
+	uint32_t iommu_id;
+	uint32_t dtisr_index;
+	uint8_t is_ioatc;
+};
+
+static struct reri_hart_dev *reri_hart_devices;
+static uint32_t reri_nr_harts;
+static uint32_t current_hart;
+
+static struct reri_iommu_err_dev reri_iommu_err_dev[MAX_IOMMU_NUM * MAX_IOMMU_ERROR_BANKS];
+static struct reri_iommu_err_dev *reri_iommu_err_banks = &reri_iommu_err_dev[0];
+static uint32_t reri_nr_iommu_err_banks;
 
 #define RERI_ERR_BANK_SIZE	0x1000
 
 bh_t cpu_reri_bh;
+bh_t iommu_reri_bh;
+
+const reri_source_info_t *get_source_info(uint16_t inst_id)
+{
+	if (inst_id <= 0x53 && source_info_table[inst_id].name != NULL)
+		return &source_info_table[inst_id];
+
+	con_log("reri: unknown source id: 0x%x\n", inst_id);
+
+	return NULL;
+}
 
 /**
  * Return HART ID of the caller.
  */
-unsigned int current_hartid()
+unsigned int current_hartid(void)
 {
 	return (uint32_t)csr_read(CSR_MHARTID);
 }
@@ -154,23 +163,22 @@ static uint64_t get_cluster_error_bank_addr(int cluster_id)
 	return RERI_HART_DEV_ADDR;
 }
 
-static reri_hart_dev_t *get_reri_hart_dev(int hart_id)
+static struct reri_hart_dev *get_reri_hart_dev(int hart_id)
 {
 	int i;
 
 	for (i = 0; i < reri_nr_harts; i++) {
-		if (reri_hart_devices[i].hart_id == hart_id) {
+		if (reri_hart_devices[i].hart_id == hart_id)
 			return &reri_hart_devices[i];
-		}
 	}
 
 	return NULL;
 }
 
 static int riscv_reri_get_hart_addr(int hart_id, uint64_t *hart_addr,
-				    uint64_t *size)
+				   uint64_t *size)
 {
-	reri_hart_dev_t *reri_hart;
+	struct reri_hart_dev *reri_hart;
 	int cluster_id, local_hart_id;
 
 	reri_hart = get_reri_hart_dev(hart_id);
@@ -186,9 +194,10 @@ static int riscv_reri_get_hart_addr(int hart_id, uint64_t *hart_addr,
 	return SBI_SUCCESS;
 }
 
-static uint32_t riscv_reri_get_hart_sse_vector(int hart_id, uint32_t *sse_vector)
+static uint32_t riscv_reri_get_hart_sse_vector(int hart_id,
+						  uint32_t *sse_vector)
 {
-	reri_hart_dev_t *reri_hart;
+	struct reri_hart_dev *reri_hart;
 
 	reri_hart = get_reri_hart_dev(hart_id);
 	if (!reri_hart)
@@ -199,9 +208,10 @@ static uint32_t riscv_reri_get_hart_sse_vector(int hart_id, uint32_t *sse_vector
 	return 0;
 }
 
-static uint32_t riscv_reri_get_hart_src_id(int hart_id, uint32_t *hart_src_id)
+static uint32_t riscv_reri_get_hart_src_id(int hart_id,
+					   uint32_t *hart_src_id)
 {
-	reri_hart_dev_t *reri_hart;
+	struct reri_hart_dev *reri_hart;
 
 	reri_hart = get_reri_hart_dev(hart_id);
 	if (!reri_hart)
@@ -212,273 +222,133 @@ static uint32_t riscv_reri_get_hart_src_id(int hart_id, uint32_t *hart_src_id)
 	return 0;
 }
 
-void cpu_reri_irq_handler(void) {
-	int current_hart = current_hartid();
-	int cluster_id, local_hart_id;
-	uint64_t bank_addr, status;
-	uint64_t valid_summary, valid_bitmap;
+#ifdef CONFIG_RISCV_IOMMU_SPACET
+int riscv_ioatc_num;
+caddr_t riscv_ioatc_reg[MAX_RISCV_IOMMU_IOATC];
 
-	if (get_cluster_and_local_hart_id(current_hart, &cluster_id, &local_hart_id) != 0)
-		return;
+static int riscv_reri_discover_iommus(void)
+{
+	int i, j, k, ioatc, id;
+	uint32_t sts, dtisr_val;
+	uint64_t base_addr;
 
-	bank_addr = get_cluster_error_bank_addr(cluster_id);
-	valid_summary = reri_read(bank_addr + RERI_VALID_SUMMARY);
+	riscv_ioatc_num = 0;
+	reri_nr_iommu_err_banks = 0;
 
-	if ((valid_summary & RERI_SV_EN) && (valid_summary & ~0x1ULL)) {
-		valid_bitmap = valid_summary & RERI_VALID_BITMAP_MASK;
-		for (int i = 0; i < MAX_ERROR_RECORDS; i++) {
-			if (valid_bitmap & (1ULL << i)) {
-				con_log(RERI_MODNAME ": cpu reri interrupt triggered (valid_summary bit[0]=1)\n");
-				u32 vector = 1 << i;
-				reri_drv_sync_hart_errs(current_hart, &vector);
+	// clk_enable(iommu0_clk);
+	// clk_enable(iommu0_resetn);
+	for (i = 0; i < MAX_IOMMU_NUM; i++) {
+		base_addr = IOMMU_CRTL_CFG_BASE(i);
+		id = __raw_readl(base_addr + RISCV_IOMMU_REG_ID);
+
+		con_log(RERI_MODNAME ": IOMMU[%d] base_addr=0x%llx, id=0x%x\n", i, base_addr, id);
+
+		if (FIELD_GET(RISCV_IOMMU_ID_MFID, id) != JEDEC_SPACET ||
+			FIELD_GET(RISCV_IOMMU_ID_BANK, id) != JEDEC_BANK(15)) {
+			con_log(RERI_MODNAME ": invalid IOMMU id = 0x%x\n", id);
+			continue;
+		}
+		/* the first error bank address: IOATS */
+		reri_iommu_err_banks[reri_nr_iommu_err_banks].dev.addr = base_addr + RISCV_IOMMU_RERI_EBI_OFFSET;
+		reri_iommu_err_banks[reri_nr_iommu_err_banks].dev.size = RERI_ERR_BANK_SIZE;
+		reri_iommu_err_banks[reri_nr_iommu_err_banks].err_bank_id = 0;
+		reri_iommu_err_banks[reri_nr_iommu_err_banks].dtisr_index = 0;
+		reri_iommu_err_banks[reri_nr_iommu_err_banks].iommu_id = i;
+		reri_iommu_err_banks[reri_nr_iommu_err_banks].is_ioatc = 0;
+		iommu_set(RISCV_IOMMU_IORASECR_EN, RISCV_IOMMU_REG_IORASECR);
+		con_log(RERI_MODNAME ": IOMMU[%d] IOATS IORASECR=0x%x\n", i, __raw_readl(base_addr + RISCV_IOMMU_REG_IORASECR));
+		reri_nr_iommu_err_banks++;
+
+		for (j = 0; j < 4; j++) {
+			dtisr_val = __raw_readl(base_addr + RISCV_IOMMU_REG_DTISR(j));
+			con_log(RERI_MODNAME ": IOMMU[%d] DTISR[%d]=0x%x, dtisr_addr=0x%llx\n",
+							i, j, dtisr_val, base_addr + RISCV_IOMMU_REG_DTISR(j));
+
+			if (dtisr_val == 0)
+				continue;
+
+			for (k = 0; k < 16; k++) {
+				ioatc = j * 16 + k;
+				/* DTI0 uses [1:0], DTI1-DTI63 use [127:2] */
+				if (ioatc == 0)
+					sts = dtisr_val & 0x3;
+				else
+					sts = (dtisr_val >> (ioatc * 2)) & 0x3;
+
+				con_log(RERI_MODNAME ": IOMMU[%d] DTISR[%d] IOATC[%d] STS=0x%x\n",
+					i, j, ioatc, sts);
+
+				/* Check if TBU connected (status = 1) */
+				if (sts == RISCV_IOMMU_DTI_TBU_IOATC) {
+					riscv_ioatc_reg[riscv_ioatc_num] = RISCV_IOMMU_IOATC_BASE(base_addr, ioatc);
+					reri_iommu_err_banks[reri_nr_iommu_err_banks].dev.addr =
+						riscv_ioatc_reg[riscv_ioatc_num] + RISCV_IOMMU_RERI_EBI_OFFSET;
+					reri_iommu_err_banks[reri_nr_iommu_err_banks].dev.size = RERI_ERR_BANK_SIZE;
+					reri_iommu_err_banks[reri_nr_iommu_err_banks].err_bank_id = reri_nr_iommu_err_banks;
+					reri_iommu_err_banks[reri_nr_iommu_err_banks].dtisr_index = ioatc;
+					reri_iommu_err_banks[reri_nr_iommu_err_banks].iommu_id = i;
+					/* Mark as IOATC */
+					reri_iommu_err_banks[reri_nr_iommu_err_banks].is_ioatc = 1;
+
+					/* enable error interrupt generation */
+					iommu_set(RISCV_IOMMU_IORASECR_EN,
+						riscv_ioatc_reg[riscv_ioatc_num] + RISCV_IOMMU_REG_IORASECR);
+					riscv_ioatc_num++;
+					reri_nr_iommu_err_banks++;
+				}
 			}
 		}
-	} else if (!(valid_summary & RERI_SV_EN)) {
-		/* Check status.v bit for each record */
-		for (int i = 0; i < MAX_ERROR_RECORDS; i++) {
-			status = reri_get_status((void *)bank_addr, i);
-			if ((status & RERI_STATUS_V_EN) == 1) {
-				con_log(RERI_MODNAME ": Found valid error in record %d\n", i);
-				u32 vector = 1 << i;
-				reri_drv_sync_hart_errs(current_hart, &vector);
-			}
-		}
-	}
-}
-
-static void cpu_reri_bh_handler(uint8_t events)
-{
-	if (events == BH_POLLIRQ) {
-		cpu_reri_irq_handler();
-		return;
-	}
-}
-#ifdef SYS_REALTIME
-static void cpu_reri_poll_init(void)
-{
-	irq_register_poller(cpu_reri_bh);
-}
-#define cpu_reri_irq_init()	do {} while (0)
-#else
-static void cpu_reri_irq_init(void)
-{
-	irqc_configure_irq(IRQ_RAS_CE, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_RAS_UE, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_RAS_CE, (irq_handler)cpu_reri_irq_handler);
-	irq_register_vector(IRQ_RAS_UE, (irq_handler)cpu_reri_irq_handler);
-	irqc_enable_irq(IRQ_RAS_CE);
-	irqc_enable_irq(IRQ_RAS_UE);
-}
-#define cpu_reri_poll_init()	do {} while (0)
-#endif
-
-void reri_drv_init(void)
-{
-	int i, ret;
-	static reri_hart_dev_t reri_hart_dev[NR_CPUS];
-	reri_hart_devices = &reri_hart_dev[0];
-
-	uint64_t addr = RERI_HART_DEV_ADDR;
-	reri_nr_harts = NR_CPUS;
-
-	con_log(RERI_MODNAME ": Initializing RERI driver\n");
-	con_log(RERI_MODNAME ": Base address: 0x%llx\n", addr);
-	con_log(RERI_MODNAME ": Number of harts: %d\n", reri_nr_harts);
-	con_log(RERI_MODNAME ": Harts per cluster: %d\n", HART_PER_CLUSTER);
-	con_log(RERI_MODNAME ": Number of clusters: %d\n", MAX_CLUSTERS);
-	con_log(RERI_MODNAME ": Note: All clusters share the same Error bank address space\n");
-
-	/* enable RAS clock */
-	clk_enable(cpu_ras_sw_rstn);
-	acpi_ghes_init(GHES_ERR_ADDR, GHES_ERR_SIZE);
-
-	for (i = 0; i < reri_nr_harts; i++) {
-		int cluster_id, local_hart_id;
-
-		if ((ret = acpi_ghes_new_error_source(i, 0)) < 0)
-			continue;
-
-		if (get_cluster_and_local_hart_id(i, &cluster_id, &local_hart_id) != 0)
-			continue;
-
-		/* All clusters share the same Error bank address space */
-		reri_hart_devices[i].dev.addr = get_cluster_error_bank_addr(cluster_id);
-		reri_hart_devices[i].dev.size = RERI_ERR_BANK_SIZE;
-		reri_hart_devices[i].dev.sse_vector = i;
-		reri_hart_devices[i].dev.src_id = i;
-		reri_hart_devices[i].hart_id = i;
-		reri_hart_devices[i].cluster_id = cluster_id;
-		reri_hart_devices[i].local_hart_id = local_hart_id;
-
-		con_log(RERI_MODNAME ": Hart %d (Cluster %d, Local Hart %d) RERI registers:\n",
-			i, cluster_id, local_hart_id);
-		con_log(RERI_MODNAME ":   - Base address: 0x%llx (shared by all clusters)\n",
-			reri_hart_devices[i].dev.addr);
 	}
 
-	/* initialize CPU RERI interrupt */
-	cpu_reri_bh = bh_register_handler(cpu_reri_bh_handler);
-	cpu_reri_irq_init();
-	cpu_reri_poll_init();
+	con_log(RERI_MODNAME ": IOMMU error bank number: %d, IOATC number: %d\n",
+		reri_nr_iommu_err_banks, riscv_ioatc_num);
 
-	con_log(RERI_MODNAME ": RERI driver initialized\n");
-}
-
-/* inject error */
-static int do_reri_test(int argc, char *argv[])
-{
-	int hart_id, test_id;
-	uint64_t hart_addr, bank_addr, err_size;
-	uint64_t status, control;
-
-	if (argc < 2) {
-		con_err("Usage: reri test [test_id]\n");
-		con_err("  test_id:\n");
-		con_err("    0: L2C SnoopFilter ECC Error (CE)\n");
-		con_err("    1: L2C SnoopFilter ECC Error (UUE)\n");
-		con_err("    2: L2C TAG ECC Error (CE)\n");
-		con_err("    3: L2C TAG ECC Error (UUE)\n");
-		con_err("    4: L2C DATA ECC Error (CE)\n");
-		con_err("    5: L2C DATA ECC Error (UDE)\n");
-		con_err("    6: Core0 IFU consume poison (UUE)\n");
-		con_err("    7: Core0 ICACHE TAG parity Error (CE)\n");
-		con_err("    8: Core0 ICACHE DATA parity Error (CE)\n");
-		con_err("    9: Core0 jTLB TAG parity Error (CE)\n");
-		con_err("    10: Core0 jTLB DATA parity Error (CE)\n");
-		con_err("    11: Core0 LSU consume poison (UUE)\n");
-		con_err("    12: Core0 DCACHE TAG ECC Error (CE)\n");
-		con_err("    13: Core0 DCACHE TAG ECC Error (UUE)\n");
-		con_err("    14: Core0 DCACHE DATA ECC Error (CE)\n");
-		con_err("    15: Core0 DCACHE DATA ECC Error (UDE)\n");
-		con_err("    16: Core1 IFU consume poison (UUE)\n");
-		con_err("    17: Core1 ICACHE TAG parity Error (CE)\n");
-		con_err("    18: Core1 ICACHE DATA parity Error (CE)\n");
-		con_err("    19: Core1 jTLB TAG parity Error (CE)\n");
-		con_err("    20: Core1 jTLB DATA parity Error (CE)\n");
-		con_err("    21: Core1 LSU consume poison (UUE)\n");
-		con_err("    22: Core1 DCACHE TAG ECC Error (CE)\n");
-		con_err("    23: Core1 DCACHE TAG ECC Error (UUE)\n");
-		con_err("    24: Core1 DCACHE DATA ECC Error (CE)\n");
-		con_err("    25: Core1 DCACHE DATA ECC Error (UDE)\n");
-		con_err("    26: Core2 IFU consume poison (UUE)\n");
-		con_err("    27: Core2 ICACHE TAG parity Error (CE)\n");
-		con_err("    28: Core2 ICACHE DATA parity Error (CE)\n");
-		con_err("    29: Core2 jTLB TAG parity Error (CE)\n");
-		con_err("    30: Core2 jTLB DATA parity Error (CE)\n");
-		con_err("    31: Core2 LSU consume poison (UUE)\n");
-		con_err("    32: Core2 DCACHE TAG ECC Error (CE)\n");
-		con_err("    33: Core2 DCACHE TAG ECC Error (UUE)\n");
-		con_err("    34: Core2 DCACHE DATA ECC Error (CE)\n");
-		con_err("    35: Core2 DCACHE DATA ECC Error (UDE)\n");
-		con_err("    36: Core3 IFU consume poison (UUE)\n");
-		con_err("    37: Core3 ICACHE TAG parity Error (CE)\n");
-		con_err("    38: Core3 ICACHE DATA parity Error (CE)\n");
-		con_err("    39: Core3 jTLB TAG parity Error (CE)\n");
-		con_err("    40: Core3 jTLB DATA parity Error (CE)\n");
-		con_err("    41: Core3 LSU consume poison (UUE)\n");
-		con_err("    42: Core3 DCACHE TAG ECC Error (CE)\n");
-		con_err("    43: Core3 DCACHE TAG ECC Error (UUE)\n");
-		con_err("    44: Core3 DCACHE DATA ECC Error (CE)\n");
-		con_err("    45: Core3 DCACHE DATA ECC Error (UDE)\n");
-		return -EINVAL;
-	}
-
-	test_id = (argc > 2) ? (int)strtoull(argv[2], 0, 0) : -1;
-	hart_id = current_hartid();
-
-	if (test_id < 0 || test_id > 45) {
-		con_err("Invalid test_id %d (valid range: 0-45)\n", test_id);
-		return -EINVAL;
-	}
-
-	con_log(RERI_MODNAME ": Testing scenario: %s\n", reri_hw_error_scenarios[test_id].desc);
-
-	if (riscv_reri_get_hart_addr(hart_id, &hart_addr, &err_size) != 0)
-		return -EINVAL;
-
-	bank_addr = hart_addr;
-	status = reri_get_status((void *)bank_addr, 0) |
-		 RERI_STATUS_SET_CE(reri_hw_error_scenarios[test_id].ce)  |
-		 RERI_STATUS_SET_UEC(reri_hw_error_scenarios[test_id].uec) |
-		 RERI_STATUS_SET_UED(reri_hw_error_scenarios[test_id].ued) |
-	         RERI_STATUS_SET_TT(reri_hw_error_scenarios[test_id].tt)  |
-		 RERI_STATUS_SET_EC(reri_hw_error_scenarios[test_id].ec);
-	reri_set_status((void *)bank_addr, 0, status);
-
-	/* trigger: inject error */
-	reri_set(RERI_CTRL_ELSE_EN, RERI_CONTROL_I(bank_addr, 0));
-	reri_write_mask(RERI_CTRL_SET_CES(RAS_SIGNAL_HIGH_PRIORITY) |
-			RERI_CTRL_SET_UEDS(RAS_SIGNAL_HIGH_PRIORITY) |
-			RERI_CTRL_SET_UECS(RAS_SIGNAL_HIGH_PRIORITY) |
-			RERI_CTRL_SET_EID(100),
-			RERI_CTRL_SET_CES(RERI_CTRL_CES_MASK) |
-			RERI_CTRL_SET_UEDS(RERI_CTRL_UEDS_MASK) |
-			RERI_CTRL_SET_UECS(RERI_CTRL_UECS_MASK) |
-			RERI_CTRL_SET_EID(RERI_CTRL_EID_MASK),
-			RERI_CONTROL_I(bank_addr, 0));
-	reri_clear(RERI_CTRL_SINV_EN, RERI_CONTROL_I(bank_addr, 0));
-
-	con_log(RERI_MODNAME ": inst_id=0x%llx\n",
-		RERI_INST_ID(reri_read((void *)bank_addr + RERI_BANK_INFO)));
 	return 0;
 }
+#else
+#define riscv_reri_discover_iommus	do { } while (0)
+#endif
 
-DEFINE_COMMAND(reri, do_reri_test, "RERI Debug commands",
-	"reri test <test_id>\n"
-	"  - test specific error scenario for given hart\n"
-	"test_id:\n"
-	"  0-5: L2C errors\n"
-	"  6-15: Core0 errors\n"
-	"  16-23: Core1 errors\n"
-	"  24-31: Core2 errors\n"
-	"  32-39: Core3 errors\n"
-);
-
-int reri_drv_sync_hart_errs(u32 hart_id, u32 *pending_vectors)
+static int reri_drv_sync_generic_error_record(enum reri_event_source_type source_type,
+						 uint32_t id, uint64_t bank_addr,
+						 int record_index,
+						 uint32_t *out_pending_sse_vector_for_cpu)
 {
-	int ret;
-	uint64_t bank_addr, hart_addr, err_size;
-	uint64_t eaddr, status;
-	int tt;
+	uint64_t status, addr_info;
 	acpi_ghes_error_info einfo;
-	uint32_t hart_src_id, sse_vector;
+	uint32_t acpi_ghes_source_id;
+	int ret = 0;
+	int tt;
 
-	if (riscv_reri_get_hart_addr(hart_id, &hart_addr, &err_size) != 0)
-		return 0;
+	/* Initialize einfo and out_pending_sse_vector_for_cpu if applicable */
+	memset(&einfo, 0, sizeof(einfo));
+	if (out_pending_sse_vector_for_cpu)
+		*out_pending_sse_vector_for_cpu = 0; /* Default to 0 */
 
-	if (riscv_reri_get_hart_src_id(hart_id, &hart_src_id) != 0)
-		return 0;
+	/* 1. Determine ACPI GHES Source ID */
+	acpi_ghes_source_id = RERI_INST_ID(reri_read(bank_addr + RERI_BANK_INFO));
 
-	bank_addr = hart_addr;
+	/* 2. Read RERI error record registers */
+	status = reri_read(RERI_STATUS_I(bank_addr, record_index));
+	addr_info = reri_read(RERI_ADDR_INFO_I(bank_addr, record_index));
 
-	status = reri_get_status((void *)bank_addr, 0);
-	eaddr = reri_read((void *)bank_addr + RERI_ADDR_INFO_I(0));
+	/* 3. Clear the valid bit for this specific record */
+	reri_clear_valid_bit(bank_addr, record_index);
 
-	reri_clear_valid_bit((void *)bank_addr, 0);
-
+	/* 4. Populate GHES error info (Common parts first) */
 	if (RERI_STATUS_GET_CE(status))
 		einfo.info.gpe.sev = 2;
 	else if (RERI_STATUS_GET_UED(status))
-		einfo.info.gpe.sev = 0; /* deferred, recoverable? */
+		einfo.info.gpe.sev = 0; /* deferred, recoverable */
 	else if (RERI_STATUS_GET_UEC(status))
 		einfo.info.gpe.sev = 1; /* fatal error */
 	else
 		einfo.info.gpe.sev = 3; /* Unknown */
 
-	einfo.info.gpe.validation_bits = (GPE_PROC_TYPE_VALID |
-					  GPE_PROC_ISA_VALID |
-					  GPE_PROC_ERR_TYPE_VALID);
-
-	einfo.info.gpe.proc_type = GHES_PROC_TYPE_RISCV;
-	einfo.info.gpe.proc_isa = GHES_PROC_ISA_RISCV64;
-
 	tt = RERI_STATUS_GET_TT(status);
-
 	if (tt && tt >= 4 && tt <= 7) {
 		einfo.info.gpe.validation_bits |= GPE_OP_VALID;
-
-		/* Transaction type */
-		switch(tt) {
+		switch (tt) {
 		case RERI_TT_IMPLICIT_READ:
 			einfo.info.gpe.operation = 3;
 			break;
@@ -495,7 +365,7 @@ int reri_drv_sync_hart_errs(u32 hart_id, u32 *pending_vectors)
 		}
 
 		/* Translate error codes from RERI */
-		switch(RERI_STATUS_GET_EC(status)) {
+		switch (RERI_STATUS_GET_EC(status)) {
 		case RERI_EC_CBA:
 		case RERI_EC_CSD:
 		case RERI_EC_CAS:
@@ -533,19 +403,619 @@ int reri_drv_sync_hart_errs(u32 hart_id, u32 *pending_vectors)
 	/* Address type */
 	if (RERI_STATUS_GET_AIT(status)) {
 		einfo.info.gpe.validation_bits |= GPE_TARGET_ADDR_VALID;
-		einfo.info.gpe.target_addr = eaddr;
+		einfo.info.gpe.target_addr = addr_info;
 	}
 
-	einfo.etype = ERROR_TYPE_GENERIC_CPU;
+	/* Source-specific parts for einfo */
+	if (source_type == RERI_EVENT_SOURCE_CPU) {
+		einfo.etype = ERROR_TYPE_GENERIC_CPU;
+		einfo.info.gpe.validation_bits |= (GPE_PROC_TYPE_VALID |
+						   GPE_PROC_ISA_VALID |
+						   GPE_PROC_ERR_TYPE_VALID);
+		einfo.info.gpe.proc_type = GHES_PROC_TYPE_RISCV;
+		einfo.info.gpe.proc_isa = GHES_PROC_ISA_RISCV64;
+	} else { // RERI_EVENT_SOURCE_IOMMU
+		einfo.etype = ERROR_TYPE_MEM;
+	}
 
-	/* Update the CPER record */
-	acpi_ghes_record_errors(hart_src_id, &einfo);
+	/* 5. Record errors via ACPI GHES */
+	acpi_ghes_record_errors(acpi_ghes_source_id, &einfo);
 
-	if ((ret = riscv_reri_get_hart_sse_vector(hart_id, &sse_vector)) != 0)
-		return ret;
+	/* 6. Handle SSE vector for CPU */
+	if (source_type == RERI_EVENT_SOURCE_CPU && out_pending_sse_vector_for_cpu) {
+		uint32_t sse_vector_val_local = 0;
+		/* id here is hart_id */
+		ret = riscv_reri_get_hart_sse_vector(id, &sse_vector_val_local);
+		if (ret == 0)
+			*out_pending_sse_vector_for_cpu = sse_vector_val_local;
+	}
 
-	*pending_vectors = sse_vector;
+	return ret;
+}
+
+static void process_reri_error_bank(uint64_t bank_addr,
+		enum reri_event_source_type source_type, uint32_t id_for_sync)
+{
+	uint64_t status_val;
+	uint64_t valid_summary;
+	uint64_t valid_bitmap;
+	int record_index;
+	uint32_t sse_vec_out;
+	uint32_t n_err_recs;
+	uint32_t pending_vectors[MAX_PEND_VECS];
+	uint32_t nr_pending = 0;
+	uint32_t nr_remaining = 0;
+	int ret;
+
+	valid_summary = reri_read(bank_addr + RERI_VALID_SUMMARY);
+	n_err_recs = RERI_N_ERR_RECS(reri_read(bank_addr + RERI_BANK_INFO));
+
+	/* Check status.v bit for each record */
+	for (record_index = 0; record_index < n_err_recs; record_index++) {
+		status_val = reri_read(RERI_STATUS_I(bank_addr, record_index));
+		if ((status_val & RERI_STATUS_V_EN)) {
+			if (source_type == RERI_EVENT_SOURCE_CPU) {
+				con_log(RERI_MODNAME ": CPU RERI via status.V (record %d) for hart %u, bank 0x%llx\n",
+					record_index, id_for_sync, bank_addr);
+				sse_vec_out = 1 << record_index;
+				reri_drv_sync_generic_error_record(RERI_EVENT_SOURCE_CPU, id_for_sync,
+					bank_addr, record_index, &sse_vec_out);
+
+				/* Sync error via RPMI */
+				ret = rpmi_ras_sync_hart_errs(pending_vectors, &nr_pending, &nr_remaining);
+				if (ret) {
+					con_err(RERI_MODNAME ": Failed to sync hart errors via RPMI, ret=%d\n", ret);
+				} else {
+					con_log(RERI_MODNAME ": Synced %d pending vectors via RPMI, %d remaining\n",
+						nr_pending, nr_remaining);
+				}
+			} else {
+				con_log(RERI_MODNAME ": IOMMU RERI (id %u) via status.V (record %d), bank 0x%llx\n",
+					id_for_sync, record_index, bank_addr);
+				sse_vec_out = 1 << record_index;
+				reri_drv_sync_generic_error_record(RERI_EVENT_SOURCE_IOMMU, id_for_sync,
+					bank_addr, record_index, NULL);
+
+				/* Sync error via RPMI */
+				ret = rpmi_ras_sync_reri_errs(pending_vectors, &nr_pending, &nr_remaining);
+				if (ret) {
+					con_err(RERI_MODNAME ": Failed to sync RERI errors via RPMI, ret=%d\n", ret);
+				} else {
+					con_log(RERI_MODNAME ": Synced %d pending vectors via RPMI, %d remaining\n",
+						nr_pending, nr_remaining);
+				}
+			}
+		}
+	}
+}
+
+static void generic_reri_irq_handler(enum reri_event_source_type source_type)
+{
+	int cluster_id, local_hart_id, i;
+	uint64_t bank_addr;
+
+	if (source_type == RERI_EVENT_SOURCE_CPU) {
+		if (get_cluster_and_local_hart_id(current_hart, &cluster_id, &local_hart_id) != 0)
+			return;
+		bank_addr = get_cluster_error_bank_addr(cluster_id);
+		process_reri_error_bank(bank_addr, RERI_EVENT_SOURCE_CPU, current_hart);
+	} else if (source_type == RERI_EVENT_SOURCE_IOMMU) {
+		for (i = 0; i < reri_nr_iommu_err_banks; i++) {
+			if (reri_iommu_err_banks && reri_iommu_err_banks[i].dev.addr != 0) {
+				bank_addr = reri_iommu_err_banks[i].dev.addr;
+				process_reri_error_bank(bank_addr, RERI_EVENT_SOURCE_IOMMU, reri_iommu_err_banks[i].iommu_id);
+			}
+		}
+	}
+}
+
+static void cpu_reri_bh_handler(uint8_t events)
+{
+	if (events == BH_POLLIRQ) {
+		generic_reri_irq_handler(RERI_EVENT_SOURCE_CPU); // Call with CPU type
+		return;
+	}
+}
+
+static void iommu_reri_bh_handler(uint8_t events)
+{
+	if (events == BH_POLLIRQ) {
+		generic_reri_irq_handler(RERI_EVENT_SOURCE_IOMMU); // Call with IOMMU type
+		return;
+	}
+}
+
+#ifdef SYS_REALTIME
+static void cpu_reri_poll_init(void)
+{
+	irq_register_poller(cpu_reri_bh);
+}
+
+static void iommu_reri_poll_init(void)
+{
+	irq_register_poller(iommu_reri_bh);
+}
+#define iommu_reri_irq_init()	do {} while (0)
+#define cpu_reri_irq_init()	do {} while (0)
+#else
+static void cpu_reri_irq_init(void)
+{
+	irqc_configure_irq(IRQ_RAS_CE, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_RAS_UE, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(IRQ_RAS_CE, (irq_handler)cpu_reri_irq_handler);
+	irq_register_vector(IRQ_RAS_UE, (irq_handler)cpu_reri_irq_handler);
+	irqc_enable_irq(IRQ_RAS_CE);
+	irqc_enable_irq(IRQ_RAS_UE);
+}
+
+static void iommu_reri_irq_init(void)
+{
+	irqc_configure_irq(IRQ_IOMMU_IOATS0_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATS1_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATS2_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATS3_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC0_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC1_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC2_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC3_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC4_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC5_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC6_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC7_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC8_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC9_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC10_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC11_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC12_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irqc_configure_irq(IRQ_IOMMU_IOATC13_RAS, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(IRQ_IOMMU_IOATS0_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATS1_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATS2_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATS3_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC0_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC1_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC2_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC3_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC4_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC5_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC6_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC7_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC8_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC9_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC10_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC11_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC12_RAS, iommu_reri_irq_handler);
+	irq_register_vector(IRQ_IOMMU_IOATC13_RAS, iommu_reri_irq_handler);
+	irqc_enable_irq(IRQ_IOMMU_IOATS0_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATS1_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATS2_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATS3_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC0_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC1_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC2_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC3_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC4_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC5_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC6_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC7_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC8_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC9_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC10_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC11_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC12_RAS);
+	irqc_enable_irq(IRQ_IOMMU_IOATC13_RAS);
+}
+#define iommu_reri_poll_init()	do {} while (0)
+#define cpu_reri_poll_init()	do {} while (0)
+#endif
+
+void reri_drv_init(void)
+{
+	int i, ret;
+	static struct reri_hart_dev reri_hart_dev[NR_CPUS];
+	uint64_t addr;
+
+	reri_hart_devices = &reri_hart_dev[0];
+	addr = RERI_HART_DEV_ADDR;
+	reri_nr_harts = NR_CPUS;
+	current_hart = current_hartid();
+
+	con_log(RERI_MODNAME ": Initializing RERI driver\n");
+	con_log(RERI_MODNAME ": Base address: 0x%llx\n", addr);
+	con_log(RERI_MODNAME ": Number of harts: %d\n", reri_nr_harts);
+	con_log(RERI_MODNAME ": Harts per cluster: %d\n", HART_PER_CLUSTER);
+	con_log(RERI_MODNAME ": Number of clusters: %d\n", MAX_CLUSTERS);
+	con_log(RERI_MODNAME ": Note: All clusters share the same Error bank address space\n");
+#if 0
+	if(rpmi_shmem_init() && rpmi_ras_init()) {
+		con_err(RERI_MODNAME ": Failed to initialize RPMI shmem and RAS\n");
+		return;
+	}
+#endif
+
+	/* enable RAS clock */
+#if 1
+	clk_enable(cpu_ras_sw_rstn);
+	acpi_ghes_init(GHES_ERR_ADDR, GHES_ERR_SIZE);
+	for (i = 0; i < reri_nr_harts; i++) {
+		int cluster_id, local_hart_id;
+
+		ret = acpi_ghes_new_error_source(i, 0);
+		if (ret < 0)
+			continue;
+
+		if (get_cluster_and_local_hart_id(i, &cluster_id, &local_hart_id) != 0)
+			continue;
+
+		/* All clusters share the same Error bank address space */
+		reri_hart_devices[i].dev.addr = get_cluster_error_bank_addr(cluster_id);
+		reri_hart_devices[i].dev.size = RERI_ERR_BANK_SIZE;
+		reri_hart_devices[i].dev.sse_vector = i;
+		reri_hart_devices[i].dev.src_id = i;
+		reri_hart_devices[i].hart_id = i;
+		reri_hart_devices[i].cluster_id = cluster_id;
+		reri_hart_devices[i].local_hart_id = local_hart_id;
+
+		con_log(RERI_MODNAME ": Hart %d (Cluster %d, Local Hart %d) RERI registers:\n",
+			i, cluster_id, local_hart_id);
+		con_log(RERI_MODNAME ":   - Base address: 0x%llx (shared by all clusters)\n",
+			reri_hart_devices[i].dev.addr);
+	}
+
+	/* initialize CPU RERI interrupt */
+	cpu_reri_bh = bh_register_handler(cpu_reri_bh_handler);
+	cpu_reri_irq_init();
+	cpu_reri_poll_init();
+#else
+	riscv_reri_discover_iommus();
+
+	if (reri_nr_iommu_err_banks > 0) {
+		/* initialize IOMMU RERI interrupt */
+		iommu_reri_bh = bh_register_handler(iommu_reri_bh_handler);
+		iommu_reri_irq_init();
+		iommu_reri_poll_init();
+	}
+
+#endif
+	con_log(RERI_MODNAME ": RERI driver initialized\n");
+}
+
+static int riscv_reri_get_iommu_err_bank_addr(uint32_t iommu_id,
+					  uint32_t err_bank_id_target,
+					  uint64_t *bank_addr_out,
+					  uint64_t *size_out)
+{
+	for (int i = 0; i < reri_nr_iommu_err_banks; i++) {
+		if (reri_iommu_err_banks && reri_iommu_err_banks[i].dev.addr != 0) {
+			if (reri_iommu_err_banks[i].iommu_id == iommu_id &&
+			reri_iommu_err_banks[i].err_bank_id == err_bank_id_target) {
+				*bank_addr_out = reri_iommu_err_banks[i].dev.addr;
+				*size_out = reri_iommu_err_banks[i].dev.size;
+				return 0;
+			}
+		}
+	}
+
+	return -ENOENT;
+}
+
+/* inject error */
+#if 0
+static int do_reri_test(int argc, char *argv[])
+{
+	int target_id, test_id, err_bank_id_iommu = 0;
+	uint64_t target_addr = 0, bank_addr = 0, err_size = 0;
+	const struct reri_info *scenarios_to_use = NULL;
+	int num_scenarios = 0;
+	enum reri_event_source_type test_target_type;
+	const reri_source_info_t *source_info;
+	int eid;
+
+	if (argc < 3) {
+usage:
+		con_err("Usage: reri test cpu <test_id>\n");
+		con_err("	   reri test ioats <iommu_id> <err_bank_id_for_iommu> <test_id>\n");
+		con_err("	   reri test ioatc <iommu_id> <err_bank_id_for_iommu> <test_id>\n");
+		con_err("  target_type: cpu | ioats | ioatc\n");
+		con_err("	cpu: <test_id> is test id, current hart\n");
+		con_err("	ioats: <iommu_id> is iommu id, <err_bank_id_for_iommu> is specific error bank within IOMMU\n");
+		con_err("	ioatc: <iommu_id> is iommu id, <err_bank_id_for_iommu> is specific error bank within IOMMU\n");
+		con_err("  test_id (for cpu): 0-%d\n", (int)reri_hart_num_error_records - 1);
+		for (int i = 0; i < reri_hart_num_error_records; i++)
+			con_err("\t%d: %s\n", i, reri_hart_error_records[i].desc);
+
+		con_err("  test_id (for iommu): 0-%d\n",
+			(int)reri_ioats_num_error_records > 0 ?
+			(int)reri_ioats_num_error_records - 1 : 0);
+		if (reri_ioats_num_error_records > 0) {
+			for (int i = 0; i < reri_ioats_num_error_records; i++)
+				con_err("\t%d: %s\n", i, reri_ioats_error_records[i].desc);
+		} else {
+			con_err("\tNo IOATS error scenarios defined.\n");
+		}
+
+		con_err("  test_id (for iommu): 0-%d\n",
+			(int)reri_ioatc_num_error_records > 0 ?
+			(int)reri_ioatc_num_error_records - 1 : 0);
+		if (reri_ioatc_num_error_records > 0) {
+			for (int i = 0; i < reri_ioatc_num_error_records; i++)
+				con_err("\t%d: %s\n", i, reri_ioatc_error_records[i].desc);
+		} else {
+			con_err("\tNo IOATC error scenarios defined.\n");
+		}
+		return -EINVAL;
+	}
+
+	if (strcmp(argv[2], "cpu") == 0) {
+		test_target_type = RERI_EVENT_SOURCE_CPU;
+		scenarios_to_use = reri_hart_error_records;
+		num_scenarios = reri_hart_num_error_records;
+		if (argc == 4) {
+			target_id = current_hartid();
+			test_id = (int)strtoull(argv[3], 0, 0);
+		} else {
+			goto usage;
+		}
+	} else if (strcmp(argv[2], "ioats") == 0) {
+		test_target_type = RERI_EVENT_SOURCE_IOMMU;
+		scenarios_to_use = reri_ioats_error_records;
+		num_scenarios = reri_ioats_num_error_records;
+		if (argc == 6) {
+			target_id = (int)strtoull(argv[3], 0, 0);
+			err_bank_id_iommu = (int)strtoull(argv[4], 0, 0);
+			test_id = (int)strtoull(argv[5], 0, 0);
+		} else {
+			goto usage;
+		}
+		if (reri_ioats_num_error_records == 0) {
+			con_err("No IOATS error scenarios defined to run test.\n");
+			return -EINVAL;
+		}
+	} else if (strcmp(argv[2], "ioatc") == 0) {
+		test_target_type = RERI_EVENT_SOURCE_IOMMU;
+		scenarios_to_use = reri_ioatc_error_records;
+		num_scenarios = reri_ioatc_num_error_records;
+		if (argc == 6) {
+			target_id = (int)strtoull(argv[3], 0, 0);
+			err_bank_id_iommu = (int)strtoull(argv[4], 0, 0);
+			test_id = (int)strtoull(argv[5], 0, 0);
+		} else {
+			goto usage;
+		}
+		if (reri_ioatc_num_error_records == 0) {
+			con_err("No IOATC error scenarios defined to run test.\n");
+			return -EINVAL;
+		}
+	}
+
+	if (test_id < 0 || test_id >= num_scenarios) {
+		con_err("Invalid test_id %d (valid range: 0-%d for selected target)\n", test_id, num_scenarios - 1);
+		return -EINVAL;
+	}
+
+	con_log(RERI_MODNAME ": Testing scenario for %s: %s\n", argv[2], scenarios_to_use[test_id].desc);
+
+	if (test_target_type == RERI_EVENT_SOURCE_CPU) {
+		if (riscv_reri_get_hart_addr(target_id, &target_addr, &err_size) != 0)
+			return -EINVAL;
+	} else {
+		if (riscv_reri_get_iommu_err_bank_addr(target_id, err_bank_id_iommu, &target_addr, &err_size) != 0) {
+			con_err("Failed to get IOMMU error bank address for iommu_id %d, err_bank_id %d\n", target_id, err_bank_id_iommu);
+			return -ENOENT;
+		}
+	}
+	bank_addr = target_addr;
+	eid = 10000 * (test_id + 1);
+
+	reri_write_mask(RERI_STATUS_SET_CE(scenarios_to_use[test_id].ce) |
+			RERI_STATUS_SET_UEC(scenarios_to_use[test_id].uec) |
+			RERI_STATUS_SET_UED(scenarios_to_use[test_id].ued) |
+			RERI_STATUS_SET_TT(scenarios_to_use[test_id].tt)  |
+			RERI_STATUS_SET_EC(scenarios_to_use[test_id].ec),
+			RERI_STATUS_SET_CE(RERI_STATUS_CE_MASK) |
+			RERI_STATUS_SET_UEC(RERI_STATUS_UEC_MASK) |
+			RERI_STATUS_SET_UED(RERI_STATUS_UED_MASK) |
+			RERI_STATUS_SET_TT(RERI_STATUS_TT_MASK)  |
+			RERI_STATUS_SET_EC(RERI_STATUS_EC_MASK),
+			RERI_STATUS_I(bank_addr, test_id));
+
+	/* Trigger: inject error */
+	reri_set(RERI_CTRL_ELSE_EN, RERI_CONTROL_I(bank_addr, test_id));
+	reri_write_mask(RERI_CTRL_SET_CES(RAS_SIGNAL_HIGH_PRIORITY) |
+			RERI_CTRL_SET_UEDS(RAS_SIGNAL_HIGH_PRIORITY) |
+			RERI_CTRL_SET_UECS(RAS_SIGNAL_HIGH_PRIORITY) |
+			RERI_CTRL_SET_EID(eid),
+			RERI_CTRL_SET_CES(RERI_CTRL_CES_MASK) |
+			RERI_CTRL_SET_UEDS(RERI_CTRL_UEDS_MASK) |
+			RERI_CTRL_SET_UECS(RERI_CTRL_UECS_MASK) |
+			RERI_CTRL_SET_EID(RERI_CTRL_EID_MASK),
+			RERI_CONTROL_I(bank_addr, test_id));
+	reri_clear(RERI_CTRL_SINV_EN, RERI_CONTROL_I(bank_addr, test_id));
+
+	con_log(RERI_MODNAME ": record_index=%d, status=0x%llx\n",
+			test_id, reri_read(RERI_STATUS_I(bank_addr, test_id)));
+	con_log(RERI_MODNAME ": record_index=%d, control=0x%llx\n",
+			test_id, reri_read(RERI_CONTROL_I(bank_addr, test_id)));
+
+	source_info = get_source_info(RERI_INST_ID(reri_read(bank_addr + RERI_BANK_INFO)));
+	if (source_info)
+		con_log(RERI_MODNAME ": source_info: %s\n", source_info->name);
+	else
+		con_log(RERI_MODNAME ": unknown source id\n");
 
 	return 0;
 }
+
+DEFINE_COMMAND(reri, do_reri_test, "RERI Debug commands and error injection",
+	"reri test cpu <test_id>\n"
+	"  - inject error for current hart\n"
+	"reri test ioats <iommu_id> <err_bank_id_for_iommu> <test_id>\n"
+	"  - inject error for IOATS\n"
+	"reri test ioatc <iommu_id> <err_bank_id_for_iommu> <test_id>\n"
+	"  - inject error for IOATC\n"
+	"target_type:\n"
+	"  cpu: CPU RERI\n"
+	"  ioats: IOMMU IOATS RERI\n"
+	"  ioatc: IOMMU IOATC RERI\n"
+	"test_id: test id, see usage output\n"
+);
+#else
+static int do_reri_test(int argc, char *argv[])
+{
+	struct reri_context *ctx = get_reri;
+	int ret = 0;
+
+	if (argc < 3) {
+usage:
+		con_err("Usage: reri test cpu <test_id>\n");
+		con_err("    reri test ioats <iommu_id> <err_bank_id_for_iommu> <test_id>\n");
+		con_err("    reri test ioatc <iommu_id> <err_bank_id_for_iommu> <test_id>\n");
+		con_err("  target_type: cpu | ioats | ioatc\n");
+		con_err("    cpu: <test_id> is test id, current hart\n");
+		con_err("    ioats: <iommu_id> is iommu id, <err_bank_id_for_iommu> is specific error bank within IOMMU\n");
+		con_err("    ioatc: <iommu_id> is iommu id, <err_bank_id_for_iommu> is specific error bank within IOMMU\n");
+		con_err("  test_id (for cpu): 0-%d\n", (int)reri_hart_num_error_records - 1);
+		for (int i = 0; i < reri_hart_num_error_records; i++)
+			con_err("\t%d: %s\n", i, reri_hart_error_records[i].desc);
+
+		con_err("  test_id (for iommu): 0-%d\n",
+			(int)reri_ioats_num_error_records > 0 ?
+			(int)reri_ioats_num_error_records - 1 : 0);
+		if (reri_ioats_num_error_records > 0) {
+			for (int i = 0; i < reri_ioats_num_error_records; i++)
+				con_err("\t%d: %s\n", i, reri_ioats_error_records[i].desc);
+		} else {
+			con_err("\tNo IOATS error scenarios defined.\n");
+		}
+
+		con_err("  test_id (for iommu): 0-%d\n",
+			(int)reri_ioatc_num_error_records > 0 ?
+			(int)reri_ioatc_num_error_records - 1 : 0);
+		if (reri_ioatc_num_error_records > 0) {
+			for (int i = 0; i < reri_ioatc_num_error_records; i++)
+				con_err("\t%d: %s\n", i, reri_ioatc_error_records[i].desc);
+		} else {
+			con_err("\tNo IOATC error scenarios defined.\n");
+		}
+		return -EINVAL;
+	}
+
+	memset(ctx, 0, sizeof(*ctx));
+
+	if (strcmp(argv[2], "cpu") == 0) {
+		ctx->test_target_type = RERI_EVENT_SOURCE_CPU;
+		ctx->scenarios_to_use = reri_hart_error_records;
+		ctx->num_scenarios = reri_hart_num_error_records;
+		if (argc == 4) {
+			ctx->target_id = current_hartid();
+			ctx->test_id = (int)strtoull(argv[3], 0, 0);
+		} else {
+			goto usage;
+		}
+	} else if (strcmp(argv[2], "ioats") == 0) {
+		ctx->test_target_type = RERI_EVENT_SOURCE_IOMMU;
+		ctx->scenarios_to_use = reri_ioats_error_records;
+		ctx->num_scenarios = reri_ioats_num_error_records;
+		if (argc == 6) {
+			ctx->target_id = (int)strtoull(argv[3], 0, 0);
+			ctx->err_bank_id_iommu = (int)strtoull(argv[4], 0, 0);
+			ctx->test_id = (int)strtoull(argv[5], 0, 0);
+		} else {
+			goto usage;
+		}
+		if (reri_ioats_num_error_records == 0) {
+			con_err("No IOATS error scenarios defined to run test.\n");
+			return -EINVAL;
+		}
+	} else if (strcmp(argv[2], "ioatc") == 0) {
+		ctx->test_target_type = RERI_EVENT_SOURCE_IOMMU;
+		ctx->scenarios_to_use = reri_ioatc_error_records;
+		ctx->num_scenarios = reri_ioatc_num_error_records;
+		if (argc == 6) {
+			ctx->target_id = (int)strtoull(argv[3], 0, 0);
+			ctx->err_bank_id_iommu = (int)strtoull(argv[4], 0, 0);
+			ctx->test_id = (int)strtoull(argv[5], 0, 0);
+		} else {
+			goto usage;
+		}
+		if (reri_ioatc_num_error_records == 0) {
+			con_err("No IOATC error scenarios defined to run test.\n");
+			return -EINVAL;
+		}
+	}
+
+	if (ctx->test_id < 0 || ctx->test_id >= ctx->num_scenarios) {
+		con_err("Invalid test_id %d (valid range: 0-%d for selected target)\n",
+			   ctx->test_id, ctx->num_scenarios - 1);
+		return -EINVAL;
+	}
+
+	con_log(RERI_MODNAME "[CPU%d]: Testing scenario for %s: %s\n",
+		   current_hartid(), argv[2], ctx->scenarios_to_use[ctx->test_id].desc);
+
+	if (ctx->test_target_type == RERI_EVENT_SOURCE_CPU) {
+		if (riscv_reri_get_hart_addr(ctx->target_id, &ctx->target_addr, &ctx->err_size) != 0)
+			return -EINVAL;
+	} else {
+		if (riscv_reri_get_iommu_err_bank_addr(ctx->target_id, ctx->err_bank_id_iommu,
+							&ctx->target_addr, &ctx->err_size) != 0) {
+			con_err("Failed to get IOMMU error bank address for iommu_id %d, err_bank_id %d\n",
+				ctx->target_id, ctx->err_bank_id_iommu);
+			return -ENOENT;
+		}
+	}
+	ctx->bank_addr = ctx->target_addr;
+	ctx->eid = 10000 * (ctx->test_id + 1);
+
+	reri_write_mask(RERI_STATUS_SET_CE(ctx->scenarios_to_use[ctx->test_id].ce) |
+			RERI_STATUS_SET_UEC(ctx->scenarios_to_use[ctx->test_id].uec) |
+			RERI_STATUS_SET_UED(ctx->scenarios_to_use[ctx->test_id].ued) |
+			RERI_STATUS_SET_TT(ctx->scenarios_to_use[ctx->test_id].tt)  |
+			RERI_STATUS_SET_EC(ctx->scenarios_to_use[ctx->test_id].ec),
+			RERI_STATUS_SET_CE(RERI_STATUS_CE_MASK) |
+			RERI_STATUS_SET_UEC(RERI_STATUS_UEC_MASK) |
+			RERI_STATUS_SET_UED(RERI_STATUS_UED_MASK) |
+			RERI_STATUS_SET_TT(RERI_STATUS_TT_MASK)  |
+			RERI_STATUS_SET_EC(RERI_STATUS_EC_MASK),
+			RERI_STATUS_I(ctx->bank_addr, ctx->test_id));
+
+	/* Trigger: inject error */
+	reri_set(RERI_CTRL_ELSE_EN, RERI_CONTROL_I(ctx->bank_addr, ctx->test_id));
+	reri_write_mask(RERI_CTRL_SET_CES(RAS_SIGNAL_HIGH_PRIORITY) |
+			RERI_CTRL_SET_UEDS(RAS_SIGNAL_HIGH_PRIORITY) |
+			RERI_CTRL_SET_UECS(RAS_SIGNAL_HIGH_PRIORITY) |
+			RERI_CTRL_SET_EID(ctx->eid),
+			RERI_CTRL_SET_CES(RERI_CTRL_CES_MASK) |
+			RERI_CTRL_SET_UEDS(RERI_CTRL_UEDS_MASK) |
+			RERI_CTRL_SET_UECS(RERI_CTRL_UECS_MASK) |
+			RERI_CTRL_SET_EID(RERI_CTRL_EID_MASK),
+			RERI_CONTROL_I(ctx->bank_addr, ctx->test_id));
+	reri_clear(RERI_CTRL_SINV_EN, RERI_CONTROL_I(ctx->bank_addr, ctx->test_id));
+
+	con_log(RERI_MODNAME "[CPU%d]: record_index=%d, status=0x%llx\n",
+		current_hartid(), ctx->test_id, reri_read(RERI_STATUS_I(ctx->bank_addr, ctx->test_id)));
+	con_log(RERI_MODNAME "[CPU%d]: record_index=%d, control=0x%llx\n",
+		current_hartid(), ctx->test_id, reri_read(RERI_CONTROL_I(ctx->bank_addr, ctx->test_id)));
+
+	ctx->source_info = get_source_info(RERI_INST_ID(reri_read(ctx->bank_addr + RERI_BANK_INFO)));
+	if (ctx->source_info)
+		con_log(RERI_MODNAME "[CPU%d]: source_info: %s\n", current_hartid(), ctx->source_info->name);
+	else
+		con_log(RERI_MODNAME "[CPU%d]: unknown source id\n", current_hartid());
+
+	return ret;
+}
+
+int reri(caddr_t percpu_area)
+{
+	int ret = 0;
+
+	ret = do_reri_test(0, NULL);
+	return ret;
+}
+
+__define_testfn(reri, sizeof(struct reri_context), SMP_CACHE_BYTES,
+		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
 #endif
+// #endif /* __riscv_xlen == 64 */
+

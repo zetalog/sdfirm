@@ -2,17 +2,19 @@
 #define __TARGET_RERI_H_INCLUDE__
 
 #include <target/generic.h>
+#include <target/ras.h>
+#include <target/io.h>
 
 /* register definitions */
 #define RERI_VENDOR_N_IMP_ID		0x0
 #define RERI_BANK_INFO			0x8
 #define RERI_VALID_SUMMARY		0x10
 #define RERI_CONTROL_I(base, i)		((base) + (0x40 + 0x40 * (i)))
-#define RERI_STATUS_I(i)		(0x48 + 0x40 * (i))
-#define RERI_ADDR_INFO_I(i)		(0x50 + 0x40 * (i))
-#define RERI_INFO_I(i)			(0x58 + 0x40 * (i))
-#define RERI_SUPPL_INFO_I(i)		(0x60 + 0x40 * (i))
-#define RERI_TIMESTAMP_I(i)		(0x68 + 0x40 * (i))
+#define RERI_STATUS_I(base, i)		((base) + (0x48 + 0x40 * (i)))
+#define RERI_ADDR_INFO_I(base, i)	((base) + (0x50 + 0x40 * (i)))
+#define RERI_INFO_I(base, i)		((base) + (0x58 + 0x40 * (i)))
+#define RERI_SUPPL_INFO_I(base, i)	((base) + (0x60 + 0x40 * (i)))
+#define RERI_TIMESTAMP_I(base, i)	((base) + (0x68 + 0x40 * (i)))
 
 /* RERI vendor_n_imp_id fields */
 #define RERI_VENDOR_ID(value)		_GET_FV_ULL(RERI_VENDOR_ID, value)
@@ -161,14 +163,83 @@
 #define RERI_STATUS_GET_CEC(value)	_GET_FV_ULL(RERI_STATUS_CEC, value)
 #define RERI_STATUS_SET_CEC(value)	_SET_FV_ULL(RERI_STATUS_CEC, value)
 
+
+#if __riscv_xlen == 64
+#ifdef CONFIG_ARCH_IS_MMIO_32BIT
+static uint64_t reri_read(caddr_t dev_addr)
+{
+	uint32_t hi, lo;
+
+	hi = __raw_readl(((uintptr_t)(dev_addr) + 4));
+	lo = __raw_readl(dev_addr);
+
+	return (uint64_t)hi << 32 | lo;
+}
+
+static void reri_write(uint64_t val, caddr_t dev_addr)
+{
+	__raw_writel(HIDWORD(val), ((uintptr_t)(dev_addr) + 4));
+	__raw_writel(LODWORD(val), dev_addr);
+}
+#else
+static uint64_t reri_read(caddr_t dev_addr)
+{
+	return __raw_readq(dev_addr);
+}
+
+static void reri_write(uint64_t val, caddr_t dev_addr)
+{
+	__raw_writeq(val, dev_addr);
+}
+#endif
+
+#define reri_set(v, a)					\
+	do {						\
+		uint64_t __v = reri_read(a);		\
+		__v |= (v);				\
+		reri_write(__v, (a));			\
+	} while (0)
+#define reri_clear(v, a)				\
+	do {						\
+		uint64_t __v = reri_read(a);		\
+		__v &= ~(v);				\
+		reri_write(__v, (a));			\
+	} while (0)
+#define reri_write_mask(v, m, a)			\
+	do {						\
+		uint64_t __v = reri_read(a);		\
+		__v &= ~(m);				\
+		__v |= (v);				\
+		reri_write(__v, a);			\
+	} while (0)
+#define iommu_set(v, a)					\
+	do {						\
+		uint32_t __v = __raw_readl(a);		\
+		__v |= (v);				\
+		__raw_writel(__v, (a));			\
+	} while (0)
+#endif
 struct reri_info {
-	uint32_t ec;    // Error Code
-	uint32_t tt;    // Transaction Type
-	uint32_t ce;    // Corrected Error (CE)
-	uint32_t uec;   // Uncorrected Urgent Error (UUE)
-	uint32_t ued;   // Uncorrected Deferred Error (UDE)
+	uint32_t ec;	// Error Code
+	uint32_t tt;	// Transaction Type
+	uint32_t ce;	// Corrected Error (CE)
+	uint32_t uec;	// Uncorrected Urgent Error (UUE)
+	uint32_t ued;	// Uncorrected Deferred Error (UDE)
 	const char *desc;
 };
+
+typedef enum {
+	DIE_0 = 0,
+	DIE_1 = 1,
+	DIE_COUNT
+} die_id_t;
+
+
+typedef struct {
+	const char *name;	// error source name
+	source_type_t type;	// error source type
+	die_id_t die;		// error source die id
+} reri_source_info_t;
 
 #include <asm/mach/reri.h>
 
@@ -180,3 +251,4 @@ int reri_drv_sync_hart_errs(u32 hart_id, u32 *pending_vectors);
 #endif
 
 #endif /* __TARGET_RERI_H_INCLUDE__ */
+
