@@ -11,10 +11,8 @@
 #ifndef __RPMI_MSGPROT_H__
 #define __RPMI_MSGPROT_H__
 
-//#include <sbi/sbi_byteorder.h>
 #include <target/endian.h>
-//#include <sbi/sbi_error.h>
-#include <target/sbi.h>
+#include <target/mbox.h>
 
 /*
  * 31                                            0
@@ -216,6 +214,11 @@ enum rpmi_servicegroup_id {
 	RPMI_SRVGRP_HSM = 0x0005,
 	RPMI_SRVGRP_CPPC = 0x0006,
 	RPMI_SRVGRP_CLOCK = 0x0008,
+	RPMI_SRVGRP_DEVICE_POWER = 0x0009,
+	RPMI_SRVGRP_PERF = 0x000A,
+	RPMI_SRVGRP_MANAGEMENT_MODE = 0x000B,
+	RPMI_SRVGRP_RAS_AGENT = 0x000C,
+	RPMI_SRVGRP_REQUEST_FORWARD = 0x000D,
 	RPMI_SRVGRP_ID_MAX_COUNT,
 
 	/* Reserved range for service groups */
@@ -705,11 +708,14 @@ struct rpmi_clock_get_rate_resp {
 
 /** RPMI RAS-Agent ServiceGroup Service IDs */
 enum rpmi_ras_service_id {
-	RPMI_RAS_SRV_PROBE_REQ = 0x01,
-	RPMI_RAS_SRV_SYNC_HART_ERR_REQ,
-	RPMI_RAS_SRV_SYNC_DEV_ERR_REQ,
-	RPMI_RAS_SRV_GET_PEND_VECS_REQ,
-	RPMI_RAS_SRV_SYNC_ERR_RESP,
+	RPMI_RAS_SRV_ENABLE_NOTIFICATION = 0x01,
+	RPMI_RAS_SRV_GET_NUM_ERR_SRCS = 0x02,
+	RPMI_RAS_SRV_GET_ERR_SRCS_ID_LIST = 0x03,
+	RPMI_RAS_SRV_GET_ERR_SRC_DESC = 0x04,
+	/* custom service ids */
+	RPMI_RAS_SRV_SYNC_HART_ERR_REQ = 0x05,
+	RPMI_RAS_SRV_SYNC_DEV_ERR_REQ = 0x06,
+	RPMI_RAS_SRV_GET_PEND_VECS = 0x07,
 	RPMI_RAS_SRV_MAX_COUNT,
 };
 
@@ -751,4 +757,37 @@ struct rpmi_ras_sync_err_resp {
 	u32 pending_vecs[MAX_PEND_VECS];
 };
 
+#define rpmi_u32_count(__var)	(sizeof(__var) / sizeof(uint32_t))
+
+/** Typical RPMI normal request with at least status code in response */
+int rpmi_normal_request_with_status(struct mbox_chan *chan, uint32_t service_id,
+				    void *req, uint32_t req_words,
+				    uint32_t req_endian_words,
+				    void *resp, uint32_t resp_words,
+				    uint32_t resp_endian_words);
+
+/* RPMI posted request which is without any response*/
+int rpmi_posted_request(struct mbox_chan *chan, uint32_t service_id,
+			void *req, uint32_t req_words, uint32_t req_endian_words);
+
+struct mbox_controller *rpmi_shmem_get_controller(void);
+
+#ifdef CONFIG_RPMI_SHMEM
+void rpmi_shmem_init(void);
+#else
+#define rpmi_shmem_init()		do { } while (0)
+#endif
+
+#ifdef CONFIG_RPMI_RAS
+void rpmi_ras_init(void);
+int rpmi_ras_sync_hart_errs(u32 *pending_vectors, u32 *nr_pending,
+			    u32 *nr_remaining);
+int rpmi_ras_sync_reri_errs(u32 *pending_vectors, u32 *nr_pending,
+			    u32 *nr_remaining);
+#else
+#define rpmi_ras_init()			do { } while (0)
+#define rpmi_ras_sync_hart_errs()	do { } while (0)
+#define rpmi_ras_sync_reri_errs()	do { } while (0)
+#endif
 #endif /* !__RPMI_MSGPROT_H__ */
+

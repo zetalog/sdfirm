@@ -6,9 +6,6 @@
 
 #define rpmi_u32_count(__var)	(sizeof(__var) / sizeof(uint32_t))
 
-/** Convert RPMI error to SBI error */
-int rpmi_xlate_error(enum rpmi_error error);
-
 /** Typical RPMI normal request with at least status code in response */
 int rpmi_normal_request_with_status(struct mbox_chan *chan, uint32_t service_id,
 				    void *req, uint32_t req_words,
