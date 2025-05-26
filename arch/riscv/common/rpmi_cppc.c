@@ -317,16 +317,31 @@ static int rpmi_cppc_update_hart_scratch(struct mbox_chan *chan)
 	return 0;
 }
 
-extern struct mbox_chan g_chan;
 void rpmi_cppc_init(void)
 {
 	int rc;
-	struct mbox_chan *chan = &g_chan;
+	struct mbox_controller *mbox;
+	uint32_t chan_args[2];
+	struct mbox_chan *chan;
+
+	mbox = rpmi_shmem_get_controller();
+	if (!mbox)
+		return;
+
+	chan_args[0] = RPMI_SRVGRP_CPPC;
+	chan_args[1] = RPMI_VERSION(1, 0);
+
+	chan = mbox_controller_request_chan(mbox, chan_args);
+	if (!chan) {
+		printf("%s: failed to request channel\n", __func__);
+		return;
+	}
 
 	/* Update per-HART scratch space */
 	rc = rpmi_cppc_update_hart_scratch(chan);
-	if (rc)
+	if (rc) {
+		mbox_controller_free_chan(chan);
 		return;
-
-	return;
+	}
 }
+
