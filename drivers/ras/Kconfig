@@ -4,6 +4,17 @@ config CMN600_RAS
 	bool "Enable CMN600 realiability availability serviceability (RAS) support"
 	depends RAS
 
+config DDR_RAS
+	bool "Enable DDR reliability availability serviceability (RAS) support"
+	depends RAS
+	help
+	  This option enables DDR RAS support for error detection and handling.
+	  It includes features such as:
+	  - ECC error detection and correction
+	  - CRC error detection
+	  - Parity error detection
+	  - Interrupt handling for various error types
+
 config ECC_SRAM_RAS
 	bool "Enable ECC SRAM reliability availability serviceability (RAS) support"
 	depends on RAS

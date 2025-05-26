@@ -62,6 +62,12 @@
 #define ddr4_hw_config_refresh(n, mode, tREFI, tRFCmin)	\
 	do { } while (0)
 #endif
+#ifdef CONFIG_DDR_RAS
+void ddr_ras_init(void);
+#else
+#define ddr_ras_init()	do { } while (0)
+#endif
 #endif
 
 #endif /* __DDR_DRIVER_H_INCLUDE__ */
+
