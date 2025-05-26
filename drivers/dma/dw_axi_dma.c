@@ -666,7 +666,6 @@ static int axi_dma_chan_poll(struct dma_channel *dchan)
 
 static void axi_desc_put(struct axi_dma_desc *desc)
 {
-	struct axi_dma_chan *chan = desc->chan;
 	int count = desc->nr_hw_descs;
 	struct axi_dma_hw_desc *hw_desc;
 	int descs_put;
@@ -740,3 +739,4 @@ int axi_dma_init(phys_addr_t base, uint8_t chan_num, uint16_t busrt_len)
 {
 	return axi_dma_init2(&g_axi_dma, base, chan_num, busrt_len);
 }
+
