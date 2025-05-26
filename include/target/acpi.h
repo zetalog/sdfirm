@@ -773,7 +773,15 @@ typedef uint8_t acpi_type_t;
 
 #define ACPI_NUM_NS_TYPES		(ACPI_TYPE_INVALID + 1)
 
+/* Forward declarations */
+struct acpi_object;
+struct acpi_opcode_info;
+
+/* Function declarations */
 typedef void (*acpi_release_cb)(struct acpi_object *);
+
+static inline void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info,
+					const char *prefix);
 
 #define ACPI_DESC_TYPE_NAMED			0x01
 #define ACPI_DESC_TYPE_TERM			0x02
@@ -1060,3 +1068,4 @@ static inline void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info
 #endif
 
 #endif /* __ACPI_H_INCLUDE__ */
+
