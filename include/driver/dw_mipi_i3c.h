@@ -374,16 +374,51 @@
 #define INTR_IBI_THLD				_BV(2)
 #define INTR_RX_THLD				_BV(1)
 #define INTR_TX_THLD				_BV(0)
-#define INTR_ALL					\
-	(INTR_BUS_RESET_DONE | INTR_BUSOWNER_UPDATED |	\
-	 INTR_IBI_UPDATED | INTR_READ_REQ_RECV |	\
-	 INTR_DEFSLV | INTR_TRANSFER_ERR |		\
-	 INTR_DYN_ADDR_ASSIGN | INTR_CCC_UPDATED |	\
-	 INTR_TRANSFER_ABORT | INTR_RESP_READY |	\
-	 INTR_CMD_QUEUE_READY | INTR_IBI_THLD |		\
+#ifdef CONFIG_DW_MIPI_I3C_SLAVE_LITE
+#define INTR_ALWAYS				\
+	(INTR_TRANSFER_ERR |			\
+	 INTR_RESP_READY |			\
+	 INTR_CMD_QUEUE_READY |			\
 	 INTR_RX_THLD | INTR_TX_THLD)
+#else
+#define INTR_ALWAYS				\
+	(INTR_TRANSFER_ERR |			\
+	 INTR_TRANSFER_ABORT |			\
+	 INTR_RESP_READY |			\
+	 INTR_CMD_QUEUE_READY |			\
+	 INTR_IBI_THLD |			\
+	 INTR_RX_THLD | INTR_TX_THLD)
+#endif
+#ifdef CONFIG_DW_MIPI_I3C_MASTER
 #define INTR_MST				\
-	(INTR_TRANSFER_ERR | INTR_RESP_READY)
+	(INTR_BUS_RESET_DONE |			\
+	 INTR_ALWAYS)
+#else
+#define INTR_MST				0
+#endif
+#ifdef CONFIG_DW_MIPI_I3C_SLAVE
+#ifdef CONFIG_DW_MIPI_I3C_SLAVE_LITE
+#define INTR_SLV				\
+	(INTR_IBI_UPDATED)
+#else
+#define INTR_SLV				\
+	(INTR_IBI_UPDATED |			\
+	 INTR_READ_REQ_RECV |			\
+	 INTR_DYN_ADDR_ASSIGN |			\
+	 INTR_CCC_UPDATED)
+#endif
+#else
+#define INTR_SLV				0
+#endif
+#ifdef CONFIG_DW_MIPI_I3C_SECONDARY_MASTER
+#define INTR_MIXED				\
+	(INTR_BUSOWNER_UPDATED |		\
+	 INTR_IBI_UPDATED |			\
+	 INTR_DEFSLV)
+#else
+#define INTR_MIXED				0
+#endif
+#define INTR_ALL	(INTR_MST | INTR_SLV | INTR_MIXED)
 /* 5.2.21 QUEUE_STATUS_LEVEL */
 #define DW_CMD_QUEUE_EMPTY_LOC_OFFSET		0
 #define DW_CMD_QUEUE_EMPTY_LOC_MASK		REG_8BIT_MASK
@@ -650,12 +685,11 @@
 #define dw_mipi_i3c_disable_all_irqs(n)					\
 	dw_i3c_writel(0, INTR_STATUS_EN(n))
 #define dw_mipi_i3c_enable_all_irqs(n)					\
-	dw_i3c_writel(INTR_ALL, INTR_STATUS(n))
-#define dw_mipi_i3c_enable_mst_irqs(n)					\
-	do {								\
-		dw_i3c_writel(INTR_MST, INTR_STATUS_EN(dw_i3cd));	\
-		dw_i3c_writel(INTR_MST, INTR_SIGNAL_EN(dw_i3cd));	\
-	} while (0)
+	dw_i3c_writel(INTR_ALL, INTR_STATUS_EN(n))
+#define dw_mipi_i3c_mask_all_irqs(n)					\
+	dw_i3c_writel(0, INTR_SIGNAL_EN(dw_i3cd))
+#define dw_mipi_i3c_unmask_all_irqs(n)					\
+	dw_i3c_writel(INTR_ALL, INTR_SIGNAL_EN(dw_i3cd))
 #define dw_mipi_i3c_enable_irq(n, irq)		dw_i3c_setl(irq, INTR_STATUS_EN(n))
 #define dw_mipi_i3c_disable_irq(n, irq)		dw_i3c_clearl(irq, INTR_STATUS_EN(n))
 #define dw_mipi_i3c_unmask_irq(n, irq)		dw_i3c_setl(irq, INTR_SIGNAL_EN(n))
