@@ -5,10 +5,10 @@
 #include <target/console.h>
 #include <target/arch.h>
 
-static int cmn_trace_wp_config(caddr_t base, int wp, int dev_sel,
-				int chn_sel, int pkt_type, int pkt_gen,
-				int combine, int cc_en, int ctrigger_en,
-				int dbgtrigger_en)
+static int cmn_trace_wp_config(caddr_t base, uint32_t wp, uint32_t dev_sel,
+				uint32_t chn_sel, uint32_t pkt_type, uint32_t pkt_gen,
+				uint32_t combine, uint32_t cc_en, uint32_t ctrigger_en,
+				uint32_t dbgtrigger_en)
 {
 	uint64_t val = 0;
 
@@ -32,14 +32,14 @@ static int cmn_trace_wp_config(caddr_t base, int wp, int dev_sel,
 	return 0;
 }
 
-static int cmn_trace_wp_val_mask(caddr_t base, int wp, uint64_t val, uint64_t mask)
+static int cmn_trace_wp_val_mask(caddr_t base, uint32_t wp, uint64_t val, uint64_t mask)
 {
 	__raw_writeq(val, CMN_dtm_wp_val(base, wp));
 	__raw_writeq(mask, CMN_dtm_wp_mask(base, wp));
 	return 0;
 }
 
-static int cmn_trace_wp_enable(caddr_t base, int wp, int enable)
+static int cmn_trace_wp_enable(caddr_t base, uint32_t wp, uint32_t enable)
 {
 	uint64_t val = __raw_readq(CMN_dtm_wp_config(base, wp));
 	if (enable)
@@ -50,10 +50,10 @@ static int cmn_trace_wp_enable(caddr_t base, int wp, int enable)
 	return 0;
 }
 
-static int cmn_trace_wp_setup(caddr_t base, int wp, int dev_sel,
-				  int chn_sel, int pkt_type, int pkt_gen,
-				  int combine, int cc_en, int ctrigger_en,
-				  int dbgtrigger_en, uint64_t val, uint64_t mask)
+static int cmn_trace_wp_setup(caddr_t base, uint32_t wp, uint32_t dev_sel,
+				  uint32_t chn_sel, uint32_t pkt_type, uint32_t pkt_gen,
+				  uint32_t combine, uint32_t cc_en, uint32_t ctrigger_en,
+				  uint32_t dbgtrigger_en, uint64_t val, uint64_t mask)
 {
 	cmn_trace_wp_config(base, wp, dev_sel, chn_sel, pkt_type,
 			    pkt_gen, combine, cc_en, ctrigger_en,
@@ -62,8 +62,8 @@ static int cmn_trace_wp_setup(caddr_t base, int wp, int dev_sel,
 	return cmn_trace_wp_enable(base, wp, 1);
 }
 
-static int cmn_trace_dt_setup(caddr_t base, int dbgtrigger_en,
-			      int atbtrigger_en, int wait_for_trigger)
+static int cmn_trace_dt_setup(caddr_t base, uint32_t dbgtrigger_en,
+			      uint32_t atbtrigger_en, uint32_t wait_for_trigger)
 {
 	uint64_t val = 0;
 
@@ -76,7 +76,7 @@ static int cmn_trace_dt_setup(caddr_t base, int dbgtrigger_en,
 	val |= dt_dtc_ctl_en;
 
 	__raw_setq(dt_trace_control_cc_enable, CMN_dt_trace_control(base));
-	__raw_writeq(val, CMN_dt_ctl(base));
+	__raw_writeq(val, CMN_dt_dtc_ctl(base));
 	return 0;
 }
 
@@ -88,7 +88,7 @@ static int do_cmn_trace(int argc, char *argv[])
 	if (strcmp(argv[1], "list") == 0) {
 		for (i = 0; i < cmn_dtc_count; i++) {
 			caddr_t base = cmn_bases[cmn_dtc_ids[i]];
-			printf("DTC-%d: %03d, %016llx\n",
+			printf("DTC-%d: %03d, %016lx\n",
 			       cmn_logical_id(base), cmn_node_id(base), base);
 		}
 		return 0;
@@ -96,19 +96,19 @@ static int do_cmn_trace(int argc, char *argv[])
 	if (strcmp(argv[1], "wp_setup") == 0) {
 		if (argc < 14)
 			return -EINVAL;
-		id = atoi(argv[2]);
+		id = (uint32_t)strtoull(argv[2], 0, 0);
 		if (id < 0 || id >= cmn_dtc_count)
 			return -EINVAL;
 		caddr_t base = cmn_bases[cmn_dtc_ids[id]];
-		int wp = atoi(argv[3]);
-		int dev_sel = atoi(argv[4]);
-		int chn_sel = atoi(argv[5]);
-		int pkt_type = atoi(argv[6]);
-		int pkt_gen = atoi(argv[7]);
-		int combine = atoi(argv[8]);
-		int cc_en = atoi(argv[9]);
-		int ctrigger_en = atoi(argv[10]);
-		int dbgtrigger_en = atoi(argv[11]);
+		uint32_t wp = (uint32_t)strtoull(argv[3], 0, 0);
+		uint32_t dev_sel = (uint32_t)strtoull(argv[4], 0, 0);
+		uint32_t chn_sel = (uint32_t)strtoull(argv[5], 0, 0);
+		uint32_t pkt_type = (uint32_t)strtoull(argv[6], 0, 0);
+		uint32_t pkt_gen = (uint32_t)strtoull(argv[7], 0, 0);
+		uint32_t combine = (uint32_t)strtoull(argv[8], 0, 0);
+		uint32_t cc_en = (uint32_t)strtoull(argv[9], 0, 0);
+		uint32_t ctrigger_en = (uint32_t)strtoull(argv[10], 0, 0);
+		uint32_t dbgtrigger_en = (uint32_t)strtoull(argv[11], 0, 0);
 		uint64_t val = strtoull(argv[12], NULL, 0);
 		uint64_t mask = strtoull(argv[13], NULL, 0);
 		return cmn_trace_wp_setup(base, wp, dev_sel, chn_sel,
@@ -119,13 +119,13 @@ static int do_cmn_trace(int argc, char *argv[])
 	if (strcmp(argv[1], "dt_setup") == 0) {
 		if (argc < 5)
 			return -EINVAL;
-		id = atoi(argv[2]);
+		id = (uint32_t)strtoull(argv[2], 0, 0);
 		if (id < 0 || id >= cmn_dtc_count)
 			return -EINVAL;
 		caddr_t base = cmn_bases[cmn_dtc_ids[id]];
-		int dbgtrigger_en = atoi(argv[3]);
-		int atbtrigger_en = atoi(argv[4]);
-		int wait_for_trigger = argc > 5 ? atoi(argv[5]) : 0;
+		uint32_t dbgtrigger_en = (uint32_t)strtoull(argv[3], 0, 0);
+		uint32_t atbtrigger_en = (uint32_t)strtoull(argv[4], 0, 0);
+		uint32_t wait_for_trigger = argc > 5 ? (uint32_t)strtoull(argv[5], 0, 0) : 0;
 		return cmn_trace_dt_setup(base, dbgtrigger_en,
 					  atbtrigger_en, wait_for_trigger);
 	}
