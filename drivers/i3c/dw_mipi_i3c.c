@@ -47,6 +47,12 @@ static struct dw_mipi_i3c_ctx dw_i3c;
 #define dw_i3c_free_pos			dw_i3c.free_pos
 #define dw_i3c_devs			dw_i3c.devs
 
+#define dw_i3c_next			\
+	(list_empty(&dw_i3c_list) ?	\
+	 NULL :				\
+	 list_first_entry(&dw_i3c_list,	\
+			  struct dw_mipi_i3c_xfer, node))
+
 static void dw_mipi_i3c_begin_xfer(void);
 static void dw_mipi_i3c_end_xfer(void);
 
@@ -141,15 +147,18 @@ static void dw_mipi_i3c_read_rx_fifo(uint8_t *bytes, uint16_t nbytes)
 static void dw_mipi_i3c_enable_xfer(void)
 {
 	dw_mipi_i3c_enable_all_irqs(dw_i3cd);
+	printf("IRQ enabled\n");
 }
 
 static void dw_mipi_i3c_disable_xfer(void)
 {
 	dw_mipi_i3c_disable_all_irqs(dw_i3cd);
+	printf("IRQ disabled\n");
 }
 
 static void dw_mipi_i3c_enqueue_xfer(struct dw_mipi_i3c_xfer *xfer)
 {
+	INIT_LIST_HEAD(&xfer->node);
 	if (dw_i3c_curr) {
 		list_add_tail(&xfer->node, &dw_i3c_list);
 	} else {
@@ -171,8 +180,8 @@ static void dw_mipi_i3c_dequeue_xfer(struct dw_mipi_i3c_xfer *xfer)
 		__raw_read_poll(l, RESET_CTRL(dw_i3cd),
 				status, !status, 10, 1000000);
         } else {
-                list_del_init(&xfer->node);
-        }
+		list_del_init(&xfer->node);
+	}
 }
 
 static void dw_mipi_i3c_begin_xfer(void)
@@ -252,14 +261,12 @@ static void dw_mipi_i3c_end_xfer(void)
 	if (ret < 0)
 		dw_i3c_setl(DW_RESUME, DEVICE_CTRL(dw_i3cd));
 
-	xfer = list_first_entry(&dw_i3c_list,
-				struct dw_mipi_i3c_xfer, node);
-	if (xfer)
-		list_del_init(&xfer->node);
-	else
+	dw_i3c_curr = dw_i3c_next;
+	if (dw_i3c_curr) {
+		list_del_init(&dw_i3c_curr->node);
+		dw_mipi_i3c_begin_xfer();
+	} else
 		dw_mipi_i3c_disable_xfer();
-	dw_i3c_curr = xfer;
-	dw_mipi_i3c_begin_xfer();
 }
 
 static struct dw_mipi_i3c_xfer *dw_mipi_i3c_alloc_xfer(int ncmds)
@@ -360,6 +367,7 @@ static int dw_mipi_i3c_ccc_set(struct i3c_ccc *ccc)
 	xfer = dw_mipi_i3c_alloc_xfer(1);
 	if (!xfer)
 		return -ENOMEM;
+
 	xfer->ncmds = ccc->ndests;
 	cmd = &xfer->cmds[0];
 	cmd->tx_buf = ccc->dests[0].data;

@@ -129,6 +129,7 @@ const char *i3c_ccc_broadcast_names[] = {
 	"ENTHDR6",
 	"ENTHDR7",
 	"SETXTIME",
+	"SETAASA",
 };
 
 const char *i3c_ccc_direct_names[] = {
@@ -311,6 +312,8 @@ static void i3c_transfer_reset(void)
 
 void i3c_ccc_complete(bool success)
 {
+	if (i3c_ccc)
+		i3c_ccc = NULL;
 }
 
 static void i3c_ccc_submit(struct i3c_ccc *ccc)
@@ -386,6 +389,16 @@ static void i3c_ccc_rstdaa(uint8_t addr)
 	i3c_ccc_cmd_init(&ccc, false,
 			 I3C_CCC_RSTDAA(addr != I3C_ADDR_BROADCAST),
 			 &dest, 1);
+	i3c_ccc_submit(&ccc);
+}
+
+static void i3c_ccc_setaasa(void)
+{
+	struct i3c_ccc_dest dest;
+	struct i3c_ccc ccc;
+
+	i3c_ccc_dest_init(&dest, I3C_ADDR_BROADCAST, NULL, 0);
+	i3c_ccc_cmd_init(&ccc, false, I3C_CCC_SETAASA, &dest, 1);
 	i3c_ccc_submit(&ccc);
 }
 
@@ -552,9 +565,12 @@ void i3c_master_init(void)
 void i3c_master_probe(void)
 {
 #if 1
+	i3c_ccc_setaasa();
+	i3c_ccc_rstdaa(I3C_ADDR_BROADCAST);
+	i3c_ccc_setaasa();
 	i3c_ccc_rstdaa(I3C_ADDR_BROADCAST);
 	i3c_set_speed(true);
-	i3c_ccc_disec(I3C_ADDR_BROADCAST, I3C_CCC_EC_ALL);
+	//i3c_ccc_disec(I3C_ADDR_BROADCAST, I3C_CCC_EC_ALL);
 #else
 	i3c_start_op(I3C_OP_PROBE, NULL);
 #endif
