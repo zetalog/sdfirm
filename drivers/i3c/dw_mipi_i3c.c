@@ -609,7 +609,8 @@ static void dw_mipi_i3c_ibi_init(void)
 			   DW_RX_BUF_THLD(DW_RX_BUF_THLD_MASK),
 			   DATA_BUFFER_THLD_CTRL(dw_i3cd));
 	dw_mipi_i3c_disable_all_irqs(dw_i3cd);
-	dw_mipi_i3c_enable_mst_irqs(dw_i3cd);
+	dw_mipi_i3c_enable_all_irqs(dw_i3cd);
+	dw_mipi_i3c_unmask_all_irqs(dw_i3cd);
 #ifdef CONFIG_DW_MIPI_I3C_SECONDARY_MASTER
 	dw_i3c_writel(DW_IBI_REQ_REJECT_ALL, IBI_MR_REQ_REJECT(dw_i3cd));
 #endif
