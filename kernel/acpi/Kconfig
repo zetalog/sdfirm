@@ -22,6 +22,9 @@ menuconfig ACPI
 
 if ACPI
 
+config ACPI_GEN
+	bool "Enable table generation support"
+
 config ACPI_HW_REDUCED
 	bool "Enable hardware reduced ACPI support"
 	default y if ARM
