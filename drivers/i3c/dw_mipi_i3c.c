@@ -147,13 +147,11 @@ static void dw_mipi_i3c_read_rx_fifo(uint8_t *bytes, uint16_t nbytes)
 static void dw_mipi_i3c_enable_xfer(void)
 {
 	dw_mipi_i3c_enable_all_irqs(dw_i3cd);
-	printf("IRQ enabled\n");
 }
 
 static void dw_mipi_i3c_disable_xfer(void)
 {
 	dw_mipi_i3c_disable_all_irqs(dw_i3cd);
-	printf("IRQ disabled\n");
 }
 
 static void dw_mipi_i3c_enqueue_xfer(struct dw_mipi_i3c_xfer *xfer)
