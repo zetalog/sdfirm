@@ -25,6 +25,7 @@ config RISCV
 	select ARCH_HAS_THREAD
 	select ARCH_HAS_PMU if PERF
 	select ARCH_HAS_RAS if RAS
+	select ARCH_HAS_ACPI
 	select STRING_STRNCMP if FDT
 	select PRINT_SNPRINTF if FDT
 	default y

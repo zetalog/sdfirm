@@ -869,6 +869,7 @@ source kernel/rio/Kconfig
 source kernel/iommu/Kconfig
 source kernel/fdt/Kconfig
 source kernel/uefi/Kconfig
+source kernel/acpi/Kconfig
 source kernel/ipmi/Kconfig
 
 config ARCH_HAS_ETH
