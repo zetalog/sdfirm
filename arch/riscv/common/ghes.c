@@ -1,5 +1,6 @@
 #include <asm/fdt.h>
 #include <target/reri.h>
+#include <target/cper.h>
 #include <sbi/sbi_heap.h>
 
 /* Structure for ghesv2 memory allocation housekeeping */
@@ -400,3 +401,4 @@ int acpi_ghes_get_err_src_desc(uint32_t src_id, acpi_ghesv2 *ghes)
 
 	return 0;
 }
+

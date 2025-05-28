@@ -12,7 +12,7 @@
 
 #ifndef __ACPI_GHES_H
 #define __ACPI_GHES_H
-
+#include "apei_tables.h"
 typedef struct {
 	uint32_t etype;
 	union {
@@ -48,3 +48,4 @@ int acpi_ghes_get_err_srcs_list(uint32_t *src_ids, uint32_t sz);
 int acpi_ghes_get_err_src_desc(uint32_t src_id, acpi_ghesv2 *ghes);
 
 #endif
+

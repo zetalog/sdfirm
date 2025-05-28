@@ -677,7 +677,6 @@ uint8_t espi_read_rsp(uint8_t opcode,
 void espi_op_complete(bool result)
 {
 	uint8_t op = espi_op;
-
 	espi_cmpl_cb cb = espi_op_cb;
 
 	espi_op = ESPI_OP_NONE;

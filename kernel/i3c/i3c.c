@@ -36,12 +36,17 @@ i3c_t i3c_master_save(i3c_t i3c)
 }
 #else
 uint8_t i3c_bus;
+bool i3c_is_i2c;
+uint8_t i3c_op;
+i3c_cmpl_cb i3c_op_cb;
+struct i3c_ccc *i3c_ccc;
 i3c_addr_t i3c_dev_addr;
 i3c_len_t i3c_txsubmit;
 i3c_len_t i3c_rxsubmit;
 i3c_len_t i3c_limit;
 i3c_len_t i3c_current;
 i3c_len_t i3c_commit;
+uint8_t i3c_bus_state;
 uint8_t i3c_state;
 i3c_event_t i3c_event;
 uint8_t i3c_status;
@@ -82,6 +87,100 @@ const char *i3c_status_names[] = {
 	"STOP",
 };
 
+const char *i3c_ccc_broadcast_names[] = {
+	"ENEC",
+	"DISEC",
+	"ENTAS0",
+	"ENTAS1",
+	"ENTAS2",
+	"ENTAS3",
+	"RSTDAA",
+	"ENTDAA",
+	"DEFSLVS",
+	"SETMWL",
+	"SETMRL",
+	"ENTTM",
+	"0x0C",
+	"0x0D",
+	"0x0E",
+	"0x0F",
+	"0x10",
+	"0x11",
+	"0x12",
+	"0x13",
+	"0x14",
+	"0x15",
+	"0x16",
+	"0x17",
+	"0x18",
+	"0x19",
+	"0x1A",
+	"0x1B",
+	"0x1C",
+	"0x1D",
+	"0x1E",
+	"0x1F",
+	"ENTHDR0",
+	"ENTHDR1",
+	"ENTHDR2",
+	"ENTHDR3",
+	"ENTHDR4",
+	"ENTHDR5",
+	"ENTHDR6",
+	"ENTHDR7",
+	"SETXTIME",
+	"SETAASA",
+};
+
+const char *i3c_ccc_direct_names[] = {
+	"ENEC",
+	"DISEC",
+	"ENTAS0",
+	"ENTAS1",
+	"ENTAS2",
+	"ENTAS3",
+	"RSTDAA",
+	"SETDASA",
+	"SETNEWDA",
+	"SETMWL",
+	"SETMRL",
+	"GETMWL",
+	"GETMRL",
+	"GETPID",
+	"GETBCR",
+	"GETDCR",
+	"GETSTATUS",
+	"GETACCMST",
+	"0x12",
+	"SETBRGTGT",
+	"GETMXDS",
+	"GETHDRCAP",
+	"0x16",
+	"0x17",
+	"SETXTIME",
+	"GETXTIME",
+	"0x1A",
+	"0x1B",
+	"0x1C",
+	"0x1D",
+	"0x1E",
+	"0x1F",
+};
+
+const char *i3c_op_names[] = {
+	"NONE",
+	"SWITCH_I3C",
+	"SWITCH_I2C",
+	"PROBE",
+};
+
+const char *i3c_op_name(uint8_t op)
+{
+	if (op >= ARRAY_SIZE(i3c_op_names))
+		return "NONE";
+	return i3c_op_names[op];
+}
+
 const char *i3c_state_name(uint8_t state)
 {
 	if (state >= ARRAY_SIZE(i3c_state_names))
@@ -101,11 +200,26 @@ const char *i3c_event_name(uint8_t event)
 	}
 	return "NONE";
 }
+
 const char *i3c_status_name(uint8_t status)
 {
 	if (status >= ARRAY_SIZE(i3c_status_names))
 		return "UNKNOWN";
 	return i3c_status_names[status];
+}
+
+const char *i3c_ccc_name(uint8_t cc)
+{
+	if (cc & I3C_CCC_DIRECT) {
+		cc &= ~I3C_CCC_DIRECT;
+		if (cc >= ARRAY_SIZE(i3c_ccc_direct_names))
+			return "UNKNOWN";
+		return i3c_ccc_direct_names[cc];
+	} else {
+		if (cc >= ARRAY_SIZE(i3c_ccc_broadcast_names))
+			return "UNKNOWN";
+		return i3c_ccc_broadcast_names[cc];
+	}
 }
 
 void i3c_raise_event(uint8_t event)
@@ -191,12 +305,27 @@ uint8_t i3c_dir_mode(void)
 
 static void i3c_transfer_reset(void)
 {
+	i3c_ccc = NULL;
 	i3c_bus_set_status(I3C_STATUS_IDLE);
 	i3c_hw_transfer_reset();
 }
 
+void i3c_ccc_complete(bool success)
+{
+	if (i3c_ccc)
+		i3c_ccc = NULL;
+}
+
 static void i3c_ccc_submit(struct i3c_ccc *ccc)
 {
+	/* TODO: allow multiple CCC */
+	if (i3c_ccc)
+		return;
+	i3c_dbg("i3c: ccc = %s (%c)\n",
+		i3c_ccc_name(ccc->id),
+		ccc->id & I3C_CCC_DIRECT ? 'D' : 'B');
+	i3c_transfer_reset();
+	i3c_ccc = ccc;
 	i3c_hw_submit_ccc(ccc);
 }
 
@@ -222,6 +351,35 @@ static void i3c_ccc_cmd_init(struct i3c_ccc *cmd,
 	cmd->err = I3C_ERROR_UNKNOWN;
 }
 
+uint8_t i3c_current_ccc(void)
+{
+	if (!i3c_ccc)
+		return I3C_CCC_NONE;
+	return i3c_ccc->id;
+}
+
+static void __i3c_ccc_rstdaa(void)
+{
+	struct i3c_ccc_dest dest;
+	struct i3c_ccc ccc;
+
+	i3c_ccc_dest_init(&dest, I3C_ADDR_BROADCAST, NULL, 0);
+	i3c_ccc_cmd_init(&ccc, false,
+			 I3C_CCC_RSTDAA(false),
+			 &dest, 1);
+	i3c_ccc_submit(&ccc);
+}
+
+static void __i3c_ccc_setaasa(void)
+{
+	struct i3c_ccc_dest dest;
+	struct i3c_ccc ccc;
+
+	i3c_ccc_dest_init(&dest, I3C_ADDR_BROADCAST, NULL, 0);
+	i3c_ccc_cmd_init(&ccc, false, I3C_CCC_SETAASA, &dest, 1);
+	i3c_ccc_submit(&ccc);
+}
+
 static void i3c_ccc_rstdaa(uint8_t addr)
 {
 	struct i3c_ccc_dest dest;
@@ -231,6 +389,16 @@ static void i3c_ccc_rstdaa(uint8_t addr)
 	i3c_ccc_cmd_init(&ccc, false,
 			 I3C_CCC_RSTDAA(addr != I3C_ADDR_BROADCAST),
 			 &dest, 1);
+	i3c_ccc_submit(&ccc);
+}
+
+static void i3c_ccc_setaasa(void)
+{
+	struct i3c_ccc_dest dest;
+	struct i3c_ccc ccc;
+
+	i3c_ccc_dest_init(&dest, I3C_ADDR_BROADCAST, NULL, 0);
+	i3c_ccc_cmd_init(&ccc, false, I3C_CCC_SETAASA, &dest, 1);
 	i3c_ccc_submit(&ccc);
 }
 
@@ -244,6 +412,39 @@ static void i3c_ccc_disec(uint8_t addr, uint8_t event)
 			 I3C_CCC_DISEC(addr != I3C_ADDR_BROADCAST),
 			 &dest, 1);
 	i3c_ccc_submit(&ccc);
+}
+
+void i3c_handle_probe(bool is_op)
+{
+	if (i3c_ccc_is(I3C_CCC_NONE)) {
+		__i3c_ccc_rstdaa();
+	} else if (i3c_state == I3C_BUS_RSTDAA) {
+		if (i3c_is_i2c)
+			__i3c_ccc_setaasa();
+	}
+}
+
+void i3c_seq_handler(void)
+{
+	if (i3c_op_is(I3C_OP_PROBE))
+		i3c_handle_probe(true);
+}
+
+int i3c_start_op(uint8_t op, i3c_cmpl_cb cb)
+{
+	if (i3c_op_busy())
+		return -EBUSY;
+
+	i3c_dbg("i3c: op = %s\n", i3c_op_name(op));
+	i3c_op = op;
+	i3c_op_cb = cb;
+	i3c_seq_handler();
+	return 0;
+}
+
+bool i3c_op_complete(uint8_t result)
+{
+	return false;
 }
 
 void i3c_bus_set_status(uint8_t status)
@@ -353,21 +554,26 @@ void i3c_set_speed(bool od_normal)
 	i3c_hw_set_speed(od_normal);
 }
 
-void i3c_finish_init(void)
-{
-	i3c_hw_finish_init();
-}
-
 void i3c_master_init(void)
 {
 	i3c_bus_set_mode(I3C_HW_BUS_MODE);
 	i3c_addr_slot_init();
 	i3c_hw_ctrl_init();
 	i3c_set_speed(false);
+}
+
+void i3c_master_probe(void)
+{
+#if 1
+	i3c_ccc_setaasa();
+	i3c_ccc_rstdaa(I3C_ADDR_BROADCAST);
+	i3c_ccc_setaasa();
 	i3c_ccc_rstdaa(I3C_ADDR_BROADCAST);
 	i3c_set_speed(true);
-	i3c_ccc_disec(I3C_ADDR_BROADCAST, I3C_CCC_EC_ALL);
-	i3c_finish_init();
+	//i3c_ccc_disec(I3C_ADDR_BROADCAST, I3C_CCC_EC_ALL);
+#else
+	i3c_start_op(I3C_OP_PROBE, NULL);
+#endif
 }
 
 static void i3c_handle_irq(void)
@@ -394,8 +600,7 @@ static void i3c_handle_xfr(void)
 	case I3C_STATE_INIT:
 		if (event & I3C_EVENT_INIT) {
 			unraise_bits(event, I3C_EVENT_INIT);
-			i3c_master_init();
-			i3c_transfer_reset();
+			i3c_master_probe();
 		}
 		break;
 	case I3C_STATE_READ:
@@ -471,9 +676,11 @@ void i3c_init(void)
 
 	i3c_bh = bh_register_handler(i3c_bh_handler);
 	i3c_state = I3C_STATE_INIT;
+	i3c_bus_state = I3C_BUS_INIT;
 	i3c_event = 0;
 	for (i3c = 0; i3c < NR_I3C_MASTERS; i3c++) {
 		si3c = i3c_master_save(i3c);
+		i3c_master_init();
 		i3c_bus_set_status(I3C_STATUS_INIT);
 		i3c_irq_init();
 		i3c_master_restore(si3c);
