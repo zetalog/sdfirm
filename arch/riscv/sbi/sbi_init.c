@@ -105,18 +105,16 @@ void sbi_boot_prints(void)
 #define sbi_boot_prints()		do { } while (0)
 #endif
 
-#define COLDBOOT_WAIT_BITMAP_SIZE __riscv_xlen
 static DEFINE_SPINLOCK(coldboot_lock);
 static unsigned long coldboot_done = 0;
-static unsigned long coldboot_wait_bitmap = 0;
+static DECLARE_BITMAP(coldboot_wait_bitmap, NR_CPUS);
 
 static void wait_for_coldboot(struct sbi_scratch *scratch, uint32_t cpu)
 {
 	unsigned long saved_mie;
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
-	if (cpu >= NR_CPUS ||
-	    (COLDBOOT_WAIT_BITMAP_SIZE <= cpu))
+	if (cpu >= NR_CPUS)
 		bh_panic();
 
 	/* Save MIE CSR */
@@ -129,7 +127,7 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, uint32_t cpu)
 	spin_lock(&coldboot_lock);
 
 	/* Mark current HART as waiting */
-	coldboot_wait_bitmap |= (1UL << cpu);
+	set_bit(cpu, coldboot_wait_bitmap);
 
 	/* Wait for coldboot to finish using WFI */
 	while (!coldboot_done) {
@@ -139,7 +137,7 @@ static void wait_for_coldboot(struct sbi_scratch *scratch, uint32_t cpu)
 	};
 
 	/* Unmark current HART as waiting */
-	coldboot_wait_bitmap &= ~(1UL << cpu);
+	clear_bit(cpu, coldboot_wait_bitmap);
 
 	/* Release coldboot lock */
 	spin_unlock(&coldboot_lock);
@@ -164,7 +162,7 @@ static void wake_coldboot_harts(struct sbi_scratch *scratch, uint32_t cpu)
 
 	/* Send an IPI to all HARTs waiting for coldboot */
 	for (i = 0; i < NR_CPUS; i++) {
-		if ((i != cpu) && (coldboot_wait_bitmap & (1UL << i)))
+		if ((i != cpu) && test_bit(i, coldboot_wait_bitmap))
 			sbi_platform_ipi_send(plat, i);
 	}
 
