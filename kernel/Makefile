@@ -55,5 +55,6 @@ obj-$(CONFIG_PERF) += perf.rel
 obj-$(CONFIG_RAS) += ras.rel
 obj-$(CONFIG_FDT) += fdt/
 obj-$(CONFIG_UEFI) += uefi/
+obj-$(CONFIG_ACPI) += acpi/
 obj-$(CONFIG_WDT) += wdt/
 obj-y += ipmi/
