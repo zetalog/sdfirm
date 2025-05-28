@@ -18,6 +18,18 @@ menuconfig DW_UMCTL2
 
 if DW_UMCTL2
 
+choice
+	prompt "DRAM type"
+	default DW_UMCTL2_DDR5
+
+config DW_UMCTL2_DDR5
+	bool "Support DDR5"
+
+config DW_UMCTL2_LPDDR5
+	bool "Support LPDDR5"
+
+endchoice
+
 menu "DDRC parameters"
 
 menu "DDR protocol support"
