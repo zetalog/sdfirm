@@ -28,6 +28,7 @@ typedef uint8_t bits_t;
 #define __fls_unit		__fls8
 #define __ffz_unit		__ffz8
 #endif
+#define BITS_PER_BYTE		8
 
 #define BITS_TO_UNITS(bits)		\
 	(((bits_t)((bits)+BITS_PER_UNIT-1))/((uint8_t)BITS_PER_UNIT))

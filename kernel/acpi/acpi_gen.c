@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <target/acpi_gen.h>
+#include <target/heap.h>
 #include <target/panic.h>
 
 /* How much nesting do we support? */
@@ -16,7 +17,7 @@ int ltop = 0;
 
 void acpigen_write_len_f(void)
 {
-	BUG_ON(ltop >= (ACPIGEN_LENSTACK_SIZE - 1))
+	BUG_ON(ltop >= (ACPIGEN_LENSTACK_SIZE - 1));
 	len_stack[ltop++] = gencurrent;
 	/* Reserve ACPIGEN_RSVD_PKGLEN_BYTES bytes for PkgLength. The actual byte values will
 	   be written later in the corresponding acpigen_pop_len call. */
@@ -27,7 +28,7 @@ void acpigen_write_len_f(void)
 void acpigen_pop_len(void)
 {
 	size_t len;
-	BUG_ON(ltop <= 0)
+	BUG_ON(ltop <= 0);
 	char *p = len_stack[--ltop];
 	len = gencurrent - p;
 	const size_t payload_len = len - ACPIGEN_RSVD_PKGLEN_BYTES;
@@ -76,7 +77,7 @@ void acpigen_pop_len(void)
 		/* No need to adjust pointer for next ACPI bytecode byte */
 	} else {
 		/* The case of PkgLength up to 0xfffffff isn't supported at the moment */
-		printk(BIOS_ERR, "%s: package length exceeds maximum of 0xfffff.\n", __func__);
+		con_err("%s: package length exceeds maximum of 0xfffff.\n", __func__);
 	}
 }
 
@@ -423,12 +424,12 @@ void acpigen_set_package_element_namestr(const char *package, unsigned int eleme
 void acpigen_write_processor_namestring(unsigned int cpu_index)
 {
 	char buffer[16];
-	snprintf(buffer, sizeof(buffer), "\\_SB." CONFIG_ACPI_CPU_STRING, cpu_index);
+	snprintf(buffer, sizeof(buffer), "\\_SB." CONFIG_ACPI_CPU_STRING, (cpu_t)cpu_index);
 	acpigen_emit_namestring(buffer);
 }
 
 /* Processor() operator is deprecated as of ACPI 6.0, use Device() instead. */
-void acpigen_write_processor(u8 cpuindex, u32 pblock_addr, u8 pblock_len)
+void acpigen_write_processor(uint8_t cpuindex, uint32_t pblock_addr, uint8_t pblock_len)
 {
 /*
 	Processor (\_SB.CPcpuindex, cpuindex, pblock_addr, pblock_len)
@@ -556,14 +557,14 @@ static void acpigen_write_field_offset(uint32_t offset, uint32_t current_bit_pos
 	uint32_t diff_bits;
 
 	if (offset < current_bit_pos) {
-		printk(BIOS_WARNING, "%s: Cannot move offset backward", __func__);
+		con_err("%s: Cannot move offset backward", __func__);
 		return;
 	}
 
 	diff_bits = offset - current_bit_pos;
 	/* Upper limit */
 	if (diff_bits > 0xFFFFFFF) {
-		printk(BIOS_WARNING, "%s: Offset very large to encode", __func__);
+		con_err("%s: Offset very large to encode", __func__);
 		return;
 	}
 
@@ -635,7 +636,7 @@ void acpigen_write_field(const char *name, const struct fieldlist *l, size_t cou
 			current_bit_pos = l[i].bits;
 			break;
 		default:
-			printk(BIOS_ERR, "%s: Invalid field type 0x%X\n", __func__, l[i].type);
+			con_err("%s: Invalid field type 0x%X\n", __func__, l[i].type);
 			break;
 		}
 	}
@@ -691,7 +692,7 @@ void acpigen_write_indexfield(const char *idx, const char *data, struct fieldlis
 			current_bit_pos = l[i].bits;
 			break;
 		default:
-			printk(BIOS_ERR, "%s: Invalid field type 0x%X\n", __func__, l[i].type);
+			con_err("%s: Invalid field type 0x%X\n", __func__, l[i].type);
 			break;
 		}
 	}
@@ -872,7 +873,7 @@ void acpigen_write_SEG(uint8_t segment_group_number)
 	acpigen_pop_len();
 }
 
-void acpigen_write_LPI_package(u64 level, const struct acpi_lpi_state *states, u16 nentries)
+void acpigen_write_LPI_package(uint64_t level, const struct acpi_lpi_state *states, uint16_t nentries)
 {
 	/*
 	* Name (_LPI, Package (0x06)  // _LPI: Low Power Idle States
@@ -947,7 +948,7 @@ void acpigen_write_LPI_package(u64 level, const struct acpi_lpi_state *states, u
 /*
  * Generates a func with max supported P-states.
  */
-void acpigen_write_PPC(u8 nr)
+void acpigen_write_PPC(uint8_t nr)
 {
 /*
 	Method (_PPC, 0, NotSerialized)
@@ -996,7 +997,7 @@ void acpigen_write_TPC(const char *gnvs_tpc_limit)
 	acpigen_pop_len();
 }
 
-void acpigen_write_PRW(u32 wake, u32 level)
+void acpigen_write_PRW(uint32_t wake, uint32_t level)
 {
 	/*
 	 * Name (_PRW, Package () { wake, level }
@@ -1008,8 +1009,8 @@ void acpigen_write_PRW(u32 wake, u32 level)
 	acpigen_pop_len();
 }
 
-void acpigen_write_PSS_package(u32 coreFreq, u32 power, u32 transLat, u32 busmLat, u32 control,
-			       u32 status)
+void acpigen_write_PSS_package(uint32_t coreFreq, uint32_t power, uint32_t transLat, uint32_t busmLat, uint32_t control,
+			       uint32_t status)
 {
 	acpigen_write_package(6);
 	acpigen_write_dword(coreFreq);
@@ -1020,7 +1021,7 @@ void acpigen_write_PSS_package(u32 coreFreq, u32 power, u32 transLat, u32 busmLa
 	acpigen_write_dword(status);
 	acpigen_pop_len();
 
-	printk(BIOS_DEBUG, "PSS: %uMHz power %u control 0x%x status 0x%x\n", coreFreq, power,
+	con_dbg("PSS: %uMHz power %u control 0x%x status 0x%x\n", coreFreq, power,
 	       control, status);
 }
 
@@ -1041,7 +1042,7 @@ void acpigen_write_pss_object(const struct acpi_sw_pstate *pstate_values, size_t
 	acpigen_pop_len();
 }
 
-void acpigen_write_PSD_package(u32 domain, u32 numprocs, PSD_coord coordtype)
+void acpigen_write_PSD_package(uint32_t domain, uint32_t numprocs, PSD_coord coordtype)
 {
 	acpigen_write_name("_PSD");
 	acpigen_write_package(1);
@@ -1078,8 +1079,8 @@ void acpigen_write_CST_package(const acpi_cstate_t *cstate, int nentries)
 	acpigen_pop_len();
 }
 
-void acpigen_write_CSD_package(u32 domain, u32 numprocs, CSD_coord coordtype,
-	u32 index)
+void acpigen_write_CSD_package(uint32_t domain, uint32_t numprocs, CSD_coord coordtype,
+	uint32_t index)
 {
 	acpigen_write_name("_CSD");
 	acpigen_write_package(1);
@@ -1124,7 +1125,7 @@ void acpigen_write_TSS_package(int entries, acpi_tstate_t *tstate_list)
 	acpigen_pop_len();
 }
 
-void acpigen_write_TSD_package(u32 domain, u32 numprocs, PSD_coord coordtype)
+void acpigen_write_TSD_package(uint32_t domain, uint32_t numprocs, PSD_coord coordtype)
 {
 	acpigen_write_name("_TSD");
 	acpigen_write_package(1);
@@ -1138,7 +1139,7 @@ void acpigen_write_TSD_package(u32 domain, u32 numprocs, PSD_coord coordtype)
 	acpigen_pop_len();
 }
 
-void acpigen_write_mem32fixed(int readwrite, u32 base, u32 size)
+void acpigen_write_mem32fixed(int readwrite, uint32_t base, uint32_t size)
 {
 	/*
 	 * ACPI 4.0 section 6.4.3.4: 32-Bit Fixed Memory Range Descriptor
@@ -1176,7 +1177,7 @@ void acpigen_write_register_resource(const acpi_addr_t *addr)
 	acpigen_write_resourcetemplate_footer();
 }
 
-void acpigen_write_irq(u16 mask)
+void acpigen_write_irq(uint16_t mask)
 {
 	/*
 	 * ACPI 3.0b section 6.4.2.1: IRQ Descriptor
@@ -1190,7 +1191,7 @@ void acpigen_write_irq(u16 mask)
 	acpigen_emit_byte((mask >> 8) & 0xff);
 }
 
-void acpigen_write_io16(u16 min, u16 max, u8 align, u8 len, u8 decode16)
+void acpigen_write_io16(uint16_t min, uint16_t max, uint8_t align, uint8_t len, uint8_t decode16)
 {
 	/*
 	 * ACPI 4.0 section 6.4.2.6: I/O Port Descriptor
@@ -1311,7 +1312,7 @@ static int hex2bin(const char c)
 
 void acpigen_emit_eisaid(const char *eisaid)
 {
-	u32 compact = 0;
+	uint32_t compact = 0;
 
 	/* Clamping individual values would be better but
 	   there is a disagreement over what is a valid
@@ -1872,11 +1873,11 @@ void acpigen_write_dsm(const char *uuid, void (**callbacks)(void *), size_t coun
 static void acpigen_dsm_uuid_enum_functions(const struct dsm_uuid *id)
 {
 	const size_t bytes = DIV_ROUND_UP(id->count, BITS_PER_BYTE);
-	uint8_t *buffer = alloca(bytes);
+	uint8_t *buffer = (uint8_t *)heap_alloc(bytes);
 	bool set = false;
 	size_t cb_idx = 0;
 
-	memset(buffer, 0, bytes);
+	memset((void *)buffer, 0, bytes);
 
 	for (size_t i = 0; i < bytes; i++) {
 		for (size_t j = 0; j < BITS_PER_BYTE; j++) {
@@ -1991,8 +1992,8 @@ void acpigen_write_dsm_uuid_arr(struct dsm_uuid *ids, size_t count)
 
 void acpigen_write_CPPC_package(const struct cppc_config *config)
 {
-	u32 i;
-	u32 max;
+	uint32_t i;
+	uint32_t max;
 	switch (config->version) {
 	case 1:
 		max = CPPC_MAX_FIELDS_VER_1;
@@ -2004,7 +2005,7 @@ void acpigen_write_CPPC_package(const struct cppc_config *config)
 		max = CPPC_MAX_FIELDS_VER_3;
 		break;
 	default:
-		printk(BIOS_ERR, "CPPC version %u is not implemented\n", config->version);
+		con_err("CPPC version %u is not implemented\n", config->version);
 		return;
 	}
 	acpigen_write_name(CPPC_PACKAGE_NAME);
@@ -2027,9 +2028,9 @@ void acpigen_write_CPPC_package(const struct cppc_config *config)
 
 void acpigen_write_CPPC_method(void)
 {
-	char pscope[16];
+	char pscope[17];
 	snprintf(pscope, sizeof(pscope),
-		 "\\_SB." CONFIG_ACPI_CPU_STRING "." CPPC_PACKAGE_NAME, 0);
+		 "\\_SB." CONFIG_ACPI_CPU_STRING "." CPPC_PACKAGE_NAME, (cpu_t)0);
 
 	acpigen_write_method("_CPC", 0);
 	acpigen_emit_byte(RETURN_OP);
@@ -2099,8 +2100,8 @@ void acpigen_write_CPPC_method(void)
 
 void acpigen_write_rom(void *bios, const size_t length)
 {
-	BUG_ON(!bios)
-	BUG_ON(!length)
+	BUG_ON(!bios);
+	BUG_ON(!length);
 
 	/* Method (_ROM, 2, Serialized) */
 	acpigen_write_method_serialized("_ROM", 2);
@@ -2213,6 +2214,7 @@ void acpigen_write_rom(void *bios, const size_t length)
 	acpigen_pop_len();
 }
 
+#ifdef CONFIG_ACPI_GPIO
 /*
  * Helper functions for enabling/disabling Tx GPIOs based on the GPIO
  * polarity. These functions end up calling acpigen_soc_{set,clear}_tx_gpio to
@@ -2251,10 +2253,11 @@ void acpigen_get_tx_gpio(const struct acpi_gpio *gpio)
 	if (gpio->active_low)
 		acpigen_write_xor(LOCAL0_OP, 1, LOCAL0_OP);
 }
+#endif
 
 /* refer to ACPI 6.4.3.5.3 Word Address Space Descriptor section for details */
-void acpigen_resource_word(u16 res_type, u16 gen_flags, u16 type_flags, u16 gran, u16 range_min,
-			   u16 range_max, u16 translation, u16 length)
+void acpigen_resource_word(uint16_t res_type, uint16_t gen_flags, uint16_t type_flags, uint16_t gran, uint16_t range_min,
+			   uint16_t range_max, uint16_t translation, uint16_t length)
 {
 	/* Byte 0: Type 1, Large Item Value 0x8: Word Address Space Descriptor */
 	acpigen_emit_byte(0x88);
@@ -2277,8 +2280,8 @@ void acpigen_resource_word(u16 res_type, u16 gen_flags, u16 type_flags, u16 gran
 }
 
 /* refer to ACPI 6.4.3.5.2 DWord Address Space Descriptor section for details */
-void acpigen_resource_dword(u16 res_type, u16 gen_flags, u16 type_flags, u32 gran,
-			    u32 range_min, u32 range_max, u32 translation, u32 length)
+void acpigen_resource_dword(uint16_t res_type, uint16_t gen_flags, uint16_t type_flags, uint32_t gran,
+			    uint32_t range_min, uint32_t range_max, uint32_t translation, uint32_t length)
 {
 	/* Byte 0: Type 1, Large Item Value 0x7: DWord Address Space Descriptor */
 	acpigen_emit_byte(0x87);
@@ -2300,15 +2303,15 @@ void acpigen_resource_dword(u16 res_type, u16 gen_flags, u16 type_flags, u32 gra
 	acpigen_emit_dword(length);
 }
 
-static void acpigen_emit_qword(u64 data)
+static void acpigen_emit_qword(uint64_t data)
 {
 	acpigen_emit_dword(data & 0xffffffff);
 	acpigen_emit_dword((data >> 32) & 0xffffffff);
 }
 
 /* refer to ACPI 6.4.3.5.1 QWord Address Space Descriptor section for details */
-void acpigen_resource_qword(u16 res_type, u16 gen_flags, u16 type_flags, u64 gran,
-			    u64 range_min, u64 range_max, u64 translation, u64 length)
+void acpigen_resource_qword(uint16_t res_type, uint16_t gen_flags, uint16_t type_flags, uint64_t gran,
+			    uint64_t range_min, uint64_t range_max, uint64_t translation, uint64_t length)
 {
 	/* Byte 0: Type 1, Large Item Value 0xa: QWord Address Space Descriptor */
 	acpigen_emit_byte(0x8a);
@@ -2330,7 +2333,7 @@ void acpigen_resource_qword(u16 res_type, u16 gen_flags, u16 type_flags, u64 gra
 	acpigen_emit_qword(length);
 }
 
-void acpigen_resource_producer_bus_number(u16 bus_base, u16 bus_limit)
+void acpigen_resource_producer_bus_number(uint16_t bus_base, uint16_t bus_limit)
 {
 	acpigen_resource_word(RSRC_TYPE_BUS, /* res_type */
 			      ADDR_SPACE_GENERAL_FLAG_MAX_FIXED
@@ -2345,7 +2348,7 @@ void acpigen_resource_producer_bus_number(u16 bus_base, u16 bus_limit)
 			      bus_limit - bus_base + 1); /* length */
 }
 
-void acpigen_resource_producer_io(u16 io_base, u16 io_limit)
+void acpigen_resource_producer_io(uint16_t io_base, uint16_t io_limit)
 {
 	acpigen_resource_dword(RSRC_TYPE_IO, /* res_type */
 			      ADDR_SPACE_GENERAL_FLAG_MAX_FIXED
@@ -2360,8 +2363,8 @@ void acpigen_resource_producer_io(u16 io_base, u16 io_limit)
 			      io_limit - io_base + 1); /* length */
 }
 
-static void acpigen_resource_mmio32(u32 mmio_base, u32 mmio_limit, u16 gen_flags,
-				    u16 type_flags)
+static void acpigen_resource_mmio32(uint32_t mmio_base, uint32_t mmio_limit, uint16_t gen_flags,
+				    uint16_t type_flags)
 {
 	acpigen_resource_dword(RSRC_TYPE_MEM, /* res_type */
 			       gen_flags, /* gen_flags */
@@ -2373,8 +2376,8 @@ static void acpigen_resource_mmio32(u32 mmio_base, u32 mmio_limit, u16 gen_flags
 			       mmio_limit - mmio_base + 1); /* length */
 }
 
-static void acpigen_resource_mmio64(u64 mmio_base, u64 mmio_limit, u16 gen_flags,
-				    u16 type_flags)
+static void acpigen_resource_mmio64(uint64_t mmio_base, uint64_t mmio_limit, uint16_t gen_flags,
+				    uint16_t type_flags)
 {
 	acpigen_resource_qword(RSRC_TYPE_MEM, /* res_type */
 			       gen_flags, /* gen_flags */
@@ -2386,26 +2389,26 @@ static void acpigen_resource_mmio64(u64 mmio_base, u64 mmio_limit, u16 gen_flags
 			       mmio_limit - mmio_base + 1); /* length */
 }
 
-static void acpigen_resource_mmio(u64 mmio_base, u64 mmio_limit, bool is_producer, u16 type_flags)
+static void acpigen_resource_mmio(uint64_t mmio_base, uint64_t mmio_limit, bool is_producer, uint16_t type_flags)
 {
-	const u16 gen_flags = ADDR_SPACE_GENERAL_FLAG_MAX_FIXED
+	const uint16_t gen_flags = ADDR_SPACE_GENERAL_FLAG_MAX_FIXED
 		| ADDR_SPACE_GENERAL_FLAG_MIN_FIXED
 		| ADDR_SPACE_GENERAL_FLAG_DEC_POS
 		| (is_producer ? ADDR_SPACE_GENERAL_FLAG_PRODUCER
 		   : ADDR_SPACE_GENERAL_FLAG_CONSUMER);
 
-	if (mmio_base < 4ULL * GiB && mmio_limit < 4ULL * GiB)
+	if (mmio_base < SZ_4G && mmio_limit < SZ_4G)
 		acpigen_resource_mmio32(mmio_base, mmio_limit, gen_flags, type_flags);
 	else
 		acpigen_resource_mmio64(mmio_base, mmio_limit, gen_flags, type_flags);
 }
 
-void acpigen_resource_producer_mmio(u64 mmio_base, u64 mmio_limit, u16 type_flags)
+void acpigen_resource_producer_mmio(uint64_t mmio_base, uint64_t mmio_limit, uint16_t type_flags)
 {
 	acpigen_resource_mmio(mmio_base, mmio_limit, true, type_flags);
 }
 
-void acpigen_resource_consumer_mmio(u64 mmio_base, u64 mmio_limit, u16 type_flags)
+void acpigen_resource_consumer_mmio(uint64_t mmio_base, uint64_t mmio_limit, uint16_t type_flags)
 {
 	acpigen_resource_mmio(mmio_base, mmio_limit, false, type_flags);
 }
@@ -2598,13 +2601,172 @@ void acpigen_write_delay_until_namestr_int(uint32_t wait_ms, const char *name, u
 void acpigen_ssdt_override_sleep_states(bool enable_s1, bool enable_s2, bool enable_s3,
 					bool enable_s4)
 {
-	BUG_ON(enable_s1 && CONFIG(ACPI_S1_NOT_SUPPORTED));
-	BUG_ON(enable_s3 && !CONFIG(HAVE_ACPI_RESUME));
-	BUG_ON(enable_s4 && CONFIG(DISABLE_ACPI_HIBERNATE));
+#ifdef CONFIG_ACPI_S1
+	BUG_ON(enable_s1);
+#endif
+#ifdef CONFIG_ACPI_S3
+	BUG_ON(enable_s3);
+#endif
+#ifdef CONFIG_ACPI_S4
+	BUG_ON(enable_s4);
+#endif
 
 	acpigen_write_scope("\\");
 	uint32_t sleep_enable = (enable_s1 << 0) | (enable_s2 << 1)
 		| (enable_s3 << 2) | (enable_s4 << 3);
 	acpigen_write_name_dword("OSFG", sleep_enable);
 	acpigen_pop_len();
+}
+
+int acpi_pld_fill_usb(struct acpi_pld *pld, enum acpi_upc_type type,
+		      struct acpi_pld_group *group)
+{
+	if (!pld)
+		return -1;
+
+	memset(pld, 0, sizeof(struct acpi_pld));
+
+	/* Set defaults */
+	pld->ignore_color = 1;
+	pld->panel = PLD_PANEL_UNKNOWN;
+	pld->vertical_position = PLD_VERTICAL_POSITION_CENTER;
+	pld->horizontal_position = PLD_HORIZONTAL_POSITION_CENTER;
+	pld->rotation = PLD_ROTATE_0;
+	pld->visible = 1;
+	pld->group.token = group->token;
+	pld->group.position = group->position;
+
+	/* Set the shape based on port type */
+	switch (type) {
+	case UPC_TYPE_A:
+	case UPC_TYPE_USB3_A:
+	case UPC_TYPE_USB3_POWER_B:
+		pld->shape = PLD_SHAPE_HORIZONTAL_RECTANGLE;
+		break;
+	case UPC_TYPE_MINI_AB:
+	case UPC_TYPE_USB3_B:
+		pld->shape = PLD_SHAPE_CHAMFERED;
+		break;
+	case UPC_TYPE_USB3_MICRO_B:
+	case UPC_TYPE_USB3_MICRO_AB:
+		pld->shape = PLD_SHAPE_HORIZONTAL_TRAPEZOID;
+		break;
+	case UPC_TYPE_C_USB2_ONLY:
+	case UPC_TYPE_C_USB2_SS_SWITCH:
+	case UPC_TYPE_C_USB2_SS:
+		pld->shape = PLD_SHAPE_OVAL;
+		break;
+	case UPC_TYPE_INTERNAL:
+	default:
+		pld->shape = PLD_SHAPE_UNKNOWN;
+		pld->visible = 0;
+		break;
+	}
+
+	return 0;
+}
+
+int acpi_pld_to_buffer(const struct acpi_pld *pld, uint8_t *buf, int buf_len)
+{
+	if (!pld || !buf)
+		return -1;
+
+	memset(buf, 0, buf_len);
+
+	/* [0] Revision (=2) */
+	buf[0] = 0x2;
+
+	if (pld->ignore_color) {
+		/* [1] Ignore Color */
+		buf[0] |= 0x80;
+	} else {
+		/* [15:8] Red Color */
+		buf[1] = pld->color_red;
+		/* [23:16] Green Color */
+		buf[2] = pld->color_green;
+		/* [31:24] Blue Color */
+		buf[3] = pld->color_blue;
+	}
+
+	/* [47:32] Width */
+	buf[4] = pld->width & 0xff;
+	buf[5] = pld->width >> 8;
+
+	/* [63:48] Height */
+	buf[6] = pld->height & 0xff;
+	buf[7] = pld->height >> 8;
+
+	/* [64] User Visible */
+	buf[8] |= (pld->visible & 0x1);
+
+	/* [65] Dock */
+	buf[8] |= (pld->dock & 0x1) << 1;
+
+	/* [66] Lid */
+	buf[8] |= (pld->lid & 0x1) << 2;
+
+	/* [69:67] Panel */
+	buf[8] |= (pld->panel & 0x7) << 3;
+
+	/* [71:70] Vertical Position */
+	buf[8] |= (pld->vertical_position & 0x3) << 6;
+
+	/* [73:72] Horizontal Position */
+	buf[9] |= (pld->horizontal_position & 0x3);
+
+	/* [77:74] Shape */
+	buf[9] |= (pld->shape & 0xf) << 2;
+
+	/* [78] Orientation */
+	buf[9] |= (pld->orientation & 0x1) << 6;
+
+	/* [86:79] Group Token (incorrectly defined as 1 bit in ACPI 6.2A) */
+	buf[9] |= (pld->group.token & 0x1) << 7;
+	buf[10] |= (pld->group.token >> 0x1) & 0x7f;
+
+	/* [94:87] Group Position */
+	buf[10] |= (pld->group.position & 0x1) << 7;
+	buf[11] |= (pld->group.position >> 0x1) & 0x7f;
+
+	/* [95] Bay */
+	buf[11] |= (pld->bay & 0x1) << 7;
+
+	/* [96] Ejectable */
+	buf[12] |= (pld->ejectable & 0x1);
+
+	/* [97] Ejectable with OSPM help */
+	buf[12] |= (pld->ejectable_ospm & 0x1) << 1;
+
+	/* [105:98] Cabinet Number */
+	buf[12] |= (pld->cabinet_number & 0x3f) << 2;
+	buf[13] |= (pld->cabinet_number >> 6) & 0x3;
+
+	/* [113:106] Card Cage Number */
+	buf[13] |= (pld->card_cage_number & 0x3f) << 2;
+	buf[14] |= (pld->card_cage_number >> 6) & 0x3;
+
+	/* [114] PLD is a Reference Shape */
+	buf[14] |= (pld->reference_shape & 0x1) << 2;
+
+	/* [118:115] Rotation */
+	buf[14] |= (pld->rotation & 0xf) << 3;
+
+	/* [123:119] Draw Order */
+	buf[14] |= (pld->draw_order & 0x1) << 7;
+	buf[15] |= (pld->draw_order >> 1) & 0xf;
+
+	/* [127:124] Reserved */
+
+	/* Both 16 byte and 20 byte buffers are supported by the spec */
+	if (buf_len == 20) {
+		/* [143:128] Vertical Offset */
+		buf[16] = pld->vertical_offset & 0xff;
+		buf[17] = pld->vertical_offset >> 8;
+
+		/* [159:144] Horizontal Offset */
+		buf[18] = pld->horizontal_offset & 0xff;
+		buf[19] = pld->horizontal_offset >> 8;
+	}
+
+	return 0;
 }

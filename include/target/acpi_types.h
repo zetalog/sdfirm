@@ -3,6 +3,62 @@
 
 #include <target/generic.h>
 
+#define IORESOURCE_BITS		0x000000ff	/* Bus-specific bits */
+
+#define IORESOURCE_IO		0x00000100	/* Resource type */
+#define IORESOURCE_MEM		0x00000200
+#define IORESOURCE_IRQ		0x00000400
+#define IORESOURCE_DRQ		0x00000800
+
+#define IORESOURCE_TYPE_MASK	(IORESOURCE_IO | IORESOURCE_MEM \
+				| IORESOURCE_IRQ | IORESOURCE_DRQ)
+
+#define IORESOURCE_PREFETCH	0x00001000	/* No side effects */
+#define IORESOURCE_READONLY	0x00002000
+#define IORESOURCE_CACHEABLE	0x00004000
+/* This resource filters all of the unclaimed transactions to the bus below. */
+#define IORESOURCE_SUBTRACTIVE  0x00040000
+/* The IO resource has a bus below it. */
+#define IORESOURCE_BRIDGE	0x00080000
+/* This is a request to allocate resource about 4G boundary. */
+#define IORESOURCE_ABOVE_4G	0x00100000
+/* The resource needs to be soft reserved in the coreboot table */
+#define IORESOURCE_SOFT_RESERVE	0x00200000
+/* The resource needs to be reserved in the coreboot table */
+#define IORESOURCE_RESERVE	0x10000000
+/* The IO resource assignment has been stored in the device */
+#define IORESOURCE_STORED	0x20000000
+/* An IO resource that has been assigned a value */
+#define IORESOURCE_ASSIGNED	0x40000000
+/* An IO resource the allocator must not change */
+#define IORESOURCE_FIXED	0x80000000
+
+/* PCI specific resource bits (IORESOURCE_BITS) */
+#define IORESOURCE_PCI64		(1<<0)	/* 64bit long pci resource */
+#define IORESOURCE_PCI_BRIDGE		(1<<1)  /* A bridge pci resource */
+#define IORESOURCE_PCIE_RESIZABLE_BAR	(1<<2)  /* A Resizable BAR */
+
+typedef uint64_t resource_t;
+struct resource {
+	resource_t base;	/* Base address of the resource */
+	resource_t size;	/* Size of the resource */
+	resource_t limit;	/* Largest valid value base + size -1 */
+	const struct resource *next;	/* Next resource in the list */
+	unsigned long flags;	/* Descriptions of the kind of resource */
+	unsigned long index;	/* Bus specific per device resource id */
+	unsigned char align;	/* Required alignment (log 2) of the resource */
+	unsigned char gran;	/* Granularity (log 2) of the resource */
+	/* Alignment must be >= the granularity of the resource */
+};
+
+#define CONFIG_ACPI_CPU_STRING	"CPU%-3d"
+
+/*
+ * The assigned ACPI ID for the coreboot project is 'BOOT'
+ * http://www.uefi.org/acpi_id_list
+ */
+#define COREBOOT_ACPI_ID	"BOOT"      /* ACPI ID for coreboot HIDs */
+
 /* List of ACPI HID that use the coreboot ACPI ID */
 enum coreboot_acpi_ids {
 	COREBOOT_ACPI_ID_CBTABLE	= 0x0000, /* BOOT0000 */
@@ -37,6 +93,31 @@ typedef struct acpi_gen_regaddr {
 
 #define ACPI_ADDRESS_SPACE_MEMORY		0	/* System memory */
 #define ACPI_ADDRESS_SPACE_IO			1	/* System I/O */
+#define ACPI_ADDRESS_SPACE_PCI			2	/* PCI config space */
+#define ACPI_ADDRESS_SPACE_EC			3	/* Embedded controller */
+#define ACPI_ADDRESS_SPACE_SMBUS		4	/* SMBus */
+#define ACPI_ADDRESS_SPACE_CMOS			5	/* SystemCMOS */
+#define ACPI_ADDRESS_SPACE_PCI_BAR_TARGET	6	/* PciBarTarget */
+#define ACPI_ADDRESS_SPACE_IPMI			7	/* IPMI */
+#define ACPI_ADDRESS_SPACE_GENERAL_PURPOSE_IO	8	/* GeneralPurposeIO */
+#define ACPI_ADDRESS_SPACE_GENERIC_SERIAL_BUS	9	/* GenericSerialBus  */
+#define ACPI_ADDRESS_SPACE_PCC			0x0A	/* Platform Comm. Channel */
+#define ACPI_ADDRESS_SPACE_FIXED		0x7f	/* Functional fixed hardware */
+#define  ACPI_FFIXEDHW_VENDOR_INTEL		1	/* Intel */
+#define  ACPI_FFIXEDHW_CLASS_HLT		0	/* C1 Halt */
+#define  ACPI_FFIXEDHW_CLASS_IO_HLT		1	/* C1 I/O then Halt */
+#define  ACPI_FFIXEDHW_CLASS_MWAIT		2	/* MWAIT Native C-state */
+#define  ACPI_FFIXEDHW_FLAG_HW_COORD		1	/* Hardware Coordination bit */
+#define  ACPI_FFIXEDHW_FLAG_BM_STS		2	/* BM_STS avoidance bit */
+/* 0x80-0xbf: Reserved */
+/* 0xc0-0xff: OEM defined */
+
+/* Access size definitions for Generic address structure */
+#define ACPI_ACCESS_SIZE_UNDEFINED	0	/* Undefined (legacy reasons) */
+#define ACPI_ACCESS_SIZE_BYTE_ACCESS	1
+#define ACPI_ACCESS_SIZE_WORD_ACCESS	2
+#define ACPI_ACCESS_SIZE_DWORD_ACCESS	3
+#define ACPI_ACCESS_SIZE_QWORD_ACCESS	4
 
 typedef struct acpi_cstate {
 	uint8_t  ctype;
