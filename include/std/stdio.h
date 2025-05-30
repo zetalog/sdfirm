@@ -25,6 +25,8 @@ int putchar(int c);
 int puts(const char *s);
 __printf_chk(1) int printf(const char *format, ...);
 int vprintf(const char *format, va_list arg);
+int vtxprintf(void (*tx_byte)(unsigned char byte, void *data),
+	      const char *fmt, va_list args, void *data);
 #else
 static inline int putchar(int c)
 {

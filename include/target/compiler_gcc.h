@@ -43,6 +43,7 @@ typedef __builtin_va_list va_list;
 #define __align(a)			__attribute__((__aligned__(a)))
 #define __always_inline			inline __attribute__((__always_inline__))
 #define __section(S)			__attribute__((__section__(#S)))
+#define __fallthrough			__attribute__((__fallthrough__))
 
 #define __stringify_1(x...)		#x
 #define __stringify(x...)		__stringify_1(x)

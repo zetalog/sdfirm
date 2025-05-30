@@ -3,6 +3,77 @@
 #ifndef __ACPI_ACPI_DEVICE_H__
 #define __ACPI_ACPI_DEVICE_H__
 
+enum spi_clock_phase {
+	SPI_CLOCK_PHASE_FIRST,
+	SPI_CLOCK_PHASE_SECOND
+};
+
+enum spi_wire_mode {
+	SPI_4_WIRE_MODE,
+	SPI_3_WIRE_MODE
+};
+
+enum spi_polarity {
+	SPI_POLARITY_LOW,
+	SPI_POLARITY_HIGH
+};
+
+enum i2c_speed {
+	I2C_SPEED_STANDARD	= 100000,
+	I2C_SPEED_FAST		= 400000,
+	I2C_SPEED_FAST_PLUS	= 1000000,
+	I2C_SPEED_HIGH		= 3400000,
+	I2C_SPEED_FAST_ULTRA	= 5000000,
+};
+
+enum i2c_address_mode {
+	I2C_MODE_7_BIT,
+	I2C_MODE_10_BIT
+};
+
+/**
+ * enum soundwire_version - Versions of SoundWire Specification supported by a device.
+ * @SOUNDWIRE_VERSION_1_0: SoundWire Specification Version 1.0 released January 2015.
+ * @SOUNDWIRE_VERSION_1_1: SoundWire Specification Version 1.1 released June 2016.
+ * @SOUNDWIRE_VERSION_1_2: SoundWire Specification Version 1.2 released April 2019.
+ */
+enum soundwire_version {
+	SOUNDWIRE_VERSION_1_0 = 1,
+	SOUNDWIRE_VERSION_1_1,
+	SOUNDWIRE_VERSION_1_2
+};
+
+/**
+ * enum mipi_class - MIPI class encoding.
+ * @MIPI_CLASS_NONE: No further class decoding.
+ * @MIPI_CLASS_SDCA: Device implements SoundWire Device Class for Audio (SDCA).
+ *
+ * 0x02-0x7F: Reserved
+ * 0x80-0xFF: MIPI Alliance extended device class
+ */
+enum mipi_class {
+	MIPI_CLASS_NONE,
+	MIPI_CLASS_SDCA
+};
+
+/**
+ * struct soundwire_address - SoundWire Device Address Encoding.
+ * @version: SoundWire specification version from &enum soundwire_version.
+ * @link_id: Zero-based SoundWire master link id.
+ * @unique_id: Unique ID for multiple slave devices on the same bus.
+ * @manufacturer_id: Manufacturer ID from include/mipi/ids.h.
+ * @part_id: Vendor defined part ID.
+ * @class: MIPI class encoding in &enum mipi_class.
+ */
+struct soundwire_address {
+	enum soundwire_version version;
+	uint8_t link_id;
+	uint8_t unique_id;
+	uint16_t manufacturer_id;
+	uint16_t part_id;
+	enum mipi_class class;
+};
+
 enum acpi_dp_type {
 	ACPI_DP_TYPE_UNKNOWN,
 	ACPI_DP_TYPE_INTEGER,
