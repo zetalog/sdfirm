@@ -16,6 +16,9 @@
 #define dtm_wp_RSP				1
 #define dtm_wp_SNP				2
 #define dtm_wp_DAT				3
+#define dtm_wp_cfg_grp				_BV(4)
+#define dtm_wp_grp_PRI				0
+#define dtm_wp_grp_SEC				1
 #define dtm_wp_cfg_combine			_BV(6)
 #define dtm_wp_cfg_pkt_gen			_BV(8)
 #define dtm_wp_cfg_pkt_type_OFFSET		9
