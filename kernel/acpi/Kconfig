@@ -24,6 +24,25 @@ if ACPI
 
 config ACPI_GEN
 	bool "Enable table generation support"
+	select PRINT_SNPRINTF
+	select PRINT_VTXPRINTF
+	select HEAP
+
+if ACPI_GEN
+
+config ACPI_S1
+	bool "Enable ACPI S1 support"
+	default y
+
+config ACPI_S3
+	bool "Enable ACPI S3 support"
+	default y
+
+config ACPI_S4
+	bool "Enable ACPI S4 support"
+	default y
+
+endif
 
 config ACPI_HW_REDUCED
 	bool "Enable hardware reduced ACPI support"

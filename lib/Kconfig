@@ -177,6 +177,10 @@ config PRINT_PRINTF
 	bool "printf"
 	select PRINT_VPRINTF
 
+config PRINT_VTXPRINTF
+	bool "vtxprintf"
+	select PRINT_VSNPRINTF
+
 config PRINT_FP
 	bool "floating point"
 
