@@ -189,7 +189,7 @@ enum field_type {
 struct fieldlist {
 	enum field_type type;
 	const char *name;
-	u32 bits;
+	uint32_t bits;
 };
 
 #define OPREGION(rname, space, offset, len)	{.name = rname, \
@@ -361,7 +361,7 @@ typedef struct cppc_entry {
 #define CPPC_UNSUPPORTED CPPC_REG(ACPI_REG_UNSUPPORTED)
 
 struct cppc_config {
-	u32 version; /* must be 1, 2, or 3 */
+	uint32_t version; /* must be 1, 2, or 3 */
 	/*
 	 * The generic acpi_addr_t structure is being used, though
 	 * anything besides PPC or FFIXED generally requires checking
@@ -430,34 +430,34 @@ __always_inline void acpigen_write_thermal_zone_end(void)
 {
 	acpigen_pop_len();
 }
-void acpigen_write_LPI_package(u64 level, const struct acpi_lpi_state *states, u16 nentries);
-void acpigen_write_PPC(u8 nr);
+void acpigen_write_LPI_package(uint64_t level, const struct acpi_lpi_state *states, uint16_t nentries);
+void acpigen_write_PPC(uint8_t nr);
 void acpigen_write_PPC_NVS(void);
 void acpigen_write_empty_PCT(void);
 void acpigen_write_empty_PTC(void);
 void acpigen_write_PTC(uint8_t duty_width, uint8_t duty_offset, uint16_t p_cnt);
-void acpigen_write_PRW(u32 wake, u32 level);
+void acpigen_write_PRW(uint32_t wake, uint32_t level);
 void acpigen_write_STA(uint8_t status);
 void acpigen_write_STA_ext(const char *namestring);
 void acpigen_write_BBN(uint8_t base_bus_number);
 void acpigen_write_SEG(uint8_t segment_group_number);
 void acpigen_write_TPC(const char *gnvs_tpc_limit);
-void acpigen_write_PSS_package(u32 coreFreq, u32 power, u32 transLat,
-			u32 busmLat, u32 control, u32 status);
+void acpigen_write_PSS_package(uint32_t coreFreq, uint32_t power, uint32_t transLat,
+			uint32_t busmLat, uint32_t control, uint32_t status);
 void acpigen_write_pss_object(const struct acpi_sw_pstate *pstate_values, size_t nentries);
 typedef enum { SW_ALL = 0xfc, SW_ANY = 0xfd, HW_ALL = 0xfe } PSD_coord;
-void acpigen_write_PSD_package(u32 domain, u32 numprocs, PSD_coord coordtype);
+void acpigen_write_PSD_package(uint32_t domain, uint32_t numprocs, PSD_coord coordtype);
 void acpigen_write_CST_package_entry(const acpi_cstate_t *cstate);
 void acpigen_write_CST_package(const acpi_cstate_t *entry, int nentries);
 typedef enum { CSD_HW_ALL = 0xfe } CSD_coord;
-void acpigen_write_CSD_package(u32 domain, u32 numprocs, CSD_coord coordtype,
-				u32 index);
+void acpigen_write_CSD_package(uint32_t domain, uint32_t numprocs, CSD_coord coordtype,
+				uint32_t index);
 void acpigen_write_pct_package(const acpi_addr_t *perf_ctrl, const acpi_addr_t *perf_sts);
 void acpigen_write_xpss_package(const struct acpi_xpss_sw_pstate *pstate_value);
 void acpigen_write_xpss_object(const struct acpi_xpss_sw_pstate *pstate_values,
 			       size_t nentries);
 void acpigen_write_processor_namestring(unsigned int cpu_index);
-void acpigen_write_processor(u8 cpuindex, u32 pblock_addr, u8 pblock_len);
+void acpigen_write_processor(uint8_t cpuindex, uint32_t pblock_addr, uint8_t pblock_len);
 __always_inline void acpigen_write_processor_end(void)
 {
 	acpigen_pop_len();
@@ -472,15 +472,15 @@ void acpigen_write_processor_package(const char *name,
 				     unsigned int core_count);
 void acpigen_write_processor_cnot(const unsigned int number_of_cores);
 void acpigen_write_TSS_package(int entries, acpi_tstate_t *tstate_list);
-void acpigen_write_TSD_package(u32 domain, u32 numprocs, PSD_coord coordtype);
-void acpigen_write_mem32fixed(int readwrite, u32 base, u32 size);
-void acpigen_write_io16(u16 min, u16 max, u8 align, u8 len, u8 decode16);
+void acpigen_write_TSD_package(uint32_t domain, uint32_t numprocs, PSD_coord coordtype);
+void acpigen_write_mem32fixed(int readwrite, uint32_t base, uint32_t size);
+void acpigen_write_io16(uint16_t min, uint16_t max, uint8_t align, uint8_t len, uint8_t decode16);
 void acpigen_write_register_resource(const acpi_addr_t *addr);
 void acpigen_write_resourcetemplate_header(void);
 void acpigen_write_resourcetemplate_footer(void);
 void acpigen_write_mainboard_resource_template(void);
 void acpigen_write_mainboard_resources(const char *scope, const char *name);
-void acpigen_write_irq(u16 mask);
+void acpigen_write_irq(uint16_t mask);
 void acpigen_write_uuid(const char *uuid);
 void acpigen_write_power_res(const char *name, uint8_t level, uint16_t order,
 			     const char * const dev_states[], size_t dev_states_count);
@@ -693,19 +693,19 @@ void acpigen_get_rx_gpio(const struct acpi_gpio *gpio);
 void acpigen_get_tx_gpio(const struct acpi_gpio *gpio);
 
 /* refer to ACPI 6.4.3.5.3 Word Address Space Descriptor section for details */
-void acpigen_resource_word(u16 res_type, u16 gen_flags, u16 type_flags, u16 gran,
-	u16 range_min, u16 range_max, u16 translation, u16 length);
+void acpigen_resource_word(uint16_t res_type, uint16_t gen_flags, uint16_t type_flags, uint16_t gran,
+	uint16_t range_min, uint16_t range_max, uint16_t translation, uint16_t length);
 /* refer to ACPI 6.4.3.5.2 DWord Address Space Descriptor section for details */
-void acpigen_resource_dword(u16 res_type, u16 gen_flags, u16 type_flags,
-	u32 gran, u32 range_min, u32 range_max, u32 translation, u32 length);
+void acpigen_resource_dword(uint16_t res_type, uint16_t gen_flags, uint16_t type_flags,
+	uint32_t gran, uint32_t range_min, uint32_t range_max, uint32_t translation, uint32_t length);
 /* refer to ACPI 6.4.3.5.1 QWord Address Space Descriptor section for details */
-void acpigen_resource_qword(u16 res_type, u16 gen_flags, u16 type_flags,
-	u64 gran, u64 range_min, u64 range_max, u64 translation, u64 length);
+void acpigen_resource_qword(uint16_t res_type, uint16_t gen_flags, uint16_t type_flags,
+	uint64_t gran, uint64_t range_min, uint64_t range_max, uint64_t translation, uint64_t length);
 
-void acpigen_resource_producer_bus_number(u16 bus_base, u16 bus_limit);
-void acpigen_resource_producer_io(u16 io_base, u16 io_limit);
-void acpigen_resource_producer_mmio(u64 mmio_base, u64 mmio_limit, u16 type_flags);
-void acpigen_resource_consumer_mmio(u64 mmio_base, u64 mmio_limit, u16 type_flags);
+void acpigen_resource_producer_bus_number(uint16_t bus_base, uint16_t bus_limit);
+void acpigen_resource_producer_io(uint16_t io_base, uint16_t io_limit);
+void acpigen_resource_producer_mmio(uint64_t mmio_base, uint64_t mmio_limit, uint16_t type_flags);
+void acpigen_resource_consumer_mmio(uint64_t mmio_base, uint64_t mmio_limit, uint16_t type_flags);
 
 /* Emits Notify(namestr, value) */
 void acpigen_notify(const char *namestr, int value);
