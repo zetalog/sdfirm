@@ -834,15 +834,16 @@ struct acpi_buffer {
 	char *value;
 };
 
-uint8_t acpi_gbl_integer_bit_width;
-struct acpi_generic_address acpi_gbl_xpm1a_enable;
-struct acpi_generic_address acpi_gbl_xpm1b_enable;
-struct acpi_generic_address acpi_gbl_xpm1a_status;
-struct acpi_generic_address acpi_gbl_xpm1b_status;
-boolean acpi_gbl_fadt_use_default_register_width;
-boolean acpi_gbl_fadt_use_32bit_addresses;
-struct acpi_namespace_node *acpi_gbl_root_node;
-boolean acpi_gbl_early_stage;
+/* Global variables */
+extern u8 acpi_gbl_integer_bit_width;
+extern u8 acpi_gbl_xpm1a_enable;
+extern u8 acpi_gbl_xpm1b_enable;
+extern u8 acpi_gbl_xpm1a_status;
+extern u8 acpi_gbl_xpm1b_status;
+extern u8 acpi_gbl_fadt_use_default_register_width;
+extern u8 acpi_gbl_fadt_use_32bit_addresses;
+extern struct acpi_namespace_node *acpi_gbl_root_node;
+extern u8 acpi_gbl_early_stage;
 
 #define ACPI_FORMAT_UINT64(i)           HIDWORD(i), LODWORD(i)
 #if ACPI_MACHINE_WIDTH == 64

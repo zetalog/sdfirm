@@ -3,6 +3,8 @@
 
 #include <target/generic.h>
 #include <target/ras.h>
+#include <target/actbl1.h>
+#include <target/cper.h>
 #include <target/io.h>
 
 /* register definitions */
@@ -138,7 +140,7 @@
 #define RERI_STATUS_GET_TSV(value)	_GET_FV_ULL(RERI_STATUS_TSV, value)
 #define RERI_STATUS_SET_TSV(value)	_SET_FV_ULL(RERI_STATUS_TSV, value)
 
-#define RERI_STATUS_SCRUB_OFFSET		20
+#define RERI_STATUS_SCRUB_OFFSET	20
 #define RERI_STATUS_SCRUB_MASK		REG_1BIT_MASK
 #define RERI_STATUS_GET_SCRUB(value)	_GET_FV_ULL(RERI_STATUS_SCRUB, value)
 #define RERI_STATUS_SET_SCRUB(value)	_SET_FV_ULL(RERI_STATUS_SCRUB, value)
@@ -166,7 +168,7 @@
 
 #if __riscv_xlen == 64
 #ifdef CONFIG_ARCH_IS_MMIO_32BIT
-static uint64_t reri_read(caddr_t dev_addr)
+static inline uint64_t reri_read(caddr_t dev_addr)
 {
 	uint32_t hi, lo;
 
@@ -176,18 +178,18 @@ static uint64_t reri_read(caddr_t dev_addr)
 	return (uint64_t)hi << 32 | lo;
 }
 
-static void reri_write(uint64_t val, caddr_t dev_addr)
+static inline void reri_write(uint64_t val, caddr_t dev_addr)
 {
 	__raw_writel(HIDWORD(val), ((uintptr_t)(dev_addr) + 4));
 	__raw_writel(LODWORD(val), dev_addr);
 }
 #else
-static uint64_t reri_read(caddr_t dev_addr)
+static inline uint64_t reri_read(caddr_t dev_addr)
 {
 	return __raw_readq(dev_addr);
 }
 
-static void reri_write(uint64_t val, caddr_t dev_addr)
+static inline void reri_write(uint64_t val, caddr_t dev_addr)
 {
 	__raw_writeq(val, dev_addr);
 }

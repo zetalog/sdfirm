@@ -50,7 +50,7 @@
 #define ACPI_SIG_IBFT           "IBFT"	/* iSCSI Boot Firmware Table */
 #define ACPI_SIG_MSCT           "MSCT"	/* Maximum System Characteristics Table */
 
-#define ACPI_SIG_S3PT           "S3PT"	/* S3 Performance (sub)Table */
+// #define ACPI_SIG_S3PT           "S3PT"	/* S3 Performance (sub)Table */
 #define ACPI_SIG_PCCS           "PCC"	/* PCC Shared Memory Region */
 
 #define ACPI_SIG_NBFT		"NBFT"	/* NVMe Boot Firmware Table */
@@ -1512,7 +1512,8 @@ enum acpi_hest_notify_types {
 	ACPI_HEST_NOTIFY_SEI = 9,	/* ACPI 6.1 */
 	ACPI_HEST_NOTIFY_GSIV = 10,	/* ACPI 6.1 */
 	ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED = 11,	/* ACPI 6.2 */
-	ACPI_HEST_NOTIFY_RESERVED = 12	/* 12 and greater are reserved */
+	ACPI_HEST_NOTIFY_SSE = 12,
+	ACPI_HEST_NOTIFY_RESERVED = 13	/* 12 and greater are reserved */
 };
 
 /* Values for config_write_enable bitfield above */
