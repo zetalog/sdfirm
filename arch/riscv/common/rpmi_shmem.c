@@ -15,6 +15,7 @@
 #include <target/clk.h>
 #include <target/delay.h>
 #include <asm/mach/reg.h>
+#include <target/irq.h>
 
 #ifndef SHMEM_REG_BASE
 #define SHMEM_REG_BASE (__RMU_SRAM_MAILBOX_NS_BASE)
@@ -30,6 +31,20 @@
 
 #ifndef SHMEM_SLOT_SIZE
 #define SHMEM_SLOT_SIZE ULL(0x40) // 64 bytes
+#endif
+
+#ifndef SYS_REALTIME
+#define RPMI_IRQ_COUNT	8
+static const unsigned int rpmi_irqs[RPMI_IRQ_COUNT] = {
+	IRQ_RPMI_A2P_REQ_S,
+	IRQ_RPMI_A2P_ACK_S,
+	IRQ_RPMI_A2P_REQ_NS,
+	IRQ_RPMI_A2P_ACK_NS,
+	IRQ_RPMI_P2A_REQ_S,
+	IRQ_RPMI_P2A_ACK_S,
+	IRQ_RPMI_P2A_REQ_NS,
+	IRQ_RPMI_P2A_ACK_NS
+};
 #endif
 
 /** Minimum Base group version required */
@@ -166,6 +181,8 @@ static struct rpmi_shmem_mbox_controller g_mctl;
 static struct rpmi_srvgrp_chan g_srvgrp_chans[RPMI_MAX_CHANNELS];
 static uint32_t g_chan_used[RPMI_MAX_CHANNELS];
 
+bh_t	rpmi_bh;
+
 /**************** Shared Memory Queues Helpers **************/
 
 static bool __smq_queue_full(struct smq_queue_ctx *qctx)
@@ -181,7 +198,7 @@ static bool __smq_queue_empty(struct smq_queue_ctx *qctx)
 }
 
 static int __smq_rx(struct smq_queue_ctx *qctx, u32 slot_size,
-		    u32 service_group_id, struct mbox_xfer *xfer)
+			u32 service_group_id, struct mbox_xfer *xfer)
 {
 	void *dst, *src;
 	struct rpmi_message *msg;
@@ -192,39 +209,47 @@ static int __smq_rx(struct smq_queue_ctx *qctx, u32 slot_size,
 
 	/* Rx sanity checks */
 	if ((sizeof(u32) * args->rx_endian_words) >
-	    (slot_size - sizeof(struct rpmi_message_header)))
+		(slot_size - sizeof(struct rpmi_message_header)))
 		return -EINVAL;
 	if ((sizeof(u32) * args->rx_endian_words) > xfer->rx_len)
 		return -EINVAL;
 
 	/* There should be some message in the queue */
-	if (__smq_queue_empty(qctx))
+	if (__smq_queue_empty(qctx)) {
+		printf("RPMI RX: queue empty");
 		return -ENOENT;
+	}
 
 	/* Get the head/read index and tail/write index */
 	headidx = le32_to_cpu(*qctx->headptr);
 	tailidx = le32_to_cpu(*qctx->tailptr);
+	printf("RPMI RX: queue[%d] head=%d tail=%d",
+		qctx->queue_id, headidx, tailidx);
 
 	/*
 	 * Compute msgidn expected in the incoming message
 	 * NOTE: DOORBELL bit is not expected to be set.
 	 */
 	msgidn = MAKE_MESSAGE_ID(service_group_id, args->service_id, args->type);
+	printf("RPMI RX: expected msgid=0x%x", msgidn);
 
 	/* Find the Rx message with matching token */
 	pos = headidx;
 	while (pos != tailidx) {
 		src = (void *)qctx->buffer + (pos * slot_size);
 		if ((no_rx_token && GET_MESSAGE_ID(src) == msgidn) ||
-		    (GET_TOKEN(src) == (xfer->seq & RPMI_MSG_TOKEN_MASK)))
+			(GET_TOKEN(src) == (xfer->seq & RPMI_MSG_TOKEN_MASK)))
 			break;
 		pos = (pos + 1) % qctx->num_slots;
 	}
-	if (pos == tailidx)
+	if (pos == tailidx) {
+		printf("RPMI RX: no matching message found");
 		return -ENOENT;
+	}
 
 	/* If Rx message is not first message then make it first message */
 	if (pos != headidx) {
+		printf("RPMI RX: reordering message from pos %d to head", pos);
 		src = (void *)qctx->buffer + (pos * slot_size);
 		dst = (void *)qctx->buffer + (headidx * slot_size);
 		for (i = 0; i < slot_size / sizeof(u32); i++) {
@@ -252,10 +277,15 @@ static int __smq_rx(struct smq_queue_ctx *qctx, u32 slot_size,
 		src += sizeof(u32) * args->rx_endian_words;
 		memcpy(dst, src,
 			xfer->rx_len - (sizeof(u32) * args->rx_endian_words));
+
+		printf("RPMI RX: received message service_id=0x%x len=%d",
+			GET_SERVICE_ID(msg), dlen);
 	}
 
 	/* Update the head/read index */
 	*qctx->headptr = cpu_to_le32(headidx + 1) % qctx->num_slots;
+	printf("RPMI RX: updated head to %d",
+		le32_to_cpu(*qctx->headptr));
 
 	/* Make sure updates to head are immediately visible to PuC */
 	smp_wmb();
@@ -264,7 +294,7 @@ static int __smq_rx(struct smq_queue_ctx *qctx, u32 slot_size,
 }
 
 static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
-		    u32 slot_size, u32 service_group_id, struct mbox_xfer *xfer)
+			u32 slot_size, u32 service_group_id, struct mbox_xfer *xfer)
 {
 	u32 i, tailidx;
 	void *dst, *src;
@@ -274,17 +304,20 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 
 	/* Tx sanity checks */
 	if ((sizeof(u32) * args->tx_endian_words) >
-	    (slot_size - sizeof(struct rpmi_message_header)))
+		(slot_size - sizeof(struct rpmi_message_header)))
 		return -EINVAL;
 	if ((sizeof(u32) * args->tx_endian_words) > xfer->tx_len)
 		return -EINVAL;
 
 	/* There should be some room in the queue */
-	if (__smq_queue_full(qctx))
+	if (__smq_queue_full(qctx)) {
+		printf("RPMI TX: queue full");
 		return -ENOMEM;
+	}
 
 	/* Get the tail/write index */
 	tailidx = le32_to_cpu(*qctx->tailptr);
+	printf("RPMI TX: queue[%d] tail=%d", qctx->queue_id, tailidx);
 
 	/* Prepare the header to be written into the slot */
 	header.servicegroup_id = cpu_to_le16(service_group_id);
@@ -292,6 +325,9 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 	header.flags = args->type;
 	header.datalen = cpu_to_le16((u16)xfer->tx_len);
 	header.token = cpu_to_le16((u16)xfer->seq);
+
+	printf("RPMI TX: sending message service_id=0x%x len=%ld",
+		args->service_id, xfer->tx_len);
 
 	/* Write header into the slot */
 	dst = (char *)qctx->buffer + (tailidx * slot_size);
@@ -314,6 +350,8 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 
 	/* Update the tail/write index */
 	*qctx->tailptr = cpu_to_le32(tailidx + 1) % qctx->num_slots;
+	printf("RPMI TX: updated tail to %d",
+		le32_to_cpu(*qctx->tailptr));
 
 	/* Ring the RPMI doorbell if present */
 	if (mb_regs) {
@@ -333,8 +371,11 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 			default:
 				break;
 		}
-		if (doorbell)
+		if (doorbell) {
 			writel(cpu_to_le32(1), doorbell);
+			printf("RPMI TX: rung doorbell for queue %d",
+				qctx->queue_id);
+		}
 	}
 
 	return 0;
@@ -347,8 +388,7 @@ static int smq_rx(struct rpmi_shmem_mbox_controller *mctl,
 	struct smq_queue_ctx *qctx;
 
 	if (mctl->queue_count < queue_id) {
-		printf("%s: invalid queue_id or service_group_id\n",
-			   __func__);
+		printf("RPMI: invalid queue_id or service_group_id\n");
 		return -EINVAL;
 	}
 	qctx = &mctl->queue_ctx_tbl[queue_id];
@@ -365,13 +405,17 @@ static int smq_rx(struct rpmi_shmem_mbox_controller *mctl,
 		spin_lock(&qctx->queue_lock);
 		ret = __smq_rx(qctx, mctl->slot_size, service_group_id, xfer);
 		spin_unlock(&qctx->queue_lock);
-		if (!ret)
+		if (!ret) {
+			printf("RPMI RX: receive successful");
 			return 0;
+		}
 
 		mdelay(1);
 		rxretry += 1;
+		printf("RPMI RX: retry %d/%ld", rxretry, xfer->rx_timeout);
 	} while (rxretry < xfer->rx_timeout);
 
+	printf("RPMI RX: timeout after %d retries", rxretry);
 	return -ETIMEDOUT;
 }
 
@@ -382,8 +426,7 @@ static int smq_tx(struct rpmi_shmem_mbox_controller *mctl,
 	struct smq_queue_ctx *qctx;
 
 	if (mctl->queue_count < queue_id) {
-		printf("%s: invalid queue_id or service_group_id\n",
-			   __func__);
+		printf("RPMI: queue_id or service_group_id\n");
 		return -EINVAL;
 	}
 	qctx = &mctl->queue_ctx_tbl[queue_id];
@@ -402,13 +445,17 @@ static int smq_tx(struct rpmi_shmem_mbox_controller *mctl,
 		ret = __smq_tx(qctx, &mctl->mb_regs, mctl->slot_size,
 				service_group_id, xfer);
 		spin_unlock(&qctx->queue_lock);
-		if (!ret)
+		if (!ret) {
+			printf("RPMI TX: send successful");
 			return 0;
+		}
 
 		mdelay(1);
 		txretry += 1;
+		printf("RPMI TX: retry %d/%ld", txretry, xfer->tx_timeout);
 	} while (txretry < xfer->tx_timeout);
 
+	printf("RPMI TX: timeout after %d retries", txretry);
 	return -ETIMEDOUT;
 }
 
@@ -420,8 +467,8 @@ int rpmi_shmem_mbox_xfer(struct mbox_chan *chan, struct mbox_xfer *xfer)
 	u32 tx_qid = 0, rx_qid = 0;
 	struct rpmi_shmem_mbox_controller *mctl =
 			container_of(chan->mbox,
-				     struct rpmi_shmem_mbox_controller,
-				     controller);
+					 struct rpmi_shmem_mbox_controller,
+					 controller);
 	struct rpmi_srvgrp_chan *srvgrp_chan = to_srvgrp_chan(chan);
 
 	struct rpmi_message_args *args = xfer->args;
@@ -486,8 +533,7 @@ int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl)
 	struct smq_queue_ctx *qctx;
 
 	if (mctl->slot_size < RPMI_SLOT_SIZE_MIN) {
-		printf("%s: slot_size < mimnum required message size\n",
-			   __func__);
+		printf("RPMI: slot_size < mimnum required message size\n");
 		mctl->slot_size = RPMI_SLOT_SIZE_MIN;
 	}
 
@@ -498,7 +544,7 @@ int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl)
 	 */
 	count = 3;
 	if (count < 0 ||
-	    count > (RPMI_QUEUE_IDX_MAX_COUNT + RPMI_REG_IDX_MAX_COUNT))
+		count > (RPMI_QUEUE_IDX_MAX_COUNT + RPMI_REG_IDX_MAX_COUNT))
 		return -EINVAL;
 
 	mctl->queue_count = count - RPMI_REG_IDX_MAX_COUNT;
@@ -576,6 +622,130 @@ static void rpmi_shmem_free_chan(struct mbox_controller *mbox,
 	}
 }
 
+static void rpmi_handler_irq(void)
+{
+	struct rpmi_shmem_mbox_controller *mctl = &g_mctl;
+	struct smq_queue_ctx *qctx;
+	struct mbox_xfer xfer;
+	struct rpmi_message_args args;
+	uint32_t doorbell_val;
+	int i, ret;
+	uint32_t service_id;
+	bool handler_found = false;
+
+	for (i = 0; i < RPMI_QUEUE_IDX_MAX_COUNT; i++) {
+		qctx = &mctl->queue_ctx_tbl[i];
+
+		switch (i) {
+		case RPMI_QUEUE_IDX_P2A_REQ:
+			doorbell_val = readl(mctl->mb_regs.p2a_req);
+			break;
+		case RPMI_QUEUE_IDX_P2A_ACK:
+			doorbell_val = readl(mctl->mb_regs.p2a_ack);
+			break;
+		case RPMI_QUEUE_IDX_A2P_REQ:
+			doorbell_val = readl(mctl->mb_regs.a2p_req);
+			break;
+		case RPMI_QUEUE_IDX_A2P_ACK:
+			doorbell_val = readl(mctl->mb_regs.a2p_ack);
+			break;
+		default:
+			continue;
+		}
+
+		if (doorbell_val) {
+			printf("RPMI IRQ: doorbell detected on queue %d, value=0x%x", i, doorbell_val);
+
+			/* clear doorbell */
+			switch (i) {
+			case RPMI_QUEUE_IDX_P2A_REQ:
+				writel(0, mctl->mb_regs.p2a_req);
+				printf("RPMI IRQ: cleared P2A_REQ doorbell");
+				break;
+			case RPMI_QUEUE_IDX_P2A_ACK:
+				writel(0, mctl->mb_regs.p2a_ack);
+				printf("RPMI IRQ: cleared P2A_ACK doorbell");
+				break;
+			case RPMI_QUEUE_IDX_A2P_REQ:
+				writel(0, mctl->mb_regs.a2p_req);
+				printf("RPMI IRQ: cleared A2P_REQ doorbell");
+				break;
+			case RPMI_QUEUE_IDX_A2P_ACK:
+				writel(0, mctl->mb_regs.a2p_ack);
+				printf("RPMI IRQ: cleared A2P_ACK doorbell");
+				break;
+			}
+
+			/* handle messages in queue */
+			spin_lock(&qctx->queue_lock);
+			while (!__smq_queue_empty(qctx)) {
+				/* set receive parameters */
+				memset(&args, 0, sizeof(args));
+				args.type = RPMI_MSG_NORMAL_REQUEST;
+				args.rx_endian_words = 2;
+
+				memset(&xfer, 0, sizeof(xfer));
+				xfer.args = &args;
+				xfer.rx = NULL;
+				xfer.rx_len = mctl->slot_size;
+				xfer.rx_timeout = RPMI_DEF_RX_TIMEOUT;
+
+				/* receive message */
+				ret = __smq_rx(qctx, mctl->slot_size, 0, &xfer);
+				if (ret) {
+					printf("RPMI: receive message failed (ret=%d)\n", ret);
+					break;
+				}
+
+				/* find and call corresponding handler */
+				service_id = GET_SERVICE_ID(xfer.rx);
+
+				for (int j = 0; j < num_handlers; j++) {
+					if (msg_handlers[j].service_id == service_id) {
+						msg_handlers[j].handler(NULL, &xfer);
+						handler_found = true;
+						break;
+					}
+				}
+
+				if (!handler_found) {
+					printf("RPMI: no message handler found (service_id=0x%x)\n", service_id);
+				}
+			}
+			spin_unlock(&qctx->queue_lock);
+			printf("RPMI IRQ: finished handling queue %d", i);
+		}
+	}
+}
+
+#ifdef SYS_REALTIME
+static void rpmi_poll_init(void)
+{
+	irq_register_poller(rpmi_bh);
+}
+#define rpmi_irq_init()		do {} while (0)
+#else
+static void rpmi_irq_init(void)
+{
+	int i;
+
+	for (i = 0; i < RPMI_IRQ_COUNT; i++) {
+		irqc_configure_irq(rpmi_irqs[i], 0, IRQ_LEVEL_TRIGGERED);
+		irq_register_vector(rpmi_irqs[i], rpmi_handler_irq);
+		irqc_enable_irq(rpmi_irqs[i]);
+	}
+}
+#define rpmi_poll_init()	do {} while (0)
+#endif
+
+static void rpmi_bh_handler(uint8_t events)
+{
+	if (events == BH_POLLIRQ) {
+		rpmi_handler_irq();
+		return;
+	}
+}
+
 void rpmi_shmem_init(void)
 {
 	clk_enable(rmu_mailbox_s_clk);
@@ -596,7 +766,12 @@ void rpmi_shmem_init(void)
 
 	rpmi_shmem_transport_init(&g_mctl);
 	mbox_controller_add(&g_mctl.controller);
-	printf("RPMI: Shared memory initialized (shmem_base=0x%llx, slot_size=%d, max_xfer_len=%d)\n",
+
+	rpmi_bh = bh_register_handler(rpmi_bh_handler);
+	rpmi_irq_init();
+	rpmi_poll_init();
+
+	printf("RPMI: shared memory initialized (shmem_base=0x%llx, slot_size=%d, max_xfer_len=%d)\n",
 		SHMEM_REG_BASE, g_mctl.slot_size, g_mctl.controller.max_xfer_len);
 }
 
@@ -604,4 +779,3 @@ struct mbox_controller *rpmi_shmem_get_controller(void)
 {
 	return &g_mctl.controller;
 }
-
