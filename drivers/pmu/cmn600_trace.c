@@ -5,7 +5,7 @@
 #include <target/console.h>
 #include <target/arch.h>
 
-uint32_t xp_base, wp, dev_sel, chn_sel, dt_base;
+uint32_t xp_base, wp, grp, dev_sel, chn_sel, dt_base;
 uint32_t sel_xp = 0, sel_dt = 0;
 
 static int cmn_trace_wp_config(uint32_t pkt_type, uint32_t pkt_gen,
@@ -28,26 +28,28 @@ static int cmn_trace_wp_config(uint32_t pkt_type, uint32_t pkt_gen,
 		val |= dtm_wp_cfg_ctrig_en;
 	if (dbgtrigger_en)
 		val |= dtm_wp_cfg_dbgtrig_en;
+	if (grp)
+		val |= dtm_wp_cfg_grp;
 
-	__raw_writeq(val, CMN_dtm_wp_config(xp_base, wp));
+	cmn_writeq(val, CMN_dtm_wp_config(xp_base, wp), "CMN_dtm_wp_config", -1);
 	return 0;
 }
 
 static int cmn_trace_wp_val_mask(uint64_t val, uint64_t mask)
 {
-	__raw_writeq(val, CMN_dtm_wp_val(xp_base, wp));
-	__raw_writeq(mask, CMN_dtm_wp_mask(xp_base, wp));
+	cmn_writeq(val, CMN_dtm_wp_val(xp_base, wp), "CMN_dtm_wp_val", -1);
+	cmn_writeq(mask, CMN_dtm_wp_mask(xp_base, wp), "CMN_dtm_wp_mask", -1);
 	return 0;
 }
 
 static int cmn_trace_wp_enable(uint32_t enable)
 {
-	uint64_t val = __raw_readq(CMN_dtm_wp_config(xp_base, wp));
+	uint64_t val = __raw_readq(CMN_dtm_control(xp_base));
 	if (enable)
 		val |= dtm_control_en;
 	else
 		val &= ~dtm_control_en;
-	__raw_writeq(val, CMN_dtm_wp_config(xp_base, wp));
+	cmn_writeq(val, CMN_dtm_control(xp_base), "CMN_dtm_control", -1);
 	return 0;
 }
 
@@ -63,8 +65,9 @@ static int cmn_trace_dt_config(uint32_t dbgtrigger_en, uint32_t atbtrigger_en,
 	if (wait_for_trigger)
 		val |= dt_dtc_ctl_wait_for_trigger;
 
-	__raw_setq(dt_trace_control_cc_enable, CMN_dt_trace_control(dt_base));
-	__raw_writeq(val, CMN_dt_dtc_ctl(dt_base));
+	cmn_setq(dt_trace_control_cc_enable, CMN_dt_trace_control(dt_base), 
+		 "CMN_dt_trace_control", -1);
+	cmn_writeq(val, CMN_dt_dtc_ctl(dt_base), "CMN_dt_dtc_ctl", -1);
 	return 0;
 }
 
@@ -75,7 +78,7 @@ static int cmn_trace_dt_enable(uint32_t enable)
 		val |= dt_dtc_ctl_en;
 	else
 		val &= ~dt_dtc_ctl_en;
-	__raw_writeq(val, CMN_dt_dtc_ctl(dt_base));
+	cmn_writeq(val, CMN_dt_dtc_ctl(dt_base), "CMN_dt_dtc_ctl", -1);
 	return 0;
 }
 
@@ -100,7 +103,7 @@ static int do_cmn_trace(int argc, char *argv[])
 	}
 	if (strcmp(argv[1], "wp") == 0) {
 		if (strcmp(argv[2], "select") == 0) {
-			if (argc < 7)
+			if (argc < 8)
 				return -EINVAL;
 			id = (uint32_t)strtoull(argv[3], 0, 0);
 			if (id < 0 || id >= cmn_xp_count)
@@ -109,6 +112,7 @@ static int do_cmn_trace(int argc, char *argv[])
 			wp = (uint32_t)strtoull(argv[4], 0, 0);
 			dev_sel = (uint32_t)strtoull(argv[5], 0, 0);
 			chn_sel = (uint32_t)strtoull(argv[6], 0, 0);
+			grp = (uint32_t)strtoull(argv[7], 0, 0);
 			sel_xp = 1;
 			return 0;
 		}
@@ -192,8 +196,8 @@ static int do_cmn_trace(int argc, char *argv[])
 DEFINE_COMMAND(cmn_trace, do_cmn_trace, "SpacemiT CMN Debug Trace configuration commands",
 	"cmn_trace list\n"
 	"  - list all cmn dt&dtm registers\n"
-	"cmn_trace wp select <id> <wp> <dev_sel> <chn_sel>\n"
-	"  - select watchpoint id, wp, device and channel\n"
+	"cmn_trace wp select <id> <wp> <dev_sel> <chn_sel> <grp>\n"
+	"  - select watchpoint id, wp, device, channel and group\n"
 	"    - channel: 0 - REQ, 1 - RSP, 2 - SNP, 3 - DAT\n"
 	"cmn_trace wp config <pkt_type> <pkt_gen> <combine> <cc_en> <ctrigger_en> <dbgtrigger_en>\n"
 	"  - configure watchpoint parameters\n"
