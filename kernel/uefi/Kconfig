@@ -7,6 +7,10 @@ menuconfig UEFI
 
 if UEFI
 
+config UEFI_DXE
+	bool "UEFI driver execution environment (DXE) support"
+	select CRC32
+
 config UEFI_GPT
 	bool "UEFI GUID partition table (GPT) support"
 	select MTD

@@ -232,7 +232,7 @@ int fdt_parse_shakti_uart_node(void *fdt, int nodeoffset,
 {
 	int len, rc;
 	const fdt32_t *val;
-	unsigned long reg_addr, reg_size;
+	uint64_t reg_addr, reg_size;
 
 	if (nodeoffset < 0 || !uart || !fdt)
 		return -ENODEV;
@@ -265,7 +265,7 @@ int fdt_parse_sifive_uart_node(void *fdt, int nodeoffset,
 {
 	int len, rc;
 	const fdt32_t *val;
-	unsigned long reg_addr, reg_size;
+	uint64_t reg_addr, reg_size;
 
 	if (nodeoffset < 0 || !uart || !fdt)
 		return -ENODEV;
@@ -302,7 +302,7 @@ int fdt_parse_uart8250_node(void *fdt, int nodeoffset,
 {
 	int len, rc;
 	const fdt32_t *val;
-	unsigned long reg_addr, reg_size;
+	uint64_t reg_addr, reg_size;
 
 	if (nodeoffset < 0 || !uart || !fdt)
 		return -ENODEV;
@@ -361,7 +361,7 @@ int fdt_parse_plic_node(void *fdt, int nodeoffset, struct plic_data *plic)
 {
 	int len, rc;
 	const fdt32_t *val;
-	unsigned long reg_addr, reg_size;
+	uint64_t reg_addr, reg_size;
 
 	if (nodeoffset < 0 || !plic || !fdt)
 		return -ENODEV;
@@ -396,7 +396,7 @@ int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
 			 struct clint_data *clint)
 {
 	const fdt32_t *val;
-	unsigned long reg_addr, reg_size;
+	uint64_t reg_addr, reg_size;
 	int i, rc, count, cpu_offset, cpu_intc_offset;
 	uint32_t phandle, hwirq, hartid, first_hartid, last_hartid;
 	uint32_t match_hwirq = (for_timer) ? IRQ_M_TIMER : IRQ_M_SOFT;
@@ -464,7 +464,7 @@ int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic)
 {
 	const fdt32_t *val;
 	struct imsic_regs *regs;
-	unsigned long reg_addr, reg_size;
+	uint64_t reg_addr, reg_size;
 	int i, rc, len, nr_parent_irqs;
 
 	if (nodeoff < 0 || !imsic || !fdt)
@@ -540,7 +540,7 @@ int fdt_parse_imsic_node(void *fdt, int nodeoff, struct imsic_data *imsic)
 	return 0;
 }
 
-int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
+int fdt_parse_compat_addr(void *fdt, uint64_t *addr,
 			  const char *compatible)
 {
 	int nodeoffset, rc;
@@ -563,7 +563,7 @@ int fdt_parse_aplic_node(void *fdt, int nodeoff, struct aplic_data *aplic)
 	const fdt32_t *del;
 	struct imsic_data imsic;
 	int i, j, d, dcnt, len, noff, rc;
-	unsigned long reg_addr, reg_size;
+	uint64_t reg_addr, reg_size;
 	struct aplic_delegate_data *deleg;
 
 	if (nodeoff < 0 || !aplic || !fdt)

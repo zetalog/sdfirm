@@ -1257,6 +1257,7 @@ void acpigen_write_resourcetemplate_footer(void)
 	acpigen_pop_len();
 }
 
+#ifdef CONFIG_ACPI_GEN_MAINBOARD_RESOURCE
 static void acpigen_add_mainboard_rsvd_mem32(void *gp, struct device *dev, struct resource *res)
 {
 	acpigen_write_mem32fixed(0, res->base, res->size);
@@ -1300,6 +1301,7 @@ void acpigen_write_mainboard_resources(const char *scope, const char *name)
 	acpigen_write_mainboard_resource_template();
 	acpigen_pop_len();
 }
+#endif
 
 static int hex2bin(const char c)
 {
