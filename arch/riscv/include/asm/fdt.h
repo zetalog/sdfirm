@@ -115,7 +115,7 @@ int fdt_parse_plic_node(void *fdt, int nodeoffset, struct plic_data *plic);
 int fdt_parse_plic(void *fdt, struct plic_data *plic, const char *compat);
 int fdt_parse_clint_node(void *fdt, int nodeoffset, bool for_timer,
 			 struct clint_data *clint);
-int fdt_parse_compat_addr(void *fdt, unsigned long *addr,
+int fdt_parse_compat_addr(void *fdt, uint64_t *addr,
 			  const char *compatible);
 bool fdt_node_is_enabled(const void *fdt, int nodeoff);
 int fdt_parse_phandle_with_args(const void *fdt, int nodeoff,
