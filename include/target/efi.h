@@ -689,4 +689,10 @@ struct efi_memory_map {
 
 #define __efi		__section(.efi.table)
 
+#ifdef CONFIG_UEFI_DXE
+void uefi_dxe_init(void);
+#else
+#define uefi_dxe_init()	do { } while (0)
+#endif
+
 #endif /* __EFI_TARGET_H_INCLUDE__ */

@@ -193,6 +193,29 @@ cmd_as_rel_S       = $(CC) $(a_flags) -c -o $@ $<
 $(obj)/%.rel: $(src)/%.S FORCE
 	$(call if_changed_dep,as_rel_S)
 
+# Compile ACPI tables (.acpi)
+# ---------------------------------------------------------------------------
+
+quiet_cmd_iasl_aml_asl = ASL $(quiet_modtag) $@
+
+cmd_iasl_aml_asl = $(ASL) $(asl_flags) $< 1>/dev/null
+
+$(obj)/%.aml: $(src)/%.asl FORCE
+	$(call if_changed_dep,iasl_aml_asl)
+
+quiet_cmd_acpi_S_aml= AML $(quiet_modtag) $@
+cmd_acpi_S_aml=                                         \
+{                                                       \
+        echo '\#include <asm-generic/sdfirm.lds.h>';    \
+        echo '.section .efi.table,"a"';                 \
+        echo '.global acpi_$*';                         \
+        echo 'acpi_$*:';                                \
+        echo '.incbin "$<" ';                           \
+} > $@
+
+$(obj)/%.aml.S: $(obj)/%.aml FORCE
+	$(call if_changed,acpi_S_aml)
+
 targets += $(real-objs-y)
 targets += $(extra-y) $(MAKECMDGOALS) $(always)
 

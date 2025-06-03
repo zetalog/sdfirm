@@ -279,11 +279,13 @@ export VERSION PATCHLEVEL SUBLEVEL KERNELRELEASE KERNELVERSION
 export ARCH CONFIG_SHELL HOSTCC HOSTCFLAGS HOSTINCLUDE CROSS_COMPILE
 export AS LD CC CPP AR NM STRIP OBJCOPY MAKE AWK PERL SREC2VHX BIN2VHX
 export UTS_MACHINE HOSTCXX HOSTCXXFLAGS CHECK CHECKFLAGS MKSUNXIBOOT
+export ASL
 
 export CPPFLAGS NOSTDINC_FLAGS TARGETINCLUDE OBJCOPYFLAGS LDFLAGS
 export MKSUNXIBOOTFLAGS
 export CFLAGS CFLAGS_KERNEL
 export AFLAGS AFLAGS_KERNEL
+export ASLFLAGS
 
 # Files to ignore in find ... statements
 
@@ -795,6 +797,7 @@ clean: archclean $(clean-dirs)
 		-o -name '*.hex' -o -name '*.mem' -o -name '*.lnk' \
 		-o -name '*.asm' -o -name '*.rst' -o -name '*.lib' \
 		-o -name '*.adb' -o -name '*.dtc' \
+		-o -name '*.aml' \
 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \) \
 		-type f -print | xargs rm -f
 
