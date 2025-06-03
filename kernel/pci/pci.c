@@ -214,8 +214,6 @@ void pci_update_bar_resource(int bus, int dev, int fun, int index)
 	struct pcie_port *pp = &(pcie_ctrls[index].pp);
     struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
     uint64_t io_offset = 0, mem_offset = 0, premem_offset = 0;  
-    uint64_t pci_io_offset = 0, pci_mem_offset = 0x10000000, pci_premem_offset = 0x100000000;  
-    uint64_t pci_io_base = 0, pci_mem_base = 0x10000000, pci_premem_base = 0x100000000;  
     
     /* uint64_t bar[6];   */
     for(i = 0; i < 6; i += 2) {
@@ -233,18 +231,16 @@ void pci_update_bar_resource(int bus, int dev, int fun, int index)
                             bar[i].type |= IORESOURCE_PREFETCH;
                             bar[i].start = pp->prefetch_base + premem_offset;
                             bar[i].end = pp->prefetch_base + premem_offset + size - 1;
-                            pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), pci_premem_offset, index);
-                            pcie_dbg("\tPREFETCH_MEM32 : 0x%llx + 0x%llx\n", bar[i].start, pci_premem_offset);
+                            pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), premem_offset, index);
+                            pcie_dbg("\tPREFETCH_MEM32 : 0x%llx + 0x%llx\n", pp->prefetch_base, premem_offset);
                             premem_offset += size;
-                            pci_premem_offset += size;
                         } else {
                             bar[i].type |= IORESOURCE_NONPREFETCH;
                             bar[i].start = pp->mem_base + mem_offset;
                             bar[i].end = pp->mem_base + mem_offset + size - 1;
-                            pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), pci_mem_offset, index);
-                            pcie_dbg("\tNONPREFETCH_MEM32 : 0x%llx + 0x%llx\n", bar[i].start, pci_mem_offset);
+                            pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), mem_offset, index);
+                            pcie_dbg("\tNONPREFETCH_MEM32 : 0x%llx + 0x%llx\n", pp->mem_base, mem_offset);
                             mem_offset += size;
-                            pci_mem_offset += size;
                         }
                     } else {
                         bar[i].type = 0;
@@ -262,28 +258,25 @@ void pci_update_bar_resource(int bus, int dev, int fun, int index)
                                 bar[i+1].type |= IORESOURCE_PREFETCH;
                                 bar[i+1].start = pp->prefetch_base + premem_offset;
                                 bar[i+1].end = pp->prefetch_base + premem_offset + size - 1;
-                                pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), pci_premem_offset, index);
-                                pcie_dbg("\tPREFETCH_MEM32 : 0x%llx + 0x%llx\n", bar[i+1].start, pci_premem_offset);
+                                pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), premem_offset, index);
+                                pcie_dbg("\tPREFETCH_MEM32 : 0x%llx + 0x%llx\n", pp->prefetch_base, premem_offset);
                                 premem_offset += size;
-                                pci_premem_offset += size;
                             } else {
                                 bar[i+1].type |= IORESOURCE_NONPREFETCH;
                                 bar[i+1].start = pp->mem_base + mem_offset;
                                 bar[i+1].end = pp->mem_base + mem_offset + size - 1;
-                                pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), pci_mem_offset, index);
-                                pcie_dbg("\tNONPREFETCH_MEM32 : 0x%llx + 0x%llx\n", bar[i+1].start, pci_mem_offset);
+                                pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), mem_offset, index);
+                                pcie_dbg("\tNONPREFETCH_MEM32 : 0x%llx + 0x%llx\n", pp->mem_base, mem_offset);
                                 mem_offset += size;
-                                pci_mem_offset += size;
                             }
                         } else {
                             size = 0xFFFFFFFF - (val & 0xFFFFFFC0) + 1;
                             bar[i+1].type |= IORESOURCE_IO;
                             bar[i+1].start = pp->io_base + io_offset;
                             bar[i+1].end = pp->io_base + io_offset + size - 1;
-                            pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), pci_io_offset, index);
-                            pcie_dbg("\tIO : 0x%llx + 0x%llx\n", bar[i+1].start, pci_io_offset);
+                            pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), io_offset, index);
+                            pcie_dbg("\tIO : 0x%llx + 0x%llx\n", pp->io_base, io_offset);
                             io_offset += size;
-                            pci_io_offset += size;
                         }
                     } else {
                         bar[i+1].type = 0;
@@ -299,11 +292,10 @@ void pci_update_bar_resource(int bus, int dev, int fun, int index)
                         bar[i].type |= IORESOURCE_PREFETCH;
                         bar[i].start = pp->prefetch_base + premem_offset;
                         bar[i].end = pp->prefetch_base + premem_offset + size - 1;
-                        pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), pci_premem_offset, index);
-                        pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), pci_premem_offset>>32, index);
-                        pcie_dbg("\tPREFETCH_MEM64 : 0x%llx + 0x%llx\n", bar[i].start, pci_premem_offset);
+                        pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), premem_offset, index);
+                        pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), premem_offset>>32, index);
+                        pcie_dbg("\tPREFETCH_MEM64 : 0x%llx + 0x%llx\n", pp->prefetch_base, premem_offset);
                         premem_offset += size;
-                        pci_premem_offset += size;
                     } else {
                         pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), 0xFFFFFFFF, index);
                         pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), 0xFFFFFFFF, index);
@@ -313,15 +305,14 @@ void pci_update_bar_resource(int bus, int dev, int fun, int index)
                         bar[i].type |= IORESOURCE_NONPREFETCH;
                         bar[i].start = pp->mem_base + mem_offset;
                         bar[i].end = pp->mem_base + mem_offset + size - 1;
-                        pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), pci_mem_offset, index);
-                        pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), pci_mem_offset>>32, index);
+                        pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), mem_offset, index);
+                        pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), mem_offset>>32, index);
                         /* bar[i].start = pp->mem_base;
                         bar[i].end = pp->mem_base + size - 1;
                         pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), pp->mem_base, index);
                         pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), pp->mem_base>>32, index); */
-                        pcie_dbg("\tNONPREFETCH_MEM64 : 0x%llx + 0x%llx\n", bar[i].start, pci_mem_offset);
+                        pcie_dbg("\tNONPREFETCH_MEM64 : 0x%llx + 0x%llx\n", pp->mem_base, mem_offset);
                         mem_offset += size;
-                        pci_mem_offset += size;
                     }
                 } 
             } else {
@@ -331,10 +322,9 @@ void pci_update_bar_resource(int bus, int dev, int fun, int index)
                 bar[i].type |= IORESOURCE_IO;
                 bar[i].start = pp->io_base + io_offset;
                 bar[i].end = pp->io_base + io_offset + size - 1;
-                pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), pci_io_offset, index);
-                pcie_dbg("\tIO : 0x%llx + 0x%llx\n", bar[i].start, pci_io_offset);
+                pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + (i * 4), io_offset, index);
+                pcie_dbg("\tIO : 0x%llx + 0x%llx\n", pp->io_base, io_offset);
                 io_offset += size;
-                pci_io_offset += size;
                 val = pci_get_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), index);
                 pcie_dbg("BDF (%d-%d-%d) BAR%d = 0x%llx\n", bus, dev, fun, i + 1, val);
                 pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), 0xFFFFFFFF, index);
@@ -347,28 +337,25 @@ void pci_update_bar_resource(int bus, int dev, int fun, int index)
                             bar[i+1].type |= IORESOURCE_PREFETCH;
                             bar[i+1].start = pp->prefetch_base + premem_offset;
                             bar[i+1].end = pp->prefetch_base + premem_offset + size - 1;
-                            pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), pci_premem_offset, index);
-                            pcie_dbg("\tPREFETCH_MEM32 : 0x%llx + 0x%llx\n", bar[i+1].start, pci_premem_offset);
+                            pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), premem_offset, index);
+                            pcie_dbg("\tPREFETCH_MEM32 : 0x%llx + 0x%llx\n", pp->prefetch_base, premem_offset);
                             premem_offset += size;
-                            pci_premem_offset += size;
                         } else {
                             bar[i+1].type |= IORESOURCE_NONPREFETCH;
                             bar[i+1].start = pp->mem_base + mem_offset;
                             bar[i+1].end = pp->mem_base + mem_offset + size - 1;
-                            pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), pci_mem_offset, index);
-                            pcie_dbg("\tNONPREFETCH_MEM32 : 0x%llx + 0x%llx\n", bar[i+1].start, pci_mem_offset);
+                            pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), mem_offset, index);
+                            pcie_dbg("\tNONPREFETCH_MEM32 : 0x%llx + 0x%llx\n", pp->mem_base, mem_offset);
                             mem_offset += size;
-                            pci_mem_offset += size;
                         }
                     } else {
                         size = 0xFFFFFFFF - (val & 0xFFFFFFC0) + 1;
                         bar[i+1].type |= IORESOURCE_IO;
                         bar[i+1].start = pp->io_base + io_offset;
                         bar[i+1].end = pp->io_base + io_offset + size - 1;
-                        pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), pci_io_offset, index);
-                        pcie_dbg("\tIO : 0x%llx + 0x%llx\n", bar[i+1].start, pci_io_offset);
+                        pci_set_conf_reg(bus, dev, fun, PCI_BaseAddressRegister0 + ((i+1) * 4), io_offset, index);
+                        pcie_dbg("\tIO : 0x%llx + 0x%llx\n", pp->io_base, io_offset);
                         io_offset += size;
-                        pci_io_offset += size;
                     }
                 } else {
                     bar[i+1].type = 0;
@@ -379,31 +366,31 @@ void pci_update_bar_resource(int bus, int dev, int fun, int index)
     }
 	dw_pcie_dbi_ro_wr_en(pci);
     if(io_offset) {
-        pcie_dbg("pci_io_offset = 0x%llx \n", pci_io_offset);
+        pcie_dbg("io_offset = 0x%llx \n", io_offset);
        	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_IO_BASE, 0x1);
         pcie_dbg("initPCI_IO_BASE = 0x%llx \n", val);
-       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_IO_BASE, pci_io_base, 0x1);
-       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_IO_LIMIT, (uint32_t)((pci_io_offset>>8)&PCI_IO_RANGE_MASK), 0x1); //4KB对齐
+       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_IO_BASE, 0, 0x1);
+       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_IO_LIMIT, (uint32_t)((io_offset>>8)&PCI_IO_RANGE_MASK), 0x1); //4KB对齐
        	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_IO_BASE, 0x1);
         pcie_dbg("PCI_IO_BASE = 0x%llx \n", val);
        	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_IO_LIMIT, 0x1); //4KB对齐
         pcie_dbg("PCI_IO_LIMIT = 0x%llx \n", val);
     }
     if(mem_offset) {
-        pcie_dbg("pci_mem_offset = 0x%llx \n", pci_mem_offset);
-       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_MEMORY_BASE, pci_mem_base, 0x2);
-       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_MEMORY_LIMIT, (uint32_t)((pci_mem_offset>>16)&PCI_PREF_RANGE_MASK), 0x2); //1MB对齐
+        pcie_dbg("mem_offset = 0x%llx \n", mem_offset);
+       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_MEMORY_BASE, 0, 0x2);
+       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_MEMORY_LIMIT, (uint32_t)((mem_offset>>16)&PCI_PREF_RANGE_MASK), 0x2); //1MB对齐
        	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_MEMORY_BASE, 0x2);
         pcie_dbg("PCI_MEM_BASE = 0x%llx \n", val);
        	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_MEMORY_LIMIT, 0x2); //4KB对齐
         pcie_dbg("PCI_MEM_LIMIT = 0x%llx \n", val);
     }
     if(premem_offset) {
-        pcie_dbg("pci_premem_offset = 0x%llx \n", pci_premem_offset);
-       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_PREF_MEMORY_BASE, (uint32_t)(pci_premem_base), 0x2);
-       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_PREF_MEMORY_LIMIT, (uint32_t)(((pci_premem_offset>>16)&PCI_PREF_RANGE_MASK)|PCI_PREF_RANGE_TYPE_64), 0x2); //1MB对齐
-       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_PREF_BASE_UPPER32, (uint32_t)(pci_premem_base>>32), 0x4);
-       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_PREF_LIMIT_UPPER32, (uint32_t)(pci_premem_offset>>32), 0x4); //1MB对齐
+        pcie_dbg("premem_offset = 0x%llx \n", premem_offset);
+       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_PREF_MEMORY_BASE, 0, 0x2);
+       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_PREF_MEMORY_LIMIT, (uint32_t)(((premem_offset>>16)&PCI_PREF_RANGE_MASK)|PCI_PREF_RANGE_TYPE_64), 0x2); //1MB对齐
+       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_PREF_BASE_UPPER32, 0, 0x4);
+       	dw_pcie_write_dbi(pci, DW_PCIE_CDM, PCI_PREF_LIMIT_UPPER32, (uint32_t)(premem_offset>>32), 0x4); //1MB对齐
        	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_PREF_MEMORY_BASE, 0x2);
         pcie_dbg("PCI_PREF_MEMORY_BASE = 0x%llx \n", val);
        	val = dw_pcie_read_dbi(pci, DW_PCIE_CDM, PCI_PREF_MEMORY_LIMIT, 0x2);
@@ -418,15 +405,10 @@ void pci_update_bar_resource(int bus, int dev, int fun, int index)
 
 void mem_test()
 {
-    uint32_t i, val;
-    /* uint32_t j; */
+    __unused uint32_t i, val;
 
     for (i = 0; i < 6; i ++) {
         if(bar[i].type) {
-            /* for (j = 0; (bar[i].start + j * 0x4) < bar[i].end; j ++) {
-                val = __raw_readl(bar[i].start + j * 0x4);
-                pcie_dbg("init bar%d mem : 0x%llx = 0x%x\n", i, bar[i].start + j * 0x4, val);
-            } */
             val = __raw_readl(bar[i].start + 0x24);
             pcie_dbg("init bar%d mem : 0x%llx = 0x%x\n", i, bar[i].start + 0x24, val);
             __raw_writel(0x5a5a5a5a, bar[i].start + 0x24);
@@ -481,34 +463,36 @@ int pci_find_capability(int index, int bus, int dev, int fun, int cap)
     }
     return 0;
 }
+
+static char cap_list[PCI_CAP_ID_MAX][45] = {
+    "PM(Power Management)",
+    "AGP(Accelerated Graphics Port)",
+    "VPD(Vital Product Data)",
+    "SLOTID(Slot Identification)",
+    "MSI(Message Signalled Interrupts)",
+    "CHSWP(CompactPCI HotSwap)",
+    "PCIX(PCI-X)",
+    "HT(HyperTransport)",
+    "VNDR(Vendor-Specific)",
+    "DBG(Debug port)",
+    "CCRC(CompactPCI Central Resource Control)",
+    "SHPC(PCI Standard Hot-Plug Controller)",
+    "SSVID(Bridge subsystem vendor/device ID)",
+    "AGP3(AGP Target PCI-PCI bridge)",
+    "SECDEV(Secure Device)",
+    "EXP(PCI Express)",
+    "MSIX(MSI-X)",
+    "SATA(SATA Data/Index Conf.)",
+    "AF(PCI Advanced Features)",
+    "EA(PCI Enhanced Allocation)",
+};
 void pci_find_capability_list(int index, int bus, int dev, int fun) 
 {
     uint8_t id;
     uint16_t ent;
     int ttl = PCI_FIND_CAP_TTL; 
     uint32_t pos = PCI_CAPABILITY_LIST;
-    char cap_list[PCI_CAP_ID_MAX][45] = {
-        "PM(Power Management)",
-        "AGP(Accelerated Graphics Port)",
-        "VPD(Vital Product Data)",
-        "SLOTID(Slot Identification)",
-        "MSI(Message Signalled Interrupts)",
-        "CHSWP(CompactPCI HotSwap)",
-        "PCIX(PCI-X)",
-        "HT(HyperTransport)",
-        "VNDR(Vendor-Specific)",
-        "DBG(Debug port)",
-        "CCRC(CompactPCI Central Resource Control)",
-        "SHPC(PCI Standard Hot-Plug Controller)",
-        "SSVID(Bridge subsystem vendor/device ID)",
-        "AGP3(AGP Target PCI-PCI bridge)",
-        "SECDEV(Secure Device)",
-        "EXP(PCI Express)",
-        "MSIX(MSI-X)",
-        "SATA(SATA Data/Index Conf.)",
-        "AF(PCI Advanced Features)",
-        "EA(PCI Enhanced Allocation)",
-    };
+
     pos = (uint32_t)pci_get_conf_reg_byte(bus, dev, fun, pos, index);
 
     while ((ttl)--) {
@@ -566,59 +550,60 @@ uint16_t pci_find_ext_capability(int index, int bus, int dev, int fun, int cap) 
     return 0;
 }
 
+static char cap_ext_list[PCI_EXT_CAP_ID_MAX][45] = {
+    "ERR(Advanced Error Reporting",
+    "VC(Virtual Channel Capability)",
+    "DSN(Device Serial Number)",
+    "PWR(Power Budgeting)",
+    "RCLD(Root Complex Link Declaration)",
+    "RCILC(Root Complex Internal Link Control)",
+    "RCEC(Root Complex Event Collector)",
+    "MFVC(Multi-Function VC Capability)",
+    "VC9(same as _VC)",
+    "RCRB(Root Complex RB?)",
+    "VNDR(Vendor-Specific)",
+    "CAC(Config Access - obsolete)",
+    "ACS(Access Control Services)",
+    "ARI(Alternate Routing ID)",
+    "ATS(Address Translation Services)",
+    "SRIOV(Single Root I/O Virtualization)",
+    "MRIOV(Multi Root I/O Virtualization)",
+    "MCAST(Multicast)",
+    "PRI(Page Request Interface)",
+    "AMD_XXX(Reserved for AMD)",
+    "REBAR(Resizable BAR)",
+    "DPA(Dynamic Power Allocation)",
+    "TPH(TPH Requester)",
+    "LTR(Latency Tolerance Reporting)",
+    "SECPCI(Secondary PCIe Capability)",
+    "PMUX(Protocol Multiplexing)",
+    "PASID(Process Address Space ID)",
+    "Reserved(0x1C)",
+    "DPC(Downstream Port Containment)",
+    "L1SS(L1 PM Substates)",
+    "PTM(Precision Time Measurement)",
+    "Reserved(0x20)",
+    "Reserved(0x21)",
+    "Reserved(0x22)",
+    "DVSEC(Designated Vendor-Specific)",
+    "Reserved(0x24)",
+    "DLF(Data Link Feature)",
+    "PL_16GT(Physical Layer 16.0 GT/s)",
+    "Reserved(0x27)",
+    "Reserved(0x28)",
+    "Reserved(0x29)",
+    "PL_32GT(Physical Layer 32.0 GT/s)",
+    "Reserved(0x2B)",
+    "Reserved(0x2C)",
+    "Reserved(0x2D)",
+    "DOE(Data Object Exchange)",
+};
+
 void pci_find_ext_capability_list(int index, int bus, int dev, int fun)
 {
     uint32_t header;
     int ttl;
     uint16_t pos = PCI_CFG_SPACE_SIZE;
-    char cap_list[PCI_EXT_CAP_ID_MAX][45] = {
-        "ERR(Advanced Error Reporting",
-        "VC(Virtual Channel Capability)",
-        "DSN(Device Serial Number)",
-        "PWR(Power Budgeting)",
-        "RCLD(Root Complex Link Declaration)",
-        "RCILC(Root Complex Internal Link Control)",
-        "RCEC(Root Complex Event Collector)",
-        "MFVC(Multi-Function VC Capability)",
-        "VC9(same as _VC)",
-        "RCRB(Root Complex RB?)",
-        "VNDR(Vendor-Specific)",
-        "CAC(Config Access - obsolete)",
-        "ACS(Access Control Services)",
-        "ARI(Alternate Routing ID)",
-        "ATS(Address Translation Services)",
-        "SRIOV(Single Root I/O Virtualization)",
-        "MRIOV(Multi Root I/O Virtualization)",
-        "MCAST(Multicast)",
-        "PRI(Page Request Interface)",
-        "AMD_XXX(Reserved for AMD)",
-        "REBAR(Resizable BAR)",
-        "DPA(Dynamic Power Allocation)",
-        "TPH(TPH Requester)",
-        "LTR(Latency Tolerance Reporting)",
-        "SECPCI(Secondary PCIe Capability)",
-        "PMUX(Protocol Multiplexing)",
-        "PASID(Process Address Space ID)",
-        "Reserved(0x1C)",
-        "DPC(Downstream Port Containment)",
-        "L1SS(L1 PM Substates)",
-        "PTM(Precision Time Measurement)",
-        "Reserved(0x20)",
-        "Reserved(0x21)",
-        "Reserved(0x22)",
-        "DVSEC(Designated Vendor-Specific)",
-        "Reserved(0x24)",
-        "DLF(Data Link Feature)",
-        "PL_16GT(Physical Layer 16.0 GT/s)",
-        "Reserved(0x27)",
-        "Reserved(0x28)",
-        "Reserved(0x29)",
-        "PL_32GT(Physical Layer 32.0 GT/s)",
-        "Reserved(0x2B)",
-        "Reserved(0x2C)",
-        "Reserved(0x2D)",
-        "DOE(Data Object Exchange)",
-    };
 
     /* minimum 8 bytes per capability */
     ttl = (PCI_CFG_SPACE_EXP_SIZE - PCI_CFG_SPACE_SIZE) / 8;
@@ -627,12 +612,53 @@ void pci_find_ext_capability_list(int index, int bus, int dev, int fun)
         header = pci_get_conf_reg_dword(bus, dev, fun, pos, index);
         if (header == 0)
             return;
-        printf("\tBDF (%d-%d-%d) Extended cap %s is found at 0x%x\n", bus, dev, fun, cap_list[PCI_EXT_CAP_ID(header)], pos);
+        printf("\tBDF (%d-%d-%d) Extended cap %s is found at 0x%x\n", bus, dev, fun, cap_ext_list[PCI_EXT_CAP_ID(header)], pos);
 
         pos = PCI_EXT_CAP_NEXT(header);
         if (pos < PCI_CFG_SPACE_SIZE)
             break;
     }
+}
+
+typedef struct {
+    uint8_t bus;
+    uint8_t dev;
+    uint8_t fun;
+} bdf_t;
+
+typedef struct {
+    bdf_t bdf[32];
+    int offset;
+} pci_bdf_t;
+
+static pci_bdf_t pci_bdf[PCIE_CTRL_MAX];
+
+static int add_pci_bdf(uint8_t bus, uint8_t dev, uint8_t fun, int index)
+{
+    if (pci_bdf[index].offset >= 32) {
+        return -1;
+    }
+
+    int off = pci_bdf[index].offset;
+    pci_bdf[index].bdf[off].bus = bus;
+    pci_bdf[index].bdf[off].dev = dev;
+    pci_bdf[index].bdf[off].fun = fun;
+    pci_bdf[index].offset ++;
+
+    return 0;
+}
+
+#if 0
+static int del_pci_bdf(uint8_t bus, uint8_t dev, uint8_t fun, int index)
+{
+// TODO
+    return 0;
+}
+#endif
+
+int pci_has_bdf(int index)
+{
+    return pci_bdf[index].offset ? 1 : 0;
 }
 
 int pci_enum(int bus, int index)
@@ -648,7 +674,7 @@ int pci_enum(int bus, int index)
             pcie_dbg("BDF (%d-%d-%d) scan\n", bus, dev, fun);
 			id = pci_get_ids(bus, dev, fun, index);
 			if (id != 0xFFFFFFFF) {
-				printf("\tBDF (%d-%d-%d) found, id: 0x%08lx\n", bus, dev, fun, (unsigned long)id);
+				printf("\tBDF--- (%d-%d-%d) found, id: 0x%08lx\n", bus, dev, fun, (unsigned long)id);
                 if(pci_get_headertype(bus, dev, fun, index) == PCI_HeaderType1) {
                     sub_bus = pci_enum(sec_bus, index);
                     pci_update_bridge_bus_resource(bus, dev, fun,
@@ -657,12 +683,13 @@ int pci_enum(int bus, int index)
                             "sec bus: %d, sub bus: %d\n",
                             bus, dev, fun, sec_bus, sub_bus);
                 }
+                add_pci_bdf(bus, dev, fun, index);
                 pci_get_bridge_resource(bus, dev, fun, index);
                 pci_update_bar_resource(bus, dev, fun, index);
                 pci_find_capability_list(index, bus, dev, fun);
                 pci_find_ext_capability_list(index, bus, dev, fun);
                 
-                printf("\tBDF (%d-%d-%d) found, id: 0x%08lx\n", bus, dev, fun, (unsigned long)id);
+                printf("\tBDF#### (%d-%d-%d) found, id: 0x%08lx\n", bus, dev, fun, (unsigned long)id);
                 pci_set_mem_en(bus, dev, fun, index);
 				sec_bus = sub_bus + 1;
 			}
