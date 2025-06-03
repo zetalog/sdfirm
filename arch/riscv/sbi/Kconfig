@@ -210,6 +210,19 @@ config SBI_FDT_BUILTIN
 
 endif
 
+config SBI_EFI
+	bool "Enable SBI extensible firmware interface binary"
+	select UEFI
+	select UEFI_DXE
+
+if SBI_EFI
+
+config SBI_EFI_BUILTIN
+	bool "Force builtin flatened extensible firmware memory map"
+	select EFI_BUILTIN
+
+endif
+
 config SBI_LDST_MISALIGNED_DELEG
 	bool "Enable load/store misaligned delegation"
 

@@ -85,3 +85,7 @@
 	BSS(bss_align)						\
 	. = ALIGN(stop_align);					\
 	__bss_stop = .;
+
+#define EFI_TABLE						\
+	*(.efi.init)						\
+	*(.efi.table)

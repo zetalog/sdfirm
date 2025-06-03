@@ -687,4 +687,6 @@ struct efi_memory_map {
 	unsigned long flags;
 };
 
+#define __efi		__section(.efi.table)
+
 #endif /* __EFI_TARGET_H_INCLUDE__ */

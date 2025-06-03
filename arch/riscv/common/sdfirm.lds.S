@@ -141,6 +141,15 @@ SECTIONS
 	}
 #endif
 	_fdt_end = .;
+#ifdef CONFIG_EFI_BUILTIN
+	. = ALIGN(PAGE_SIZE);
+	_efi_start = .;
+	.efi : {
+		EFI_TABLE
+		. = ALIGN(WORD_SIZE);
+	}
+	_efi_end = .;
+#endif
 }
 
 /*
