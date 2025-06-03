@@ -419,6 +419,33 @@ void fdt_unregister_general_fixup(struct fdt_general_fixup *fixup)
 #ifdef CONFIG_UEFI_DXE
 void fdt_efi_fixup(void *fdt)
 {
+	int node;
+	extern char _efi_start, _efi_end;
+	extern struct efi_system_table_t efi_core_st;
+	uint64_t mmap_start, mmap_size;
+	uint32_t mmap_desc_ver = 0x01;
+	uint32_t mmap_desc_size = 0x30;
+	fdt32_t prop[2];
+
+	node = fdt_path_offset(fdt, "/chosen");
+	if (node < 0)
+		return;
+
+	mmap_start = (uint64_t)&_efi_start;
+	prop[0] = cpu_to_fdt32(mmap_start >> 32);
+	prop[1] = cpu_to_fdt32(mmap_start & 0xffffffff);
+	fdt_setprop(fdt, node, "linux,uefi-mmap-start", prop, sizeof(prop));
+
+	mmap_size = (uint64_t)&_efi_end - (uint64_t)&_efi_start;
+	fdt_setprop_u32(fdt, node, "linux,uefi-mmap-size", mmap_size);
+
+	fdt_setprop_u32(fdt, node, "linux,uefi-mmap-desc-ver", mmap_desc_ver);
+	fdt_setprop_u32(fdt, node, "linux,uefi-mmap-desc-size", mmap_desc_size);
+
+	mmap_start = (uint64_t)&efi_core_st;
+	prop[0] = cpu_to_fdt32(mmap_start >> 32);
+	prop[1] = cpu_to_fdt32(mmap_start & 0xffffffff);
+	fdt_setprop(fdt, node, "linux,uefi-system-table", prop, sizeof(prop));
 }
 #else
 #define fdt_efi_fixup(fdt)		do { } while (0)
