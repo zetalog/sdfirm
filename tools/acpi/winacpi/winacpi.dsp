@@ -69,8 +69,8 @@ LINK32=link.exe
 # PROP Intermediate_Dir "../../../obj/debug/winacpi"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\include\\" /I "..\..\..\include\host\missing" /D "_DEBUG" /D "ACPI_MISALIGNMENT_NOT_SUPPORTED" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D CONFIG_ACPI_TESTS=1 /YX /FD /GZ /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Od /I "..\..\..\include\\" /I "..\..\..\include\host\missing" /D "_DEBUG" /D "ACPI_MISALIGNMENT_NOT_SUPPORTED" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D CONFIG_ACPI_TESTS=1 /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x804 /d "_DEBUG"

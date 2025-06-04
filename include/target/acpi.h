@@ -780,8 +780,8 @@ struct acpi_opcode_info;
 /* Function declarations */
 typedef void (*acpi_release_cb)(struct acpi_object *);
 
-static inline void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info,
-					const char *prefix);
+void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info,
+			    const char *prefix);
 
 #define ACPI_DESC_TYPE_NAMED			0x01
 #define ACPI_DESC_TYPE_TERM			0x02
@@ -835,7 +835,7 @@ struct acpi_buffer {
 };
 
 /* Global variables */
-extern u8 acpi_gbl_integer_bit_width;
+extern uint8_t acpi_gbl_integer_bit_width;
 extern struct acpi_generic_address acpi_gbl_xpm1a_enable;
 extern struct acpi_generic_address acpi_gbl_xpm1b_enable;
 extern struct acpi_generic_address acpi_gbl_xpm1a_status;

@@ -10,6 +10,10 @@
 #include <host/bitops.h>
 #include <host/list.h>
 
+#ifndef __unused
+#define __unused
+#endif
+
 #ifndef BUG_ON
 #define BUG_ON(expr)							\
 	do {								\

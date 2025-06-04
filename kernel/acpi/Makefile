@@ -1,5 +1,6 @@
 obj-y :=
 
+obj-y += acpi_osl.rel
 obj-y += acpi_core.rel
 obj-y += acpi_name.rel
 obj-y += acpi_utils.rel
