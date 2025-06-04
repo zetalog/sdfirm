@@ -153,7 +153,7 @@ struct acpi_parser {
 
 	struct acpi_interp *interp;
 	/* Executable domain built by parser, executed by interpreter */
-	struct acpi_environ environ;
+	struct acpi_environ env;
 };
 
 struct acpi_parser_stack {
@@ -276,7 +276,7 @@ boolean acpi_opcode_is_namestring(uint16_t opcode);
  * Interpreter internals
  *=======================================================================*/
 acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
-				  struct acpi_environ *environ,
+				  struct acpi_environ *env,
 				  uint8_t type);
 acpi_status_t acpi_interpret_table(acpi_ddb_t ddb,
 				   struct acpi_table_header *table,

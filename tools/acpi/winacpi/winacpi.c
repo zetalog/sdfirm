@@ -397,7 +397,7 @@ static VOID ACPIAppendTable(LPACPIWNDDATA lpWD, acpi_ddb_t ddb)
 	LVITEM lvi = { 0 };
 	int nIndex;
 	HWND hwndList = lpWD->hwndTableList;
-	CHAR tmpstring[10];
+	CHAR tmpstring[20];
 	char name[ACPI_NAME_SIZE+1];
 	struct acpi_table table;
 
