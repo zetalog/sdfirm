@@ -887,8 +887,11 @@ config ARCH_HAS_CLINT_CTX
 config ARCH_HAS_ACLINT
 	bool
 	select ARCH_HAS_CLINT
-	select ARCH_HAS_CLINT_CTX
 	select CPU_SSTC
+
+config ARCH_HAS_ACLINT_CTX
+	bool
+	select ARCH_HAS_CLINT_CTX
 
 menuconfig ACLINT
 	bool "Advanced Core Local Interruptor (ACLINT) support"
