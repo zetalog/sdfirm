@@ -6,6 +6,7 @@
 #include <target/ghes.h>
 #include <target/cper.h>
 #include <target/acpi.h>
+#include <target/ras.h>
 
 #define DDR_MODNAME	"ddr_ras"
 
@@ -42,6 +43,7 @@
 
 #define FUNC_INTR_NUM 8
 #define RAS_INTR_NUM  16
+uint8_t ddr_mask = 0;
 
 /**
  * struct ddrsub_baseaddr - DDR subsystem base address structure
@@ -53,7 +55,7 @@ struct ddrsub_baseaddr {
 	caddr_t reg;
 };
 
-struct ddrsub_baseaddr ddrsub_addr[] = {
+struct ddrsub_baseaddr ddrc_addr[] = {
 	{.ctrl = __DDR_CH_A_CRTL_BASE, .reg = __DDR_CH_A_REG_BASE},  // DDR A
 	{.ctrl = __DDR_CH_B_CRTL_BASE, .reg = __DDR_CH_B_REG_BASE},  // DDR B
 	{.ctrl = __DDR_CH_C_CRTL_BASE, .reg = __DDR_CH_C_REG_BASE},  // DDR C
@@ -178,11 +180,11 @@ struct ddrsub_baseaddr ddrsub_addr[] = {
 #define ECCCFG1_PROP_RD_ECC_ERR_MASK		GENMASK(21, 20)
 
 #define ECCSTAT				0x608
-#define ECCSTAT_ECC_CORRECTED_BIT_NUM_MASK	GENMASK(6, 0)  /* Bit number corrected by single-bit ECC error */
-#define ECCSTAT_ECC_CORRECTED_ERR_MASK		GENMASK(15, 8)  /* Single-bit error */
-#define ECCSTAT_ECC_UNCORRECTED_ERR_MASK	GENMASK(23, 16) /* Double-bit error */
-#define ECCSTAT_SBR_READ_ECC_CE			_BV(24) /* sideband SECDED ECC correctable error by scrubber */
-#define ECCSTAT_SBR_READ_ECC_UE			_BV(25) /* sideband SECDED ECC uncorrectable error by scrubber */
+#define ECCSTAT_ECC_CORRECTED_BIT_NUM_MASK	GENMASK(6, 0)
+#define ECCSTAT_ECC_CORRECTED_ERR_MASK		GENMASK(15, 8)
+#define ECCSTAT_ECC_UNCORRECTED_ERR_MASK	GENMASK(23, 16)
+#define ECCSTAT_SBR_READ_ECC_CE			_BV(24)
+#define ECCSTAT_SBR_READ_ECC_UE			_BV(25)
 
 #define ECCCTL				0x60C
 #define ECCCTL_ECC_CORRECTED_ERR_CLR		_BV(0)
@@ -195,24 +197,24 @@ struct ddrsub_baseaddr ddrsub_addr[] = {
 #define ECCCTL_ECC_UNCORRECTED_ERR_INTR_FORCE	_BV(17)
 
 #define ECCERRCNT			0x610
-#define ECCERRCNT_ECC_CORR_ERR_CNT_MASK		GENMASK(15, 0)  /* Number of correctable ECC errors */
-#define ECCERRCNT_ECC_UNCORR_ERR_CNT_MASK	GENMASK(31, 16) /* Number of uncorrectable ECC errors */
+#define ECCERRCNT_ECC_CORR_ERR_CNT_MASK		GENMASK(15, 0)
+#define ECCERRCNT_ECC_UNCORR_ERR_CNT_MASK	GENMASK(31, 16)
 
 #define ECCCADDR0			0x614
 #define ECCCADDR0_ECC_CORR_ROW_OFFSET	0
-#define ECCCADDR0_ECC_CORR_ROW_MASK	GENMASK(23, 0)  /* Row number of corrected ECC error */
+#define ECCCADDR0_ECC_CORR_ROW_MASK	GENMASK(23, 0)
 #define ECCCADDR0_ECC_CORR_RANK_OFFSET	24
-#define ECCCADDR0_ECC_CORR_RANK_MASK	GENMASK(31, 24) /* Rank number of corrected ECC error */
+#define ECCCADDR0_ECC_CORR_RANK_MASK	GENMASK(31, 24)
 
 #define ECCCADDR1			0x618
 #define ECCCADDR1_ECC_CORR_COL_OFFSET	0
-#define ECCCADDR1_ECC_CORR_COL_MASK	GENMASK(10, 0)  /* Block number of corrected ECC error */
+#define ECCCADDR1_ECC_CORR_COL_MASK	GENMASK(10, 0)
 #define ECCCADDR1_ECC_CORR_BANK_OFFSET	16
-#define ECCCADDR1_ECC_CORR_BANK_MASK	GENMASK(23, 16) /* Bank number of corrected ECC error */
+#define ECCCADDR1_ECC_CORR_BANK_MASK	GENMASK(23, 16)
 #define ECCCADDR1_ECC_CORR_BG_OFFSET	24
-#define ECCCADDR1_ECC_CORR_BG_MASK	GENMASK(27, 24) /* Bank Group number of corrected ECC error */
+#define ECCCADDR1_ECC_CORR_BG_MASK	GENMASK(27, 24)
 #define ECCCADDR1_ECC_CORR_CID_OFFSET	28
-#define ECCCADDR1_ECC_CORR_CID_MASK	GENMASK(31, 28) /* CID number of corrected ECC error */
+#define ECCCADDR1_ECC_CORR_CID_MASK	GENMASK(31, 28)
 
 #define ECCCSYN0			0x61C
 #define ECCCSYN0_ECC_CORR_SYNDROME_31_0_MASK	GENMASK(31, 0)
@@ -221,7 +223,7 @@ struct ddrsub_baseaddr ddrsub_addr[] = {
 #define ECCCSYN1_ECC_CORR_SYNDROME_63_32_MASK	GENMASK(31, 0)
 
 #define ECCCSYN2			0x624
-#define ECCCSYN2_CB_CORR_SYNDROME_MASK	GENMASK(23, 16) /* Checkbit corrected error syndrome */
+#define ECCCSYN2_CB_CORR_SYNDROME_MASK	GENMASK(23, 16)
 #define ECCCSYN2_ECC_CORR_SYNDROME_71_64_MASK	GENMASK(7, 0)
 
 #define ECCBITMASK0			0x628
@@ -418,44 +420,82 @@ static void ddr_func_intr_handle_irq(void)
 	int i;
 	caddr_t ctrl_base, reg_base;
 
-	for (i = 0; i < ARRAY_SIZE(ddrsub_addr); i++) {
-		ctrl_base = ddrsub_addr[i].ctrl;
-		reg_base = ddrsub_addr[i].reg;
+	for (i = 0; i < ARRAY_SIZE(ddrc_addr); i++) {
+		if (!(ddr_mask & (1 << i)))
+			continue;
+		ctrl_base = ddrc_addr[i].ctrl;
+		reg_base = ddrc_addr[i].reg;
 		status = __raw_readl(reg_base + FUNC_INTR_STAT_OFFSET);
 
 		if (status != 0) {
-			con_dbg(DDR_MODNAME ": FUNC INT STATUS:0x%08x, channel: %d\n", status, i);
+			// con_dbg(DDR_MODNAME ": FUNC INT STATUS:0x%08x, channel: %d\n", status, i);
 
 			if (status & DFI_ALERT_ERR_INTR)
 				/* DDRC doesnot support */;
-			if (status & SWCMD_ERR_INTR)
+			if (status & SWCMD_ERR_INTR) {
+				con_log(DDR_MODNAME ": process SWCMD error interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
 				ddr_set(PASINTCTL_SWCMD_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL);
-			if (status & DUCMD_ERR_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
+			}
+			if (status & DUCMD_ERR_INTR) {
+				con_log(DDR_MODNAME ": process DUCMD error interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
 				ddr_set(PASINTCTL_DUCMD_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL);
-			if (status & LCCMD_ERR_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
+			}
+			if (status & LCCMD_ERR_INTR) {
+				con_log(DDR_MODNAME ": process LCCMD error interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
 				ddr_set(PASINTCTL_LCCMD_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL);
-			if (status & CTRLUPD_ERR_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
+			}
+			if (status & CTRLUPD_ERR_INTR) {
+				con_log(DDR_MODNAME ": process CTRLUPD error interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
 				ddr_set(PASINTCTL_CTRLUPD_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL);
-			if (status & RFM_ALERT_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
+			}
+			if (status & RFM_ALERT_INTR) {
+				con_log(DDR_MODNAME ": process RFM alert interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
 				ddr_set(PASINTCTL_RFM_ALERT_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL);
-			if (status & DERATE_TEMP_LIMIT_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
+			}
+			if (status & DERATE_TEMP_LIMIT_INTR) {
+				con_log(DDR_MODNAME ": process Derate temp limit interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + DERATECTL5));
 				ddr_set(DERATECTL5_DERATE_TEMP_LIMIT_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + DERATECTL5);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + DERATECTL5));
+			}
 			if (status & SBR_DONE_INTR)
 				/* DDRC doesnot support */;
 			if (status & DFI_ALERT_ERR_INTR_DCH1)
 				/* DDRC doesnot support */;
-			if (status & SWCMD_ERR_INTR_DCH1)
+			if (status & SWCMD_ERR_INTR_DCH1) {
+				con_log(DDR_MODNAME ": process SWCMD error interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL));
 				ddr_set(PASINTCTL_SWCMD_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL);
-			if (status & DUCMD_ERR_INTR_DCH1)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL));
+			}
+			if (status & DUCMD_ERR_INTR_DCH1) {
+				con_log(DDR_MODNAME ": process DUCMD error interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL));
 				ddr_set(PASINTCTL_DUCMD_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL);
-			if (status & LCCMD_ERR_INTR_DCH1)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL));
+			}
+			if (status & LCCMD_ERR_INTR_DCH1) {
+				con_log(DDR_MODNAME ": process LCCMD error interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL));
 				ddr_set(PASINTCTL_LCCMD_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL);
-			if (status & CTRLUPD_ERR_INTR_DCH1)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL));
+			}
+			if (status & CTRLUPD_ERR_INTR_DCH1) {
+				con_log(DDR_MODNAME ": process CTRLUPD error interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL));
 				ddr_set(PASINTCTL_CTRLUPD_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL);
-			if (status & RFM_ALERT_INTR_DCH1)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL));
+			}
+			if (status & RFM_ALERT_INTR_DCH1) {
+				con_log(DDR_MODNAME ": process RFM alert interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL));
 				ddr_set(PASINTCTL_RFM_ALERT_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL);
-			if (status & DERATE_TEMP_LIMIT_INTR_DCH1)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + PASINTCTL));
+			}
+			if (status & DERATE_TEMP_LIMIT_INTR_DCH1) {
+				con_log(DDR_MODNAME ": process Derate temp limit interrupt: reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + DERATECTL5));
 				ddr_set(DERATECTL5_DERATE_TEMP_LIMIT_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(1) + DERATECTL5);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(1) + DERATECTL5));
+			}
 			if (status & SBR_DONE_INTR_DCH1)
 				/* DDRC doesnot support */;
 			if (status & DPM_INTR)
@@ -472,73 +512,132 @@ static void ddr_ras_intr_handle_irq(void)
 	int i;
 	caddr_t ctrl_base, reg_base;
 
-	for (i = 0; i < ARRAY_SIZE(ddrsub_addr); i++) {
-		ctrl_base = ddrsub_addr[i].ctrl;
-		reg_base = ddrsub_addr[i].reg;
+	for (i = 0; i < ARRAY_SIZE(ddrc_addr); i++) {
+		if (!(ddr_mask & (1 << (i * 2))))
+			continue;
+
+		ctrl_base = ddrc_addr[i].ctrl;
+		reg_base = ddrc_addr[i].reg;
 		status = __raw_readl(reg_base + RAS_INTR_STAT_OFFSET);
 		par_status = __raw_readl(reg_base + WRB_RDB_PAR_INT_STAT_OFFSET);
 
 		if (status != 0 || par_status != 0) {
-			con_dbg(DDR_MODNAME ": RAS INT STATUS:0x%08x, PAR INT STATUS:0x%08x, channel: %d\n", status, par_status, i);
+			// con_dbg(DDR_MODNAME ": RAS INT STATUS:0x%08x, PAR INT STATUS:0x%08x, channel: %d\n", status, par_status, i);
 
 			/* process error interrupt */
-			if (status & ECC_CORRECTED_ERR_INTR)
+			if (status & ECC_CORRECTED_ERR_INTR) {
+				con_log(DDR_MODNAME ": process ECC corrected error interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + ECCCTL));
 				ddr_set(ECCCTL_ECC_CORRECTED_ERR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + ECCCTL);
-			if (status & ECC_UNCORRECTED_ERR_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + ECCCTL));
+			}
+			if (status & ECC_UNCORRECTED_ERR_INTR) {
+				con_log(DDR_MODNAME ": process ECC uncorrected error interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + ECCCTL));
 				ddr_set(ECCCTL_ECC_UNCORRECTED_ERR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + ECCCTL);
-			if (status & WR_CRC_ERR_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + ECCCTL));
+			}
+			if (status & WR_CRC_ERR_INTR) {
+				con_log(DDR_MODNAME ": process WR CRC error interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
 				ddr_set(CRCPARCTL0_WR_CRC_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0);
-			if (status & WR_CRC_ERR_MAX_REACHED_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
+			}
+			if (status & WR_CRC_ERR_MAX_REACHED_INTR) {
+				con_log(DDR_MODNAME ": process WR CRC error max reached interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
 				ddr_set(CRCPARCTL0_WR_CRC_ERR_MAX_REACHED_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0);
-			if (status & CAPAR_ERR_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
+			}
+			if (status & CAPAR_ERR_INTR) {
+				con_log(DDR_MODNAME ": process CAPAR error interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
 				ddr_set(CRCPARCTL0_CAPAR_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0);
-			if (status & CAPAR_ERR_MAX_REACHED_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
+			}
+			if (status & CAPAR_ERR_MAX_REACHED_INTR) {
+				con_log(DDR_MODNAME ": process CAPAR error max reached interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
 				ddr_set(CRCPARCTL0_CAPAR_ERR_MAX_REACHED_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0);
-			if (status & CAPAR_FATL_ERR_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
+			}
+			if (status & CAPAR_FATL_ERR_INTR) {
+				con_log(DDR_MODNAME ": process CAPAR fatal error interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
 				ddr_set(CRCPARCTL0_CAPAR_FATL_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0);
-			if (status & CAPAR_RETRY_LIMIT_REACHED_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
+			}
+			if (status & CAPAR_RETRY_LIMIT_REACHED_INTR) {
+				con_log(DDR_MODNAME ": process CAPAR retry limit reached interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + RETRYCTL0));
 				ddr_set(RETRYCTL0_CAPAR_RETRY_LIMIT_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + RETRYCTL0);
-			if (status & CAPARCMD_ERR_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + RETRYCTL0));
+			}
+			if (status & CAPARCMD_ERR_INTR) {
+				con_log(DDR_MODNAME ": process CAPAR command error interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
 				ddr_set(PASINTCTL_CAPARCMD_ERR_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL);
-			if (status & WR_CRC_RETRY_LIMIT_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + PASINTCTL));
+			}
+			if (status & WR_CRC_RETRY_LIMIT_INTR) {
+				con_log(DDR_MODNAME ": process WR CRC retry limit interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + RETRYCTL0));
 				ddr_set(RETRYCTL0_WR_CRC_RETRY_LIMIT_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + RETRYCTL0);
-			if (status & RD_CRC_ERR_MAX_REACHED_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + RETRYCTL0));
+			}
+			if (status & RD_CRC_ERR_MAX_REACHED_INTR) {
+				con_log(DDR_MODNAME ": process RD CRC error max reached interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
 				ddr_set(CRCPARCTL0_RD_CRC_ERR_MAX_REACHED_INT_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0);
-			if (status & RD_RETRY_LIMIT_INTR)
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + CRCPARCTL0));
+			}
+			if (status & RD_RETRY_LIMIT_INTR) {
+				con_log(DDR_MODNAME ": process RD retry limit interrupt\n");
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + RETRYCTL0));
 				ddr_set(RETRYCTL0_RD_RETRY_LIMIT_INTR_CLR, ctrl_base + REGB_DDRC_CH_OFFSET(0) + RETRYCTL0);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ctrl_base + REGB_DDRC_CH_OFFSET(0) + RETRYCTL0));
+			}
 
 			/* process parity error */
 			if (par_status & WRB_P0R0_PAR_ERR_INTR) {
-				con_dbg(DDR_MODNAME ": WRB P0R0 PAR ERR CNT:0x%08x, channel: %d\n", __raw_readl(reg_base + WRB_P0R0_PAR_ERR_CNT_OFFSET), i);
+				con_log(DDR_MODNAME ": WRB P0R0 PAR ERR CNT:0x%08x, channel: %d\n", __raw_readl(reg_base + WRB_P0R0_PAR_ERR_CNT_OFFSET), i);
 				ddr_clear(WRB_P0R0_PAR_ERR_INTR, reg_base + WRB_RDB_PAR_INT_STAT_OFFSET);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + WRB_P0R0_PAR_ERR_CNT_OFFSET));
 			}
 			if (par_status & WRB_P0R1_PAR_ERR_INTR) {
-				con_dbg(DDR_MODNAME ": WRB P0R1 PAR ERR CNT:0x%08x, channel: %d\n", __raw_readl(reg_base + WRB_P0R1_PAR_ERR_CNT_OFFSET), i);
+				con_log(DDR_MODNAME ": WRB P0R1 PAR ERR CNT:0x%08x, channel: %d\n", __raw_readl(reg_base + WRB_P0R1_PAR_ERR_CNT_OFFSET), i);
 				ddr_clear(WRB_P0R1_PAR_ERR_INTR, reg_base + WRB_RDB_PAR_INT_STAT_OFFSET);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + WRB_P0R1_PAR_ERR_CNT_OFFSET));
 			}
 			if (par_status & WRB_P1R0_PAR_ERR_INTR) {
 				con_dbg(DDR_MODNAME ": WRB P1R0 PAR ERR CNT:0x%08x, channel: %d\n", __raw_readl(reg_base + WRB_P1R0_PAR_ERR_CNT_OFFSET), i);
 				ddr_clear(WRB_P1R0_PAR_ERR_INTR, reg_base + WRB_RDB_PAR_INT_STAT_OFFSET);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + WRB_P1R0_PAR_ERR_CNT_OFFSET));
 			}
 			if (par_status & WRB_P1R1_PAR_ERR_INTR) {
 				con_dbg(DDR_MODNAME ": WRB P1R1 PAR ERR CNT:0x%08x, channel: %d\n", __raw_readl(reg_base + WRB_P1R1_PAR_ERR_CNT_OFFSET), i);
 				ddr_clear(WRB_P1R1_PAR_ERR_INTR, reg_base + WRB_RDB_PAR_INT_STAT_OFFSET);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + WRB_P1R1_PAR_ERR_CNT_OFFSET));
 			}
 			if (par_status & RDB_P0R0_PAR_ERR_INTR) {
 				con_dbg(DDR_MODNAME ": RDB P0R0 PAR ERR CNT:0x%08x, channel: %d\n", __raw_readl(reg_base + RDB_P0R0_PAR_ERR_CNT_OFFSET), i);
 				ddr_clear(RDB_P0R0_PAR_ERR_INTR, reg_base + WRB_RDB_PAR_INT_STAT_OFFSET);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + RDB_P0R0_PAR_ERR_CNT_OFFSET));
 			}
 			if (par_status & RDB_P0R1_PAR_ERR_INTR) {
 				con_dbg(DDR_MODNAME ": RDB P0R1 PAR ERR CNT:0x%08x, channel: %d\n", __raw_readl(reg_base + RDB_P0R1_PAR_ERR_CNT_OFFSET), i);
 				ddr_clear(RDB_P0R1_PAR_ERR_INTR, reg_base + WRB_RDB_PAR_INT_STAT_OFFSET);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + RDB_P0R1_PAR_ERR_CNT_OFFSET));
 			}
 			if (par_status & RDB_P1R0_PAR_ERR_INTR) {
 				con_dbg(DDR_MODNAME ": RDB P1R0 PAR ERR CNT:0x%08x, channel: %d\n", __raw_readl(reg_base + RDB_P1R0_PAR_ERR_CNT_OFFSET), i);
 				ddr_clear(RDB_P1R0_PAR_ERR_INTR, reg_base + WRB_RDB_PAR_INT_STAT_OFFSET);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + RDB_P1R0_PAR_ERR_CNT_OFFSET));
 			}
 			if (par_status & RDB_P1R1_PAR_ERR_INTR) {
 				con_dbg(DDR_MODNAME ": RDB P1R1 PAR ERR CNT:0x%08x, channel: %d\n", __raw_readl(reg_base + RDB_P1R1_PAR_ERR_CNT_OFFSET), i);
 				ddr_clear(RDB_P1R1_PAR_ERR_INTR, reg_base + WRB_RDB_PAR_INT_STAT_OFFSET);
+				con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + RDB_P1R1_PAR_ERR_CNT_OFFSET));
 			}
 		}
 	}
@@ -566,14 +665,18 @@ static void ddr_irq_init(void)
 
 	/* Initialize RAS interrupt info for all DDR controllers */
 	for (i = 0; i < ARRAY_SIZE(func_irq); i++) {
+		if (!(ddr_mask & (1 << i)))
+			continue;
 		irqc_configure_irq(func_irq[i], 0, IRQ_LEVEL_TRIGGERED);
-		irq_register_vector(func_irq[i], ddr_func_intr_handle_irq);
+		irq_register_vector(func_irq[i], (irq_handler)ddr_func_intr_handle_irq);
 		irqc_enable_irq(func_irq[i]);
 	}
 
 	for (i = 0; i < ARRAY_SIZE(ras_irq); i++) {
+		if (!(ddr_mask & (1 << (i * 2))))
+			continue;
 		irqc_configure_irq(ras_irq[i], 0, IRQ_LEVEL_TRIGGERED);
-		irq_register_vector(ras_irq[i], ddr_ras_intr_handle_irq);
+		irq_register_vector(ras_irq[i], (irq_handler)ddr_ras_intr_handle_irq);
 		irqc_enable_irq(ras_irq[i]);
 	}
 }
@@ -590,20 +693,31 @@ void ddr_ras_init(void)
 {
 	int i;
 
+	ddr_mask = (~__raw_readl(HW_DDR_MASK) & ~__raw_readl(SW_DDR_MASK));
+	con_log(DDR_MODNAME ": DDR mask:0x%08x\n", ddr_mask);
+
 	/* Initialize FUNC interrupt info for all DDR controllers */
 	for (i = 0; i < ARRAY_SIZE(func_irq_info); i++) {
+		if (!(ddr_mask & (1 << i)))
+			continue;
 		func_irq_info[i].irq = func_irq[i];
-		func_irq_info[i].ctrl_base_addr = ddrsub_addr[i].ctrl;
-		func_irq_info[i].reg_base_addr = ddrsub_addr[i].reg;
+		func_irq_info[i].ctrl_base_addr = ddrc_addr[i].ctrl;
+		func_irq_info[i].reg_base_addr = ddrc_addr[i].reg;
 		ddr_set(CH0_RAS_INTR_EN | CH1_RAS_INTR_EN | FUNC_INTR_EN,
 			func_irq_info[i].reg_base_addr + DDR_INTERRUPT_CTRL_REG);
+		con_log("DDR_MODNAME: func_irq_info[%d].irq = %d\n", i, func_irq_info[i].irq);
+		con_log("DDR_MODNAME: func_irq_info[%d].ctrl_base_addr = 0x%lx\n", i, func_irq_info[i].ctrl_base_addr);
+		con_log("DDR_MODNAME: func_irq_info[%d].reg_base_addr = 0x%lx\n", i, func_irq_info[i].reg_base_addr);
+		con_log("DDR_MODNAME: func_irq_info[%d].reg_value = 0x%x\n", i, __raw_readl(func_irq_info[i].reg_base_addr + DDR_INTERRUPT_CTRL_REG));
 	}
 
 	/* Initialize RAS interrupt info for all DDR controllers */
 	for (i = 0; i < ARRAY_SIZE(ras_irq_info); i++) {
+		if (!(ddr_mask & (1 << (i * 2))))
+			continue;
 		ras_irq_info[i].irq = ras_irq[i];
-		ras_irq_info[i].ctrl_base_addr = ddrsub_addr[i >> 1].ctrl;
-		ras_irq_info[i].reg_base_addr = ddrsub_addr[i >> 1].reg;
+		ras_irq_info[i].ctrl_base_addr = ddrc_addr[i >> 1].ctrl;
+		ras_irq_info[i].reg_base_addr = ddrc_addr[i >> 1].reg;
 	}
 
 	/* Register and enable all RAS interrupts */
@@ -622,32 +736,32 @@ void ddr_ras_init(void)
  * @rank, bank, row, col: target address
  */
 static void ddr_ecc_inject(caddr_t ddrc_base, caddr_t reg_base,
-			    uint8_t ch_index, int inject_type, uint32_t ecc_mode,
-			    uint32_t rank, uint32_t bank, uint32_t bg, uint32_t row, uint32_t col)
+				uint8_t ch_index, int inject_type, uint32_t ecc_mode,
+				uint32_t rank, uint32_t bank, uint32_t bg, uint32_t row, uint32_t col)
 {
 	/* 1. Disable test_mode, set ECC mode */
 	ddr_write_mask(ecc_mode, ECCCFG0_TEST_MODE | ECCCFG0_ECC_MODE_MASK,
-		       ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG0);
+			   ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG0);
 
 	/* 2. Enable data_poison_en, set data_poison_bit */
 	ddr_write_mask(BIT(0), ECCCFG1_DATA_POISON_EN,
-		       ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG1);
+			   ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG1);
 	if (inject_type == 1)
 		ddr_write_mask(BIT(1), ECCCFG1_DATA_POISON_BIT,
-			       ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG1);
+				   ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG1);
 	else
 		ddr_write_mask(~BIT(1), ECCCFG1_DATA_POISON_BIT,
-			       ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG1);
+				   ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG1);
 
 	/* 3. Set target address registers */
 	/* ECCPOISONADDR0: [31:24] rank, [11:0] col */
 	ddr_write_mask((rank << ECCPOISONADDR0_ECC_POISON_RANK_OFFSET) | (col & ECCPOISONADDR0_ECC_POISON_COL_MASK),
-		       ECCPOISONADDR0_ECC_POISON_RANK_MASK | ECCPOISONADDR0_ECC_POISON_COL_MASK,
-		       ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCPOISONADDR0);
+			   ECCPOISONADDR0_ECC_POISON_RANK_MASK | ECCPOISONADDR0_ECC_POISON_COL_MASK,
+			   ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCPOISONADDR0);
 	/* ECCPOISONADDR1: [31:28] bg, [27:24] bank, [23:0] row */
 	ddr_write_mask((bg << ECCPOISONADDR1_ECC_POISON_BG_OFFSET) | (bank << ECCPOISONADDR1_ECC_POISON_BANK_OFFSET) | (row & ECCPOISONADDR1_ECC_POISON_ROW_MASK),
-		       ECCPOISONADDR1_ECC_POISON_BG_MASK | ECCPOISONADDR1_ECC_POISON_BANK_MASK | ECCPOISONADDR1_ECC_POISON_ROW_MASK,
-		       ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCPOISONADDR1);
+			   ECCPOISONADDR1_ECC_POISON_BG_MASK | ECCPOISONADDR1_ECC_POISON_BANK_MASK | ECCPOISONADDR1_ECC_POISON_ROW_MASK,
+			   ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCPOISONADDR1);
 
 	con_log(DDR_MODNAME ": %s ECC error injection: %s, ch=%u, rank=0x%x, bankgroup=0x%x, bank=0x%x, row=0x%x, col=0x%x\n",
 		ecc_mode == SECDED_ECC_MODE ? "SECDED" : "Advanced",
@@ -694,9 +808,9 @@ struct ddr_error_info {
 	uint32_t adv_ecc_symbol_sel;
 };
 
-#define UNKNOWN_ERROR        0x0000
-#define SINGLE_BIT_ERROR     0x0002
-#define MULTIPLE_BIT_ERROR   0x0003
+#define UNKNOWN_ERROR		0x0000
+#define SINGLE_BIT_ERROR	0x0002
+#define MULTIPLE_BIT_ERROR	0x0003
 
 /**
  * ddr_collect_error_info - collect DDR error information
@@ -786,13 +900,13 @@ static void ddr_collect_error_info(caddr_t ddrc_base, uint8_t ch_index,
 	info->error_cid = (ecc_addr1 & ECCCADDR1_ECC_CORR_CID_MASK) >> ECCCADDR1_ECC_CORR_CID_OFFSET;
 	/* Build physical address: rank[31:24] | bank[23:16] | row[15:0] */
 	info->error_address = (info->error_rank  << 24) |
-			     (info->error_bank<< 16) |
-			     (info->error_row << 0);
+				 (info->error_bank<< 16) |
+				 (info->error_row << 0);
 
 	/* Build syndrome: syn2[71:64] | syn1[63:32] | syn0[31:0] */
 	info->error_syndrome = ((uint64_t)(ecc_syn2 & ECCCSYN2_ECC_CORR_SYNDROME_71_64_MASK) << 56) |
-			      ((uint64_t)ecc_syn1 << 32) |
-			      (uint64_t)ecc_syn0;
+				  ((uint64_t)ecc_syn1 << 32) |
+				  (uint64_t)ecc_syn0;
 
 	/* Error count */
 	if (info->error_type == SINGLE_BIT_ERROR)
@@ -810,45 +924,6 @@ static void ddr_collect_error_info(caddr_t ddrc_base, uint8_t ch_index,
 	}
 }
 
-/**
- * ddr_fill_cper_mem - Fill UEFI CPER memory error section
- * @info: Pointer to DDR error info structure
- * @mem: Pointer to CPER memory error section
- *
- * Fill DDR error information into UEFI CPER structure
- */
-static void ddr_fill_cper_mem(struct ddr_error_info *info,
-			     struct cper_sec_mem_err *mem)
-{
-	/* Set validation bits */
-	mem->validation_bits = CPER_MEM_VALID_PA | CPER_MEM_VALID_ERROR_TYPE
-	| CPER_MEM_VALID_BANK | CPER_MEM_VALID_BANK_GROUP | CPER_MEM_VALID_RANK_NUMBER
-	| CPER_MEM_VALID_ROW | CPER_MEM_VALID_COLUMN;
-
-	/* Set physical address */
-	mem->physical_addr = info->error_address;
-	mem->physical_addr_mask = ~0ULL;
-
-	/* Set other fields */
-	mem->node = 0;
-	mem->card = 0;
-	mem->module = 0;
-	mem->bank = info->error_bank;
-	mem->device = 0;
-	mem->row = info->error_row;
-	mem->column = info->error_col;
-	mem->rank = info->error_rank;
-	mem->bit_pos = 0;
-	mem->requestor_id = 0;
-	mem->responder_id = 0;
-	mem->target_id = 0;
-	mem->error_type = info->error_type;
-	mem->mem_array_handle = 0;
-	mem->mem_dev_handle = 0;
-	mem->extended = 0;
-}
-#define MAX_IOMMU_NUM			1
-#define MAX_IOMMU_ERROR_BANKS		64 // IOATS + 63 * IOATC
 /**
  * ddr_report_error - report DDR error
  * @ddrc_base: DDR controller base address
@@ -877,7 +952,13 @@ void ddr_report_error(caddr_t ddrc_base, uint8_t ch_index, uint32_t ecc_mode)
 		einfo.info.me.err_sev = GHES_SEV_PANIC;
 
 	/* 4. Set validation bits */
-	einfo.info.me.validation_bits = GPE_TARGET_ADDR_VALID;
+	einfo.info.me.validation_bits = CPER_MEM_VALID_PA
+					| CPER_MEM_VALID_ERROR_TYPE
+					| CPER_MEM_VALID_BANK
+					| CPER_MEM_VALID_BANK_GROUP
+					| CPER_MEM_VALID_RANK_NUMBER
+					| CPER_MEM_VALID_ROW
+					| CPER_MEM_VALID_COLUMN;
 
 	/* 5. Set physical address */
 	einfo.info.me.physical_address = info.error_address;
@@ -896,8 +977,7 @@ void ddr_report_error(caddr_t ddrc_base, uint8_t ch_index, uint32_t ecc_mode)
 	einfo.info.me.status = 0;
 	einfo.info.me.resvd = 0;
 	/* 6. Set source ID (DDR channel) */
-	acpi_ghes_source_id = NR_CPUS/4 + MAX_IOMMU_NUM * MAX_IOMMU_ERROR_BANKS + ch_index;
-
+	acpi_ghes_source_id = 0x60 + ch_index;
 	/* 7. Report error */
 	acpi_ghes_record_errors(acpi_ghes_source_id, &einfo);
 }
@@ -908,12 +988,11 @@ static int do_ddr_intr_test(int argc, char **argv)
 	caddr_t ddrc_base, reg_base;
 	int mode = 0; // 0: FUNC, 1: RAS
 	int i;
-	int ecc_inject = 0; // 0: no inject, 1: correctable, 2: uncorrectable
-	uint32_t rank = 0, bank = 0, bg = 0, row = 0, col = 0;
-	uint32_t ecc_mode = SECDED_ECC_MODE; // Default to SECDED mode
 
-	if (argc < 2)
+	if (argc < 4) {
+		con_err(DDR_MODNAME ": Usage: ddr_intr -m <func|ras> -s <sub_idx> -c <ch> -i <intr_idx>\n");
 		return -EINVAL;
+	}
 
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-m") == 0) {
@@ -939,87 +1018,56 @@ static int do_ddr_intr_test(int argc, char **argv)
 				return -EINVAL;
 			intr_index = (uint8_t)strtoull(argv[i + 1], NULL, 16);
 			i++;
-		} else if (strcmp(argv[i], "-inject") == 0) {
-			if (i + 1 >= argc)
-				return -EINVAL;
-			if (strcmp(argv[i + 1], "corr") == 0)
-				ecc_inject = 1;
-			else if (strcmp(argv[i + 1], "uncorr") == 0)
-				ecc_inject = 2;
-			i++;
-		} else if (strcmp(argv[i], "-ecc") == 0) {
-			if (i + 1 >= argc)
-				return -EINVAL;
-			if (strcmp(argv[i + 1], "secded") == 0)
-				ecc_mode = SECDED_ECC_MODE;
-			else if (strcmp(argv[i + 1], "adv") == 0)
-				ecc_mode = ADVECC_ECC_MODE;
-			i++;
-		} else if (strcmp(argv[i], "-rank") == 0) {
-			if (i + 1 >= argc)
-				return -EINVAL;
-			rank = (uint32_t)strtoull(argv[i + 1], NULL, 16);
-			i++;
-		} else if (strcmp(argv[i], "-bank") == 0) {
-			if (i + 1 >= argc)
-				return -EINVAL;
-			bank = (uint32_t)strtoull(argv[i + 1], NULL, 16);
-			i++;
-		} else if (strcmp(argv[i], "-bg") == 0) {
-			if (i + 1 >= argc)
-				return -EINVAL;
-			bg = (uint32_t)strtoull(argv[i + 1], NULL, 16);
-			i++;
-		} else if (strcmp(argv[i], "-row") == 0) {
-			if (i + 1 >= argc)
-				return -EINVAL;
-			row = (uint32_t)strtoull(argv[i + 1], NULL, 16);
-			i++;
-		} else if (strcmp(argv[i], "-col") == 0) {
-			if (i + 1 >= argc)
-				return -EINVAL;
-			col = (uint32_t)strtoull(argv[i + 1], NULL, 16);
-			i++;
 		} else {
 			con_err(DDR_MODNAME ": Invalid option: %s\n", argv[i]);
 			return -EINVAL;
 		}
 	}
 
-	if (ecc_inject) {
-		ddrc_base = ddrsub_addr[sub_index].ctrl;
-		reg_base = ddrsub_addr[sub_index].reg;
-		ddr_ecc_inject(ddrc_base, reg_base, ch_index, ecc_inject, ecc_mode, rank, bank, bg, row, col);
-		ddr_report_error(ddrc_base, ch_index, ecc_mode);
-		return 0;
-	}
-
 	if (mode == 0) {
 		/* FUNC interrupt test */
-		ddrc_base = ddrsub_addr[sub_index].ctrl;
-		reg_base = ddrsub_addr[sub_index].reg;
+		ddrc_base = ddrc_addr[sub_index].ctrl;
+		reg_base = ddrc_addr[sub_index].reg;
 		con_dbg(DDR_MODNAME ": [default]FUNC INT STATUS:0x%08x\n",
-		       __raw_readl(reg_base + FUNC_INTR_STAT_OFFSET));
+			   __raw_readl(reg_base + FUNC_INTR_STAT_OFFSET));
 		switch (intr_index) {
 		case 0: /* DFI alert error interrupt */
 			break;
 		case 1: /* SWCMD error interrupt */
+			con_log(DDR_MODNAME ": SWCMD error interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			ddr_set(PASINTCTL_SWCMD_ERR_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			break;
 		case 2: /* DUCMD error interrupt */
+			con_log(DDR_MODNAME ": DUCMD error interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			ddr_set(PASINTCTL_DUCMD_ERR_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			break;
 		case 3: /* LCCMD error interrupt */
+			con_log(DDR_MODNAME ": LCCMD error interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			ddr_set(PASINTCTL_LCCMD_ERR_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			break;
 		case 4: /* CTRLUPD error interrupt */
+			con_log(DDR_MODNAME ": CTRLUPD error interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			ddr_set(PASINTCTL_CTRLUPD_ERR_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			break;
 		case 5: /* RFM alert interrupt */
+			con_log(DDR_MODNAME ": RFM alert interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			ddr_set(PASINTCTL_RFM_ALERT_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			break;
 		case 6: /* Derate temp limit interrupt */
+			con_log(DDR_MODNAME ": Derate temp limit interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + DERATECTL5));
 			ddr_set(DERATECTL5_DERATE_TEMP_LIMIT_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + DERATECTL5);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + DERATECTL5));
 			break;
 		case 7: /* SBR done interrupt */
 			break;
@@ -1032,74 +1080,132 @@ static int do_ddr_intr_test(int argc, char **argv)
 		}
 	} else {
 		/* RAS interrupt test */
-		ddrc_base = ddrsub_addr[sub_index].ctrl;
-		reg_base = ddrsub_addr[sub_index].reg;
+		ddrc_base = ddrc_addr[sub_index].ctrl;
+		reg_base = ddrc_addr[sub_index].reg;
 		con_dbg(DDR_MODNAME ": [default]RAS INT STATUS:0x%08x\n",
-		       __raw_readl(reg_base + RAS_INTR_STAT_OFFSET));
+			__raw_readl(reg_base + RAS_INTR_STAT_OFFSET));
 		con_dbg(DDR_MODNAME ": [default]PAR INT STATUS:0x%08x\n",
-		       __raw_readl(reg_base + WRB_RDB_PAR_INT_STAT_OFFSET));
+			__raw_readl(reg_base + WRB_RDB_PAR_INT_STAT_OFFSET));
 		switch (intr_index) {
 		case 0: /* ECC corrected error interrupt */
+			con_log(DDR_MODNAME ": set ECC corrected error interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCTL));
 			ddr_set(ECCCTL_ECC_CORRECTED_ERR_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCTL);
-			ddr_report_error(ddrc_base, ch_index, ecc_mode);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCTL));
 			break;
 		case 1: /* ECC uncorrected error interrupt */
+			con_log(DDR_MODNAME ": ECC uncorrected error interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCTL));
 			ddr_set(ECCCTL_ECC_UNCORRECTED_ERR_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCTL);
-			ddr_report_error(ddrc_base, ch_index, ecc_mode);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCTL));
 			break;
 		case 2: /* Write CRC error interrupt */
+			con_log(DDR_MODNAME ": Write CRC error interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			ddr_set(CRCPARCTL0_WR_CRC_ERR_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			break;
 		case 3: /* Write CRC error max reached interrupt */
+			con_log(DDR_MODNAME ": Write CRC error max reached interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			ddr_set(CRCPARCTL0_WR_CRC_ERR_MAX_REACHED_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			break;
 		case 4: /* CAPAR error interrupt */
+			con_log(DDR_MODNAME ": CAPAR error interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			ddr_set(CRCPARCTL0_CAPAR_ERR_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			break;
 		case 5: /* CAPAR error max reached interrupt */
+			con_log(DDR_MODNAME ": CAPAR error max reached interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			ddr_set(CRCPARCTL0_CAPAR_ERR_MAX_REACHED_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			break;
 		case 6: /* CAPAR fatal error interrupt */
+			con_log(DDR_MODNAME ": CAPAR fatal error interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			ddr_set(CRCPARCTL0_CAPAR_FATL_ERR_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			break;
 		case 7: /* CAPAR retry limit reached interrupt */
+			con_log(DDR_MODNAME ": CAPAR retry limit reached interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + RETRYCTL0));
 			ddr_set(RETRYCTL0_CAPAR_RETRY_LIMIT_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + RETRYCTL0);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + RETRYCTL0));
 			break;
 		case 8: /* CAPAR command error interrupt */
+			con_log(DDR_MODNAME ": CAPAR command error interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			ddr_set(PASINTCTL_CAPARCMD_ERR_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + PASINTCTL));
 			break;
 		case 9: /* Write CRC retry limit interrupt */
+			con_log(DDR_MODNAME ": Write CRC retry limit interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + RETRYCTL0));
 			ddr_set(RETRYCTL0_WR_CRC_RETRY_LIMIT_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + RETRYCTL0);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + RETRYCTL0));
 			break;
 		case 10: /* Read CRC error max reached interrupt */
+			con_log(DDR_MODNAME ": Read CRC error max reached interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			ddr_set(CRCPARCTL0_RD_CRC_ERR_MAX_REACHED_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + CRCPARCTL0));
 			break;
 		case 11: /* Read retry limit interrupt */
+			con_log(DDR_MODNAME ": Read retry limit interrupt\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + RETRYCTL0));
 			ddr_set(RETRYCTL0_RD_RETRY_LIMIT_INTR_FORCE, ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + RETRYCTL0);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + RETRYCTL0));
 			break;
 		case 12: /* Write buffer P0R0 parity poison enable */
+			con_log(DDR_MODNAME ": Write buffer P0R0 parity poison enable\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			ddr_set(WRB_P0R0_PAR_POIS_EN, reg_base + PAR_POISON_EN);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			break;
 		case 13: /* Write buffer P0R1 parity poison enable */
+			con_log(DDR_MODNAME ": Write buffer P0R1 parity poison enable\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			ddr_set(WRB_P0R1_PAR_POIS_EN, reg_base + PAR_POISON_EN);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			break;
 		case 14: /* Write buffer P1R0 parity poison enable */
+			con_log(DDR_MODNAME ": Write buffer P1R0 parity poison enable\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			ddr_set(WRB_P1R0_PAR_POIS_EN, reg_base + PAR_POISON_EN);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			break;
 		case 15: /* Write buffer P1R1 parity poison enable */
+			con_log(DDR_MODNAME ": Write buffer P1R1 parity poison enable\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			ddr_set(WRB_P1R1_PAR_POIS_EN, reg_base + PAR_POISON_EN);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			break;
 		case 16: /* Read buffer P0R0 parity poison enable */
+			con_log(DDR_MODNAME ": Read buffer P0R0 parity poison enable\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			ddr_set(RDB_P0R0_PAR_POIS_EN, reg_base + PAR_POISON_EN);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			break;
 		case 17: /* Read buffer P0R1 parity poison enable */
+			con_log(DDR_MODNAME ": Read buffer P0R1 parity poison enable\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			ddr_set(RDB_P0R1_PAR_POIS_EN, reg_base + PAR_POISON_EN);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			break;
 		case 18: /* Read buffer P1R0 parity poison enable */
+			con_log(DDR_MODNAME ": Read buffer P1R0 parity poison enable\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			ddr_set(RDB_P1R0_PAR_POIS_EN, reg_base + PAR_POISON_EN);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			break;
 		case 19: /* Read buffer P1R1 parity poison enable */
+			con_log(DDR_MODNAME ": Read buffer P1R1 parity poison enable\n");
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			ddr_set(RDB_P1R1_PAR_POIS_EN, reg_base + PAR_POISON_EN);
+			con_log(DDR_MODNAME ": reg_value:0x%08x\n", __raw_readl(reg_base + PAR_POISON_EN));
 			break;
 		default:
 			break;
@@ -1108,49 +1214,132 @@ static int do_ddr_intr_test(int argc, char **argv)
 	return 0;
 }
 
+static int do_ddr_ecc_inject_test(int argc, char **argv)
+{
+	uint8_t sub_index = 0, ch_index = 0;
+	uint32_t rank = 0, bank = 0, bg = 0, row = 0, col = 0;
+	int ecc_type = 0; // 0: none, 1: correctable, 2: uncorrectable
+	uint32_t ecc_mode = SECDED_ECC_MODE;
+	caddr_t ddrc_base, reg_base;
+
+	if (argc < 4) {
+		con_err(DDR_MODNAME ": Usage: ddr_ecc -t <corr|uncorr> -s <sub_idx> -c <ch> [options]\n");
+		return -EINVAL;
+	}
+
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-t") == 0) {
+			if (++i >= argc)
+				return -EINVAL;
+			if (strcmp(argv[i], "corr") == 0)
+				ecc_type = 1;
+			else if (strcmp(argv[i], "uncorr") == 0)
+				ecc_type = 2;
+			else
+				return -EINVAL;
+		} else if (strcmp(argv[i], "-s") == 0) {
+			if (++i >= argc)
+				return -EINVAL;
+			sub_index = (uint8_t)strtoull(argv[i], NULL, 16);
+		} else if (strcmp(argv[i], "-c") == 0) {
+			if (++i >= argc)
+				return -EINVAL;
+			ch_index = (uint8_t)strtoull(argv[i], NULL, 16);
+		} else if (strcmp(argv[i], "-ecc") == 0) {
+			if (++i >= argc)
+				return -EINVAL;
+			ecc_mode = (strcmp(argv[i], "adv") == 0) ? ADVECC_ECC_MODE : SECDED_ECC_MODE;
+		} else if (strcmp(argv[i], "-rank") == 0) {
+			if (++i >= argc)
+				return -EINVAL;
+			rank = (uint32_t)strtoull(argv[i], NULL, 16);
+		} else if (strcmp(argv[i], "-bank") == 0) {
+			if (++i >= argc)
+				return -EINVAL;
+			bank = (uint32_t)strtoull(argv[i], NULL, 16);
+		} else if (strcmp(argv[i], "-bg") == 0) {
+			if (++i >= argc)
+				return -EINVAL;
+			bg = (uint32_t)strtoull(argv[i], NULL, 16);
+		} else if (strcmp(argv[i], "-row") == 0) {
+			if (++i >= argc)
+				return -EINVAL;
+			row = (uint32_t)strtoull(argv[i], NULL, 16);
+		} else if (strcmp(argv[i], "-col") == 0) {
+			if (++i >= argc)
+				return -EINVAL;
+			col = (uint32_t)strtoull(argv[i], NULL, 16);
+		}
+	}
+
+	if (ecc_type == 0) {
+		con_err(DDR_MODNAME ": Must specify error type (-t corr/uncorr)\n");
+		return -EINVAL;
+	}
+
+	ddrc_base = ddrc_addr[sub_index].ctrl;
+	reg_base = ddrc_addr[sub_index].reg;
+
+	con_log(DDR_MODNAME ": Injecting %s ECC error at rank%d/bank%d\n",
+		   ecc_type == 1 ? "correctable" : "uncorrectable", rank, bank);
+
+	ddr_ecc_inject(ddrc_base, reg_base, ch_index, ecc_type, ecc_mode,
+				  rank, bank, bg, row, col);
+
+	ddr_report_error(ddrc_base, ch_index, ecc_mode);
+
+	return 0;
+}
+#if 0
 DEFINE_COMMAND(ddr_intr, do_ddr_intr_test, "DDR interrupt test commands",
-	"ddr_intr -m <mode> [-s sub_index] [-c ch_index] [-i intr_index]\n"
-	"  -m: mode, 'func' for FUNC interrupts, 'ras' for RAS interrupts\n"
-	"  -s: DDR controller index (0-7)\n"
-	"  -c: DDR channel index (0-1)\n"
+	"ddr_intr -m <func|ras> -s <sub_idx> -c <ch> -i <intr_idx>\n"
+	"  -m: Test mode (func/ras)\n"
+	"  -s: Controller index (0-7)\n"
+	"  -c: Channel index (0-1)\n"
 	"  -i: Interrupt type index\n"
-	"  -inject <corr/uncorr>: ECC error injection, correctable or uncorrectable\n"
-	"  -ecc <secded/adv>: ECC mode, 'secded' for SECDED ECC, 'adv' for Advanced ECC\n"
-	"  -rank <val>: ECC error injection rank\n"
-	"  -bank <val>: ECC error injection bank\n"
-	"  -bg <val>: ECC error injection bankgroup\n"
-	"  -row <val>: ECC error injection row\n"
-	"  -col <val>: ECC error injection col\n"
 	"  FUNC supported types:\n"
-	"     0: DFI alert error interrupt\n"
-	"     1: SWCMD error interrupt\n"
-	"     2: DUCMD error interrupt\n"
-	"     3: LCCMD error interrupt\n"
-	"     4: CTRLUPD error interrupt\n"
-	"     5: RFM alert interrupt\n"
-	"     6: Derate temp limit interrupt\n"
-	"     7: SBR done interrupt\n"
-	"     8: DPM interrupt\n"
-	"     9: DDRPHY interrupt\n"
+	"	 0: DFI alert error interrupt\n"
+	"	 1: SWCMD error interrupt\n"
+	"	 2: DUCMD error interrupt\n"
+	"	 3: LCCMD error interrupt\n"
+	"	 4: CTRLUPD error interrupt\n"
+	"	 5: RFM alert interrupt\n"
+	"	 6: Derate temp limit interrupt\n"
+	"	 7: SBR done interrupt\n"
+	"	 8: DPM interrupt\n"
+	"	 9: DDRPHY interrupt\n"
 	"  RAS supported types:\n"
-	"     0: ECC corrected error interrupt\n"
-	"     1: ECC uncorrected error interrupt\n"
-	"     2: Write CRC error interrupt\n"
-	"     3: Write CRC error max reached interrupt\n"
-	"     4: CAPAR error interrupt\n"
-	"     5: CAPAR error max reached interrupt\n"
-	"     6: CAPAR fatal error interrupt\n"
-	"     7: CAPAR retry limit reached interrupt\n"
-	"     8: CAPAR command error interrupt\n"
-	"     9: Write CRC retry limit interrupt\n"
-	"    10: Read CRC error max reached interrupt\n"
-	"    11: Read retry limit interrupt\n"
-	"    12: Write buffer P0R0 parity poison enable\n"
-	"    13: Write buffer P0R1 parity poison enable\n"
-	"    14: Write buffer P1R0 parity poison enable\n"
-	"    15: Write buffer P1R1 parity poison enable\n"
-	"    16: Read buffer P0R0 parity poison enable\n"
-	"    17: Read buffer P0R1 parity poison enable\n"
-	"    18: Read buffer P1R0 parity poison enable\n"
-	"    19: Read buffer P1R1 parity poison enable\n"
+	"	 0: ECC corrected error interrupt\n"
+	"	 1: ECC uncorrected error interrupt\n"
+	"	 2: Write CRC error interrupt\n"
+	"	 3: Write CRC error max reached interrupt\n"
+	"	 4: CAPAR error interrupt\n"
+	"	 5: CAPAR error max reached interrupt\n"
+	"	 6: CAPAR fatal error interrupt\n"
+	"	 7: CAPAR retry limit reached interrupt\n"
+	"	 8: CAPAR command error interrupt\n"
+	"	 9: Write CRC retry limit interrupt\n"
+	"	10: Read CRC error max reached interrupt\n"
+	"	11: Read retry limit interrupt\n"
+	"	12: Write buffer P0R0 parity poison enable\n"
+	"	13: Write buffer P0R1 parity poison enable\n"
+	"	14: Write buffer P1R0 parity poison enable\n"
+	"	15: Write buffer P1R1 parity poison enable\n"
+	"	16: Read buffer P0R0 parity poison enable\n"
+	"	17: Read buffer P0R1 parity poison enable\n"
+	"	18: Read buffer P1R0 parity poison enable\n"
+	"	19: Read buffer P1R1 parity poison enable\n"
+);
+#endif
+DEFINE_COMMAND(ddr_einj, do_ddr_ecc_inject_test, "DDR ECC error injection test commands",
+	"ddr_einj -t <corr|uncorr> -s <sub_idx> -c <ch> [options]\n"
+	"  -t: Error type (corr/uncorr)\n"
+	"  -s: Controller index (0-7)\n"
+	"  -c: Channel index (0-1)\n"
+	"  -ecc: ECC mode (secded/adv)\n"
+	"  -rank: Target rank (0-7)\n"
+	"  -bank: Target bank (0-15)\n"
+	"  -bg: Bank group (0-3)\n"
+	"  -row: Row address\n"
+	"  -col: Column address\n"
 );
