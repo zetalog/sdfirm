@@ -230,19 +230,6 @@ struct reri_info {
 	const char *desc;
 };
 
-typedef enum {
-	DIE_0 = 0,
-	DIE_1 = 1,
-	DIE_COUNT
-} die_id_t;
-
-
-typedef struct {
-	const char *name;	// error source name
-	source_type_t type;	// error source type
-	die_id_t die;		// error source die id
-} reri_source_info_t;
-
 #include <asm/mach/reri.h>
 
 #ifdef CONFIG_RERI
