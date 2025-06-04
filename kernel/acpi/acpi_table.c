@@ -857,9 +857,9 @@ static void ____acpi_table_install(struct acpi_table_desc *table_desc,
 	ACPI_NAMECPY(ACPI_NAME2TAG(table_header->signature), table_desc->signature);
 	if (acpi_table_has_header(table_header->signature)) {
 		ACPI_OEMCPY(table_header->oem_id,
-			    table_desc->oem_id, ACPI_OEM_ID_SIZE);
+			    table_desc->oem_id, ACPI_OEM_ID_SIZE-1);
 		ACPI_OEMCPY(table_header->oem_table_id,
-			    table_desc->oem_table_id, ACPI_OEM_ID_SIZE);
+			    table_desc->oem_table_id, ACPI_OEM_ID_SIZE-1);
 		table_desc->revision = table_header->revision;
 	}
 }

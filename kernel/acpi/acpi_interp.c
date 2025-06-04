@@ -185,10 +185,10 @@ void acpi_operand_close_stacked(struct acpi_operand *operand)
 }
 
 static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
-					 struct acpi_environ *environ)
+					 struct acpi_environ *env)
 {
-	uint16_t opcode = environ->opcode;
-	const struct acpi_opcode_info *op_info = environ->op_info;
+	uint16_t opcode = env->opcode;
+	const struct acpi_opcode_info *op_info = env->op_info;
 	struct acpi_namespace_node *node;
 	struct acpi_term *namearg;
 	acpi_status_t status = AE_OK;
@@ -197,7 +197,7 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 
 	switch (opcode) {
 	case AML_SCOPE_OP:
-		namearg = acpi_term_get_arg(environ->term, 0);
+		namearg = acpi_term_get_arg(env->term, 0);
 		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP)
 			return AE_AML_OPERAND_TYPE;
 		node = acpi_space_open_exist(acpi_interp_scope(interp),
@@ -209,7 +209,7 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 		acpi_space_close_exist(node);
 		break;
 	case AML_DEVICE_OP:
-		namearg = acpi_term_get_arg(environ->term, 0);
+		namearg = acpi_term_get_arg(env->term, 0);
 		if (!namearg || namearg->aml_opcode != AML_NAMESTRING_OP)
 			return AE_AML_OPERAND_TYPE;
 		node = acpi_space_open(interp->ddb,
@@ -234,14 +234,14 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 }
 
 static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
-					       struct acpi_environ *environ)
+					       struct acpi_environ *env)
 {
 	struct acpi_term *namearg;
 	struct acpi_namespace_node *node;
 	struct acpi_operand *operand;
 	struct acpi_parser *parser = acpi_interp_parser(interp);
 
-	namearg = acpi_term_get_arg(environ->term, 0);
+	namearg = acpi_term_get_arg(env->term, 0);
 	operand = acpi_operand_get(parser->arguments[0], "interp");
 	if (!namearg || !operand || namearg->aml_opcode != AML_NAMESTRING_OP)
 		return AE_AML_OPERAND_TYPE;
@@ -262,7 +262,7 @@ static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
 }
 
 static acpi_status_t acpi_interpret_close_Method(struct acpi_interp *interp,
-						 struct acpi_environ *environ)
+						 struct acpi_environ *env)
 {
 	struct acpi_term *namearg;
 	struct acpi_term *valuearg;
@@ -271,9 +271,9 @@ static acpi_status_t acpi_interpret_close_Method(struct acpi_interp *interp,
 	struct acpi_method *method;
 	struct acpi_operand *operand;
 
-	namearg = acpi_term_get_arg(environ->term, 0);
-	valuearg = acpi_term_get_arg(environ->term, 1);
-	amlarg = acpi_term_get_arg(environ->term, 2);
+	namearg = acpi_term_get_arg(env->term, 0);
+	valuearg = acpi_term_get_arg(env->term, 1);
+	amlarg = acpi_term_get_arg(env->term, 2);
 	if (!namearg || !amlarg || !valuearg ||
 	    namearg->aml_opcode != AML_NAMESTRING_OP ||
 	    valuearg->aml_opcode != AML_BYTE_PFX ||
@@ -303,7 +303,7 @@ static acpi_status_t acpi_interpret_close_Method(struct acpi_interp *interp,
 }
 
 static acpi_status_t __acpi_interpret_close_integer(struct acpi_interp *interp,
-						    struct acpi_environ *environ,
+						    struct acpi_environ *env,
 						    uint64_t integer_value)
 {
 	struct acpi_integer *integer;
@@ -322,19 +322,19 @@ static acpi_status_t __acpi_interpret_close_integer(struct acpi_interp *interp,
 }
 
 static acpi_status_t acpi_interpret_close_integer(struct acpi_interp *interp,
-						  struct acpi_environ *environ)
+						  struct acpi_environ *env)
 {
 	struct acpi_term *valuearg;
 
-	valuearg = acpi_term_get_arg(environ->term, 0);
+	valuearg = acpi_term_get_arg(env->term, 0);
 	if (!valuearg)
 		return AE_AML_OPERAND_TYPE;
-	return __acpi_interpret_close_integer(interp, environ,
+	return __acpi_interpret_close_integer(interp, env,
 					      valuearg->value.integer);
 }
 
 static acpi_status_t __acpi_interpret_close_string(struct acpi_interp *interp,
-						   struct acpi_environ *environ,
+						   struct acpi_environ *env,
 						   const char *string_value)
 {
 	struct acpi_string *string;
@@ -353,19 +353,19 @@ static acpi_status_t __acpi_interpret_close_string(struct acpi_interp *interp,
 }
 
 static acpi_status_t acpi_interpret_close_string(struct acpi_interp *interp,
-						 struct acpi_environ *environ)
+						 struct acpi_environ *env)
 {
 	struct acpi_term *valuearg;
 
-	valuearg = acpi_term_get_arg(environ->term, 0);
+	valuearg = acpi_term_get_arg(env->term, 0);
 	if (!valuearg)
 		return AE_AML_OPERAND_TYPE;
-	return __acpi_interpret_close_string(interp, environ,
+	return __acpi_interpret_close_string(interp, env,
 					     valuearg->value.string);
 }
 
 static acpi_status_t __acpi_interpret_close_buffer(struct acpi_interp *interp,
-						   struct acpi_environ *environ,
+						   struct acpi_environ *env,
 						   const uint8_t *buffer_value,
 						   acpi_size_t buffer_size)
 {
@@ -385,20 +385,20 @@ static acpi_status_t __acpi_interpret_close_buffer(struct acpi_interp *interp,
 }
 
 static acpi_status_t acpi_interpret_close_buffer(struct acpi_interp *interp,
-						 struct acpi_environ *environ)
+						 struct acpi_environ *env)
 {
 	struct acpi_term *valuearg;
 
-	valuearg = acpi_term_get_arg(environ->term, 0);
+	valuearg = acpi_term_get_arg(env->term, 0);
 	if (!valuearg)
 		return AE_AML_OPERAND_TYPE;
-	return __acpi_interpret_close_buffer(interp, environ,
+	return __acpi_interpret_close_buffer(interp, env,
 					     valuearg->value.buffer.ptr,
 					     valuearg->value.buffer.len);
 }
 
 static acpi_status_t acpi_interpret_close_Return(struct acpi_interp *interp,
-						 struct acpi_environ *environ)
+						 struct acpi_environ *env)
 {
 	struct acpi_operand *operand;
 	struct acpi_parser *parser = acpi_interp_parser(interp);
@@ -411,10 +411,10 @@ static acpi_status_t acpi_interpret_close_Return(struct acpi_interp *interp,
 }
 
 static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
-					  struct acpi_environ *environ)
+					  struct acpi_environ *env)
 {
-	uint16_t opcode = environ->opcode;
-	const struct acpi_opcode_info *op_info = environ->op_info;
+	uint16_t opcode = env->opcode;
+	const struct acpi_opcode_info *op_info = env->op_info;
 	acpi_status_t status = AE_OK;
 
 	acpi_debug_opcode_info(op_info, "Close:");
@@ -426,10 +426,10 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 		acpi_scope_pop(&interp->scope);
 		break;
 	case AML_NAME_OP:
-		status = acpi_interpret_close_Name(interp, environ);
+		status = acpi_interpret_close_Name(interp, env);
 		break;
 	case AML_METHOD_OP:
-		status = acpi_interpret_close_Method(interp, environ);
+		status = acpi_interpret_close_Method(interp, env);
 		break;
 
 	/* Computational data */
@@ -437,31 +437,31 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 	case AML_WORD_PFX:
 	case AML_DWORD_PFX:
 	case AML_QWORD_PFX:
-		status = acpi_interpret_close_integer(interp, environ);
+		status = acpi_interpret_close_integer(interp, env);
 		break;
 	case AML_ZERO_OP:
-		status = __acpi_interpret_close_integer(interp, environ, 0);
+		status = __acpi_interpret_close_integer(interp, env, 0);
 		break;
 	case AML_ONE_OP:
-		status = __acpi_interpret_close_integer(interp, environ, 1);
+		status = __acpi_interpret_close_integer(interp, env, 1);
 		break;
 	case AML_ONES_OP:
-		status = __acpi_interpret_close_integer(interp, environ, (uint64_t)-1);
+		status = __acpi_interpret_close_integer(interp, env, (uint64_t)-1);
 		break;
 	case AML_REVISION_OP:
-		status = __acpi_interpret_close_integer(interp, environ, ACPI_REVISION);
+		status = __acpi_interpret_close_integer(interp, env, ACPI_REVISION);
 		break;
 	case AML_STRING_PFX:
-		status = acpi_interpret_close_string(interp, environ);
+		status = acpi_interpret_close_string(interp, env);
 		break;
 	case AML_BUFFER_OP:
-		status = acpi_interpret_close_buffer(interp, environ);
+		status = acpi_interpret_close_buffer(interp, env);
 		break;
 
 	/* Return values */
 	case AML_AMLCODE_OP:
 	case AML_RETURN_OP:
-		status = acpi_interpret_close_Return(interp, environ);
+		status = acpi_interpret_close_Return(interp, env);
 		break;
 	}
 
@@ -469,13 +469,13 @@ static acpi_status_t acpi_interpret_close(struct acpi_interp *interp,
 }
 
 acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
-				  struct acpi_environ *environ,
+				  struct acpi_environ *env,
 				  uint8_t type)
 {
 	if (type == ACPI_AML_OPEN)
-		return acpi_interpret_open(interp, environ);
+		return acpi_interpret_open(interp, env);
 	else
-		return acpi_interpret_close(interp, environ);
+		return acpi_interpret_close(interp, env);
 }
 
 static void __acpi_interpret_init(struct acpi_interp *interp,
