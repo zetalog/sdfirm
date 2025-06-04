@@ -439,7 +439,7 @@ typedef uint16_t acpi_path_len_t;
  */
 typedef struct acpi_path {
 	acpi_path_len_t length;
-	uint8_t *names;
+	char *names;
 } acpi_path_t;
 
 #define ACPI_NAME2TAG(name)				\
@@ -470,9 +470,9 @@ typedef struct acpi_path {
 #define ACPI_RSDP_SIG_CPY(name)		ACPI_PUT64((name), ACPI_SIG_RSDPTR)
 
 #define ACPI_OEMCMP(__id1, __id2, __len)		\
-	(strncmp((__id1), (__id2), __len) == 0)
+	(strncmp((__id1), (__id2), (__len)) == 0)
 #define ACPI_OEMCPY(__from, __to, __len)		\
-	strncpy((__to), (__from), __len)
+	strncpy((__to), (__from), (__len))
 
 /* ============================================================ *
  * address space handling
@@ -836,14 +836,14 @@ struct acpi_buffer {
 
 /* Global variables */
 extern u8 acpi_gbl_integer_bit_width;
-extern u8 acpi_gbl_xpm1a_enable;
-extern u8 acpi_gbl_xpm1b_enable;
-extern u8 acpi_gbl_xpm1a_status;
-extern u8 acpi_gbl_xpm1b_status;
-extern u8 acpi_gbl_fadt_use_default_register_width;
-extern u8 acpi_gbl_fadt_use_32bit_addresses;
+extern struct acpi_generic_address acpi_gbl_xpm1a_enable;
+extern struct acpi_generic_address acpi_gbl_xpm1b_enable;
+extern struct acpi_generic_address acpi_gbl_xpm1a_status;
+extern struct acpi_generic_address acpi_gbl_xpm1b_status;
+extern boolean acpi_gbl_fadt_use_default_register_width;
+extern boolean acpi_gbl_fadt_use_32bit_addresses;
 extern struct acpi_namespace_node *acpi_gbl_root_node;
-extern u8 acpi_gbl_early_stage;
+extern boolean acpi_gbl_early_stage;
 
 #define ACPI_FORMAT_UINT64(i)           HIDWORD(i), LODWORD(i)
 #if ACPI_MACHINE_WIDTH == 64
@@ -1009,7 +1009,7 @@ acpi_status_t acpi_evaluate_object(acpi_handle_t handle, char *path,
 /*=========================================================================
  * Checksum validations
  *=======================================================================*/
-uint8_t acpi_checksum_calc(void *buffer, uint32_t length);
+uint8_t acpi_checksum_calc(uint8_t *buffer, uint32_t length);
 /* checksum validation for all types of tables */
 boolean __acpi_table_checksum_valid(struct acpi_table_header *table);
 void acpi_table_calc_checksum(struct acpi_table_header *table);

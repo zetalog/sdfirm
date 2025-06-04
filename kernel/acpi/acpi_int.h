@@ -213,6 +213,8 @@ acpi_status_t acpi_install_table(acpi_addr_t address, acpi_tag_t signature,
 				 acpi_table_flags_t flags,
 				 boolean override, boolean versioning,
 				 acpi_ddb_t *ddb_handle);
+acpi_status_t acpi_unload_table(acpi_ddb_t ddb);
+struct acpi_table_desc *acpi_table_solve_indirect(acpi_ddb_t ddb);
 acpi_status_t acpi_validate_table(acpi_ddb_t ddb);
 /* exported for interfacing with event callbacks */
 void acpi_table_notify_existing(void);
@@ -361,5 +363,11 @@ void acpi_state_exit(struct acpi_state *state, acpi_size_t size);
 struct acpi_state *acpi_state_open(uint8_t type, acpi_size_t size,
 				   acpi_release_cb release);
 void acpi_state_close(struct acpi_state *state);
+
+/*=========================================================================
+ * AML terminology
+ *=======================================================================*/
+void aml_decode_namestring(struct acpi_term *term, uint8_t *aml,
+			   acpi_path_len_t *name_len);
 
 #endif /* __ACPI_INT_H_INCLUDE__ */
