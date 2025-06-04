@@ -276,12 +276,10 @@ static void acpi_fadt_copy_local(struct acpi_table_header *table)
 
 void acpi_fadt_parse(struct acpi_table_header *table)
 {
-	uint32_t length;
 	acpi_ddb_t ddb;
 
 	if (!table)
 		return;
-	length = table->length;
 	__acpi_table_checksum_valid(table);
 	acpi_fadt_copy_local(table);
 

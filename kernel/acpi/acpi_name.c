@@ -55,8 +55,7 @@ acpi_path_len_t acpi_path_split(acpi_path_t *path,
 			ACPI_PATH_PUT8(parent, size, AML_ROOT_PFX, length);
 			while (iter < end && *iter == AML_ROOT_PFX)
 				iter++;
-		}
-		else {
+		} else {
 			while (iter < end && *iter == AML_PARENT_PFX) {
 				ACPI_PATH_PUT8(parent, size, AML_PARENT_PFX, length);
 				iter++;
@@ -88,7 +87,8 @@ acpi_path_len_t acpi_path_split(acpi_path_t *path,
 				nr_segs = 1;
 				break;
 			}
-		}
+		} else
+			nr_segs = 0;
 	}
 	while ((end - iter) >= ACPI_NAME_SIZE && nr_segs > 1) {
 		nr_segs--;

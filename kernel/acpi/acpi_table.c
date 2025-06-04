@@ -128,7 +128,7 @@ static void acpi_table_unlock(void)
 	(ddb < acpi_gbl_table_list.use_table_count ?	\
 	 acpi_gbl_table_list.tables[(ddb)] : NULL)
 
-static struct acpi_table_desc *acpi_table_solve_indirect(acpi_ddb_t ddb)
+struct acpi_table_desc *acpi_table_solve_indirect(acpi_ddb_t ddb)
 {
 	struct acpi_table_desc *table_desc;
 
@@ -237,7 +237,7 @@ acpi_status_t acpi_reallocate_root_table(void)
 
 err_lock:
 	acpi_table_unlock();
-	return AE_OK;
+	return status;
 }
 
 static acpi_status_t __acpi_table_list_allocate(uint32_t initialial_table_count)
@@ -541,7 +541,8 @@ static void __acpi_table_calc_checksum(struct acpi_table_header *table)
 {
 	ACPI_ENCODE8(&table->checksum, 0);
 	ACPI_ENCODE8(&table->checksum,
-		     acpi_checksum_calc(table, acpi_table_get_length(table)));
+		     acpi_checksum_calc(ACPI_CAST_PTR(uint8_t, table),
+					acpi_table_get_length(table)));
 }
 
 boolean acpi_table_has_header(acpi_name_t signature)
@@ -560,7 +561,8 @@ boolean __acpi_table_checksum_valid(struct acpi_table_header *table)
 	if (!acpi_table_has_header(table->signature))
 		return true;
 
-	return acpi_checksum_calc(table, acpi_table_get_length(table)) == 0;
+	return acpi_checksum_calc(ACPI_CAST_PTR(uint8_t, table),
+				  acpi_table_get_length(table)) == 0;
 }
 
 boolean acpi_table_checksum_valid(struct acpi_table_header *table)
@@ -726,7 +728,7 @@ static void __acpi_table_invalidate(struct acpi_table_desc *table_desc)
 	table_desc->pointer = NULL;
 
 	acpi_table_unlock();
-	acpi_table_release(table, length, table_desc->flags, false);
+	acpi_table_release(table, length, flags, false);
 	acpi_table_lock();
 }
 
@@ -904,7 +906,7 @@ static void __acpi_table_uninstall(struct acpi_table_desc *table_desc)
 static void acpi_table_override(struct acpi_table_desc *old_table_desc)
 {
 	acpi_status_t status;
-	char *override_type;
+	__unused char *override_type;
 	struct acpi_table_desc new_table_desc;
 	acpi_addr_t address;
 	acpi_table_flags_t flags;
@@ -1142,7 +1144,7 @@ static void __acpi_unload_table(acpi_ddb_t ddb)
 	}
 }
 
-static acpi_status_t acpi_unload_table(acpi_ddb_t ddb)
+acpi_status_t acpi_unload_table(acpi_ddb_t ddb)
 {
 	struct acpi_table_header *table;
 
@@ -1511,5 +1513,5 @@ again:
 	acpi_gbl_table_list.flags = 0;
 	acpi_gbl_table_list.use_table_count = 0;
 	acpi_gbl_table_list.max_table_count = 0;
-	acpi_table_unlock();
+	acpi_table_unlock_exit();
 }

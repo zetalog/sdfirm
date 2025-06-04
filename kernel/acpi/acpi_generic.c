@@ -43,7 +43,7 @@
  */
 #include "acpi_int.h"
 
-static struct acpi_namespace_node *acpi_gbl_fadt_gpe_device = NULL;
+static __unused struct acpi_namespace_node *acpi_gbl_fadt_gpe_device = NULL;
 
 void acpi_generic_lock(void)
 {

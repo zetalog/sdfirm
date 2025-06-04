@@ -28,7 +28,7 @@ static void __acpi_parser_init(struct acpi_parser *parser,
 static void __acpi_parser_exit(struct acpi_object *object)
 {
 	struct acpi_parser *parser = ACPI_CAST_PTR(struct acpi_parser, object);
-	struct acpi_environ *environ = &parser->environ;
+	__unused struct acpi_environ *environ = &parser->environ;
 	int i;
 
 	/* Nothing need to be freed currently */
@@ -131,6 +131,7 @@ struct acpi_parser *acpi_parser_push(struct acpi_parser_stack *parser_stack)
 	struct acpi_parser *curr_parser = parser_stack->top;
 	struct acpi_interp *interp = curr_parser->interp;
 	struct acpi_parser *next_state;
+	struct acpi_state *state_stack;
 	struct acpi_environ *last_environ = &curr_parser->environ;
 	uint8_t *aml_end;
 
@@ -147,7 +148,8 @@ struct acpi_parser *acpi_parser_push(struct acpi_parser_stack *parser_stack)
 	if (!next_state)
 		return NULL;
 
-	acpi_state_push(&ACPI_CAST_PTR(struct acpi_state, parser_stack->top),
+	state_stack = ACPI_CAST_PTR(struct acpi_state, parser_stack->top);
+	acpi_state_push(&state_stack,
 			ACPI_CAST_PTR(struct acpi_state, next_state));
 	BUG_ON(next_state != acpi_interp_parser(interp));
 
@@ -168,12 +170,14 @@ struct acpi_parser *acpi_parser_pop(struct acpi_parser_stack *parser_stack)
 	struct acpi_interp *interp = curr_parser->interp;
 	struct acpi_state *last_state;
 	struct acpi_parser *next_state;
+	struct acpi_state *state_stack;
 	int i;
 
 	BUG_ON(curr_parser != acpi_interp_parser(interp));
 
-	last_state = acpi_state_pop(&ACPI_CAST_PTR(struct acpi_state,
-				    acpi_interp_parser(interp)));
+	state_stack = ACPI_CAST_PTR(struct acpi_state,
+				    acpi_interp_parser(interp));
+	last_state = acpi_state_pop(&state_stack);
 
 	next_state = acpi_interp_parser(interp);
 	if (next_state) {

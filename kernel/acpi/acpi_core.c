@@ -93,14 +93,16 @@ void acpi_reference_dec(struct acpi_reference *reference)
 
 int acpi_reference_test_and_inc(struct acpi_reference *reference)
 {
-	int count;
+	int count = 0;
+
 	acpi_reference_update(reference, REF_INCREMENT, &count);
 	return count;
 }
 
 int acpi_reference_dec_and_test(struct acpi_reference *reference)
 {
-	int count;
+	int count = 0;
+
 	acpi_reference_update(reference, REF_DECREMENT, &count);
 	return count;
 }
