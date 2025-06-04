@@ -70,10 +70,14 @@
 #define CLINT_MTIMECMP_BASE		ACLINT_MTIMECMP_BASE
 #define CLINT_MSIP_BASE			ACLINT_MSWI_BASE
 
-#ifndef aclint_hw_ctx
-#define aclint_hw_ctx(hart)		(hart)
+#ifdef CONFIG_ARCH_HAS_ACLINT_CTX
+#define aclint_ctx(hart)		aclint_hw_ctx(hart)
+#else
+#define aclint_ctx(hart)		(hart)
 #endif
-#define clint_hw_ctx(hart)		aclint_hw_ctx(hart)
+#ifdef CONFIG_ARCH_HAS_CLINT_CTX
+#define clint_hw_ctx(hart)		aclint_ctx(hart)
+#endif
 #define clint_hw_hart_offset(hart)	aclint_hw_hart_offset(hart)
 
 #ifdef CONFIG_ACLINT_MULTI
