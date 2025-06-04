@@ -6,7 +6,8 @@ config CMN600_RAS
 
 config DDR_RAS
 	bool "Enable DDR reliability availability serviceability (RAS) support"
-	depends RAS
+	depends RAS && DW_UMCTL2_DDR5
+	select RISCV_GHES
 	help
 	  This option enables DDR RAS support for error detection and handling.
 	  It includes features such as:
