@@ -130,10 +130,12 @@ typedef void *efi_handle_t;
  */
 typedef guid_t efi_guid_t __align(__alignof__(uint32_t));
 
-#define EFI_GUID(a, b, c, d...) ((efi_guid_t){ {				\
+#define EFI_GUID(a, b, c, d...) ((efi_guid_t){ { {				\
 	(a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff,	\
 	(b) & 0xff, ((b) >> 8) & 0xff,						\
-	(c) & 0xff, ((c) >> 8) & 0xff, d } })
+	(c) & 0xff, ((c) >> 8) & 0xff,						\
+	d									\
+} } })
 
 /*
  * Generic EFI table header
@@ -317,6 +319,7 @@ typedef struct {
 
 #define EFI_SYSTEM_TABLE_SIGNATURE ((uint64_t)0x5453595320494249ULL)
 #define EFI_DXE_SERVICES_TABLE_SIGNATURE ((uint64_t)0x565245535f455844ULL)
+#define EFI_BOOT_SERVICES_SIGNATURE ((uint64_t)0x56524553544F4F42ULL)
 
 #define EFI_2_30_SYSTEM_TABLE_REVISION  ((2 << 16) | (30))
 #define EFI_2_20_SYSTEM_TABLE_REVISION  ((2 << 16) | (20))
@@ -359,6 +362,7 @@ typedef struct {
 	uint32_t tables;
 } efi_system_table_32_t;
 
+
 typedef union efi_simple_text_input_protocol efi_simple_text_input_protocol_t;
 typedef union efi_simple_text_output_protocol efi_simple_text_output_protocol_t;
 
@@ -372,6 +376,39 @@ typedef struct efi_generic_dev_path efi_device_path_protocol_t;
 typedef void *efi_event_t;
 /* Note that notifications won't work in mixed mode */
 typedef void (__efiapi *efi_event_notify_t)(efi_event_t, void *);
+
+typedef struct {
+	u16 scan_code;
+	efi_char16_t unicode_char;
+} efi_input_key_t;
+
+union efi_simple_text_input_protocol {
+	struct {
+		void *reset;
+		efi_status_t (__efiapi *read_keystroke)(efi_simple_text_input_protocol_t *,
+							efi_input_key_t *);
+		efi_event_t wait_for_key;
+	};
+	struct {
+		u32 reset;
+		u32 read_keystroke;
+		u32 wait_for_key;
+	} mixed_mode;
+};
+
+union efi_simple_text_output_protocol {
+	struct {
+		void *reset;
+		efi_status_t (__efiapi *output_string)(efi_simple_text_output_protocol_t *,
+						       efi_char16_t *);
+		void *test_string;
+	};
+	struct {
+		u32 reset;
+		u32 output_string;
+		u32 test_string;
+	} mixed_mode;
+};
 
 #define EFI_EVT_TIMER		0x80000000U
 #define EFI_EVT_RUNTIME		0x40000000U
@@ -579,7 +616,7 @@ typedef efi_status_t efi_get_variable_t (efi_char16_t *name, efi_guid_t *vendor,
 					 unsigned long *data_size, void *data);
 typedef efi_status_t efi_get_next_variable_t (unsigned long *name_size, efi_char16_t *name,
 					      efi_guid_t *vendor);
-typedef efi_status_t efi_set_variable_t (efi_char16_t *name, efi_guid_t *vendor, 
+typedef efi_status_t efi_set_variable_t (efi_char16_t *name, efi_guid_t *vendor,
 					 uint32_t attr, unsigned long data_size,
 					 void *data);
 typedef efi_status_t efi_get_next_high_mono_count_t (uint32_t *count);
