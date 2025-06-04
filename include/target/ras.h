@@ -44,17 +44,6 @@
 
 #include <target/generic.h>
 
-typedef enum {
-	SOURCE_TYPE_CPU = 0,
-	SOURCE_TYPE_IOATC,
-	SOURCE_TYPE_IOATS,
-	SOURCE_TYPE_DDR,
-	SOURCE_TYPE_ECC_SRAM,
-	SOURCE_TYPE_PCIE,
-	SOURCE_TYPE_CMN600,
-	SOURCE_TYPE_COUNT
-} source_type_t;
-
 #include <driver/ras.h>
 
 #ifdef CONFIG_RAS

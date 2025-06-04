@@ -9,8 +9,6 @@
 #ifndef LINUX_CPER_H
 #define LINUX_CPER_H
 #include <string.h>
-// #include <linux/uuid.h>
-// #include <linux/trace_seq.h>
 #define UUID_SIZE 16
 typedef unsigned char __u8;
 
