@@ -85,38 +85,6 @@ static void ecc_sram_collect_error_info(struct ecc_sram_error_info *info)
 }
 
 /**
- * ecc_sram_fill_cper_mem - Fill CPER memory error section
- * @info: Pointer to SRAM error info structure
- * @mem: Pointer to CPER memory error section
- *
- * This function fills the CPER memory error section with
- * SRAM error information.
- */
-static void ecc_sram_fill_cper_mem(struct ecc_sram_error_info *info,
-				 struct cper_sec_mem_err *mem)
-{
-	mem->validation_bits = CPER_MEM_VALID_PA | CPER_MEM_VALID_ERROR_TYPE;
-	mem->error_type = info->error_type;
-	mem->physical_addr = info->error_address;
-	mem->physical_addr_mask = ~0ULL;
-	mem->node = 0;
-	mem->card = 0;
-	mem->module = 0;
-	mem->bank = 0;
-	mem->device = 0;
-	mem->row = 0;
-	mem->column = 0;
-	mem->bit_pos = 0;
-	mem->requestor_id = 0;
-	mem->responder_id = 0;
-	mem->target_id = 0;
-	mem->rank = 0;
-	mem->mem_array_handle = 0;
-	mem->mem_dev_handle = 0;
-	mem->extended = 0;
-}
-
-/**
  * ecc_sram_report_error - Report SRAM error to GHES
  *
  * This function collects SRAM error information and reports it
@@ -125,34 +93,48 @@ static void ecc_sram_fill_cper_mem(struct ecc_sram_error_info *info,
 void ecc_sram_report_error(void)
 {
 	struct ecc_sram_error_info info;
-	struct acpi_hest_generic_status estatus;
-	struct acpi_hest_generic_data gdata;
-	struct cper_sec_mem_err mem_err_data;
+	acpi_ghes_error_info einfo;
+	uint32_t acpi_ghes_source_id;
 
-	/* Collect error information */
+	/* 1. Collect error information */
 	ecc_sram_collect_error_info(&info);
 
-	/* Fill estatus header */
-	estatus.block_status = ACPI_HEST_CORRECTABLE;
-	estatus.raw_data_length = sizeof(struct cper_sec_mem_err);
-	estatus.raw_data_offset = sizeof(struct acpi_hest_generic_status) +
-				  sizeof(struct acpi_hest_generic_data);
-	estatus.data_length = sizeof(struct cper_sec_mem_err);
-	estatus.error_severity = GHES_SEV_CORRECTED;
+	/* 2. Initialize error info structure */
+	memset(&einfo, 0, sizeof(einfo));
+	einfo.etype = ERROR_TYPE_MEM;
 
-	/* Fill generic data section */
-	memcpy(gdata.section_type, CPER_SEC_PLATFORM_MEM.b, UUID_SIZE);
-	gdata.error_severity = GHES_SEV_CORRECTED;
-	gdata.revision = CPER_SEC_REV;
-	gdata.validation_bits = 0;
-	gdata.flags = 0;
-	gdata.error_data_length = sizeof(struct cper_sec_mem_err);
+	/* 3. Set error severity */
+	if (info.error_type == SINGLE_BIT_ERROR)
+		einfo.info.me.err_sev = GHES_SEV_CORRECTED;
+	else
+		einfo.info.me.err_sev = GHES_SEV_PANIC;
 
-	/* Fill memory error section */
-	ecc_sram_fill_cper_mem(&info, &mem_err_data);
+	/* 4. Set validation bits */
+	einfo.info.me.validation_bits = CPER_MEM_VALID_PA
+					| CPER_MEM_VALID_ERROR_TYPE;
 
-	/* Report error to GHES */
-	ghes_estatus_queue(&estatus);
+	/* 5. Set physical address */
+	einfo.info.me.physical_address = info.error_address;
+	einfo.info.me.physical_address_mask = ~0ULL;
+	einfo.info.me.node = 0;
+	einfo.info.me.card = 0;
+	einfo.info.me.module = 0;
+	einfo.info.me.bank = 0;
+	einfo.info.me.device = 0;
+	einfo.info.me.row = 0;
+	einfo.info.me.column = 0;
+	einfo.info.me.rank = 0;
+	einfo.info.me.bit_pos = 0;
+	einfo.info.me.chip_id = 0;
+	einfo.info.me.err_type = info.error_type;
+	einfo.info.me.status = 0;
+	einfo.info.me.resvd = 0;
+
+	/* 6. Set source ID (SRAM) */
+	acpi_ghes_source_id = 0x70;  /* SRAM error source ID */
+
+	/* 7. Report error */
+	acpi_ghes_record_errors(acpi_ghes_source_id, &einfo);
 
 	/* Log error information */
 	if (info.error_type == SINGLE_BIT_ERROR) {
@@ -225,7 +207,7 @@ static void ecc_sram_poll_init(void)
 static void ecc_sram_irq_init(void)
 {
 	irqc_configure_irq(IRQ_R_SRAM_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_R_SRAM_RAS, ecc_sram_handle_irq);
+	irq_register_vector(IRQ_R_SRAM_RAS, (irq_handler)ecc_sram_handle_irq);
 	irqc_enable_irq(IRQ_R_SRAM_RAS);
 }
 #define ecc_sram_poll_init()	do {} while (0)
