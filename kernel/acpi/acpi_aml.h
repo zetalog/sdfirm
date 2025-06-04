@@ -362,7 +362,4 @@
 #define AML_METHOD_SERIALIZED(flags)		((flags) & 0x08)
 #define AML_METHOD_SYNC_LEVEL(flags)		(((flags) & 0xF0) >> 4)
 
-void aml_decode_namestring(struct acpi_term *term, uint8_t *aml,
-			   acpi_path_len_t *name_len);
-
 #endif /* __ACPI_AML_H_INCLUDE__ */

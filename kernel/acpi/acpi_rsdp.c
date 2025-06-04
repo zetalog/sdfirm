@@ -4,10 +4,12 @@ boolean acpi_rsdp_checksum_valid(struct acpi_table_rsdp *rsdp)
 {
 	if (!ACPI_RSDP_SIG_CMP(rsdp->signature))
 		return false;
-	if (acpi_checksum_calc(rsdp, ACPI_RSDP_CHECKSUM_LENGTH) != 0)
+	if (acpi_checksum_calc(ACPI_CAST_PTR(uint8_t, rsdp),
+			       ACPI_RSDP_CHECKSUM_LENGTH) != 0)
 		return false;
-	if (ACPI_DECODE8(rsdp->revision) >= 2 &&
-	    acpi_checksum_calc(rsdp, ACPI_RSDP_XCHECKSUM_LENGTH) != 0)
+	if (ACPI_DECODE8(&rsdp->revision) >= 2 &&
+	    acpi_checksum_calc(ACPI_CAST_PTR(uint8_t, rsdp),
+			       ACPI_RSDP_XCHECKSUM_LENGTH) != 0)
 		return false;
 
 	return true;
@@ -17,11 +19,13 @@ void acpi_rsdp_calc_checksum(struct acpi_table_rsdp *rsdp)
 {
 	ACPI_ENCODE8(&rsdp->checksum, 0);
 	ACPI_ENCODE8(&rsdp->checksum,
-		     acpi_checksum_calc(rsdp, ACPI_RSDP_CHECKSUM_LENGTH));
+		     acpi_checksum_calc(ACPI_CAST_PTR(uint8_t, rsdp),
+					ACPI_RSDP_CHECKSUM_LENGTH));
 	if (ACPI_DECODE32(&rsdp->length)) {
 		ACPI_ENCODE8(&rsdp->extended_checksum, 0);
 		ACPI_ENCODE8(&rsdp->extended_checksum,
-			     acpi_checksum_calc(rsdp, ACPI_RSDP_XCHECKSUM_LENGTH));
+			     acpi_checksum_calc(ACPI_CAST_PTR(uint8_t, rsdp),
+						ACPI_RSDP_XCHECKSUM_LENGTH));
 	}
 }
 
