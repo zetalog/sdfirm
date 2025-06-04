@@ -216,29 +216,29 @@ static void ghes_record_mem_error(acpi_ghes_status_block *error_block,
 				  uint64_t error_physical_addr)
 {
 	uint32_t data_length;
-	acpi_ghes_data_entry *dentry;
+	struct acpi_hest_generic_data *dentry;
 	struct cper_sec_mem_err *msec;
 
 	/* This is the length if adding a new generic error data entry*/
 	data_length = ACPI_GHES_DATA_LENGTH + ACPI_GHES_MEM_CPER_LENGTH;
 
 	/* Build the new generic error status block header */
-	error_block->block_status = ACPI_HEST_UNCORRECTABLE;
-	error_block->raw_doffs = 0;
-	error_block->raw_dlen = 0;
-	error_block->data_len =  data_length;
-	error_block->err_sev = CPER_SEV_RECOVERABLE;
+	error_block->status.block_status = ACPI_HEST_UNCORRECTABLE;
+	error_block->status.raw_data_offset = 0;
+	error_block->status.raw_data_length = 0;
+	error_block->status.data_length =  data_length;
+	error_block->status.error_severity = CPER_SEV_RECOVERABLE;
 
 	/* Build generic data entry header */
-	dentry = &error_block->entry;
-	memcpy(dentry->type.type, &CPER_SEC_PLATFORM_MEM, sizeof(dentry->type));
-	dentry->err_sev = CPER_SEV_RECOVERABLE;
-	dentry->vbits = 0;
+	dentry = &error_block->data;
+	memcpy(dentry->section_type, &CPER_SEC_PLATFORM_MEM, sizeof(dentry->section_type));
+	dentry->error_severity = CPER_SEV_RECOVERABLE;
+	dentry->validation_bits = 0;
 	dentry->flags = 0;
-	dentry->err_dlen = ACPI_GHES_MEM_CPER_LENGTH;
+	dentry->error_data_length = ACPI_GHES_MEM_CPER_LENGTH;
 	memset(dentry->fru_id, 0, sizeof(dentry->fru_id));
 
-	msec = &error_block->entry.cpers[0].sections[0].ms;
+	msec = &error_block->cpers[0].sections[0].ms;
 	memset(msec, 0, sizeof(*msec));
 	msec->validation_bits |= 0x1UL;
 	msec->physical_addr = error_physical_addr;
@@ -248,7 +248,7 @@ static void ghes_record_mem_error(acpi_ghes_status_block *error_block,
 static void ghes_record_generic_cpu_error(acpi_ghes_status_block *error_block,
 					  acpi_ghes_error_info *einfo)
 {
-	acpi_ghes_data_entry *dentry;
+	struct acpi_hest_generic_data *dentry;
 	struct cper_sec_proc_generic *psec;
 	uint32_t data_length;
 
@@ -256,23 +256,23 @@ static void ghes_record_generic_cpu_error(acpi_ghes_status_block *error_block,
 	data_length = ACPI_GHES_DATA_LENGTH + ACPI_GHES_GENERIC_CPU_CPER_LENGTH;
 
 	/* Build the generic error status block */
-	error_block->block_status = ACPI_HEST_UNCORRECTABLE;
-	error_block->raw_doffs = 0;
-	error_block->raw_dlen = 0;
-	error_block->data_len = data_length;
-	error_block->err_sev = einfo->info.gpe.sev;
+	error_block->status.block_status = ACPI_HEST_UNCORRECTABLE;
+	error_block->status.raw_data_offset = 0;
+	error_block->status.raw_data_length = 0;
+	error_block->status.data_length = data_length;
+	error_block->status.error_severity = einfo->info.gpe.sev;
 
 	/* Build generic data entry header */
-	dentry = &error_block->entry;
-	memcpy(dentry->type.type, &CPER_SEC_PROC_GENERIC, sizeof(dentry->type));
-	dentry->err_sev = einfo->info.gpe.sev;
-	dentry->vbits = 0;
+	dentry = &error_block->data;
+	memcpy(dentry->section_type, &CPER_SEC_PROC_GENERIC, sizeof(dentry->section_type));
+	dentry->error_severity = einfo->info.gpe.sev;
+	dentry->validation_bits = 0;
 	dentry->flags = 0;
-	dentry->err_dlen = ACPI_GHES_GENERIC_CPU_CPER_LENGTH;
+	dentry->error_data_length = ACPI_GHES_GENERIC_CPU_CPER_LENGTH;
 	memset(dentry->fru_id, 0, sizeof(dentry->fru_id));
 
 	/* generi processor error section */
-	psec = &error_block->entry.cpers[0].sections[0].ps;
+	psec = &error_block->cpers[0].sections[0].ps;
 	psec->validation_bits = einfo->info.gpe.validation_bits;
 
 	/* Processor Type */

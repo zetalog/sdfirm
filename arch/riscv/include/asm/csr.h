@@ -129,6 +129,7 @@
 #define CSR_MIP			0x344
 #define CSR_MTINST		0x34A
 #define CSR_MTVAL2		0x34B
+#define CSR_MIPH		0x354
 #define CSR_MENVCFG		0x30A
 #define CSR_MENVCFGH		0x31A
 #define CSR_MSECCFG		0x747
@@ -439,6 +440,15 @@
 #define IR_MSI		(_AC(0x1, UL) << IRQ_M_SOFT)
 #define IR_MTI		(_AC(0x1, UL) << IRQ_M_TIMER)
 #define IR_MEI		(_AC(0x1, UL) << IRQ_M_EXT)
+
+#ifdef CONFIG_RAS
+#if __riscv_xlen == 64
+#define MIP_RASHP_INTP	(_UL(1) << IRQ_RAS_UE)
+#else
+#define MIPH_RASHP_INTP	(_UL(1) << (IRQ_RAS_UE - 32))
+#endif
+#endif
+
 
 /* SATP/HGATP */
 #ifndef CONFIG_64BIT
