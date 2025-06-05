@@ -3,18 +3,31 @@
 
 acpi_status_t acpi_os_create_lock(acpi_spinlock_t *phandle)
 {
+	spinlock_t *lock;
+
+	lock = acpi_os_allocate(sizeof(*lock));
+	if (lock) {
+		spin_lock_init(lock);
+		*phandle = lock;
+	}
+	return lock ? AE_OK : AE_NO_MEMORY;
 }
 
 void acpi_os_delete_lock(acpi_spinlock_t handle)
 {
+	if (handle)
+		acpi_os_free(handle);
 }
 
 acpi_cpuflags_t acpi_os_acquire_lock(acpi_spinlock_t handle)
 {
+	spin_lock(handle);
+	return 0;
 }
 
 void acpi_os_release_lock(acpi_spinlock_t handle, acpi_cpuflags_t flags)
 {
+	spin_unlock(handle);
 }
 
 acpi_status_t acpi_os_create_semaphore(uint32_t max_units,
