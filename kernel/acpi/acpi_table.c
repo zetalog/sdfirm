@@ -903,13 +903,17 @@ static void __acpi_table_uninstall(struct acpi_table_desc *table_desc)
 	}
 }
 
-static void acpi_table_override(struct acpi_table_desc *old_table_desc)
+#ifdef CONFIG_ACPI_TABLE_OVERRIDE
+static void acpi_table_override(boolean override, struct acpi_table_desc *old_table_desc)
 {
 	acpi_status_t status;
 	__unused char *override_type;
 	struct acpi_table_desc new_table_desc;
 	acpi_addr_t address;
-	acpi_table_flags_t flags;
+	acpi_table_flags_t flags = 0;
+
+	if (!override)
+		return;
 
 	status = acpi_os_table_override(old_table_desc->pointer,
 					&address, &flags);
@@ -932,6 +936,9 @@ out_succ:
 	____acpi_table_validate(old_table_desc);
 	acpi_table_uninstall_temporal(&new_table_desc);
 }
+#else
+#define acpi_table_override(override, old_table_desc)	do { } while (0)
+#endif
 
 static void acpi_determine_integer_width(uint8_t revision)
 {
@@ -948,8 +955,7 @@ static void __acpi_table_install_and_override(struct acpi_table_desc *new_table_
 
 	BUG_ON(ddb >= acpi_gbl_table_list.use_table_count);
 
-	if (override)
-		acpi_table_override(new_table_desc);
+	acpi_table_override(override, new_table_desc);
 
 	table_desc = ACPI_TABLE_SOLVE_INDIRECT(ddb);
 	____acpi_table_install(table_desc,
@@ -1277,8 +1283,10 @@ acpi_status_t acpi_install_and_load_table(struct acpi_table_header *table,
 	if (!table || !ddb_handle)
 		return AE_BAD_PARAMETER;
 
-	status = acpi_install_table(ACPI_PTR_TO_PHYSADDR(table), ACPI_TAG_NULL,
-				    flags, false, versioning, &ddb);
+	status = acpi_install_table(ACPI_PTR_TO_PHYSADDR(table),
+				    ACPI_TAG_NULL,
+				    flags, ACPI_TABLE_OVERRIDE,
+				    versioning, &ddb);
 	if (ACPI_FAILURE(status))
 		return status;
 

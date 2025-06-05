@@ -168,7 +168,7 @@ struct acpi_parser *acpi_parser_pop(struct acpi_parser_stack *parser_stack)
 {
 	struct acpi_parser *curr_parser = parser_stack->top;
 	struct acpi_interp *interp = curr_parser->interp;
-	struct acpi_state *last_state;
+	__unused struct acpi_state *last_state;
 	struct acpi_parser *next_state;
 	struct acpi_state *state_stack;
 	int i;
@@ -248,8 +248,8 @@ uint32_t aml_opcode_size(uint8_t *aml, uint16_t opcode)
 void aml_decode_integer(struct acpi_term *term, uint8_t *aml,
 			uint16_t arg_type, uint32_t *value_len)
 {
-	uint32_t length;
-	uint16_t opcode;
+	uint32_t length = 0;
+	__unused uint16_t opcode;
 
 	switch (arg_type) {
 	case AML_BYTEDATA:
@@ -283,7 +283,7 @@ void aml_decode_integer(struct acpi_term *term, uint8_t *aml,
 
 void aml_decode_string(struct acpi_term *term, uint8_t *aml, uint32_t *str_len)
 {
-	uint16_t opcode = AML_STRING_PFX;
+	__unused uint16_t opcode = AML_STRING_PFX;
 	uint32_t length;
 
 	term->value.string = ACPI_CAST_PTR(char, aml);
