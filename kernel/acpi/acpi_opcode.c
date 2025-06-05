@@ -586,7 +586,7 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 	uint16_t object_type;
 	acpi_path_len_t length;
 	acpi_path_t path;
-	struct acpi_environ *env = &parser->env;
+	__unused struct acpi_environ *env = &parser->env;
 	struct acpi_interp *interp = parser->interp;
 	struct acpi_namespace_node *node;
 
@@ -607,7 +607,7 @@ acpi_status_t acpi_term_alloc_name(struct acpi_parser *parser,
 	simple_name = ACPI_CAST_PTR(struct acpi_simple_name, term);
 	super_name = ACPI_CAST_PTR(struct acpi_super_name, term);
 
-	path.names = aml;
+	path.names = ACPI_CAST_PTR(char, aml);
 	path.length = length;
 	acpi_path_split(&path, NULL, simple_name->name);
 	if ((object_type == ACPI_AML_SIMPLENAME) ||
@@ -702,6 +702,7 @@ void acpi_term_remove_arg(struct acpi_term *arg)
 
 	term = arg->parent;
 	prev_arg = NULL;
+	next_arg = NULL;
 	curr_arg = term->children;
 	while (curr_arg) {
 		next_arg = curr_arg->next;

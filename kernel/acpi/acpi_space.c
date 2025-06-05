@@ -55,10 +55,7 @@ static void __acpi_node_exit(struct acpi_object *object)
 		acpi_table_decrement(node->ddb);
 		node->ddb = ACPI_DDB_HANDLE_INVALID;
 	}
-	if (node->operand) {
-		acpi_operand_close(node->operand);
-		node->operand = NULL;
-	}
+	acpi_space_unassign_operand(node);
 }
 
 struct acpi_namespace_node *__acpi_node_open(acpi_ddb_t ddb,
@@ -398,6 +395,7 @@ void acpi_space_decrement(acpi_handle_t node)
 	acpi_node_put(node, "reference");
 }
 
+#ifdef CONFIG_ACPI_AML
 void acpi_space_assign_operand(struct acpi_namespace_node *node,
 			       struct acpi_operand *operand)
 {
@@ -405,6 +403,15 @@ void acpi_space_assign_operand(struct acpi_namespace_node *node,
 	node->operand = acpi_operand_get(operand, "space");
 	operand->flags |= ACPI_OPERAND_NAMED;
 }
+
+void acpi_space_unassign_operand(struct acpi_namespace_node *node)
+{
+	if (node->operand) {
+		acpi_operand_close(node->operand);
+		node->operand = NULL;
+	}
+}
+#endif
 
 /*
  * acpi_space_get_full_path() - obtain namespace node's full path

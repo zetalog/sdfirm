@@ -14,6 +14,9 @@ obj-y += acpi_fixed.rel
 obj-y += acpi_event.rel
 obj-y += acpi_space.rel
 obj-y += acpi_parse.rel
-obj-y += acpi_interp.rel
+obj-y += acpi_opcode.rel
+obj-$(CONFIG_ACPI_AML) += acpi_interp.rel
+
+obj-$(CONFIG_ACPI_BIOS) += acpi_bios.rel
 
 obj-$(CONFIG_ACPI_GEN) += acpi_gen.rel

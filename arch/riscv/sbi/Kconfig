@@ -212,8 +212,11 @@ endif
 
 config SBI_EFI
 	bool "Enable SBI extensible firmware interface binary"
+	select ARCH_IS_ACPI_BIOS
 	select UEFI
 	select UEFI_DXE
+	select ACPI
+	select ACPI_BIOS
 
 if SBI_EFI
 
