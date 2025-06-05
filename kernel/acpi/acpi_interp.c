@@ -230,7 +230,7 @@ static acpi_status_t acpi_interpret_open(struct acpi_interp *interp,
 	case AML_WHILE_OP:
 		break;
 	}
-	return AE_OK;
+	return status;
 }
 
 static acpi_status_t acpi_interpret_close_Name(struct acpi_interp *interp,
@@ -308,7 +308,7 @@ static acpi_status_t __acpi_interpret_close_integer(struct acpi_interp *interp,
 {
 	struct acpi_integer *integer;
 	struct acpi_operand *operand;
-	struct acpi_parser *parser = acpi_interp_parser(interp);
+	__unused struct acpi_parser *parser = acpi_interp_parser(interp);
 
 	BUG_ON(interp->nr_targets > 0 || interp->result);
 
@@ -339,7 +339,7 @@ static acpi_status_t __acpi_interpret_close_string(struct acpi_interp *interp,
 {
 	struct acpi_string *string;
 	struct acpi_operand *operand;
-	struct acpi_parser *parser = acpi_interp_parser(interp);
+	__unused struct acpi_parser *parser = acpi_interp_parser(interp);
 
 	BUG_ON(interp->nr_targets > 0 || interp->result);
 
@@ -371,7 +371,7 @@ static acpi_status_t __acpi_interpret_close_buffer(struct acpi_interp *interp,
 {
 	struct acpi_buffer *buffer;
 	struct acpi_operand *operand;
-	struct acpi_parser *parser = acpi_interp_parser(interp);
+	__unused struct acpi_parser *parser = acpi_interp_parser(interp);
 
 	BUG_ON(interp->nr_targets > 0 || interp->result);
 
@@ -527,7 +527,7 @@ acpi_status_t acpi_interpret_aml(acpi_ddb_t ddb, acpi_tag_t tag,
 				 struct acpi_operand **result)
 {
 	struct acpi_interp interp;
-	struct acpi_term_list *start_term = NULL;
+	__unused struct acpi_term_list *start_term = NULL;
 	acpi_status_t status;
 	uint8_t *aml_end = aml_begin + aml_length;
 

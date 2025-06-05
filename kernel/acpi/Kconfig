@@ -5,6 +5,12 @@
 config ARCH_HAS_ACPI
 	bool
 
+config ARCH_IS_ACPI_BIOS
+	bool
+
+config ARCH_IS_ACPI_OSPM
+	bool
+
 config ARCH_HAS_ACPI_PM_EVENT
 	bool
 	depends !ACPI_HW_REDUCED
@@ -21,6 +27,20 @@ menuconfig ACPI
 	bool "Advanced Configuration Power Management Interface (ACPI) support"
 
 if ACPI
+
+choice
+	prompt "ACPI support layer"
+
+config ACPI_BIOS
+	bool "BIOS"
+	depends ARCH_IS_ACPI_BIOS
+
+config ACPI_OSPM
+	bool "OSPM"
+	depends ARCH_IS_ACPI_OSPM
+	select ACPI_AML
+
+endchoice
 
 config ACPI_GEN
 	bool "Enable table generation support"
@@ -86,5 +106,9 @@ config ACPI_AML_PREFIX_SIMPLE
 	  If unsure, say "N" here.
 
 endif
+
+config ACPI_TABLE_OVERRIDE
+	bool "Enable OSPM table overridden support"
+	depends ACPI_OSPM
 
 endif

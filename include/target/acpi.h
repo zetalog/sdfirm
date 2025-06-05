@@ -50,6 +50,11 @@
 #include <target/generic.h>
 #include <target/panic.h>
 #include <target/heap.h>
+#include <target/page.h>
+#include <target/task.h>
+#include <target/delay.h>
+#include <target/sbi.h>
+#include <target/acpi_osl.h>
 #endif
 
 #define ACPI_REVISION			0x00000001
@@ -780,9 +785,6 @@ struct acpi_opcode_info;
 /* Function declarations */
 typedef void (*acpi_release_cb)(struct acpi_object *);
 
-void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info,
-			    const char *prefix);
-
 #define ACPI_DESC_TYPE_NAMED			0x01
 #define ACPI_DESC_TYPE_TERM			0x02
 #define ACPI_DESC_TYPE_STATE			0x03
@@ -866,10 +868,31 @@ static inline void acpi_err_bios(const char *fmt, ...) {}
 const char *acpi_error_string(acpi_status_t status, boolean detail);
 
 acpi_addr_t acpi_os_get_root_pointer(void);
+#ifndef acpi_os_map_memory
 void *acpi_os_map_memory(acpi_addr_t where, acpi_size_t length);
+#endif
+#ifndef acpi_os_unmap_memory
 void acpi_os_unmap_memory(void *where, acpi_size_t length);
-acpi_status_t acpi_os_table_override(struct acpi_table_header *existing_table,
-				     acpi_addr_t *address, acpi_table_flags_t *flags);
+#endif
+#ifndef acpi_os_sleep
+void acpi_os_sleep(uint32_t msecs);
+#endif
+#ifndef acpi_os_debug_print
+void acpi_os_debug_print(const char *fmt, ...);
+#endif
+#ifndef acpi_os_allocate
+void *acpi_os_allocate(acpi_size_t size);
+#endif
+#ifndef acpi_os_allocate_zeroed
+void *acpi_os_allocate_zeroed(acpi_size_t size);
+#endif
+#ifndef acpi_os_free
+void acpi_os_free(void *mem);
+#endif
+acpi_status_t acpi_os_create_lock(acpi_spinlock_t *phandle);
+void acpi_os_delete_lock(acpi_spinlock_t handle);
+acpi_cpuflags_t acpi_os_acquire_lock(acpi_spinlock_t handle);
+void acpi_os_release_lock(acpi_spinlock_t handle, acpi_cpuflags_t flags);
 acpi_status_t acpi_os_create_semaphore(uint32_t max_units,
 				       uint32_t initial_units,
 				       acpi_handle_t *out_handle);
@@ -879,17 +902,13 @@ acpi_status_t acpi_os_wait_semaphore(acpi_handle_t handle,
 				     uint16_t timeout);
 acpi_status_t acpi_os_signal_semaphore(acpi_handle_t handle,
 				       uint32_t units);
-void acpi_os_sleep(uint32_t msecs);
-void acpi_os_debug_print(const char *fmt, ...);
-
-void *acpi_os_allocate(acpi_size_t size);
-void *acpi_os_allocate_zeroed(acpi_size_t size);
-void acpi_os_free(void *mem);
-
-acpi_status_t acpi_os_create_lock(acpi_spinlock_t *phandle);
-void acpi_os_delete_lock(acpi_spinlock_t handle);
-acpi_cpuflags_t acpi_os_acquire_lock(acpi_spinlock_t handle);
-void acpi_os_release_lock(acpi_spinlock_t handle, acpi_cpuflags_t flags);
+#ifdef CONFIG_ACPI_TABLE_OVERRIDE
+#define ACPI_TABLE_OVERRIDE	true
+acpi_status_t acpi_os_table_override(struct acpi_table_header *existing_table,
+				     acpi_addr_t *address, acpi_table_flags_t *flags);
+#else
+#define ACPI_TABLE_OVERRIDE	false
+#endif
 
 /*=========================================================================
  * Initialization/Finalization
@@ -994,9 +1013,14 @@ acpi_path_len_t acpi_space_get_full_path(acpi_handle_t node,
 /*=========================================================================
  * Interpreter externals
  *=======================================================================*/
+#ifdef CONFIG_ACPI_AML
 struct acpi_operand *acpi_operand_get(struct acpi_operand *operand,
 				      const char *hint);
 void acpi_operand_put(struct acpi_operand *operand, const char *hint);
+#else
+#define acpi_operand_get(operand, hint)		NULL
+#define acpi_operand_put(operand, hint)		do { } while (0)
+#endif
 struct acpi_integer *acpi_integer_open(uint64_t value);
 struct acpi_string *acpi_string_open(const char *value);
 struct acpi_buffer *acpi_buffer_open(const uint8_t *value, acpi_size_t length);

@@ -278,12 +278,19 @@ boolean acpi_opcode_is_namestring(uint16_t opcode);
 acpi_status_t acpi_interpret_exec(struct acpi_interp *interp,
 				  struct acpi_environ *env,
 				  uint8_t type);
+#ifdef CONFIG_ACPI_AML
 acpi_status_t acpi_interpret_table(acpi_ddb_t ddb,
 				   struct acpi_table_header *table,
 				   struct acpi_namespace_node *start_node);
 void acpi_uninterpret_table(acpi_ddb_t ddb,
 			    struct acpi_table_header *table,
 			    struct acpi_namespace_node *start_node);
+void acpi_operand_close_stacked(struct acpi_operand *operand);
+#else
+#define acpi_interpret_table(ddb, table, start_node)	AE_OK
+#define acpi_uninterpret_table(ddb, table, start_node)	do { } while (0)
+#define acpi_operand_close_stacked(operand)		do { } while (0)
+#endif
 
 struct acpi_operand *acpi_operand_open(acpi_type_t object_type,
 				       acpi_size_t size,
@@ -291,7 +298,6 @@ struct acpi_operand *acpi_operand_open(acpi_type_t object_type,
 void acpi_operand_close(struct acpi_operand *operand);
 struct acpi_method *acpi_method_open(acpi_ddb_t ddb, uint8_t *aml,
 				     uint32_t length, uint8_t flags);
-void acpi_operand_close_stacked(struct acpi_operand *operand);
 
 /*=========================================================================
  * Namespace internals
@@ -329,8 +335,14 @@ struct acpi_namespace_node *acpi_space_get_node(acpi_ddb_t ddb,
 						acpi_type_t object_type,
 						uint8_t open_type, const char *hint);
 void acpi_space_close_node(acpi_handle_t node);
+#ifdef CONFIG_ACPI_AML
 void acpi_space_assign_operand(struct acpi_namespace_node *node,
 			       struct acpi_operand *operand);
+void acpi_space_unassign_operand(struct acpi_namespace_node *node);
+#else
+#define acpi_space_assign_operand(node, operand)	do { } while (0)
+#define acpi_space_unassign_operand(node)		do { } while (0)
+#endif
 void acpi_space_notify_existing(void);
 
 void acpi_scope_init(struct acpi_scope_stack *scope_stack,
