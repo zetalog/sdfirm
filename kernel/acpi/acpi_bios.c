@@ -4,3 +4,7 @@ acpi_addr_t acpi_os_get_root_pointer(void)
 {
 	return (acpi_addr_t)0;
 }
+
+void acpi_bios_init(void)
+{
+}

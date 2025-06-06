@@ -1092,5 +1092,11 @@ static inline void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info
 #define acpi_space_test_nodes()
 #endif
 
+#ifdef CONFIG_ACPI_BIOS
+void acpi_bios_init(void);
+#else
+#define acpi_bios_init()		do { } while (0)
+#endif
+
 #endif /* __ACPI_H_INCLUDE__ */
 
