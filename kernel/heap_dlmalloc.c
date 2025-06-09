@@ -1773,7 +1773,6 @@ static int do_heap(int argc, char **argv)
 		return do_heap_dump(argc, argv);
 	return 0;
 }
-#endif
 
 DEFINE_COMMAND(heap, do_heap, "Display free heap ranges",
 	"heap test size [N]\n"
@@ -1781,3 +1780,4 @@ DEFINE_COMMAND(heap, do_heap, "Display free heap ranges",
 	"heap dump\n"
 	"    -dump heap free chunks' details\n"
 );
+#endif

@@ -103,6 +103,9 @@ fi
 if [ "x${BUILD_NUMA}" = "xno" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d numa"
 fi
+if [ "x${BUILD_ACPI}" = "xyes" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -e acpi"
+fi
 if [ "x${BUILD_KVM}" = "xyes" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -e kvm"
 fi
