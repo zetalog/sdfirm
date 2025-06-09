@@ -3,9 +3,13 @@
 #include <target/uart.h>
 #include <target/irq.h>
 #include <target/delay.h>
+#include <target/efi.h>
+#include <target/acpi.h>
 
 static void spike_modify_dt(void *fdt)
 {
+	uefi_dxe_init();
+	acpi_bios_init();
 	fdt_cpu_fixup(fdt);
 	fdt_irq_fixup(fdt, "riscv,clint0");
 	fdt_fixups(fdt);
