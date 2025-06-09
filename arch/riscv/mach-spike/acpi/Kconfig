@@ -1,0 +1,48 @@
+menu "ACPI table settings"
+
+config SPIKE_ACPI_MADT
+	bool "Enable multiple APIC description table (MADT) support"
+
+config SPIKE_ACPI_RHCT
+	bool "Enable RISC-V hart capabilities table (RHCT) support"
+
+config SPIKE_ACPI_RIMT
+	bool "Enable RISC-V IOMMU table (RIMT) support"
+
+config SPIKE_ACPI_SRAT
+	bool "Enable system resource affinity table (SRAT) support"
+
+config SPIKE_ACPI_SLIT
+	bool "Enable system locality distance information table (SLIT) support"
+
+config SPIKE_ACPI_BERT
+	bool "Enable boot error record table (BERT) support"
+
+config SPIKE_ACPI_HEST
+	bool "Enable hardware error source table (HEST) support"
+
+config SPIKE_ACPI_ERST
+	bool "Enable error record serialization table (ERST) support"
+
+config SPIKE_ACPI_EINJ
+	bool "Enable error injection table (EINJ) support"
+
+config SPIKE_ACPI_PCCT
+	bool "Enable platform communication channel table (PCCT) support"
+
+config SPIKE_ACPI_MCFG
+	bool "Enable memory-mepped configuration space base address description table (MCFG) support"
+
+config SPIKE_ACPI_PPTT
+	bool "Enable processor properties topology table (PPTT) support"
+
+config SPIKE_ACPI_SPCR
+	bool "Enable serial port console redirection table (SPCR) support"
+
+config SPIKE_ACPI_FPDT
+	bool "Enable firmware performance data table (FPDT) support"
+
+config SPIKE_ACPI_SPMI
+	bool "Enable service processor management interface table (SPMI) support"
+
+endmenu

@@ -207,10 +207,12 @@ quiet_cmd_acpi_S_aml= AML $(quiet_modtag) $@
 cmd_acpi_S_aml=                                         \
 {                                                       \
         echo '\#include <asm-generic/sdfirm.lds.h>';    \
-        echo '.section .efi.table,"a"';                 \
-        echo '.global acpi_$*';                         \
-        echo 'acpi_$*:';                                \
-        echo '.incbin "$<" ';                           \
+        echo '\#include <target/acpi.h>';		\
+        echo '.section .efi.table,"a"';			\
+        echo '.global acpi_$*';				\
+        echo 'acpi_$*:';				\
+        echo '.incbin "$<" ';				\
+	echo 'define_acpi_table acpi_$*';		\
 } > $@
 
 $(obj)/%.aml.S: $(obj)/%.aml FORCE

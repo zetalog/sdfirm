@@ -42,6 +42,11 @@ config ACPI_OSPM
 
 endchoice
 
+config ACPI_MAX_TABLES
+	int "Number of ACPI tables (1-128)"
+	range 1 128
+	default 128
+
 config ACPI_GEN
 	bool "Enable table generation support"
 	select PRINT_SNPRINTF
