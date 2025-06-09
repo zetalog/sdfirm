@@ -85,7 +85,7 @@ config ACPI_GPE
 
 config ACPI_AML
 	bool "Enable ACPI machine languate (AML) interpreter support"
-	default y
+	default y if ACPI_OSPM
 
 if ACPI_AML
 

@@ -11,6 +11,7 @@ BUILD_KVM=no
 BUILD_NET=yes
 BUILD_STO=yes
 BUILD_NUMA=no
+BUILD_ACPI=no
 BUILD_SIM=asic
 BUILD_CPU=4
 BUILD_DDR=128m
@@ -55,6 +56,8 @@ usage()
 	echo "              feature includes:"
 	echo "    tiny:     kernel image as tiny as possible"
 	echo "    kvm:      KVM virtualization support"
+	echo "    numa:     NUMA configuration support"
+	echo "    acpi:     ACPI power management support"
 	echo " -r:          enable force module rebuild"
 	exit $1
 }
@@ -90,6 +93,12 @@ do
 	   fi
 	   if [ "x$OPTARG" = "xkvm" ]; then
 		BUILD_KVM=yes
+	   fi
+	   if [ "x$OPTARG" = "xnuma" ]; then
+		BUILD_NUMA=yes
+	   fi
+	   if [ "x$OPTARG" = "xacpi" ]; then
+		BUILD_ACPI=yes
 	   fi;;
 	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
 	g) feat=`parse_feat $OPTARG`
@@ -199,6 +208,9 @@ if [ "x${BUILD_SMP}" = "xno" ]; then
 fi
 if [ "x${BUILD_NUMA}" = "xyes" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e numa"
+fi
+if [ "x${BUILD_ACPI}" = "xyes" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e acpi"
 fi
 if [ "x${BUILD_NET}" = "xno" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d network"
