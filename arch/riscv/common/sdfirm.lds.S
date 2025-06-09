@@ -5,6 +5,7 @@
 #include <target/paging.h>
 #include <target/bench.h>
 #include <target/sbi.h>
+#include <target/acpi.h>
 
 #define IDMAP_TEXT			\
 	. = ALIGN(SZ_4K);		\
@@ -48,6 +49,7 @@ SECTIONS
 		CMDLINE_INPUT(WORD_SIZE)
 		BENCH_INPUT(WORD_SIZE)
 		SBIECALL_INPUT(WORD_SIZE)
+		ACPIBIOS_INPUT(WORD_SIZE)
 	}
 	SRODATA(WORD_SIZE)
 	. = ALIGN(PAGE_SIZE);
@@ -132,15 +134,6 @@ SECTIONS
 	}
 #endif /* CONFIG_SBI_PAYLOAD */
 	_payload_end = .;
-	. = ALIGN(PAGE_SIZE);
-	_fdt_start = .;
-#ifdef CONFIG_FDT_BUILTIN
-	.fdt : {
-		*(.fdt)
-		. = ALIGN(WORD_SIZE);
-	}
-#endif
-	_fdt_end = .;
 #ifdef CONFIG_EFI_BUILTIN
 	. = ALIGN(PAGE_SIZE);
 	_efi_start = .;
@@ -150,6 +143,15 @@ SECTIONS
 	}
 	_efi_end = .;
 #endif
+	. = ALIGN(PAGE_SIZE);
+	_fdt_start = .;
+#ifdef CONFIG_FDT_BUILTIN
+	.fdt : {
+		*(.fdt)
+		. = ALIGN(WORD_SIZE);
+	}
+#endif
+	_fdt_end = .;
 }
 
 /*

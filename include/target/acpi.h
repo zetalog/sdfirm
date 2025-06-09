@@ -42,6 +42,25 @@
 #ifndef __ACPI_H_INCLUDE__
 #define __ACPI_H_INCLUDE__
 
+#ifdef __ASSEMBLY__
+
+#define ACPIBIOS_INPUT(align)		\
+	__acpi_bios_start = .;		\
+	KEEP (*(.acpi.bios))		\
+	__acpi_bios_end = .;
+
+#ifndef LINKER_SCRIPT
+	.macro define_acpi_table, _name:req
+	.pushsection .acpi.bios, "a"
+	.align 3
+	.type __acpi_bios_\_name, %object
+	.quad \_name
+	.popsection
+	.endm
+#endif
+
+#else /* __ASSEMBLY__ */
+
 #define ACPI_MUTEX_TYPE			ACPI_BINARY_SEMAPHORE
 
 #ifdef WIN32
@@ -61,6 +80,12 @@
 
 #define ACPI_UINT32_MAX			(uint32_t)(~((uint32_t)0)) /* 0xFFFFFFFF         */
 #define ACPI_UINT64_MAX			(uint64_t)(~((uint64_t)0)) /* 0xFFFFFFFFFFFFFFFF */
+
+struct acpi_bios_table {
+	void *table;
+} __packed;
+extern struct acpi_bios_table __acpi_bios_start[];
+extern struct acpi_bios_table __acpi_bios_end[];
 
 typedef int acpi_status_t;
 typedef void *acpi_handle_t;
@@ -522,7 +547,7 @@ struct acpi_generic_address {
 	uint8_t bit_offset;
 	uint8_t access_width;
 	uint64_t address;
-};
+} __packed;
 
 struct acpi_table_header {
 	acpi_name_t signature;
@@ -534,7 +559,7 @@ struct acpi_table_header {
 	uint32_t oem_revision;
 	acpi_name_t asl_compiler_id;
 	uint32_t asl_compiler_revision;
-};
+} __packed;
 
 struct acpi_table_rsdp {
 	char signature[8];	/* "RSD PTR " */
@@ -546,19 +571,19 @@ struct acpi_table_rsdp {
 	uint64_t xsdt_physical_address;
 	uint8_t extended_checksum;
 	uint8_t reserved[3];
-};
+} __packed;
 #define ACPI_RSDP_CHECKSUM_LENGTH       20
 #define ACPI_RSDP_XCHECKSUM_LENGTH      36
 
 struct acpi_table_rsdt {
 	struct acpi_table_header header;
 	uint32_t table_offset_entry[1];
-};
+} __packed;
 
 struct acpi_table_xsdt {
 	struct acpi_table_header header;
 	uint64_t table_offset_entry[1];
-};
+} __packed;
 
 #define ACPI_RSDT_ENTRY_SIZE		(sizeof (uint32_t))
 #define ACPI_XSDT_ENTRY_SIZE		(sizeof (uint64_t))
@@ -618,7 +643,7 @@ struct acpi_table_fadt {
 	struct acpi_generic_address xgpe1_block;
 	struct acpi_generic_address sleep_control;	/* ACPI 5.0+ */
 	struct acpi_generic_address sleep_status;	/* ACPI 5.0+ */
-};
+} __packed;
 
 #define ACPI_GPE_REGISTER_WIDTH		8
 #define ACPI_PM1_REGISTER_WIDTH		16
@@ -1094,9 +1119,13 @@ static inline void acpi_debug_opcode_info(const struct acpi_opcode_info *op_info
 
 #ifdef CONFIG_ACPI_BIOS
 void acpi_bios_init(void);
+void acpi_bios_install_table(void *table);
 #else
 #define acpi_bios_init()		do { } while (0)
+#define acpi_bios_install_table(table)	do { } while (0)
 #endif
+
+#endif /* __ASSEMBLY__ */
 
 #endif /* __ACPI_H_INCLUDE__ */
 
