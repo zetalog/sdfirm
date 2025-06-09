@@ -10,6 +10,7 @@ BUILD_TINY=no
 BUILD_LIB=yes
 BUILD_SMP=yes
 BUILD_UEFI=no
+BUILD_ACPI=no
 BUILD_NET=yes
 BUILD_STO=yes
 BUILD_KVM=no
@@ -483,6 +484,9 @@ function build_linux()
 		if [ "xyes" = "x${BUILD_UEFI}" ]; then
 			apply_modcfg linux my_defconfig e_uefi.cfg
 		fi
+		if [ "xyes" = "x${BUILD_ACPI}" ]; then
+			apply_modcfg linux my_defconfig e_acpi.cfg
+		fi
 		if [ "xno" = "x${BUILD_SMP}" ]; then
 			apply_modcfg linux my_defconfig d_smp.cfg
 		fi
@@ -587,6 +591,9 @@ function build_sdfirm()
 	fi
 	if [ "xyes" = "x${BUILD_NUMA}" ]; then
 		apply_modcfg sdfirm my_defconfig e_numa.cfg
+	fi
+	if [ "xyes" = "x${BUILD_ACPI}" ]; then
+		apply_modcfg sdfirm my_defconfig e_acpi.cfg
 	fi
 	if [ "xno" = "x${BUILD_SMP}" ]; then
 		apply_modcfg sdfirm my_defconfig d_smp.cfg
@@ -784,6 +791,9 @@ do
 	   fi
 	   if [ "x$OPTARG" = "xnuma" ]; then
 		BUILD_NUMA=yes
+	   fi
+	   if [ "x$OPTARG" = "xacpi" ]; then
+		BUILD_ACPI=yes
 	   fi;;
 	m) M_MODE=yes
 	   BBL=$OPTARG;;
