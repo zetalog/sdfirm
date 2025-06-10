@@ -47,7 +47,6 @@ static void acpi_bios_producer_init(void)
 
 	for (i = 0; i < nr_tables; i++) {
 		table = (struct acpi_table_header *)start[i].table;
-		hexdump(table, table, 8, sizeof (struct acpi_table_header));
 		con_log("acpi: installing BIOS table [%4.4s] at %016llx\n",
 			table->signature, (uint64_t)table);
 	}
