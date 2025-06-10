@@ -13,6 +13,7 @@ obj-$(CONFIG_ARCH_IS_BOOT_EXE) += stack.rel
 obj-$(CONFIG_ARCH_IS_BOOT_EXE) += smp.rel
 obj-$(CONFIG_SMP) += percpu.rel
 obj-$(CONFIG_ARCH_HAS_QSPINLOCK) += spinlock.rel
+obj-$(CONFIG_ARCH_IS_BOOT_EXE) += semaphore.rel
 obj-$(CONFIG_MEM) += mem.rel
 obj-$(CONFIG_CLK) += clk.rel
 obj-$(CONFIG_CONSOLE) += console.rel
