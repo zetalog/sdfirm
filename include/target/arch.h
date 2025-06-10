@@ -28,9 +28,9 @@
 #if defined(CONFIG_XIP) && !defined(CONFIG_BFM)
 #define SDFIRM_START		_sdata
 #else
-#define SDFIRM_START		_fw_start
+#define SDFIRM_START		_start
 #endif
-#define SDFIRM_END		_fw_end
+#define SDFIRM_END		_end
 #define SDFIRM_DATA_END		_edata
 #else /* !__ASSEMBLY__ */
 extern uintptr_t _start[];
@@ -38,8 +38,6 @@ extern uintptr_t _end[];
 extern uintptr_t _stext[];
 extern uintptr_t _etext[];
 extern uintptr_t _edata[];
-extern uintptr_t _fw_start[];
-extern uintptr_t _fw_end[];
 
 extern uintptr_t __stext[];
 extern uintptr_t __etext[];
@@ -51,9 +49,9 @@ extern uintptr_t __erodata[];
 #if defined(CONFIG_XIP) && !defined(CONFIG_BFM)
 #define SDFIRM_START		((caddr_t)(&_sdata))
 #else
-#define SDFIRM_START		((caddr_t)(&_fw_start))
+#define SDFIRM_START		((caddr_t)(&_start))
 #endif
-#define SDFIRM_END		((caddr_t)(&_fw_end))
+#define SDFIRM_END		((caddr_t)(&_end))
 #define SDFIRM_DATA_END		((caddr_t)(&_edata))
 #endif /* __ASSEMBLY__ */
 
