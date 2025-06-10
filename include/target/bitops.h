@@ -16,7 +16,7 @@ typedef uint32_t bits_t;
 #define __fls_unit		__fls32
 #define __ffz_unit		__ffz32
 #elif defined(CONFIG_ARCH_HAS_BITS_PER_UINT_16)
-typedef uint8_t bits_t;
+typedef uint16_t bits_t;
 #define BITS_PER_UNIT		16
 #define __ffs_unit		__ffs16
 #define __fls_unit		__fls16
