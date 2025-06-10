@@ -37,9 +37,9 @@ static void acpi_bios_producer_init(void)
 			sizeof (struct acpi_bios_table);
 	struct acpi_table_header *table;
 	struct acpi_bios_table *start = __acpi_bios_start;
-	struct acpi_bios_table *end = __acpi_bios_end;
 
-	con_log("acpi_bios: %016llx - %016llx\n", (uint64_t)start, (uint64_t)end);
+	con_log("acpi_bios: %016llx - %016llx\n",
+		(uint64_t)start, (uint64_t)__acpi_bios_end);
 	rsdp->revision = 2;
 	rsdp->xsdt_physical_address = (uint64_t)acpi_xsdt;
 
