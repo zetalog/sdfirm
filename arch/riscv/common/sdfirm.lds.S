@@ -23,6 +23,7 @@ SECTIONS
 	TAIL_TEXT_SECTION(WORD_SIZE)
 
 	. = PAGE_OFFSET + TEXT_OFFSET;
+	_fw_start = .;				/* begin of firmware */
 	_start = .;				/* begin of sdfirm */
 	_stext = .;				/* begin of text and rodata sections */
 
@@ -134,15 +135,15 @@ SECTIONS
 	}
 #endif /* CONFIG_SBI_PAYLOAD */
 	_payload_end = .;
-#ifdef CONFIG_EFI_BUILTIN
 	. = ALIGN(PAGE_SIZE);
 	_efi_start = .;
+#ifdef CONFIG_EFI_BUILTIN
 	.efi : {
 		EFI_TABLE
 		. = ALIGN(WORD_SIZE);
 	}
-	_efi_end = .;
 #endif
+	_efi_end = .;
 	. = ALIGN(PAGE_SIZE);
 	_fdt_start = .;
 #ifdef CONFIG_FDT_BUILTIN
@@ -152,6 +153,7 @@ SECTIONS
 	}
 #endif
 	_fdt_end = .;
+	_fw_end = .;				/* end of firmware */
 }
 
 /*
