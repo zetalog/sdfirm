@@ -1,11 +1,7 @@
 #ifndef __ACPI_OSL_H_INCLUDE__
 #define __ACPI_OSL_H_INCLUDE__
 
-#ifdef CONFIG_SBI
-#define acpi_os_debug_print	sbi_printf
-#else
-#define acpi_os_debug_print	printf
-#endif
+#include <target/sbi.h>
 
 #ifdef CONFIG_HEAP
 #define acpi_os_allocate(size)		((void *)heap_alloc(size))

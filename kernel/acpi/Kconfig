@@ -25,6 +25,8 @@ config ARCH_HAS_ACPI_GPE
 
 menuconfig ACPI
 	bool "Advanced Configuration Power Management Interface (ACPI) support"
+	select PRINT_VSNPRINTF
+	select PRINT_SNPRINTF
 
 if ACPI
 

@@ -836,6 +836,18 @@ static inline int sbi_getc(void)
 }
 #endif
 
+#ifdef CONFIG_SBI_HEAP
+int sbi_heap_init(struct sbi_scratch *scratch);
+#define sbi_malloc(size)		((void *)heap_alloc(size))
+#define sbi_calloc(size)		((void *)heap_calloc(size))
+#define sbi_free(mem)			heap_free((caddr_t)mem)
+#else
+#define sbi_heap_init(scratch)		0
+#define sbi_malloc(size)		NULL
+#define sbi_calloc(size)		NULL
+#define sbi_free(mem)			do { } while (0)
+#endif
+
 #ifdef CONFIG_ARCH_HAS_SBI_CLOCK
 unsigned long sbi_clock_get_freq(unsigned long clkid);
 void sbi_clock_set_freq(unsigned long clkid, unsigned long freq);

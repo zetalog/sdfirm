@@ -184,6 +184,10 @@ static void __noreturn init_coldboot(void)
 	if (!init_count_offset)
 		bh_panic();
 
+	rc = sbi_heap_init(scratch);
+	if (rc)
+		bh_panic();
+
 #ifdef CONFIG_SBI_ECALL_HSM
 	rc = sbi_hsm_init(scratch, hartid, true);
 	if (rc)

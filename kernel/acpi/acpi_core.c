@@ -297,7 +297,7 @@ void acpi_state_close(struct acpi_state *state)
 acpi_status_t acpi_initialize_subsystem(void)
 {
 	acpi_status_t status;
-	
+
 	status = acpi_os_create_lock(&acpi_gbl_reference_lock);
 	if (ACPI_FAILURE(status))
 		return status;

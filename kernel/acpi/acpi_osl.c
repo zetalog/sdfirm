@@ -70,3 +70,22 @@ acpi_status_t acpi_os_signal_semaphore(acpi_handle_t handle,
 	ret = sem_signal(handle, units);
 	return ret ? AE_LIMIT : AE_OK;
 }
+
+void acpi_os_debug_print(const char *fmt, ...)
+{
+#define MAX_DEBUG_BUFFER	512
+#define MAX_DEBUG_SUFFIX	2
+	va_list	arglist;
+	char output[MAX_DEBUG_BUFFER+1];
+	int prefix_len;
+
+	snprintf(output, MAX_DEBUG_BUFFER, "acpi(%d): ", smp_processor_id());
+	va_start(arglist, fmt);
+	prefix_len = strlen(output);
+	vsnprintf(output+prefix_len,
+		  MAX_DEBUG_BUFFER-prefix_len-MAX_DEBUG_SUFFIX,
+		  fmt, arglist);
+	va_end(arglist);
+
+	con_log("%s\n", output);
+}

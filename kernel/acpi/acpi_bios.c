@@ -39,7 +39,7 @@ static void acpi_bios_producer_init(void)
 	struct acpi_bios_table *start = __acpi_bios_start;
 	struct acpi_bios_table *end = __acpi_bios_end;
 
-	con_log("acpi: BIOS start %016llx end %016llx\n", (uint64_t)start, (uint64_t)end);
+	con_log("acpi_bios: %016llx - %016llx\n", (uint64_t)start, (uint64_t)end);
 	rsdp->revision = 2;
 	rsdp->xsdt_physical_address = (uint64_t)acpi_xsdt;
 
@@ -47,8 +47,9 @@ static void acpi_bios_producer_init(void)
 
 	for (i = 0; i < nr_tables; i++) {
 		table = (struct acpi_table_header *)start[i].table;
-		con_log("acpi: installing BIOS table [%4.4s] at %016llx\n",
+		con_log("acpi_bios: installing [%4.4s] at %016llx\n",
 			table->signature, (uint64_t)table);
+		acpi_bios_install_table(table);
 	}
 
 	fadt->Xdsdt = (uint64_t)acpi_dsdt;
@@ -67,7 +68,6 @@ static void acpi_bios_consumer_init(void)
 
 void acpi_bios_init(void)
 {
-	con_log("acpi: initializing BIOS...\n");
 	acpi_bios_producer_init();
 	acpi_bios_consumer_init();
 }

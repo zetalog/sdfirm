@@ -82,6 +82,14 @@ endif
 
 endmenu
 
+config SBI_HEAP
+	bool "Enable SBI heap support"
+	select ARCH_HAS_HEAP
+	select HEAP
+	help
+	  If enabled, SBI firmware uses memory sized CONFIG_HEAP_SIZE as
+	  architecture specific heap range.
+
 config SBI_RISCV_F
 	bool "Enable single precision FP load/store"
 
@@ -223,6 +231,7 @@ if SBI_EFI
 config SBI_EFI_BUILTIN
 	bool "Force builtin flatened extensible firmware memory map"
 	select EFI_BUILTIN
+	select SBI_HEAP
 
 endif
 
