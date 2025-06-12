@@ -4,5 +4,6 @@ obj-y += rsdp.aml.rel
 obj-y += xsdt.aml.rel
 obj-y += fadt.aml.rel
 obj-y += dsdt.aml.rel
+obj-y += rhct.aml.rel
 obj-$(CONFIG_K1MATRIX_ACPI_MADT) += madt.aml.rel
 obj-$(CONFIG_K1MATRIX_ACPI_RIMT) += rimt.aml.rel
