@@ -198,7 +198,7 @@ $(obj)/%.rel: $(src)/%.S FORCE
 
 quiet_cmd_iasl_aml_asl = ASL $(quiet_modtag) $@
 
-cmd_iasl_aml_asl = $(ASL) $(asl_flags) $< 1>/dev/null
+cmd_iasl_aml_asl = $(ASL) $(asl_flags) -p $@ $< 1>/dev/null
 
 $(obj)/%.aml: $(src)/%.asl FORCE
 	$(call if_changed_dep,iasl_aml_asl)
