@@ -125,10 +125,8 @@ void ecc_sram_report_error(void)
 	einfo.info.me.column = 0;
 	einfo.info.me.rank = 0;
 	einfo.info.me.bit_pos = 0;
-	einfo.info.me.chip_id = 0;
 	einfo.info.me.err_type = info.error_type;
-	einfo.info.me.status = 0;
-	einfo.info.me.resvd = 0;
+	einfo.info.me.err_status = 0;
 
 	/* 6. Set source ID (SRAM) */
 	acpi_ghes_source_id = 0x70;  /* SRAM error source ID */
