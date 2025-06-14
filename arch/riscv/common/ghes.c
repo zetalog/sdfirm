@@ -194,13 +194,14 @@ static struct acpi_hest_generic_v2 *find_error_source_by_id(uint8_t src_id)
 static int ospm_acked_prev_err(struct acpi_generic_address *read_ack_register,
 			       uint64_t ack_preserve, uint64_t ack_write)
 {
-	uint64_t resp;
+	uint64_t resp, tmp;
 
 	/* If there is no ack register, assume the previous error ack'ed */
 	if (!read_ack_register->address)
 		return 1;
 
-	resp = *((volatile uint64_t *)(ulong)read_ack_register->address);
+	memcpy(&tmp, (void *)(uintptr_t)read_ack_register->address, sizeof(tmp));
+	resp = tmp;
 
 	/* If register contains zero, assume its acked */
 	if (!resp)
@@ -213,7 +214,7 @@ static int ospm_acked_prev_err(struct acpi_generic_address *read_ack_register,
 }
 
 static void ghes_record_mem_error(acpi_ghes_status_block *error_block,
-				  uint64_t error_physical_addr)
+				  acpi_ghes_error_info *einfo)
 {
 	uint32_t data_length;
 	struct acpi_hest_generic_data *dentry;
@@ -227,12 +228,12 @@ static void ghes_record_mem_error(acpi_ghes_status_block *error_block,
 	error_block->status.raw_data_offset = 0;
 	error_block->status.raw_data_length = 0;
 	error_block->status.data_length =  data_length;
-	error_block->status.error_severity = CPER_SEV_RECOVERABLE;
+	error_block->status.error_severity = einfo->info.me.err_sev;
 
 	/* Build generic data entry header */
 	dentry = &error_block->data;
 	memcpy(dentry->section_type, &CPER_SEC_PLATFORM_MEM, sizeof(dentry->section_type));
-	dentry->error_severity = CPER_SEV_RECOVERABLE;
+	dentry->error_severity = einfo->info.me.err_sev;
 	dentry->validation_bits = 0;
 	dentry->flags = 0;
 	dentry->error_data_length = ACPI_GHES_MEM_CPER_LENGTH;
@@ -240,9 +241,42 @@ static void ghes_record_mem_error(acpi_ghes_status_block *error_block,
 
 	msec = &error_block->cpers[0].sections[0].ms;
 	memset(msec, 0, sizeof(*msec));
-	msec->validation_bits |= 0x1UL;
-	msec->physical_addr = error_physical_addr;
-	msec->physical_addr_mask = (uint64_t)-1;
+
+	msec->validation_bits = einfo->info.me.validation_bits;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_ERROR_STATUS)
+		msec->error_status = einfo->info.me.err_status;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_PA)
+		msec->physical_addr = einfo->info.me.physical_address;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_PA_MASK)
+		msec->physical_addr_mask = einfo->info.me.physical_address_mask;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_NODE)
+		msec->node = einfo->info.me.node;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_CARD)
+		msec->card = einfo->info.me.card;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_MODULE)
+		msec->module = einfo->info.me.module;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_BANK)
+		msec->bank = einfo->info.me.bank;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_DEVICE)
+		msec->device = einfo->info.me.device;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_ROW)
+		msec->row = einfo->info.me.row;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_COLUMN)
+		msec->column = einfo->info.me.column;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_BIT_POSITION)
+		msec->bit_pos = einfo->info.me.bit_pos;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_REQUESTOR_ID)
+		msec->requestor_id = einfo->info.me.req_id;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_RESPONDER_ID)
+		msec->responder_id = einfo->info.me.resp_id;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_TARGET_ID)
+		msec->target_id = einfo->info.me.target_id;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_ERROR_TYPE)
+		msec->error_type = einfo->info.me.err_type;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_RANK_NUMBER)
+		msec->rank = einfo->info.me.rank;
+	if (einfo->info.me.validation_bits & CPER_MEM_VALID_ROW_EXT)
+		msec->extended = einfo->info.me.extended;
 }
 
 static void ghes_record_generic_cpu_error(acpi_ghes_status_block *error_block,
@@ -317,6 +351,75 @@ static void ghes_record_generic_cpu_error(acpi_ghes_status_block *error_block,
 		psec->ip = einfo->info.gpe.ip;
 }
 
+static void ghes_record_pcie_error(acpi_ghes_status_block *error_block,
+					  acpi_ghes_error_info *einfo)
+{
+	struct acpi_hest_generic_data *dentry;
+	struct cper_sec_pcie *psec;
+	uint32_t data_length;
+
+	/* This is the length if adding a new generic error data entry */
+	data_length = ACPI_GHES_DATA_LENGTH + ACPI_GHES_PCIE_CPER_LENGTH;
+
+	/* Build the generic error status block */
+	error_block->status.block_status = ACPI_HEST_UNCORRECTABLE;
+	error_block->status.raw_data_offset = 0;
+	error_block->status.raw_data_length = 0;
+	error_block->status.data_length = data_length;
+	error_block->status.error_severity = einfo->info.pcie.err_sev;
+
+	/* Build generic data entry header */
+	dentry = &error_block->data;
+	memcpy(dentry->section_type, &CPER_SEC_PCIE, sizeof(dentry->section_type));
+	dentry->error_severity = einfo->info.pcie.err_sev;
+	dentry->validation_bits = 0;
+	dentry->flags = 0;
+	dentry->error_data_length = ACPI_GHES_PCIE_CPER_LENGTH;
+	memset(dentry->fru_id, 0, sizeof(dentry->fru_id));
+
+	/* PCIe error section */
+	psec = &error_block->cpers[0].sections[0].pcie_sec;
+	psec->validation_bits = einfo->info.pcie.validation_bits;
+
+	if (einfo->info.pcie.validation_bits & CPER_PCIE_VALID_PORT_TYPE)
+		psec->port_type = einfo->info.pcie.port_type;
+	if (einfo->info.pcie.validation_bits & CPER_PCIE_VALID_VERSION) {
+		psec->version.major = einfo->info.pcie.version_major;
+		psec->version.minor = einfo->info.pcie.version_minor;
+	}
+	if (einfo->info.pcie.validation_bits & CPER_PCIE_VALID_COMMAND_STATUS) {
+		psec->command = einfo->info.pcie.command;
+		psec->status = einfo->info.pcie.status;
+	}
+	if (einfo->info.pcie.validation_bits & CPER_PCIE_VALID_DEVICE_ID)
+		psec->device_id.device_id = einfo->info.pcie.device_id;
+	if (einfo->info.pcie.validation_bits & CPER_PCIE_VALID_SERIAL_NUMBER) {
+		psec->serial_number.lower = einfo->info.pcie.serial_number_lower;
+		psec->serial_number.upper = einfo->info.pcie.serial_number_upper;
+	}
+	if (einfo->info.pcie.validation_bits & CPER_PCIE_VALID_BRIDGE_CONTROL_STATUS) {
+		psec->bridge.secondary_status = einfo->info.pcie.bridge_secondary_status;
+		psec->bridge.control = einfo->info.pcie.bridge_control;
+	}
+	if (einfo->info.pcie.validation_bits & CPER_PCIE_VALID_CAPABILITY)
+		memcpy(psec->capability, einfo->info.pcie.capability, sizeof(psec->capability));
+	if (einfo->info.pcie.validation_bits & CPER_PCIE_VALID_AER_INFO)
+		memcpy(psec->aer_info, einfo->info.pcie.aer_info, sizeof(psec->aer_info));
+	psec->device_id.vendor_id = einfo->info.pcie.vendor_id;
+	psec->device_id.class_code[0] = einfo->info.pcie.class_code[0];
+	psec->device_id.class_code[1] = einfo->info.pcie.class_code[1];
+	psec->device_id.class_code[2] = einfo->info.pcie.class_code[2];
+	psec->device_id.function = einfo->info.pcie.function;
+	psec->device_id.device = einfo->info.pcie.device;
+	psec->device_id.segment = einfo->info.pcie.segment;
+	psec->device_id.bus = einfo->info.pcie.bus;
+	psec->device_id.secondary_bus = einfo->info.pcie.secondary_bus;
+	psec->device_id.slot = einfo->info.pcie.slot;
+	psec->reserved = 0;
+	memset(psec->version.reserved, 0, sizeof(psec->version.reserved));
+	psec->device_id.reserved = 0;
+}
+
 void acpi_ghes_record_errors(uint8_t source_id, acpi_ghes_error_info *einfo)
 {
 	struct acpi_hest_generic_v2 *err_src;
@@ -340,10 +443,12 @@ void acpi_ghes_record_errors(uint8_t source_id, acpi_ghes_error_info *einfo)
 	gas = (u64 *)(ulong)err_src->error_status_address.address;
 	sblock = (acpi_ghes_status_block *)(ulong)(*gas);
 
-	if (einfo->etype == ERROR_TYPE_MEM && einfo->info.me.physical_address) {
-		ghes_record_mem_error(sblock, einfo->info.me.physical_address);
+	if (einfo->etype == ERROR_TYPE_MEM) {
+		ghes_record_mem_error(sblock, einfo);
 	} else if (einfo->etype == ERROR_TYPE_GENERIC_CPU) {
 		ghes_record_generic_cpu_error(sblock, einfo);
+	} else if (einfo->etype == ERROR_TYPE_PCIE) {
+		ghes_record_pcie_error(sblock, einfo);
 	} else {
 		printf("%s: Unknown error type %u\n", __func__, einfo->etype);
 	}
