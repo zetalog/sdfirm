@@ -7,6 +7,7 @@ BUILD_MODULE_OPS="-s -u"
 BUILD_TINY=no
 BUILD_LIB=yes
 BUILD_SMP=yes
+BUILD_DMAR=yes
 BUILD_KVM=no
 BUILD_NET=yes
 BUILD_STO=yes
@@ -50,6 +51,7 @@ usage()
 	echo "              feature includes:"
 	echo "    shared:   shared library support"
 	echo "    smp:      SMP support in OSen"
+	echo "    dmar:     DMA remapping support in OSen"
 	echo "    network:  network and telnet login support"
 	echo "    storage:  storage and NVME rootfs support"
 	echo " -e feat:     disable special features"
@@ -81,6 +83,9 @@ do
 	   fi
 	   if [ "x$OPTARG" = "xsmp" ]; then
 		BUILD_SMP=no
+	   fi
+	   if [ "x$OPTARG" = "xdmar" ]; then
+		BUILD_DMAR=no
 	   fi
 	   if [ "x$OPTARG" = "xnetwork" ]; then
 		BUILD_NET=no
@@ -205,6 +210,9 @@ if [ "x${BUILD_LIB}" = "xno" ]; then
 fi
 if [ "x${BUILD_SMP}" = "xno" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d smp"
+fi
+if [ "x${BUILD_DMAR}" = "xno" ]; then
+	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -d dmar"
 fi
 if [ "x${BUILD_NUMA}" = "xyes" ]; then
 	BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -e numa"
