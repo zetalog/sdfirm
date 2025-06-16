@@ -100,6 +100,9 @@ fi
 if [ "x${BUILD_SMP}" = "xno" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d smp"
 fi
+if [ "x${BUILD_DMAR}" = "xno" ]; then
+	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d dmar"
+fi
 if [ "x${BUILD_NUMA}" = "xno" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -d numa"
 fi
