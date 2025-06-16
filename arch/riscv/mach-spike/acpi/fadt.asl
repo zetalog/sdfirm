@@ -80,7 +80,7 @@
              Remote Power-on capable (V4) : 0
               Use APIC Cluster Model (V4) : 0
   Use APIC Physical Destination Mode (V4) : 0
-                    Hardware Reduced (V5) : 0
+                    Hardware Reduced (V5) : 1
                    Low Power S0 Idle (V5) : 0
 
 [0012]                     Reset Register : [Generic Address Structure]
