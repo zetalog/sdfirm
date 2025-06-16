@@ -23,7 +23,10 @@ void acpi_bios_install_table(void *table)
 
 	BUG_ON(acpi_xsdt_num >= ACPI_MAX_TABLES);
 
-	xsdt->table_offset_entry[acpi_xsdt_num] = (uint64_t)table;
+	con_log("acpi_bios: installing [%4.4s] at %016llx\n",
+		ACPI_CAST_PTR(struct acpi_table_header, table)->signature,
+		((unsigned long long)table));
+	xsdt->table_offset_entry[acpi_xsdt_num] = ACPI_PTR_TO_PHYSADDR(table);
 	acpi_xsdt_num++;
 }
 
@@ -32,6 +35,7 @@ static void acpi_bios_producer_init(void)
 	int i;
 	struct acpi_table_rsdp *rsdp = (struct acpi_table_rsdp *)acpi_rsdp;
 	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)acpi_fadt;
+	struct acpi_table_xsdt *xsdt = (struct acpi_table_xsdt *)acpi_xsdt;
 	int nr_tables = ((uintptr_t)__acpi_bios_end -
 			 (uintptr_t)__acpi_bios_start) /
 			sizeof (struct acpi_bios_table);
@@ -40,17 +44,27 @@ static void acpi_bios_producer_init(void)
 
 	con_log("acpi_bios: %016llx - %016llx\n",
 		(uint64_t)start, (uint64_t)__acpi_bios_end);
-	rsdp->revision = 2;
-	rsdp->xsdt_physical_address = (uint64_t)acpi_xsdt;
 
+	/* Build RSDP */
+	ACPI_RSDP_SIG_CPY(rsdp->signature);
+	ACPI_ENCODE8(&rsdp->revision, 2);
+	ACPI_ENCODE64(&rsdp->xsdt_physical_address,
+		      ACPI_PTR_TO_PHYSADDR (acpi_xsdt));
+	ACPI_ENCODE32(&rsdp->length, sizeof (struct acpi_table_xsdt));
+	acpi_rsdp_calc_checksum(rsdp);
+
+	/* Build XSDT */
+	ACPI_NAMECPY(ACPI_SIG_XSDT, xsdt->header.signature);
+	ACPI_ENCODE8(&xsdt->header.revision, 1);
 	acpi_bios_install_table(acpi_fadt);
-
 	for (i = 0; i < nr_tables; i++) {
 		table = (struct acpi_table_header *)start[i].table;
-		con_log("acpi_bios: installing [%4.4s] at %016llx\n",
-			table->signature, (uint64_t)table);
 		acpi_bios_install_table(table);
 	}
+	ACPI_ENCODE32(&xsdt->header.length,
+		sizeof (struct acpi_table_header) +
+		(acpi_xsdt_num * ACPI_XSDT_ENTRY_SIZE));
+	acpi_table_calc_checksum(&xsdt->header);
 
 	fadt->Xdsdt = (uint64_t)acpi_dsdt;
 }
