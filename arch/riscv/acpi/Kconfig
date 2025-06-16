@@ -1,0 +1,12 @@
+
+#
+# Advance configuration and power management interface (ACPI)
+#
+
+if ACPI
+
+menu "RISCV specific ACPI options"
+
+endmenu
+
+endif

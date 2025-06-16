@@ -443,6 +443,7 @@ typedef uint32_t acpi_ddb_t;
  * table signature/method name handling
  * ============================================================ */
 #define ACPI_NAME_SIZE		4
+#define ACPI_NAMESEG_SIZE	ACPI_NAME_SIZE
 #define ACPI_AML_PATH_SIZE	1278
 #define ACPI_ASL_PATH_SIZE	1530
 #define ACPI_MAX_NAME_SEGS	255
@@ -476,17 +477,6 @@ typedef struct acpi_path {
 	((acpi_tag_t)ACPI_GET32_PAD((name), '_'))
 #define ACPI_NAME2RSDPTR(name)				\
 	((uint64_t)ACPI_GET64(name))
-
-#define ACPI_SIG_RSDPTR			ACPI_NAME2RSDPTR("RSD PTR ")
-#define ACPI_SIG_RSDP			ACPI_NAME2TAG("RSD ")	/* Internal usage */
-#define ACPI_SIG_DSDT			ACPI_NAME2TAG("DSDT")
-#define ACPI_SIG_FADT			ACPI_NAME2TAG("FACP")
-#define ACPI_SIG_RSDT			ACPI_NAME2TAG("RSDT")
-#define ACPI_SIG_XSDT			ACPI_NAME2TAG("XSDT")
-#define ACPI_SIG_SSDT			ACPI_NAME2TAG("SSDT")
-#define ACPI_SIG_PSDT			ACPI_NAME2TAG("PSDT")
-#define ACPI_SIG_FACS			ACPI_NAME2TAG("FACS")
-#define ACPI_SIG_S3PT			ACPI_NAME2TAG("S3PT")
 #define ACPI_TAG_NULL			ACPI_NAME2TAG(ACPI_NULL_NAME)
 
 #define ACPI_ROOT_NAME			"\\___"
@@ -538,6 +528,19 @@ struct acpi_reference {
  * ============================================================ */
 #define ACPI_OEM_ID_SIZE	6
 #define ACPI_OEM_TABLE_ID_SIZE	8
+
+#define ACPI_SIG_RSDPTR			ACPI_NAME2RSDPTR("RSD PTR ")
+#define ACPI_SIG_RSDP			ACPI_NAME2TAG("RSD ")	/* Internal usage */
+#define ACPI_SIG_DSDT			ACPI_NAME2TAG("DSDT")
+#define ACPI_SIG_FADT			ACPI_NAME2TAG("FACP")
+#define ACPI_SIG_RSDT			ACPI_NAME2TAG("RSDT")
+#define ACPI_SIG_XSDT			ACPI_NAME2TAG("XSDT")
+#define ACPI_SIG_SSDT			ACPI_NAME2TAG("SSDT")
+#define ACPI_SIG_PSDT			ACPI_NAME2TAG("PSDT")
+#define ACPI_SIG_FACS			ACPI_NAME2TAG("FACS")
+#ifndef ACPI_FLEX_ARRAY
+#define ACPI_FLEX_ARRAY(TYPE, NAME)     TYPE NAME[0]
+#endif
 
 #pragma pack(1)
 
@@ -694,6 +697,13 @@ struct acpi_table_facs {
 	uint32_t ospm_flags;		/* ACPI 4.0 */
 	uint8_t reserved1[24];
 };
+
+/*
+ * Get the remaining ACPI tables
+ */
+#include <acpi/actbl1.h>
+#include <acpi/actbl2.h>
+#include <acpi/actbl3.h>
 
 #pragma pack()
 
@@ -1123,6 +1133,15 @@ void acpi_bios_install_table(void *table);
 #else
 #define acpi_bios_init()		do { } while (0)
 #define acpi_bios_install_table(table)	do { } while (0)
+#endif
+#ifdef CONFIG_SBI_EFI
+void acpi_fixups(char *oem, char *oem_table);
+char *acpi_get_vid(void);
+char *acpi_get_pid(void);
+#else
+#define acpi_fixups(oem, oem_table)	do { } while (0)
+#define acpi_get_vid()			NULL
+#define acpi_get_pid()			NULL
 #endif
 
 #endif /* __ASSEMBLY__ */
