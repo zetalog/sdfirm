@@ -156,6 +156,7 @@ core-y				+= arch/riscv/common/
 core-y				+= arch/riscv/utils/
 core-$(CONFIG_SBI)		+= arch/riscv/sbi/
 core-$(CONFIG_FDT)		+= arch/riscv/fdt/
+core-$(CONFIG_ACPI)		+= arch/riscv/acpi/
 drivers-y			+= $(MACHINE)
 
 all: $(KBUILD_IMAGE)

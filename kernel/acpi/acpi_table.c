@@ -552,7 +552,7 @@ boolean acpi_table_has_header(acpi_name_t signature)
 	 *
 	 * Note that S3PT and FACS do not have normal ACPI table headers.
 	 */
-	return (!ACPI_NAMECMP(ACPI_SIG_S3PT, signature) &&
+	return (!ACPI_NAMECMP(ACPI_NAME2TAG(ACPI_SIG_S3PT), signature) &&
 		!ACPI_NAMECMP(ACPI_SIG_FACS, signature));
 }
 
