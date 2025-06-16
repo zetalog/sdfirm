@@ -633,9 +633,8 @@ struct acpi_table_fadt {
 	uint32_t flags;
 	struct acpi_generic_address reset_register;
 	uint8_t reset_value;
-	uint16_t arm_boot_flags;			/* ACPI 5.1 */
-	uint8_t minor_revision;				/* ACPI 5.1 */
-	uint8_t reserved4[3];
+	uint16_t arm_boot_flags;			/* ACPI 5.1+ */
+	uint8_t minor_revision;				/* ACPI 5.1+ */
 	uint64_t Xfacs;
 	uint64_t Xdsdt;
 	struct acpi_generic_address xpm1a_event_block;
@@ -648,7 +647,7 @@ struct acpi_table_fadt {
 	struct acpi_generic_address xgpe1_block;
 	struct acpi_generic_address sleep_control;	/* ACPI 5.0+ */
 	struct acpi_generic_address sleep_status;	/* ACPI 5.0+ */
-	uint64_t hypervisor_id;				/* ACPI 6.0 */
+	uint64_t hypervisor_id;				/* ACPI 6.0+ */
 } __packed;
 
 #define ACPI_GPE_REGISTER_WIDTH		8
