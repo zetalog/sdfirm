@@ -13,6 +13,8 @@ static void spike_modify_dt(void *fdt)
 	fdt_cpu_fixup(fdt);
 	fdt_irq_fixup(fdt, "riscv,clint0");
 	fdt_fixups(fdt);
+
+	acpi_fixups("RISCV", "SPIKE");
 }
 
 static int spike_final_init(bool cold_boot)
