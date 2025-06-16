@@ -178,13 +178,13 @@ build_litmus()
 		cp -f ${SDFIRM_ROOT}/tests/litmus_dump.c \
 		      ${LITMUS_DIR}/litmus_dump.c
 		rm -f ${LITMUS_DIR}/utils.o
-		if [ ! -f "${LITMUS_DIR}/run_all.c" ] || [ ! -s "${LITMUS_DIR}/run_all.c" ]; then
-			echo "Error: ${LITMUS_DIR}/run_all.c does not exist or is empty!"
+		if [ ! -f "${LITMUS_DIR}/run.c" ] || [ ! -s "${LITMUS_DIR}/run.c" ]; then
+			echo "Error: ${LITMUS_DIR}/run.c does not exist or is empty!"
 			exit 1
 		fi
 		if [ "x${LITMUS_CASES}" = "x" ]; then
 			LITMUS_CASES=`\
-				cat ${LITMUS_DIR}/run_all.c | \
+				cat ${LITMUS_DIR}/run.c | \
 				grep extern | \
 				cut -d' ' -f3 | \
 				cut -d'(' -f1`
@@ -580,6 +580,8 @@ backup_elfs()
 		echo "Copying sdfirm..."
 		cp -f ${BUILD_ROOT}/obj/sdfirm-${ARCH}/sdfirm \
 			${BACKUP_ROOT}/sdfirm
+		cp -f ${BUILD_ROOT}/obj/sdfirm-${ARCH}/sdfirm.strip \
+			${BACKUP_ROOT}/sdfirm.strip
 		cp -f ${BUILD_ROOT}/obj/sdfirm-${ARCH}/.config \
 			${BACKUP_ROOT}/sdfirm.config
 		echo "Copying sdfirm.rom..."
@@ -601,8 +603,6 @@ backup_elfs()
 				echo "Copying litmus tests..."
 				cp -f ${LITMUS_ROOT}/litmus-${LITMUS_CORES}cores/run.exe \
 					${BACKUP_ROOT}/litmus
-				cp -f ${LITMUS_ROOT}/litmus-${LITMUS_CORES}cores/run.exe \
-					${BACKUP_ROOT}/litmus${LITMUS_CORES}
 			fi
 			if [ "x${TEST_LATE}" = "xperf" ]; then
 				echo "Copying linux kernel programs..."

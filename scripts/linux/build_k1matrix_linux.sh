@@ -57,6 +57,7 @@ CPU2006_BENCHMARKS="401.bzip2"
 PERF_UPDATE=no
 
 # Early tests include benchmark, litmus, cpu2006
+# Late tests: dmatest, perf, loopback
 TEST_EARLY=
 TEST_LATE=
 
