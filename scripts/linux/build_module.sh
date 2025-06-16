@@ -9,6 +9,7 @@ HOSTNAME=sdfirm
 BUILD_TINY=no
 BUILD_LIB=yes
 BUILD_SMP=yes
+BUILD_DMAR=yes
 BUILD_UEFI=no
 BUILD_ACPI=no
 BUILD_NET=yes
@@ -490,6 +491,9 @@ function build_linux()
 		if [ "xno" = "x${BUILD_SMP}" ]; then
 			apply_modcfg linux my_defconfig d_smp.cfg
 		fi
+		if [ "xno" = "x${BUILD_DMAR}" ]; then
+			apply_modcfg linux my_defconfig d_dmar.cfg
+		fi
 		if [ "xno" = "x${BUILD_NET}" ]; then
 			apply_modcfg linux my_defconfig d_net.cfg
 		fi
@@ -597,6 +601,9 @@ function build_sdfirm()
 	fi
 	if [ "xno" = "x${BUILD_SMP}" ]; then
 		apply_modcfg sdfirm my_defconfig d_smp.cfg
+	fi
+	if [ "xno" = "x${BUILD_DMAR}" ]; then
+		apply_modcfg sdfirm my_defconfig d_dmar.cfg
 	fi
 	if [ "xyes" = "x${BUILD_KVM}" ]; then
 		apply_modcfg sdfirm my_defconfig e_kvm.cfg
@@ -730,6 +737,7 @@ usage()
 	echo "              feature includes:"
 	echo "    shared:   shared library support"
 	echo "    smp:      SMP support in OSen"
+	echo "    dmar:     DMA remapping support in OSen"
 	echo "    network:  network and telnet login support"
 	echo " -e feat:     enable special features"
 	echo "              feature includes:"
@@ -776,6 +784,9 @@ do
 	   fi
 	   if [ "x$OPTARG" = "xsmp" ]; then
 		BUILD_SMP=no
+	   fi
+	   if [ "x$OPTARG" = "xdmar" ]; then
+		BUILD_DMAR=no
 	   fi
 	   if [ "x$OPTARG" = "xnetwork" ]; then
 		BUILD_NET=no
