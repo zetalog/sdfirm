@@ -5,7 +5,7 @@
  * 
  * Template for [DSDT] ACPI Table (AML byte code table)
  */
-DefinitionBlock ("", "DSDT", 2, "Intel", "_DSDT_01", 0x00000001)
+DefinitionBlock ("", "DSDT", 2, "SPACET", "_DSDT_01", 0x00000001)
 {
     Method (DS01)
     {
