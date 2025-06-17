@@ -18,6 +18,8 @@ static void __acpi_node_init(struct acpi_namespace_node *node,
 			     struct acpi_namespace_node *parent,
 			     acpi_tag_t tag, acpi_type_t object_type)
 {
+	acpi_name_t name;
+
 	INIT_LIST_HEAD(&node->sibling);
 	INIT_LIST_HEAD(&node->children);
 
@@ -28,6 +30,9 @@ static void __acpi_node_init(struct acpi_namespace_node *node,
 		acpi_table_increment(ddb);
 	node->ddb = ddb;
 	node->tag = tag;
+
+	ACPI_NAMECPY(node->tag, name);
+	acpi_dbg("[NS-%p-%4.4s] INIT", node, name);
 
 	if (!parent) {
 		BUG_ON(acpi_gbl_root_node);
@@ -40,12 +45,16 @@ static void __acpi_node_init(struct acpi_namespace_node *node,
 
 static void __acpi_node_exit(struct acpi_object *object)
 {
+	acpi_name_t name;
 	struct acpi_namespace_node *node =
 		ACPI_CAST_PTR(struct acpi_namespace_node, object);
 
 	acpi_space_lock();
 	list_del(&node->sibling);
 	acpi_space_unlock();
+
+	ACPI_NAMECPY(node->tag, name);
+	acpi_dbg("[NS-%p-%4.4s] EXIT", node, name);
 
 	if (node->parent) {
 		acpi_node_put(node->parent, "object");
