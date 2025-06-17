@@ -13,6 +13,14 @@
 #ifdef CONFIG_SPIKE_UART_HVC
 		bootargs = "console=hvc0 earlycon=sbi rdinit=/sdfirm_init";
 #else
+#ifdef CONFIG_EFI_BUILTIN
+		linux,uefi-system-table = <0x00 0x00>;
+		linux,uefi-mmap-start = <0x00 0x00>;
+		linux,uefi-mmap-size = <0x00>;
+		linux,uefi-mmap-desc-size = <0x30>;
+		linux,uefi-mmap-desc-ver = <0x01>;
+#endif
+
 		stdout-path = &uart;
 		bootargs = "console=ttyS0 earlycon rdinit=/sdfirm_init";
 #endif
