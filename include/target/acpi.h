@@ -983,6 +983,8 @@ void acpi_encode_generic_address(struct acpi_generic_address *generic_address,
 #define acpi_warn		acpi_os_debug_print
 #define acpi_info		acpi_os_debug_print
 #define acpi_dbg		acpi_os_debug_print
+#define acpi_err_bios		acpi_os_debug_print
+#define acpi_warn_bios		acpi_os_debug_print
 
 /*=========================================================================
  * Name externals
