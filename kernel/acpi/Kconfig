@@ -36,6 +36,7 @@ choice
 config ACPI_BIOS
 	bool "BIOS"
 	depends ARCH_IS_ACPI_BIOS
+	select ACPI_LOGGING
 
 config ACPI_OSPM
 	bool "OSPM"
@@ -70,6 +71,9 @@ config ACPI_S4
 	default y
 
 endif
+
+config ACPI_LOGGING
+	bool "Enable ACPI verbosity"
 
 config ACPI_HW_REDUCED
 	bool "Enable hardware reduced ACPI support"

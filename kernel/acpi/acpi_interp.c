@@ -563,8 +563,11 @@ acpi_status_t acpi_interpret_table(acpi_ddb_t ddb,
 				    0, NULL,
 				    acpi_interpret_exec,
 				    start_node, NULL);
-	if (ACPI_FAILURE(status))
+	if (ACPI_FAILURE(status)) {
+		acpi_err("[%4.4s %d] execution failure!",
+			 table->signature, ddb);
 		goto err_ref;
+	}
 
 err_ref:
 	/* Ignore module level execution failure */
