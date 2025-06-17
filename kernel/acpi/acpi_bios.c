@@ -70,7 +70,7 @@ static void acpi_bios_producer_init(void)
 	ACPI_NAMECPY(ACPI_SIG_FADT, fadt->header.signature);
 	ACPI_ENCODE32(&fadt->dsdt, 0);
 	ACPI_ENCODE64(&fadt->Xdsdt, ACPI_PTR_TO_PHYSADDR(acpi_dsdt));
-	ACPI_ENCODE32(&fadt->header.length, sizeof (struct acpi_table_fadt));
+	ACPI_ENCODE32(&fadt->header.length, ACPI_FADT_V6_SIZE);
 	ACPI_ENCODE8(&fadt->header.revision, 6);
 	ACPI_ENCODE32(&fadt->flags, ACPI_FADT_HW_REDUCED);
 	acpi_table_calc_checksum(&fadt->header);
