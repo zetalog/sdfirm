@@ -8,8 +8,8 @@
 
 static void spike_modify_dt(void *fdt)
 {
-	uefi_dxe_init();
 	acpi_bios_init();
+	uefi_dxe_init();
 	fdt_cpu_fixup(fdt);
 	fdt_irq_fixup(fdt, "riscv,clint0");
 	fdt_fixups(fdt);
