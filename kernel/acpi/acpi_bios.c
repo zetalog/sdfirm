@@ -85,6 +85,7 @@ static void acpi_bios_consumer_init(void)
 		acpi_gbl_initial_tables_ids[i] = &acpi_gbl_initial_tables[i];
 	acpi_initialize_namespace();
 	acpi_initialize_tables(acpi_gbl_initial_tables_ids, ACPI_MAX_TABLES, false);
+	acpi_load_tables();
 }
 
 void acpi_bios_init(void)
