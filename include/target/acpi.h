@@ -682,9 +682,10 @@ struct acpi_table_fadt {
 #define ACPI_FADT_LOW_POWER_S0		(1<<21)	/* 21: [V5] S0 power savings are equal or better than S3 (ACPI 5.0) */
 
 #define ACPI_FADT_V1_SIZE		((uint32_t)(ACPI_FADT_OFFSET(flags) + 4))
-#define ACPI_FADT_V2_SIZE		((uint32_t)(ACPI_FADT_OFFSET(reserved4[0]) + 3))
+#define ACPI_FADT_V2_SIZE		((uint32_t)(ACPI_FADT_OFFSET(Xfacs)))
 #define ACPI_FADT_V3_SIZE		((uint32_t)(ACPI_FADT_OFFSET(sleep_control)))
-#define ACPI_FADT_V5_SIZE		((uint32_t)(sizeof (struct acpi_table_fadt)))
+#define ACPI_FADT_V5_SIZE		((uint32_t)(ACPI_FADT_OFFSET(hypervisor_id)))
+#define ACPI_FADT_V6_SIZE		((uint32_t)sizeof (struct acpi_table_fadt))
 
 struct acpi_table_facs {
 	acpi_name_t signature;
