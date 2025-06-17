@@ -829,8 +829,9 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp, acpi_tag_t tag,
 			parser = acpi_parser_push(&interp->parser);
 			if (!parser) {
 				status = acpi_parser_end_term(parser, AE_NO_MEMORY);
-				if (ACPI_FAILURE(status))
+				if (ACPI_FAILURE(status)) {
 					break;
+				}
 				goto next_parser;
 			}
 			continue;
@@ -844,8 +845,9 @@ acpi_status_t acpi_parse_aml(struct acpi_interp *interp, acpi_tag_t tag,
 			status = AE_OK;
 
 		status = acpi_parser_end_term(parser, status);
-		if (ACPI_FAILURE(status))
+		if (ACPI_FAILURE(status)) {
 			break;
+		}
 
 next_parser:
 		if (acpi_parser_completed(parser))
