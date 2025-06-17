@@ -111,6 +111,7 @@ struct acpi_string *acpi_string_open(const char *value)
 {
 	struct acpi_string *string;
 	struct acpi_operand *operand;
+	size_t len;
 
 	operand = acpi_operand_open(ACPI_TYPE_STRING,
 				    sizeof (struct acpi_string),
@@ -119,9 +120,11 @@ struct acpi_string *acpi_string_open(const char *value)
 		return NULL;
 
 	string = ACPI_CAST_PTR(struct acpi_string, operand);
-	if (value)
-		string->value = strdup(value);
-	else
+	if (value) {
+		len = strlen(value) + 1;
+		string->value = acpi_os_allocate(len);
+		strncpy(string->value, value, len);
+	} else
 		string->value = NULL;
 
 	return string;
