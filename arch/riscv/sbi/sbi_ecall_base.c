@@ -27,6 +27,18 @@ static int sbi_ecall_base_probe(unsigned long extid, unsigned long *out_val)
 	return 0;
 }
 
+static unsigned long ecall_impid = SBI_OPENSBI_IMPID;
+
+unsigned long sbi_ecall_get_impid(void)
+{
+	return ecall_impid;
+}
+
+void sbi_ecall_set_impid(unsigned long impid)
+{
+	ecall_impid = impid;
+}
+
 static int sbi_ecall_base_handler(unsigned long extid, unsigned long funcid,
 				  struct pt_regs *regs,
 				  unsigned long *out_val,
