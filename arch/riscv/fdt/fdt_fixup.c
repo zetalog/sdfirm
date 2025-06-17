@@ -9,6 +9,7 @@
 
 #include <target/fdt.h>
 #include <target/sbi.h>
+#include <target/efi.h>
 #include <sbi_utils/fdt/fdt_fixup.h>
 
 #ifdef CONFIG_FDT_FIXUP_RESIZE
@@ -420,32 +421,49 @@ void fdt_unregister_general_fixup(struct fdt_general_fixup *fixup)
 void fdt_efi_fixup(void *fdt)
 {
 	int node;
-	extern char _efi_start, _efi_end;
 	extern struct efi_system_table_t efi_core_st;
+	extern efi_memory_desc_t memory_map[];
+	extern int memory_map_count;
 	uint64_t mmap_start, mmap_size;
 	uint32_t mmap_desc_ver = 0x01;
 	uint32_t mmap_desc_size = 0x30;
 	fdt32_t prop[2];
+	int ret;
+
+	if (!fdt)
+		return;
 
 	node = fdt_path_offset(fdt, "/chosen");
 	if (node < 0)
 		return;
 
-	mmap_start = (uint64_t)&_efi_start;
+	mmap_start = (uint64_t)&memory_map;
 	prop[0] = cpu_to_fdt32(mmap_start >> 32);
 	prop[1] = cpu_to_fdt32(mmap_start & 0xffffffff);
-	fdt_setprop(fdt, node, "linux,uefi-mmap-start", prop, sizeof(prop));
+	ret = fdt_setprop(fdt, node, "linux,uefi-mmap-start", prop, sizeof(prop));
+	if (ret < 0)
+		return;
 
-	mmap_size = (uint64_t)&_efi_end - (uint64_t)&_efi_start;
-	fdt_setprop_u32(fdt, node, "linux,uefi-mmap-size", mmap_size);
+	/* Calculate memory map size based on the actual number of entries */
+	mmap_size = sizeof(efi_memory_desc_t) * memory_map_count;
+	ret = fdt_setprop_u32(fdt, node, "linux,uefi-mmap-size", mmap_size);
+	if (ret < 0)
+		return;
 
-	fdt_setprop_u32(fdt, node, "linux,uefi-mmap-desc-ver", mmap_desc_ver);
-	fdt_setprop_u32(fdt, node, "linux,uefi-mmap-desc-size", mmap_desc_size);
+	ret = fdt_setprop_u32(fdt, node, "linux,uefi-mmap-desc-ver", mmap_desc_ver);
+	if (ret < 0)
+		return;
+
+	ret = fdt_setprop_u32(fdt, node, "linux,uefi-mmap-desc-size", mmap_desc_size);
+	if (ret < 0)
+		return;
 
 	mmap_start = (uint64_t)&efi_core_st;
 	prop[0] = cpu_to_fdt32(mmap_start >> 32);
 	prop[1] = cpu_to_fdt32(mmap_start & 0xffffffff);
-	fdt_setprop(fdt, node, "linux,uefi-system-table", prop, sizeof(prop));
+	ret = fdt_setprop(fdt, node, "linux,uefi-system-table", prop, sizeof(prop));
+	if (ret < 0)
+		return;
 }
 #else
 #define fdt_efi_fixup(fdt)		do { } while (0)

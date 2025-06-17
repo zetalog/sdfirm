@@ -192,6 +192,9 @@ typedef	struct {
 #define EFI_PAGE_SHIFT		12
 #define EFI_PAGE_SIZE		(1UL << EFI_PAGE_SHIFT)
 #define EFI_PAGES_MAX		(U64_MAX >> EFI_PAGE_SHIFT)
+#define EFI_PAGE_MASK		(EFI_PAGE_SIZE - 1)
+
+#define EFI_SIZE_TO_PAGES(a)  (((a) >> EFI_PAGE_SHIFT) + (((a) & EFI_PAGE_MASK) ? 1 : 0))
 
 typedef struct {
 	uint32_t type;
