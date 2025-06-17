@@ -16,6 +16,12 @@ config DDR_RAS
 	  - Parity error detection
 	  - Interrupt handling for various error types
 
+config DDR_RAS_DEBUG
+	bool "Enable DDR RAS debugging message"
+	depends CONSOLE_DEBUG && DDR_RAS
+	help
+	  Additional debugging messages, including DDR register values.
+
 config ECC_SRAM_RAS
 	bool "Enable ECC SRAM reliability availability serviceability (RAS) support"
 	depends on RAS
