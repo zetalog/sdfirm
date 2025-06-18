@@ -13,6 +13,8 @@ static void spike_modify_dt(void *fdt)
 	fdt_cpu_fixup(fdt);
 	fdt_irq_fixup(fdt, "riscv,clint0");
 	fdt_fixups(fdt);
+	uefi_memmap_init(fdt);
+	fdt_efi_fixup(fdt);
 
 	acpi_fixups("RISCV", "SPIKE");
 }
