@@ -203,7 +203,7 @@ typedef struct {
 	uint64_t virt_addr;
 	uint64_t num_pages;
 	uint64_t attribute;
-} efi_memory_desc_t;
+} __attribute__((aligned(16))) efi_memory_desc_t;
 
 typedef struct {
 	efi_guid_t guid;
@@ -731,8 +731,10 @@ struct efi_memory_map {
 
 #ifdef CONFIG_UEFI_DXE
 void uefi_dxe_init(void);
+void uefi_memmap_init(void *fdt);
 #else
-#define uefi_dxe_init()	do { } while (0)
+#define uefi_dxe_init()		do { } while (0)
+#define uefi_memmap_init()	do { } while (0)
 #endif
 
 #endif /* __EFI_TARGET_H_INCLUDE__ */
