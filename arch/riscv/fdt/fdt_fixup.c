@@ -417,7 +417,6 @@ void fdt_unregister_general_fixup(struct fdt_general_fixup *fixup)
 	sbi_list_del(&fixup->head);
 }
 
-#ifdef CONFIG_UEFI_DXE
 void fdt_efi_fixup(void *fdt)
 {
 	int node;
@@ -465,13 +464,9 @@ void fdt_efi_fixup(void *fdt)
 	if (ret < 0)
 		return;
 }
-#else
-#define fdt_efi_fixup(fdt)		do { } while (0)
-#endif
 
 void fdt_fixups(void *fdt)
 {
-	fdt_efi_fixup(fdt);
 	fdt_reserved_memory_fixup(fdt);
 	fdt_pmu_fixup(fdt);
 }

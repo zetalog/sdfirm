@@ -86,22 +86,16 @@ efi_simple_text_input_protocol_t con_in_proto = {
 	.wait_for_key = NULL
 };
 
-/* Memory map initialization function */
-static void init_efi_memory_map(void)
+void uefi_memmap_init(void *fdt)
 {
-	uint64_t fw_start, fw_size, fw_end, ddr_start, ddr_size, ddr_end;
+	uint64_t reserved_start, reserved_size, reserved_end, ddr_start, ddr_size, ddr_end;
 	efi_memory_desc_t *desc;
-	int node, len;
+	int node, child, len;
 	const uint32_t *reg;
 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-	void *fdt = (void *)scratch->next_arg1;
 	memory_map_count = 0;
 
-	/* Clear the memory map array */
 	memset(memory_map, 0, sizeof(memory_map));
-
-	fw_start = scratch->fw_start;
-	fw_size = scratch->fw_size;
 
 #ifdef CONFIG_ARCH_SPIKE
 	ddr_start = 0x80000000;
@@ -110,14 +104,17 @@ static void init_efi_memory_map(void)
 	ddr_start = 0x0;
 	ddr_size = 0x100000000;
 #endif
+	reserved_start = scratch->fw_start;
+	reserved_size = scratch->fw_size;
 
-	/* Get DDR information from device tree */
 	if (fdt) {
 		/* Find memory node */
 		node = fdt_path_offset(fdt, "/memory");
 		if (node < 0) {
+			printf("uefi_memmap_init: memory node not found\n");
 			return;
 		}
+
 		reg = fdt_getprop(fdt, node, "reg", &len);
 		if (reg) {
 			/* For 64-bit address, we need to handle both cells */
@@ -125,60 +122,70 @@ static void init_efi_memory_map(void)
 			ddr_size = ((uint64_t)fdt32_to_cpu(reg[2]) << 32) | fdt32_to_cpu(reg[3]);
 			printf("DDR from FDT: start=0x%llx, size=0x%llx\n", ddr_start, ddr_size);
 		}
+
+		/* Find reserved-memory node */
+		node = fdt_path_offset(fdt, "/reserved-memory");
+		if (node < 0) {
+			printf("uefi_memmap_init: reserved-memory node not found\n");
+			return;
+		}
+
+		/* Search for reg property in reserved-memory and its children */
+		reg = fdt_getprop(fdt, node, "reg", &len);
+		if (reg && len >= 16) {
+			reserved_start = ((uint64_t)fdt32_to_cpu(reg[0]) << 32) | fdt32_to_cpu(reg[1]);
+			reserved_size = ((uint64_t)fdt32_to_cpu(reg[2]) << 32) | fdt32_to_cpu(reg[3]);
+			printf("Reserved memory from FDT: start=0x%llx, size=0x%llx\n", reserved_start, reserved_size);
+		} else {
+			/* Search in child nodes */
+			fdt_for_each_subnode(child, fdt, node) {
+				reg = fdt_getprop(fdt, child, "reg", &len);
+				if (reg && len >= 16) {
+					reserved_start = ((uint64_t)fdt32_to_cpu(reg[0]) << 32) | fdt32_to_cpu(reg[1]);
+					reserved_size = ((uint64_t)fdt32_to_cpu(reg[2]) << 32) | fdt32_to_cpu(reg[3]);
+					printf("Reserved memory from child node %s: start=0x%llx, size=0x%llx\n",
+						fdt_get_name(fdt, child, NULL), reserved_start, reserved_size);
+					break;
+				}
+			}
+		}
 	}
 
-	/* Add firmware reserved region */
+	reserved_end = reserved_start + reserved_size;
+	ddr_end = ddr_start + ddr_size;
+
 	desc = &memory_map[memory_map_count++];
 	desc->type = EFI_RESERVED_TYPE;
-	desc->phys_addr = fw_start;
-	desc->virt_addr = fw_start;
-	desc->num_pages = EFI_SIZE_TO_PAGES(fw_size);
+	desc->phys_addr = reserved_start;
+	desc->virt_addr = reserved_start;
+	desc->num_pages = EFI_SIZE_TO_PAGES(reserved_size);
 	desc->attribute = EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC;
 
-	/* Add conventional memory region (DDR before firmware) */
-	if (ddr_start < fw_start) {
+	/* Add conventional memory region (DDR before reserved) */
+	if (ddr_start < reserved_start) {
 		desc = &memory_map[memory_map_count++];
 		desc->type = EFI_CONVENTIONAL_MEMORY;
 		desc->phys_addr = ddr_start;
 		desc->virt_addr = ddr_start;
-		desc->num_pages = EFI_SIZE_TO_PAGES(fw_start - ddr_start);
+		desc->num_pages = EFI_SIZE_TO_PAGES(reserved_start - ddr_start);
 		desc->attribute = EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC;
 	}
 
-	/* Add conventional memory region (DDR after firmware) */
-	fw_end = fw_start + fw_size;
-	ddr_end = ddr_start + ddr_size;
-	if (fw_end < ddr_end) {
+	if (ddr_end > reserved_end) {
 		desc = &memory_map[memory_map_count++];
 		desc->type = EFI_CONVENTIONAL_MEMORY;
-		desc->phys_addr = fw_end;
-		desc->virt_addr = fw_end;
-		desc->num_pages = EFI_SIZE_TO_PAGES(ddr_end - fw_end);
+		desc->phys_addr = reserved_end;
+		desc->virt_addr = reserved_end;
+		desc->num_pages = EFI_SIZE_TO_PAGES(ddr_end - reserved_end);
 		desc->attribute = EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC;
 	}
 
-#if 0
-	/* TODO: Add memory mapped I/O region */
 	desc = &memory_map[memory_map_count++];
-	desc->type = EFI_MEMORY_MAPPED_IO;
-	desc->phys_addr = 0x80000000;
-	desc->virt_addr = 0x80000000;
-	desc->num_pages = 0x40000000 / EFI_PAGE_SIZE;
-	desc->attribute = EFI_MEMORY_UC;
-#endif
-
-	/* Add EFI runtime services data region */
-	desc = &memory_map[memory_map_count++];
-	desc->type = EFI_RUNTIME_SERVICES_CODE;
+	desc->type = EFI_RUNTIME_SERVICES_DATA;
 	desc->phys_addr = (uint64_t)&efi_core_st;
 	desc->virt_addr = (uint64_t)&efi_core_st;
-	desc->num_pages = EFI_SIZE_TO_PAGES(sizeof(efi_system_table_t));
+	desc->num_pages = EFI_SIZE_TO_PAGES(sizeof(efi_core_st));
 	desc->attribute = EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC;
-
-	/* Debug output */
-	printf("EFI Memory Map initialized with %d entries\n", memory_map_count);
-	printf("DDR start: 0x%llx, DDR size: 0x%llx\n", ddr_start, ddr_size);
-	printf("Firmware start: 0x%llx, Firmware size: 0x%llx\n", fw_start, fw_size);
 
 	for (int i = 0; i < memory_map_count; i++) {
 		desc = &memory_map[i];
@@ -200,11 +207,9 @@ static uint32_t efi_crc32(const void *data, size_t len)
 }
 
 void uefi_dxe_init(void) {
-	static efi_config_table_t config_tables[2];
+	__efi static efi_config_table_t config_tables[2];
+	__efi static efi_char16_t fw_vendor_str[] = u"SpacemiT";
 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-
-	/* Initialize EFI Memory Map */
-	init_efi_memory_map();
 
 	/* init efi_core_st header */
 	efi_core_st.hdr.signature = EFI_SYSTEM_TABLE_SIGNATURE;
@@ -213,7 +218,6 @@ void uefi_dxe_init(void) {
 	efi_core_st.hdr.reserved = 0;
 
 	/* Set firmware information */
-	static const efi_char16_t fw_vendor_str[] = u"SpacemiT";
 	efi_core_st.fw_vendor = (unsigned long)fw_vendor_str;
 	efi_core_st.fw_revision = 0x00010000;  // 1.0
 
@@ -235,7 +239,7 @@ void uefi_dxe_init(void) {
 	config_tables[1].guid = DEVICE_TREE_GUID;
 	config_tables[1].table = (void *)scratch->next_arg1;
 
-	efi_core_st.nr_tables = 2;
+	efi_core_st.nr_tables = ARRAY_SIZE(config_tables);
 	efi_core_st.tables = (unsigned long)config_tables;
 
 	/* Calculate CRC32 */
