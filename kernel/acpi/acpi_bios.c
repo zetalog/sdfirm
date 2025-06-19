@@ -59,6 +59,19 @@ static void acpi_bios_producer_init(void)
 	acpi_bios_install_table(acpi_fadt);
 	for (i = 0; i < nr_tables; i++) {
 		table = (struct acpi_table_header *)start[i].table;
+
+		/* Skip specific tables that should not be installed */
+		if (ACPI_NAMECMP(ACPI_SIG_RSDP, table->signature) ||
+		    ACPI_NAMECMP(ACPI_SIG_XSDT, table->signature) ||
+		    ACPI_NAMECMP(ACPI_SIG_RSDT, table->signature) ||
+		    ACPI_NAMECMP(ACPI_SIG_FADT, table->signature) ||
+		    ACPI_NAMECMP(ACPI_SIG_DSDT, table->signature) ||
+		    ACPI_NAMECMP(ACPI_SIG_FACS, table->signature)) {
+			con_log("acpi_bios: skipping [%4.4s] at %016llx\n",
+				table->signature, ((unsigned long long)table));
+			continue;
+		}
+
 		acpi_bios_install_table(table);
 	}
 	ACPI_ENCODE32(&xsdt->header.length,
@@ -72,6 +85,7 @@ static void acpi_bios_producer_init(void)
 	ACPI_ENCODE64(&fadt->Xdsdt, ACPI_PTR_TO_PHYSADDR(acpi_dsdt));
 	ACPI_ENCODE32(&fadt->header.length, ACPI_FADT_V6_SIZE);
 	ACPI_ENCODE8(&fadt->header.revision, 6);
+	ACPI_ENCODE8(&fadt->minor_revision, 6);
 	ACPI_ENCODE32(&fadt->flags, ACPI_FADT_HW_REDUCED);
 	acpi_table_calc_checksum(&fadt->header);
 }
