@@ -130,6 +130,39 @@
 #define AML_NAMESTRING_PAD		(uint16_t)0x5f
 #define AML_EXTENDED_OP_PFX		(uint16_t)0x5b
 
+/* Divided extended opcode */
+#define AML_EXT_OP			0x5b
+
+#define AML_EXT_MUTEX_OP		0x01
+#define AML_EXT_EVENT_OP		0x02
+#define AML_EXT_COND_REF_OF_OP		0x12
+#define AML_EXT_CREATE_FIELD_OP		0x13
+#define AML_EXT_LOAD_TABLE_OP		0x1f
+#define AML_EXT_LOAD_OP			0x20
+#define AML_EXT_STALL_OP		0x21
+#define AML_EXT_SLEEP_OP		0x22
+#define AML_EXT_ACQUIRE_OP		0x23
+#define AML_EXT_SIGNAL_OP		0x24
+#define AML_EXT_WAIT_OP			0x25
+#define AML_EXT_RESET_OP		0x26
+#define AML_EXT_RELEASE_OP		0x27
+#define AML_EXT_FROM_BCD_OP		0x28
+#define AML_EXT_TO_BCD_OP		0x29
+#define AML_EXT_UNLOAD_OP		0x2a
+#define AML_EXT_REVISION_OP		0x30
+#define AML_EXT_DEBUG_OP		0x31
+#define AML_EXT_FATAL_OP		0x32
+#define AML_EXT_TIMER_OP		0x33
+#define AML_EXT_REGION_OP		0x80
+#define AML_EXT_FIELD_OP		0x81
+#define AML_EXT_DEVICE_OP		0x82
+#define AML_EXT_PROCESSOR_OP		0x83
+#define AML_EXT_POWER_RES_OP		0x84
+#define AML_EXT_THERMAL_ZONE_OP		0x85
+#define AML_EXT_INDEX_FIELD_OP		0x86
+#define AML_EXT_BANK_FIELD_OP		0x87
+#define AML_EXT_DATA_REGION_OP		0x88
+
 /*
  * 0x5b00 can never appear as an opcode, so we use it to indicate the
  * reset of the parser.

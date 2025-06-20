@@ -37,6 +37,7 @@ config ACPI_BIOS
 	bool "BIOS"
 	depends ARCH_IS_ACPI_BIOS
 	select ACPI_LOGGING
+	select ACPI_SDT if UEFI_DXE
 
 config ACPI_OSPM
 	bool "OSPM"
@@ -97,6 +98,7 @@ config ACPI_GPE
 config ACPI_AML
 	bool "Enable ACPI machine languate (AML) interpreter support"
 	default y if ACPI_OSPM
+	depends !ACPI_SDT
 
 if ACPI_AML
 
@@ -117,6 +119,10 @@ config ACPI_AML_PREFIX_SIMPLE
 	  If unsure, say "N" here.
 
 endif
+
+config ACPI_SDT
+	bool "Enable EFI system description table (SDT) protocol support"
+	depends UEFI_DXE
 
 config ACPI_TABLE_OVERRIDE
 	bool "Enable OSPM table overridden support"
