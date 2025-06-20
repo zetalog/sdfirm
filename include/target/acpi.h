@@ -1148,8 +1148,9 @@ char *acpi_get_pid(void);
 #define acpi_get_vid()			NULL
 #define acpi_get_pid()			NULL
 #endif
-
 #endif /* __ASSEMBLY__ */
+
+#include <target/acpi_sdt.h>
 
 #endif /* __ACPI_H_INCLUDE__ */
 
