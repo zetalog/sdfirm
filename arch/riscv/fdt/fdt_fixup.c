@@ -419,7 +419,8 @@ void fdt_unregister_general_fixup(struct fdt_general_fixup *fixup)
 
 void fdt_efi_fixup(void *fdt)
 {
-	int node;
+	int node, resv_node;
+	int offset, next_offset;
 	extern struct efi_system_table_t efi_core_st;
 	extern efi_memory_desc_t memory_map[];
 	extern int memory_map_count;
@@ -463,6 +464,29 @@ void fdt_efi_fixup(void *fdt)
 	ret = fdt_setprop(fdt, node, "linux,uefi-system-table", prop, sizeof(prop));
 	if (ret < 0)
 		return;
+
+	/* keep /chosen and /reserved-memory node */
+	for (offset = fdt_first_subnode(fdt, 0);
+		offset >= 0;
+		offset = next_offset) {
+
+		node = fdt_path_offset(fdt, "/chosen");
+		if (node < 0)
+			return;
+
+		resv_node = fdt_path_offset(fdt, "/reserved-memory");
+		if (resv_node < 0)
+			return;
+
+		next_offset = fdt_next_subnode(fdt, offset);
+
+		if (offset != node && offset != resv_node) {
+			ret = fdt_del_node(fdt, offset);
+			if (ret)
+				return;
+			next_offset = fdt_first_subnode(fdt, 0);
+		}
+	}
 }
 
 void fdt_fixups(void *fdt)
