@@ -46,6 +46,7 @@ static const unsigned int rpmi_irqs[RPMI_IRQ_COUNT] = {
 	IRQ_RPMI_P2A_ACK_NS
 };
 #endif
+bh_t	rpmi_bh;
 
 /** Minimum Base group version required */
 #define RPMI_BASE_VERSION_MIN		RPMI_VERSION(1, 0)
@@ -180,8 +181,6 @@ struct rpmi_shmem_mbox_controller {
 static struct rpmi_shmem_mbox_controller g_mctl;
 static struct rpmi_srvgrp_chan g_srvgrp_chans[RPMI_MAX_CHANNELS];
 static uint32_t g_chan_used[RPMI_MAX_CHANNELS];
-
-bh_t	rpmi_bh;
 
 /**************** Shared Memory Queues Helpers **************/
 
@@ -622,100 +621,102 @@ static void rpmi_shmem_free_chan(struct mbox_controller *mbox,
 	}
 }
 
-static void rpmi_handler_irq(void)
+static void rpmi_handler_irq(irq_t irq)
 {
 	struct rpmi_shmem_mbox_controller *mctl = &g_mctl;
 	struct smq_queue_ctx *qctx;
 	struct mbox_xfer xfer;
 	struct rpmi_message_args args;
 	uint32_t doorbell_val;
-	int i, ret;
+	int queue_idx = -1;
+	volatile le32_t *doorbell_reg = NULL;
 	uint32_t service_id;
 	bool handler_found = false;
 
-	for (i = 0; i < RPMI_QUEUE_IDX_MAX_COUNT; i++) {
-		qctx = &mctl->queue_ctx_tbl[i];
-
-		switch (i) {
-		case RPMI_QUEUE_IDX_P2A_REQ:
-			doorbell_val = readl(mctl->mb_regs.p2a_req);
+	switch (irq) {
+	case IRQ_RPMI_A2P_REQ_S:
+	case IRQ_RPMI_A2P_REQ_NS:
+		queue_idx = RPMI_QUEUE_IDX_A2P_REQ;
+		doorbell_reg = mctl->mb_regs.a2p_req;
+		printf("RPMI IRQ: A2P_REQ interrupt (irq=%d)", irq);
 			break;
-		case RPMI_QUEUE_IDX_P2A_ACK:
-			doorbell_val = readl(mctl->mb_regs.p2a_ack);
+	case IRQ_RPMI_A2P_ACK_S:
+	case IRQ_RPMI_A2P_ACK_NS:
+		queue_idx = RPMI_QUEUE_IDX_A2P_ACK;
+		doorbell_reg = mctl->mb_regs.a2p_ack;
+		printf("RPMI IRQ: A2P_ACK interrupt (irq=%d)", irq);
 			break;
-		case RPMI_QUEUE_IDX_A2P_REQ:
-			doorbell_val = readl(mctl->mb_regs.a2p_req);
+	case IRQ_RPMI_P2A_REQ_S:
+	case IRQ_RPMI_P2A_REQ_NS:
+		queue_idx = RPMI_QUEUE_IDX_P2A_REQ;
+		doorbell_reg = mctl->mb_regs.p2a_req;
+		printf("RPMI IRQ: P2A_REQ interrupt (irq=%d)", irq);
 			break;
-		case RPMI_QUEUE_IDX_A2P_ACK:
-			doorbell_val = readl(mctl->mb_regs.a2p_ack);
+	case IRQ_RPMI_P2A_ACK_S:
+	case IRQ_RPMI_P2A_ACK_NS:
+		queue_idx = RPMI_QUEUE_IDX_P2A_ACK;
+		doorbell_reg = mctl->mb_regs.p2a_ack;
+		printf("RPMI IRQ: P2A_ACK interrupt (irq=%d)", irq);
 			break;
 		default:
-			continue;
+		printf("RPMI IRQ: unknown interrupt (irq=%d)", irq);
+		return;
+	}
+
+	if (queue_idx < 0 || queue_idx >= RPMI_QUEUE_IDX_MAX_COUNT) {
+		printf("RPMI IRQ: invalid queue index %d", queue_idx);
+		return;
 		}
 
-		if (doorbell_val) {
-			printf("RPMI IRQ: doorbell detected on queue %d, value=0x%x", i, doorbell_val);
+	qctx = &mctl->queue_ctx_tbl[queue_idx];
+
+	doorbell_val = readl(doorbell_reg);
+	if (!doorbell_val) {
+		printf("RPMI IRQ: no doorbell detected for queue %d", queue_idx);
+		return;
+	}
+
+	printf("RPMI IRQ: doorbell detected on queue %d, value=0x%x", queue_idx, doorbell_val);
 
 			/* clear doorbell */
-			switch (i) {
-			case RPMI_QUEUE_IDX_P2A_REQ:
-				writel(0, mctl->mb_regs.p2a_req);
-				printf("RPMI IRQ: cleared P2A_REQ doorbell");
-				break;
-			case RPMI_QUEUE_IDX_P2A_ACK:
-				writel(0, mctl->mb_regs.p2a_ack);
-				printf("RPMI IRQ: cleared P2A_ACK doorbell");
-				break;
-			case RPMI_QUEUE_IDX_A2P_REQ:
-				writel(0, mctl->mb_regs.a2p_req);
-				printf("RPMI IRQ: cleared A2P_REQ doorbell");
-				break;
-			case RPMI_QUEUE_IDX_A2P_ACK:
-				writel(0, mctl->mb_regs.a2p_ack);
-				printf("RPMI IRQ: cleared A2P_ACK doorbell");
-				break;
-			}
+	writel(0, doorbell_reg);
+	printf("RPMI IRQ: cleared doorbell for queue %d", queue_idx);
 
-			/* handle messages in queue */
-			spin_lock(&qctx->queue_lock);
-			while (!__smq_queue_empty(qctx)) {
-				/* set receive parameters */
-				memset(&args, 0, sizeof(args));
-				args.type = RPMI_MSG_NORMAL_REQUEST;
-				args.rx_endian_words = 2;
+	/* handler message in queue */
+	spin_lock(&qctx->queue_lock);
+	while (!__smq_queue_empty(qctx)) {
+		memset(&args, 0, sizeof(args));
+		args.type = RPMI_MSG_NORMAL_REQUEST;
+		args.rx_endian_words = 2;
 
-				memset(&xfer, 0, sizeof(xfer));
-				xfer.args = &args;
-				xfer.rx = NULL;
-				xfer.rx_len = mctl->slot_size;
-				xfer.rx_timeout = RPMI_DEF_RX_TIMEOUT;
+		memset(&xfer, 0, sizeof(xfer));
+		xfer.args = &args;
+		xfer.rx = NULL;
+		xfer.rx_len = mctl->slot_size;
+		xfer.rx_timeout = RPMI_DEF_RX_TIMEOUT;
 
-				/* receive message */
-				ret = __smq_rx(qctx, mctl->slot_size, 0, &xfer);
-				if (ret) {
-					printf("RPMI: receive message failed (ret=%d)\n", ret);
-					break;
-				}
-
-				/* find and call corresponding handler */
-				service_id = GET_SERVICE_ID(xfer.rx);
-
-				for (int j = 0; j < num_handlers; j++) {
-					if (msg_handlers[j].service_id == service_id) {
-						msg_handlers[j].handler(NULL, &xfer);
-						handler_found = true;
-						break;
-					}
-				}
-
-				if (!handler_found) {
-					printf("RPMI: no message handler found (service_id=0x%x)\n", service_id);
-				}
-			}
-			spin_unlock(&qctx->queue_lock);
-			printf("RPMI IRQ: finished handling queue %d", i);
+		int ret = __smq_rx(qctx, mctl->slot_size, 0, &xfer);
+		if (ret) {
+			printf("RPMI: receive message failed (ret=%d)", ret);
+			break;
 		}
+
+		service_id = GET_SERVICE_ID(xfer.rx);
+
+		for (int j = 0; j < num_handlers; j++) {
+			if (msg_handlers[j].service_id == service_id) {
+				msg_handlers[j].handler(NULL, &xfer);
+				handler_found = true;
+				break;
+			}
+		}
+
+		if (!handler_found)
+			printf("RPMI: no message handler found (service_id=0x%x)", service_id);
+
 	}
+	spin_unlock(&qctx->queue_lock);
+	printf("RPMI IRQ[%d]: finished handling queue %d", irq_ext(irq), queue_idx);
 }
 
 #ifdef SYS_REALTIME
@@ -741,13 +742,17 @@ static void rpmi_irq_init(void)
 static void rpmi_bh_handler(uint8_t events)
 {
 	if (events == BH_POLLIRQ) {
-		rpmi_handler_irq();
+		for (int i = 0; i < RPMI_IRQ_COUNT; i++)
+			rpmi_handler_irq(rpmi_irqs[i]);
+
 		return;
 	}
 }
 
-void rpmi_shmem_init(void)
+int rpmi_shmem_init(void)
 {
+	int ret;
+
 	clk_enable(rmu_mailbox_s_clk);
 	clk_enable(rmu_mailbox_ns_clk);
 	clk_enable(rmu_sram_mailbox_s_clk);
@@ -764,15 +769,25 @@ void rpmi_shmem_init(void)
 	g_mctl.controller.max_xfer_len = g_mctl.slot_size -
 		sizeof(struct rpmi_message_header);
 
-	rpmi_shmem_transport_init(&g_mctl);
+	/* initialize transport layer */
+	ret = rpmi_shmem_transport_init(&g_mctl);
+	if (ret) {
+		printf("RPMI: failed to initialize transport layer (ret=%d)\n", ret);
+		return ret;
+	}
+
+	/* register mailbox controller */
 	mbox_controller_add(&g_mctl.controller);
 
+	/* register interrupt handler */
 	rpmi_bh = bh_register_handler(rpmi_bh_handler);
 	rpmi_irq_init();
 	rpmi_poll_init();
 
 	printf("RPMI: shared memory initialized (shmem_base=0x%llx, slot_size=%d, max_xfer_len=%d)\n",
 		SHMEM_REG_BASE, g_mctl.slot_size, g_mctl.controller.max_xfer_len);
+
+	return 0;
 }
 
 struct mbox_controller *rpmi_shmem_get_controller(void)

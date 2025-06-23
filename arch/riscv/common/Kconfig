@@ -1130,7 +1130,6 @@ menu "RPMI interfaces"
 
 config RPMI_RAS
 	bool "RPMI RAS support"
-	select RERI
 	select RISCV_GHES
 
 config RPMI_CPPC
@@ -1246,6 +1245,15 @@ menuconfig VAISRA_RAS
 	depends !SYS_NOIRQ || SBI
 
 menu "SpacemiT RAS features"
+config SPACEMIT_RAS
+	bool "SpacemiT RAS support"
+	depends RPMI
+	help
+	  This enables SpacemiT RAS (Reliability, Availability and Serviceability)
+	  support. When enabled, CPU RERI errors will be handled directly by the CPU
+	  without going through RMU RAS firmware (non-firmware-first mode). This means
+	  the CPU will process RERI errors locally and convert them to GHES format
+	  for error reporting.
 
 config SPACEMIT_ECC
 	bool "SpacemiT CPU error correction code (ECC) support"
@@ -1254,7 +1262,7 @@ config SPACEMIT_ECC
 	  This enables core ECC error detection.
 
 config SPACEMIT_BER
-	bool "SpacemiT CPU bus error (BER) support
+	bool "SpacemiT CPU bus error (BER) support"
 	depends CPU_SPACEMIT
 	depends !SYS_NOIRQ || SBI
 	help
