@@ -50,3 +50,18 @@ int puts(const char *s)
 	spin_unlock_irqrestore(&print_lock, flags);
 	return len;
 }
+
+int gets(char *str, unsigned long len)
+{
+	int ch;
+	unsigned long i;
+
+	for (i = 0; i < len; i++) {
+		ch = getchar();
+		if (ch < 0)
+			break;
+		str[i] = ch;
+	}
+
+	return i;
+}
