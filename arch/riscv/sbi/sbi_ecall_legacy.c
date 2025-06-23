@@ -19,6 +19,20 @@ uint16_t sbi_ecall_version_minor(void)
 	return SBI_ECALL_VERSION_MINOR;
 }
 
+#ifdef CONFIG_SBI_V20
+
+static unsigned long ecall_impid = SBI_OPENSBI_IMPID;
+unsigned long sbi_ecall_get_impid(void)
+{
+	return ecall_impid;
+}
+
+void sbi_ecall_set_impid(unsigned long impid)
+{
+	ecall_impid = impid;
+}
+#endif
+
 static int sbi_load_hart_mask_unpriv(struct sbi_scratch *scratch,
 				     struct unpriv_trap *uptrap,
 				     ulong *pmask, ulong *hmask)
@@ -63,7 +77,7 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
 		ret = 0;
 		break;
 	case SBI_ECALL_CONSOLE_GETCHAR:
-#ifdef CONFIG_SBI_V10
+#ifdef CONFIG_SBI_V20
 		ret = sbi_getc();
 #else
 		regs->a0 = sbi_getc();
@@ -171,7 +185,7 @@ static int sbi_ecall_legacy_handler(unsigned long extid, unsigned long funcid,
 	return ret;
 }
 
-#ifdef CONFIG_SBI_V10
+#ifdef CONFIG_SBI_V20
 DEFINE_SBI_ECALL(legacy,
 		 SBI_EXT_0_1_SET_TIMER, SBI_EXT_0_1_SHUTDOWN,
 		 NULL, sbi_ecall_legacy_handler);
