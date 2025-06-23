@@ -23,6 +23,7 @@ int vsnprintf(char *, size_t, const char *, va_list);
 #ifdef CONFIG_CONSOLE_OUTPUT
 int putchar(int c);
 int puts(const char *s);
+int gets(char *str, unsigned long len);
 __printf_chk(1) int printf(const char *format, ...);
 int vprintf(const char *format, va_list arg);
 int vtxprintf(void (*tx_byte)(unsigned char byte, void *data),
@@ -33,6 +34,10 @@ static inline int putchar(int c)
 	return -1;
 }
 static inline int puts(const char *s)
+{
+	return -1;
+}
+static inline int gets(char *str, unsigned long len)
 {
 	return -1;
 }
