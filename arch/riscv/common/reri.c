@@ -19,6 +19,8 @@
 #include <target/percpu.h>
 #include <target/bench.h>
 #include <target/rpmi.h>
+#include <target/noc.h>
+
 #define RERI_MODNAME			"reri"
 
 #define HART_PER_CLUSTER		4
@@ -39,12 +41,29 @@
 #define RAS_SIGNAL_PLATFORM		3  /* Platform specific RAS signal */
 #endif
 
-#ifndef GHES_ERR_ADDR
-#define GHES_ERR_ADDR		(0x4040000UL)
-#endif
-
-#ifndef GHES_ERR_SIZE
-#define GHES_ERR_SIZE		(0x80000)
+#ifdef CONFIG_RISCV_IOMMU_SPACET
+/* IOMMU RERI interrupt numbers */
+static const int iommu_reri_irqs[] = {
+	IRQ_IOMMU_IOATS0_RAS,
+	IRQ_IOMMU_IOATS1_RAS,
+	IRQ_IOMMU_IOATS2_RAS,
+	IRQ_IOMMU_IOATS3_RAS,
+	IRQ_IOMMU_IOATC0_RAS,
+	IRQ_IOMMU_IOATC1_RAS,
+	IRQ_IOMMU_IOATC2_RAS,
+	IRQ_IOMMU_IOATC3_RAS,
+	IRQ_IOMMU_IOATC4_RAS,
+	IRQ_IOMMU_IOATC5_RAS,
+	IRQ_IOMMU_IOATC6_RAS,
+	IRQ_IOMMU_IOATC7_RAS,
+	IRQ_IOMMU_IOATC8_RAS,
+	IRQ_IOMMU_IOATC9_RAS,
+	IRQ_IOMMU_IOATC10_RAS,
+	IRQ_IOMMU_IOATC11_RAS,
+	IRQ_IOMMU_IOATC12_RAS,
+	IRQ_IOMMU_IOATC13_RAS,
+};
+#define NR_IOMMU_RERI_IRQS		(sizeof(iommu_reri_irqs) / sizeof(iommu_reri_irqs[0]))
 #endif
 
 static void reri_clear_valid_bit(caddr_t base, int record_idx)
@@ -60,7 +79,6 @@ enum reri_event_source_type {
 	RERI_EVENT_SOURCE_CPU,
 	RERI_EVENT_SOURCE_IOMMU
 };
-
 struct reri_context {
 	int target_id;
 	int test_id;
@@ -82,7 +100,6 @@ DEFINE_PERCPU(struct reri_context, reri_ctx);
 static struct reri_context reri_ctx;
 #define get_reri        (&reri_ctx)
 #endif
-
 struct reri_generic_dev {
 	uint64_t addr;
 	uint64_t size;
@@ -90,7 +107,6 @@ struct reri_generic_dev {
 	uint16_t src_id;
 	uint16_t res;
 };
-
 struct reri_hart_dev {
 	struct reri_generic_dev dev;
 	int hart_id;
@@ -120,7 +136,7 @@ static struct reri_iommu_err_dev *reri_iommu_err_banks = &reri_iommu_err_dev[0];
 static uint32_t reri_nr_iommu_err_banks;
 
 #define RERI_ERR_BANK_SIZE	0x1000
-
+uint64_t cpu_mask = 0;
 bh_t cpu_reri_bh;
 bh_t iommu_reri_bh;
 
@@ -144,7 +160,7 @@ unsigned int current_hartid(void)
 
 static int get_cluster_and_local_hart_id(int hart_id, int *cluster_id, int *local_hart_id)
 {
-	if (hart_id >= NR_CPUS)
+	if (hart_id >= MAX_CPU_CORES)
 		return -1;
 
 	*cluster_id = hart_id / HART_PER_CLUSTER;
@@ -235,8 +251,6 @@ static int riscv_reri_discover_iommus(void)
 	riscv_ioatc_num = 0;
 	reri_nr_iommu_err_banks = 0;
 
-	// clk_enable(iommu0_clk);
-	// clk_enable(iommu0_resetn);
 	for (i = 0; i < MAX_IOMMU_NUM; i++) {
 		base_addr = IOMMU_CRTL_CFG_BASE(i);
 		id = __raw_readl(base_addr + RISCV_IOMMU_REG_ID);
@@ -347,7 +361,7 @@ static int reri_drv_sync_generic_error_record(enum reri_event_source_type source
 
 	tt = RERI_STATUS_GET_TT(status);
 	if (tt && tt >= 4 && tt <= 7) {
-		einfo.info.gpe.validation_bits |= GPE_OP_VALID;
+		einfo.info.gpe.validation_bits |= CPER_PROC_VALID_OPERATION;
 		switch (tt) {
 		case RERI_TT_IMPLICIT_READ:
 			einfo.info.gpe.operation = 3;
@@ -402,16 +416,16 @@ static int reri_drv_sync_generic_error_record(enum reri_event_source_type source
 
 	/* Address type */
 	if (RERI_STATUS_GET_AIT(status)) {
-		einfo.info.gpe.validation_bits |= GPE_TARGET_ADDR_VALID;
+		einfo.info.gpe.validation_bits |= CPER_PROC_VALID_TARGET_ADDRESS;
 		einfo.info.gpe.target_addr = addr_info;
 	}
 
 	/* Source-specific parts for einfo */
 	if (source_type == RERI_EVENT_SOURCE_CPU) {
 		einfo.etype = ERROR_TYPE_GENERIC_CPU;
-		einfo.info.gpe.validation_bits |= (GPE_PROC_TYPE_VALID |
-						   GPE_PROC_ISA_VALID |
-						   GPE_PROC_ERR_TYPE_VALID);
+		einfo.info.gpe.validation_bits |= (CPER_PROC_VALID_TYPE |
+						   CPER_PROC_VALID_ISA |
+						   CPER_PROC_VALID_ERROR_TYPE);
 		einfo.info.gpe.proc_type = GHES_PROC_TYPE_RISCV;
 		einfo.info.gpe.proc_isa = GHES_PROC_ISA_RISCV64;
 	} else { // RERI_EVENT_SOURCE_IOMMU
@@ -457,18 +471,22 @@ static void process_reri_error_bank(uint64_t bank_addr,
 			if (source_type == RERI_EVENT_SOURCE_CPU) {
 				con_log(RERI_MODNAME ": CPU RERI via status.V (record %d) for hart %u, bank 0x%llx\n",
 					record_index, id_for_sync, bank_addr);
+#ifndef CONFIG_SPACEMIT_RAS
+				struct spacemit_ras_error_record *error_record;
+				error_record->inst_id = id_for_sync;
+				error_record->bank_addr = bank_addr;
+				error_record->error_type = 0;
+				error_record->status = status_val;
+				error_record->addr_info = reri_read(RERI_ADDR_INFO_I(bank_addr, record_index));
+				/* ACPU send custom error record to RMU, convert to ghes format */
+				spacemit_ras_sync_hart_errs(error_record);
+				rpmi_ras_sync_hart_errs(pending_vectors, &nr_pending, &nr_remaining);
+#else
+				/* It is not firmware-first */
 				sse_vec_out = 1 << record_index;
 				reri_drv_sync_generic_error_record(RERI_EVENT_SOURCE_CPU, id_for_sync,
 					bank_addr, record_index, &sse_vec_out);
-
-				/* Sync error via RPMI */
-				ret = rpmi_ras_sync_hart_errs(pending_vectors, &nr_pending, &nr_remaining);
-				if (ret) {
-					con_err(RERI_MODNAME ": Failed to sync hart errors via RPMI, ret=%d\n", ret);
-				} else {
-					con_log(RERI_MODNAME ": Synced %d pending vectors via RPMI, %d remaining\n",
-						nr_pending, nr_remaining);
-				}
+#endif
 			} else {
 				con_log(RERI_MODNAME ": IOMMU RERI (id %u) via status.V (record %d), bank 0x%llx\n",
 					id_for_sync, record_index, bank_addr);
@@ -489,10 +507,18 @@ static void process_reri_error_bank(uint64_t bank_addr,
 	}
 }
 
-static void generic_reri_irq_handler(enum reri_event_source_type source_type)
+static void generic_reri_irq_handler(irq_t irq)
 {
 	int cluster_id, local_hart_id, i;
 	uint64_t bank_addr;
+	enum reri_event_source_type source_type;
+	int irq_number = irq_ext(irq);
+
+	if (irq_number == IRQ_RAS_CE || irq_number == IRQ_RAS_UE)
+		source_type = RERI_EVENT_SOURCE_CPU;
+	else
+		source_type = RERI_EVENT_SOURCE_IOMMU;
+	con_log(RERI_MODNAME ": handle interrupt (irq=%d)", irq);
 
 	if (source_type == RERI_EVENT_SOURCE_CPU) {
 		if (get_cluster_and_local_hart_id(current_hart, &cluster_id, &local_hart_id) != 0)
@@ -512,135 +538,92 @@ static void generic_reri_irq_handler(enum reri_event_source_type source_type)
 static void cpu_reri_bh_handler(uint8_t events)
 {
 	if (events == BH_POLLIRQ) {
-		generic_reri_irq_handler(RERI_EVENT_SOURCE_CPU); // Call with CPU type
+#if __riscv_xlen == 32
+		csr_clear(CSR_MIPH, MIPH_RASHP_INTP);
+#else
+		csr_clear(CSR_MIP, MIP_RASHP_INTP);
+#endif
+		generic_reri_irq_handler(IRQ_RAS_CE);
+		generic_reri_irq_handler(IRQ_RAS_UE);
 		return;
 	}
 }
-
+#ifdef CONFIG_RISCV_IOMMU_SPACET
 static void iommu_reri_bh_handler(uint8_t events)
 {
+	int i;
+
 	if (events == BH_POLLIRQ) {
-		generic_reri_irq_handler(RERI_EVENT_SOURCE_IOMMU); // Call with IOMMU type
+		for (i = 0; i < NR_IOMMU_RERI_IRQS; i++) {
+			generic_reri_irq_handler(iommu_reri_irqs[i]);
+		}
 		return;
 	}
 }
+#endif
 
 #ifdef SYS_REALTIME
 static void cpu_reri_poll_init(void)
 {
 	irq_register_poller(cpu_reri_bh);
 }
-
+#ifdef CONFIG_RISCV_IOMMU_SPACET
 static void iommu_reri_poll_init(void)
 {
 	irq_register_poller(iommu_reri_bh);
 }
+#else
 #define iommu_reri_irq_init()	do {} while (0)
+#endif
 #define cpu_reri_irq_init()	do {} while (0)
 #else
 static void cpu_reri_irq_init(void)
 {
 	irqc_configure_irq(IRQ_RAS_CE, 0, IRQ_LEVEL_TRIGGERED);
 	irqc_configure_irq(IRQ_RAS_UE, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_RAS_CE, (irq_handler)cpu_reri_irq_handler);
-	irq_register_vector(IRQ_RAS_UE, (irq_handler)cpu_reri_irq_handler);
+	irq_register_vector(IRQ_RAS_CE, generic_reri_irq_handler);
+	irq_register_vector(IRQ_RAS_UE, generic_reri_irq_handler);
 	irqc_enable_irq(IRQ_RAS_CE);
 	irqc_enable_irq(IRQ_RAS_UE);
 }
-
+#ifdef CONFIG_RISCV_IOMMU_SPACET
 static void iommu_reri_irq_init(void)
 {
-	irqc_configure_irq(IRQ_IOMMU_IOATS0_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATS1_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATS2_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATS3_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC0_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC1_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC2_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC3_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC4_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC5_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC6_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC7_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC8_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC9_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC10_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC11_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC12_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irqc_configure_irq(IRQ_IOMMU_IOATC13_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_IOMMU_IOATS0_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATS1_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATS2_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATS3_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC0_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC1_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC2_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC3_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC4_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC5_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC6_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC7_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC8_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC9_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC10_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC11_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC12_RAS, iommu_reri_irq_handler);
-	irq_register_vector(IRQ_IOMMU_IOATC13_RAS, iommu_reri_irq_handler);
-	irqc_enable_irq(IRQ_IOMMU_IOATS0_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATS1_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATS2_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATS3_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC0_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC1_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC2_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC3_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC4_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC5_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC6_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC7_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC8_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC9_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC10_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC11_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC12_RAS);
-	irqc_enable_irq(IRQ_IOMMU_IOATC13_RAS);
+	int i;
+
+	for (i = 0; i < NR_IOMMU_RERI_IRQS; i++) {
+		irqc_configure_irq(iommu_reri_irqs[i], 0, IRQ_LEVEL_TRIGGERED);
+		irq_register_vector(iommu_reri_irqs[i], generic_reri_irq_handler);
+		irqc_enable_irq(iommu_reri_irqs[i]);
+	}
 }
+#else
 #define iommu_reri_poll_init()	do {} while (0)
+#endif
 #define cpu_reri_poll_init()	do {} while (0)
 #endif
 
 void reri_drv_init(void)
 {
 	int i, ret;
-	static struct reri_hart_dev reri_hart_dev[NR_CPUS];
+	static struct reri_hart_dev reri_hart_dev[MAX_CPU_CORES];
 	uint64_t addr;
 
 	reri_hart_devices = &reri_hart_dev[0];
 	addr = RERI_HART_DEV_ADDR;
-	reri_nr_harts = NR_CPUS;
+	reri_nr_harts = MAX_CPU_CORES;
 	current_hart = current_hartid();
-
-	con_log(RERI_MODNAME ": Initializing RERI driver\n");
-	con_log(RERI_MODNAME ": Base address: 0x%llx\n", addr);
-	con_log(RERI_MODNAME ": Number of harts: %d\n", reri_nr_harts);
-	con_log(RERI_MODNAME ": Harts per cluster: %d\n", HART_PER_CLUSTER);
-	con_log(RERI_MODNAME ": Number of clusters: %d\n", MAX_CLUSTERS);
-	con_log(RERI_MODNAME ": Note: All clusters share the same Error bank address space\n");
-#if 0
-	if(rpmi_shmem_init() && rpmi_ras_init()) {
-		con_err(RERI_MODNAME ": Failed to initialize RPMI shmem and RAS\n");
-		return;
-	}
-#endif
+	cpu_mask = CPU_MASK;
+	con_log(RERI_MODNAME ": CPU mask:0x%llx\n", cpu_mask);
 
 	/* enable RAS clock */
-#if 1
 	clk_enable(cpu_ras_sw_rstn);
-	acpi_ghes_init(GHES_ERR_ADDR, GHES_ERR_SIZE);
 	for (i = 0; i < reri_nr_harts; i++) {
 		int cluster_id, local_hart_id;
+		if (!(cpu_mask & (1ULL << i)))
+			continue;
 
-		ret = acpi_ghes_new_error_source(i, 0);
+		ret = acpi_ghes_new_error_source(i / HART_PER_CLUSTER, i / HART_PER_CLUSTER);
 		if (ret < 0)
 			continue;
 
@@ -666,7 +649,8 @@ void reri_drv_init(void)
 	cpu_reri_bh = bh_register_handler(cpu_reri_bh_handler);
 	cpu_reri_irq_init();
 	cpu_reri_poll_init();
-#else
+
+#ifdef CONFIG_RISCV_IOMMU_SPACET
 	riscv_reri_discover_iommus();
 
 	if (reri_nr_iommu_err_banks > 0) {
@@ -700,7 +684,7 @@ static int riscv_reri_get_iommu_err_bank_addr(uint32_t iommu_id,
 }
 
 /* inject error */
-#if 0
+#if 1
 static int do_reri_test(int argc, char *argv[])
 {
 	int target_id, test_id, err_bank_id_iommu = 0;
@@ -834,8 +818,8 @@ usage:
 
 	con_log(RERI_MODNAME ": record_index=%d, status=0x%llx\n",
 			test_id, reri_read(RERI_STATUS_I(bank_addr, test_id)));
-	con_log(RERI_MODNAME ": record_index=%d, control=0x%llx\n",
-			test_id, reri_read(RERI_CONTROL_I(bank_addr, test_id)));
+	con_log(RERI_MODNAME ": record_index=%d, eid=0x%x, control=0x%llx\n",
+			test_id, eid, reri_read(RERI_CONTROL_I(bank_addr, test_id)));
 
 	source_info = get_source_info(RERI_INST_ID(reri_read(bank_addr + RERI_BANK_INFO)));
 	if (source_info)
@@ -965,7 +949,7 @@ usage:
 		}
 	}
 	ctx->bank_addr = ctx->target_addr;
-	ctx->eid = 10000 * (ctx->test_id + 1);
+	ctx->eid = 1 * (ctx->test_id + 1);
 
 	reri_write_mask(RERI_STATUS_SET_CE(ctx->scenarios_to_use[ctx->test_id].ce) |
 			RERI_STATUS_SET_UEC(ctx->scenarios_to_use[ctx->test_id].uec) |
@@ -994,14 +978,20 @@ usage:
 
 	con_log(RERI_MODNAME "[CPU%d]: record_index=%d, status=0x%llx\n",
 		current_hartid(), ctx->test_id, reri_read(RERI_STATUS_I(ctx->bank_addr, ctx->test_id)));
-	con_log(RERI_MODNAME "[CPU%d]: record_index=%d, control=0x%llx\n",
-		current_hartid(), ctx->test_id, reri_read(RERI_CONTROL_I(ctx->bank_addr, ctx->test_id)));
+	con_log(RERI_MODNAME "[CPU%d]: record_index=%d, eid=0x%x, RERI_CTRL_SET_EID(ctx->eid)=0x%llx, control=0x%llx\n",
+		current_hartid(), ctx->test_id, ctx->eid, RERI_CTRL_SET_EID(ctx->eid), reri_read(RERI_CONTROL_I(ctx->bank_addr, ctx->test_id)));
 
 	ctx->source_info = get_source_info(RERI_INST_ID(reri_read(ctx->bank_addr + RERI_BANK_INFO)));
 	if (ctx->source_info)
 		con_log(RERI_MODNAME "[CPU%d]: source_info: %s\n", current_hartid(), ctx->source_info->name);
 	else
 		con_log(RERI_MODNAME "[CPU%d]: unknown source id\n", current_hartid());
+
+	if (ctx->test_target_type == RERI_EVENT_SOURCE_CPU) {
+		generic_reri_irq_handler(IRQ_RAS_CE);
+	} else {
+		generic_reri_irq_handler(IRQ_IOMMU_IOATS0_RAS);
+	}
 
 	return ret;
 }
@@ -1017,5 +1007,3 @@ int reri(caddr_t percpu_area)
 __define_testfn(reri, sizeof(struct reri_context), SMP_CACHE_BYTES,
 		CPU_EXEC_META, 1, CPU_WAIT_INFINITE);
 #endif
-// #endif /* __riscv_xlen == 64 */
-

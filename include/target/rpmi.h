@@ -759,6 +759,25 @@ struct rpmi_ras_sync_err_resp {
 
 #define rpmi_u32_count(__var)	(sizeof(__var) / sizeof(uint32_t))
 
+struct rpmi_msg_handler {
+	uint32_t service_id;
+	void (*handler)(struct mbox_chan *chan, struct mbox_xfer *xfer);
+};
+
+extern struct rpmi_msg_handler msg_handlers[];
+extern int num_handlers;
+
+#ifdef CONFIG_RPMI
+int rpmi_init(void);
+struct mbox_controller *rpmi_get_controller(void);
+int rpmi_register_handler(uint32_t service_id,
+	void (*handler)(struct mbox_chan *chan, struct mbox_xfer *xfer));
+#else
+#define rpmi_init()		do { } while (0)
+#define rpmi_get_controller()		do { } while (0)
+#define rpmi_register_handler()		do { } while (0)
+#endif
+
 /** Typical RPMI normal request with at least status code in response */
 int rpmi_normal_request_with_status(struct mbox_chan *chan, uint32_t service_id,
 				    void *req, uint32_t req_words,
@@ -773,7 +792,7 @@ int rpmi_posted_request(struct mbox_chan *chan, uint32_t service_id,
 struct mbox_controller *rpmi_shmem_get_controller(void);
 
 #ifdef CONFIG_RPMI_SHMEM
-void rpmi_shmem_init(void);
+int rpmi_shmem_init(void);
 #else
 #define rpmi_shmem_init()		do { } while (0)
 #endif
@@ -784,10 +803,26 @@ int rpmi_ras_sync_hart_errs(u32 *pending_vectors, u32 *nr_pending,
 			    u32 *nr_remaining);
 int rpmi_ras_sync_reri_errs(u32 *pending_vectors, u32 *nr_pending,
 			    u32 *nr_remaining);
+#ifndef CONFIG_SPACEMIT_RAS
+struct spacemit_ras_error_record {
+	uint32_t inst_id;
+	uint32_t error_type;
+	uint64_t status;
+	uint64_t addr_info;
+	uint32_t severity;
+	uint32_t operation;
+	uint32_t proc_err_type;
+};
+int spacemit_ras_sync_hart_errs(struct spacemit_ras_error_record *error_record);
+int spacemit_ras_sync_error_record(struct spacemit_ras_error_record *error_record);
+#else
+#define spacemit_ras_sync_hart_errs()		do { } while (0)
+#define spacemit_ras_sync_error_record()	do { } while (0)
+#endif
 #else
 #define rpmi_ras_init()			do { } while (0)
 #define rpmi_ras_sync_hart_errs()	do { } while (0)
 #define rpmi_ras_sync_reri_errs()	do { } while (0)
 #endif
-#endif /* !__RPMI_MSGPROT_H__ */
 
+#endif /* __RPMI_MSGPROT_H__ */

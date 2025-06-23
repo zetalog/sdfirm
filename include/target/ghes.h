@@ -4,7 +4,7 @@
 
 // #include <acpi/apei.h>
 // #include <acpi/hed.h>
-#include <target/actbl1.h>
+#include <target/acpi.h>
 
 /*
  * One struct ghes is created for each generic hardware error source.
