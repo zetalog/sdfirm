@@ -1,7 +1,11 @@
 #include <target/rpmi.h>
 
+#define MAX_MSG_HANDLERS 16
+struct rpmi_msg_handler msg_handlers[MAX_MSG_HANDLERS];
+int num_handlers = 0;
+
 int rpmi_normal_request_with_status(struct mbox_chan *chan,
-				    uint32_t service_id,
+					uint32_t service_id,
 			void *req, u32 req_words, u32 req_endian_words,
 			void *resp, u32 resp_words, u32 resp_endian_words)
 {
@@ -39,4 +43,37 @@ int rpmi_posted_request(
 			  req, sizeof(u32) * req_words, RPMI_DEF_TX_TIMEOUT);
 
 	return mbox_chan_xfer(chan, &xfer);
+}
+
+int rpmi_init(void)
+{
+	int ret;
+
+	ret = rpmi_shmem_init();
+	if (ret) {
+		printf("RPMI: failed to initialize shared memory transport (ret=%d)\n", ret);
+		return ret;
+	}
+
+	printf("RPMI: module initialized successfully\n");
+	return 0;
+}
+
+struct mbox_controller *rpmi_get_controller(void)
+{
+	return rpmi_shmem_get_controller();
+}
+
+int rpmi_register_handler(uint32_t service_id,
+	void (*handler)(struct mbox_chan *chan, struct mbox_xfer *xfer))
+{
+	if (num_handlers >= MAX_MSG_HANDLERS) {
+		return -ENOMEM;
+	}
+
+	msg_handlers[num_handlers].service_id = service_id;
+	msg_handlers[num_handlers].handler = handler;
+	num_handlers++;
+
+	return 0;
 }

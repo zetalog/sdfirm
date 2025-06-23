@@ -3,7 +3,7 @@
 
 #include <target/generic.h>
 #include <target/ras.h>
-#include <target/actbl1.h>
+#include <target/acpi.h>
 #include <target/cper.h>
 #include <target/io.h>
 
