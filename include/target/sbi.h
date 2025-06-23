@@ -9,9 +9,9 @@
 #include <target/clk.h>
 #include <target/list.h>
 
-#ifdef CONFIG_SBI_V10
+#ifdef CONFIG_SBI_V20
 #define OPENSBI_VERSION_MAJOR		1
-#define SBI_ECALL_VERSION_MAJOR		1
+#define SBI_ECALL_VERSION_MAJOR		2
 #define SBI_ECALL_VERSION_MINOR		0
 #define SBI_OPENSBI_IMPID		1
 #define SBIECALL_INPUT(align)				\
@@ -648,7 +648,7 @@ static inline int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
 }
 #endif
 
-#ifdef CONFIG_SBI_V10
+#ifdef CONFIG_SBI_V20
 #define DEFINE_SBI_ECALL(name, extid_start, extid_end, probe, handler)		\
 	static struct sbi_ecall_extension sbi_ecall_##name;			\
 	static int sbi_ecall_##name##_register_extensions(void)			\

@@ -42,15 +42,19 @@ config SBI_V01
 	bool "v0.1"
 	default y
 
-config SBI_V10
-	bool "v1.0"
+config SBI_V20
+	bool "v2.0"
 	select SBI_ECALL_LEGACY
+	select SBI_ECALL_DBCN
 
-if SBI_V10
+if SBI_V20
 
 config SBI_ECALL_LEGACY
 	bool "Enable legacy (v0.1) ecall support"
 	select SBI_V01
+
+config SBI_ECALL_DBCN
+	bool "Enable Debug Console extension support"
 
 config SBI_ECALL_TIME
 	bool "Enable time extension ecall support"
