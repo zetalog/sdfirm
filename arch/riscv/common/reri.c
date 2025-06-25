@@ -75,10 +75,6 @@ static void reri_clear_valid_bit(caddr_t base, int record_idx)
 		reri_read(RERI_CONTROL_I(base, record_idx)));
 }
 
-enum reri_event_source_type {
-	RERI_EVENT_SOURCE_CPU,
-	RERI_EVENT_SOURCE_IOMMU
-};
 struct reri_context {
 	int target_id;
 	int test_id;
@@ -473,6 +469,7 @@ static void process_reri_error_bank(uint64_t bank_addr,
 					record_index, id_for_sync, bank_addr);
 #ifndef CONFIG_SPACEMIT_RAS
 				struct spacemit_ras_error_record *error_record;
+				memset(error_record, 0, sizeof(struct spacemit_ras_error_record));
 				error_record->inst_id = id_for_sync;
 				error_record->bank_addr = bank_addr;
 				error_record->error_type = 0;
@@ -607,10 +604,8 @@ void reri_drv_init(void)
 {
 	int i, ret;
 	static struct reri_hart_dev reri_hart_dev[MAX_CPU_CORES];
-	uint64_t addr;
 
 	reri_hart_devices = &reri_hart_dev[0];
-	addr = RERI_HART_DEV_ADDR;
 	reri_nr_harts = MAX_CPU_CORES;
 	current_hart = current_hartid();
 	cpu_mask = CPU_MASK;

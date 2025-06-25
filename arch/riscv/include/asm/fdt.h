@@ -148,11 +148,6 @@ void fdt_irq_fixup(void *fdt, const char *compat);
 int fdt_reserved_memory_fixup(void *fdt);
 int fdt_reserved_memory_nomap_fixup(void *fdt);
 void fdt_fixups(void *fdt);
-#ifdef CONFIG_UEFI_DXE
-void fdt_efi_fixup(void *fdt);
-#else
-#define fdt_efi_fixup(fdt)			do { } while (0)
-#endif
 #else
 #define fdt_cpu_fixup(fdt)			do { } while (0)
 #define fdt_irqs_fixup(fdt, compat, num)	do { } while (0)
@@ -160,6 +155,12 @@ void fdt_efi_fixup(void *fdt);
 #define fdt_reserved_memory_fixup(fdt)		do { } while (0)
 #define fdt_reserved_memory_nomap_fixup(fdt)	do { } while (0)
 #define fdt_fixups(fdt)				do { } while (0)
+#endif
+
+#ifdef CONFIG_UEFI_DXE
+void fdt_efi_fixup(void *fdt);
+#else
+#define fdt_efi_fixup(fdt)			do { } while (0)
 #endif
 
 #endif /* __FDT_RISCV_H_INCLUDE__ */
