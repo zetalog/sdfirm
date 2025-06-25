@@ -207,7 +207,11 @@ static uint32_t efi_crc32(const void *data, size_t len)
 }
 
 void uefi_dxe_init(void) {
+#if CONFIG_ACPI_BIOS
 	__efi static efi_config_table_t config_tables[2];
+#else
+	__efi static efi_config_table_t config_tables[1];
+#endif
 	__efi static efi_char16_t fw_vendor_str[] = u"SpacemiT";
 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 
@@ -234,10 +238,16 @@ void uefi_dxe_init(void) {
 	efi_core_st.boottime = NULL;
 
 	/* set config tables */
+
+#if CONFIG_ACPI_BIOS
 	config_tables[0].guid = ACPI_20_TABLE_GUID;
 	config_tables[0].table = (void *)(uintptr_t)acpi_os_get_root_pointer();
 	config_tables[1].guid = DEVICE_TREE_GUID;
 	config_tables[1].table = (void *)scratch->next_arg1;
+#else
+	config_tables[0].guid = DEVICE_TREE_GUID;
+	config_tables[0].table = (void *)scratch->next_arg1;
+#endif
 
 	efi_core_st.nr_tables = ARRAY_SIZE(config_tables);
 	efi_core_st.tables = (unsigned long)config_tables;
