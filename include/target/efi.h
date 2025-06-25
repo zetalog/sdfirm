@@ -734,7 +734,7 @@ void uefi_dxe_init(void);
 void uefi_memmap_init(void *fdt);
 #else
 #define uefi_dxe_init()		do { } while (0)
-#define uefi_memmap_init()	do { } while (0)
+#define uefi_memmap_init(fdt)	do { } while (0)
 #endif
 
 #endif /* __EFI_TARGET_H_INCLUDE__ */

@@ -1,7 +1,6 @@
 #include <asm/fdt.h>
 #include <target/reri.h>
 #include <target/acpi.h>
-#include <sbi/sbi_heap.h>
 
 /* Structure for ghesv2 memory allocation housekeeping */
 typedef struct {
