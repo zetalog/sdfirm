@@ -774,7 +774,7 @@ int rpmi_register_handler(uint32_t service_id,
 	void (*handler)(struct mbox_chan *chan, struct mbox_xfer *xfer));
 #else
 #define rpmi_init()		do { } while (0)
-#define rpmi_get_controller()		do { } while (0)
+#define rpmi_get_controller()		NULL
 #define rpmi_register_handler()		do { } while (0)
 #endif
 
@@ -806,6 +806,7 @@ int rpmi_ras_sync_reri_errs(u32 *pending_vectors, u32 *nr_pending,
 #ifndef CONFIG_SPACEMIT_RAS
 struct spacemit_ras_error_record {
 	uint32_t inst_id;
+	uint64_t bank_addr;
 	uint32_t error_type;
 	uint64_t status;
 	uint64_t addr_info;

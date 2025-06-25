@@ -230,6 +230,11 @@ struct reri_info {
 	const char *desc;
 };
 
+enum reri_event_source_type {
+	RERI_EVENT_SOURCE_CPU,
+	RERI_EVENT_SOURCE_IOMMU
+};
+
 #include <asm/mach/reri.h>
 
 #ifdef CONFIG_RERI

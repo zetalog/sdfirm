@@ -3,16 +3,23 @@
 #include <target/reri.h>
 #include <target/console.h>
 #include <target/acpi.h>
+#include <target/mbox.h>
+
+struct rpmi_ras {
+	struct mbox_chan *chan;
+};
+
+static struct rpmi_ras g_ras;
 
 #ifndef CONFIG_SPACEMIT_RAS
 #define SPACEMIT_RAS_MSG_TYPE_HART_ERR    0x1001
 #define SPACEMIT_RAS_MSG_TYPE_IOMMU_ERR   0x1002
-struct ras_error_context {
-	enum reri_event_source_type source_type;
-	uint32_t id;
-	uint64_t bank_addr;
-	int record_index;
-	uint32_t *sse_vector;
+
+/* Define spacemit_ras_msg structure */
+struct spacemit_ras_msg {
+	uint32_t type;
+	uint32_t len;
+	uint8_t data[256]; /* Adjust size as needed */
 };
 
 static int ras_convert_reri_to_ghes(struct spacemit_ras_error_record *record,
@@ -33,7 +40,7 @@ static int ras_convert_reri_to_ghes(struct spacemit_ras_error_record *record,
 		einfo->info.gpe.sev = 3;
 
 	if (RERI_STATUS_GET_TT(record->status)) {
-		einfo->info.gpe.validation_bits |= GPE_OP_VALID;
+		einfo->info.gpe.validation_bits |= CPER_PROC_VALID_OPERATION;
 		switch (RERI_STATUS_GET_TT(record->status)) {
 		case RERI_TT_IMPLICIT_READ:
 			einfo->info.gpe.operation = 3;
@@ -51,7 +58,6 @@ static int ras_convert_reri_to_ghes(struct spacemit_ras_error_record *record,
 		}
 	}
 
-	einfo->info.gpe.validation_bits |= GPE_PROC_ERR_TYPE_VALID;
 	switch (RERI_STATUS_GET_EC(record->status)) {
 	case RERI_EC_CBA:
 	case RERI_EC_CSD:
@@ -73,13 +79,13 @@ static int ras_convert_reri_to_ghes(struct spacemit_ras_error_record *record,
 	}
 
 	if (RERI_STATUS_GET_AIT(record->status)) {
-		einfo->info.gpe.validation_bits |= CPER_TARGET_ADDR_VALID;
+		einfo->info.gpe.validation_bits |= CPER_PROC_VALID_TARGET_ADDRESS;
 		einfo->info.gpe.target_addr = record->addr_info;
 	}
 
 	einfo->info.gpe.validation_bits |= (CPER_PROC_VALID_TYPE |
 					  CPER_PROC_VALID_ISA |
-					  CPER_PROC_VALID_ERR_TYPE);
+					  CPER_PROC_VALID_ERROR_TYPE);
 	einfo->info.gpe.proc_type = GHES_PROC_TYPE_RISCV;
 	einfo->info.gpe.proc_isa = GHES_PROC_ISA_RISCV64;
 
@@ -129,66 +135,8 @@ static int ras_sync_to_ghes(struct spacemit_ras_error_record *record)
 	if (ret)
 		return ret;
 
-	return acpi_ghes_record_errors(record->inst_id, &einfo);
-}
-
-int ras_handle_error(struct ras_error_context *ctx)
-{
-	struct spacemit_ras_error_record record;
-	uint64_t status, addr_info;
-	uint32_t acpi_ghes_source_id;
-	int ret = 0;
-
-	if (!ctx)
-		return -1;
-
-	acpi_ghes_source_id = RERI_INST_ID(reri_read(ctx->bank_addr + RERI_BANK_INFO));
-	status = reri_read(RERI_STATUS_I(ctx->bank_addr, ctx->record_index));
-	addr_info = reri_read(RERI_ADDR_INFO_I(ctx->bank_addr, ctx->record_index));
-
-	reri_clear_valid_bit(ctx->bank_addr, ctx->record_index);
-
-	memset(&record, 0, sizeof(record));
-	record.inst_id = acpi_ghes_source_id;
-	record.status = status;
-	record.addr_info = addr_info;
-
-	ret = ras_sync_to_ghes(&record);
-	if (ret) {
-		con_err("SPACEMIT RAS: Failed to sync to GHES\n");
-		return ret;
-	}
-
-	ret = ras_sync_to_cpu(&record);
-	if (ret) {
-		con_err("SPACEMIT RAS: Failed to sync to RMU\n");
-		return ret;
-	}
-
-	if (ctx->source_type == RERI_EVENT_SOURCE_CPU && ctx->sse_vector) {
-		uint32_t sse_vector_val = 0;
-		ret = riscv_reri_get_hart_sse_vector(ctx->id, &sse_vector_val);
-		if (ret == 0)
-			*ctx->sse_vector = sse_vector_val;
-	}
-
-	return ret;
-}
-
-int reri_drv_sync_generic_error_record(enum reri_event_source_type source_type,
-				     uint32_t id, uint64_t bank_addr,
-				     int record_index,
-				     uint32_t *out_pending_sse_vector_for_cpu)
-{
-	struct ras_error_context ctx = {
-		.source_type = source_type,
-		.id = id,
-		.bank_addr = bank_addr,
-		.record_index = record_index,
-		.sse_vector = out_pending_sse_vector_for_cpu
-	};
-
-	return ras_handle_error(&ctx);
+	acpi_ghes_record_errors(record->inst_id, &einfo);
+	return 0;
 }
 
 int spacemit_ras_sync_hart_errs(struct spacemit_ras_error_record *error_record)
@@ -215,7 +163,7 @@ int spacemit_ras_sync_hart_errs(struct spacemit_ras_error_record *error_record)
  *
  * @return 0 on success, -1 on failure.
 */
-int spacemit_ras_sync_error_record(struct spacemit_spacemit_ras_error_record *error_record)
+int spacemit_ras_sync_error_record(struct spacemit_ras_error_record *error_record)
 {
 	struct spacemit_ras_error_record record;
 
@@ -227,12 +175,6 @@ int spacemit_ras_sync_error_record(struct spacemit_spacemit_ras_error_record *er
 	return ras_sync_to_cpu(&record);
 }
 #endif /* CONFIG_SPACEMIT_RAS */
-
-struct rpmi_ras {
-	struct mbox_chan *chan;
-};
-
-static struct rpmi_ras g_ras;
 
 /*
  * Sync pending error vectors for a specific hart.
@@ -356,7 +298,6 @@ int rpmi_ras_sync_reri_errs(uint32_t *pending_vectors, uint32_t *nr_pending,
 static void ras_message_handler(struct mbox_chan *chan, struct mbox_xfer *xfer)
 {
 	int rc = 0;
-	struct rpmi_ras_sync_hart_err_req *req;
 	struct rpmi_ras_sync_err_resp *resp;
 	uint32_t pending_vectors[MAX_PEND_VECS];
 	uint32_t nr_pending = 0, nr_remaining = 0;
@@ -366,7 +307,8 @@ static void ras_message_handler(struct mbox_chan *chan, struct mbox_xfer *xfer)
 	uint32_t *resp_data = (uint32_t *)xfer->tx;
 
 	switch (GET_SERVICE_ID(xfer->rx)) {
-	case RPMI_RAS_SRV_SYNC_HART_ERR_REQ:
+	case RPMI_RAS_SRV_SYNC_HART_ERR_REQ: {
+		struct rpmi_ras_sync_hart_err_req *req;
 		req = (struct rpmi_ras_sync_hart_err_req *)xfer->rx;
 		resp = (struct rpmi_ras_sync_err_resp *)xfer->tx;
 
@@ -387,6 +329,7 @@ static void ras_message_handler(struct mbox_chan *chan, struct mbox_xfer *xfer)
 				   nr_pending * sizeof(uint32_t));
 		}
 		break;
+	}
 
 	case RPMI_RAS_SRV_SYNC_DEV_ERR_REQ:
 		rc = rpmi_ras_sync_reri_errs(NULL, &nr_pending, &nr_remaining);
