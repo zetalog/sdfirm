@@ -3,6 +3,7 @@
 #include <target/crc32_table.h>
 #include <target/fdt.h>
 #include <target/acpi.h>
+#include <target/bitops.h>
 
 #define MAX_MEMORY_DESCRIPTORS 64
 __efi efi_memory_desc_t memory_map[MAX_MEMORY_DESCRIPTORS];
@@ -22,6 +23,25 @@ __efi efi_boot_services_t		efi_boot_services;
 __efi efi_runtime_services_t		efi_runtime_services;
 __efi efi_simple_text_output_protocol_t	con_out_proto;
 __efi efi_simple_text_input_protocol_t	con_in_proto;
+
+static const char *memory_type_names[] = {
+	[EFI_RESERVED_TYPE] = "EFI_RESERVED",
+	[EFI_LOADER_CODE] = "EFI_LOADER_CODE",
+	[EFI_LOADER_DATA] = "EFI_LOADER_DATA",
+	[EFI_BOOT_SERVICES_CODE] = "EFI_BOOT_SERVICES_CODE",
+	[EFI_BOOT_SERVICES_DATA] = "EFI_BOOT_SERVICES_DATA",
+	[EFI_RUNTIME_SERVICES_CODE] = "EFI_RUNTIME_SERVICES_CODE",
+	[EFI_RUNTIME_SERVICES_DATA] = "EFI_RUNTIME_SERVICES_DATA",
+	[EFI_CONVENTIONAL_MEMORY] = "EFI_CONVENTIONAL_MEMORY",
+	[EFI_UNUSABLE_MEMORY] = "EFI_UNUSABLE_MEMORY",
+	[EFI_ACPI_RECLAIM_MEMORY] = "EFI_ACPI_RECLAIM_MEMORY",
+	[EFI_ACPI_MEMORY_NVS] = "EFI_ACPI_MEMORY_NVS",
+	[EFI_MEMORY_MAPPED_IO] = "EFI_MEMORY_MAPPED_IO",
+	[EFI_MEMORY_MAPPED_IO_PORT_SPACE] = "EFI_MEMORY_MAPPED_IO_PORT_SPACE",
+	[EFI_PAL_CODE] = "EFI_PAL_CODE",
+	[EFI_PERSISTENT_MEMORY] = "EFI_PERSISTENT_MEMORY",
+	[EFI_UNACCEPTED_MEMORY] = "EFI_UNACCEPTED_MEMORY",
+};
 
 /*
  * Blank Handle implementation
@@ -86,11 +106,147 @@ efi_simple_text_input_protocol_t con_in_proto = {
 	.wait_for_key = NULL
 };
 
+/* insert a descriptor to memory map, move the following descriptors to the next */
+static void insert_desc(int index, const efi_memory_desc_t *desc)
+{
+	if (memory_map_count >= MAX_MEMORY_DESCRIPTORS) {
+		printf("Memory map full! Cannot insert more entries.\n");
+		return;
+	}
+
+	memmove(&memory_map[index + 1], &memory_map[index],
+		(memory_map_count - index) * sizeof(efi_memory_desc_t));
+	memory_map[index] = *desc;
+	memory_map_count++;
+}
+
+void insert_memory_desc(uint32_t type, uint64_t start, uint64_t end, uint64_t attr)
+{
+	if (start >= end) {
+		printf("Invalid range: [0x%llx, 0x%llx)\n", start, end);
+		return;
+	}
+
+	start = ALIGN_DOWN(start, EFI_PAGE_SIZE);
+	end = ALIGN_UP(end, EFI_PAGE_SIZE);
+
+	printf("Inserting: type=%s, range=[0x%llx, 0x%llx)\n", memory_type_names[type], start, end);
+
+	/* Step 1: Split existing descriptors that overlap with the new range */
+	for (int i = 0; i < memory_map_count; ) {
+		efi_memory_desc_t *desc = &memory_map[i];
+		uint64_t desc_start = desc->phys_addr;
+		uint64_t desc_end = desc->phys_addr + (desc->num_pages << EFI_PAGE_SHIFT);
+
+		/* Case 1: No overlap → skip */
+		if (end <= desc_start || start >= desc_end) {
+			i++;
+			continue;
+		}
+
+		/* Case 2: New range completely covers existing → remove it */
+		if (start <= desc_start && end >= desc_end) {
+			printf("  Fully covering entry %d: [0x%llx, 0x%llx)\n", i, desc_start, desc_end);
+
+			desc->type = type;
+			desc->phys_addr = start;
+			desc->virt_addr = start;
+			desc->num_pages = EFI_SIZE_TO_PAGES(end - start);
+			desc->attribute = attr;
+
+			if (i < memory_map_count - 1) {
+				efi_memory_desc_t* next = &memory_map[i+1];
+				if (desc_end == next->phys_addr) {
+					uint64_t original_next_end = next->phys_addr + (next->num_pages << EFI_PAGE_SHIFT);
+					next->phys_addr = end;
+					next->virt_addr = end;
+					next->num_pages = EFI_SIZE_TO_PAGES(original_next_end - end);
+				}
+			}
+
+			i++;
+			continue;
+		}
+
+		/* Case 3: Partial overlap → split the existing descriptor */
+		if (start > desc_start && start < desc_end) {
+			// Split into [desc_start, start) and [start, desc_end)
+			printf("  Splitting entry %d at 0x%llx\n", i, start);
+			printf("	Original: [0x%llx, 0x%llx)\n", desc_start, desc_end);
+
+			// Left part: [desc_start, start) - keep original type
+			desc->num_pages = EFI_SIZE_TO_PAGES(start - desc_start);
+
+			// Right part: [start, desc_end) - keep original type
+			efi_memory_desc_t right = *desc;
+			right.phys_addr = start;
+			right.virt_addr = start;
+			right.num_pages = EFI_SIZE_TO_PAGES(desc_end - start);
+			insert_desc(i + 1, &right);
+
+			i++;
+		} else if (end > desc_start && end < desc_end) {
+			// Split into [desc_start, end) and [end, desc_end)
+			printf("  Splitting entry %d at 0x%llx\n", i, end);
+
+			// Left part: [desc_start, end) - keep original type
+			desc->num_pages = EFI_SIZE_TO_PAGES(end - desc_start);
+			printf("	Left part: [0x%llx, 0x%llx), pages=%llu\n",
+				desc->phys_addr, desc->phys_addr + (desc->num_pages << EFI_PAGE_SHIFT), desc->num_pages);
+
+			// Right part: [end, desc_end) - keep original type
+			efi_memory_desc_t right = *desc;
+			right.phys_addr = end;
+			right.virt_addr = end;
+			right.num_pages = EFI_SIZE_TO_PAGES(desc_end - end);
+			printf("	Right part: [0x%llx, 0x%llx), pages=%llu\n",
+				right.phys_addr, right.phys_addr + (right.num_pages << EFI_PAGE_SHIFT), right.num_pages);
+			insert_desc(i + 1, &right);
+
+			i++;
+		}
+	}
+
+	/* Step 2: Insert the new descriptor in the correct position */
+	int insert_pos = 0;
+	while (insert_pos < memory_map_count && memory_map[insert_pos].phys_addr < start) {
+		insert_pos++;
+	}
+
+	efi_memory_desc_t new_desc = {
+		.type = type,
+		.phys_addr = start,
+		.virt_addr = start,
+		.num_pages = EFI_SIZE_TO_PAGES(end - start),
+		.attribute = attr
+	};
+
+	if (insert_pos < memory_map_count && memory_map[insert_pos].phys_addr == start) {
+		printf("  Replacing descriptor at position %d\n", insert_pos);
+		memory_map[insert_pos] = new_desc;
+	} else {
+		printf("  Inserting new descriptor at position %d\n", insert_pos);
+		insert_desc(insert_pos, &new_desc);
+	}
+
+	printf("Entries Info:\n");
+	for (int i = 0; i < memory_map_count; i++) {
+		efi_memory_desc_t *desc = &memory_map[i];
+		printf("  entry %d: type=%s, range=[0x%llx, 0x%llx], attr=0x%llx\n",
+			i, memory_type_names[desc->type],
+			desc->phys_addr,
+			desc->phys_addr + (desc->num_pages << EFI_PAGE_SHIFT),
+			desc->attribute);
+	}
+}
+
 void uefi_memmap_init(void *fdt)
 {
-	uint64_t reserved_start, reserved_size, reserved_end, ddr_start, ddr_size, ddr_end;
-	efi_memory_desc_t *desc;
-	int node, child, len;
+	uint64_t reserved_start, reserved_size, reserved_end;
+	uint64_t ddr_start, ddr_size, ddr_end;
+	uint64_t efi_start, efi_size, efi_end;
+	uint64_t acpi_start, acpi_size, acpi_end;
+	int node, child, len, i;
 	const uint32_t *reg;
 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 	memory_map_count = 0;
@@ -114,30 +270,24 @@ void uefi_memmap_init(void *fdt)
 			printf("uefi_memmap_init: memory node not found\n");
 			return;
 		}
-
 		reg = fdt_getprop(fdt, node, "reg", &len);
 		if (reg) {
-			/* For 64-bit address, we need to handle both cells */
 			ddr_start = ((uint64_t)fdt32_to_cpu(reg[0]) << 32) | fdt32_to_cpu(reg[1]);
 			ddr_size = ((uint64_t)fdt32_to_cpu(reg[2]) << 32) | fdt32_to_cpu(reg[3]);
 			printf("DDR from FDT: start=0x%llx, size=0x%llx\n", ddr_start, ddr_size);
 		}
-
 		/* Find reserved-memory node */
 		node = fdt_path_offset(fdt, "/reserved-memory");
 		if (node < 0) {
 			printf("uefi_memmap_init: reserved-memory node not found\n");
 			return;
 		}
-
-		/* Search for reg property in reserved-memory and its children */
 		reg = fdt_getprop(fdt, node, "reg", &len);
 		if (reg && len >= 16) {
 			reserved_start = ((uint64_t)fdt32_to_cpu(reg[0]) << 32) | fdt32_to_cpu(reg[1]);
 			reserved_size = ((uint64_t)fdt32_to_cpu(reg[2]) << 32) | fdt32_to_cpu(reg[3]);
 			printf("Reserved memory from FDT: start=0x%llx, size=0x%llx\n", reserved_start, reserved_size);
 		} else {
-			/* Search in child nodes */
 			fdt_for_each_subnode(child, fdt, node) {
 				reg = fdt_getprop(fdt, child, "reg", &len);
 				if (reg && len >= 16) {
@@ -150,47 +300,36 @@ void uefi_memmap_init(void *fdt)
 			}
 		}
 	}
-
 	reserved_end = reserved_start + reserved_size;
 	ddr_end = ddr_start + ddr_size;
 
-	desc = &memory_map[memory_map_count++];
-	desc->type = EFI_RESERVED_TYPE;
-	desc->phys_addr = reserved_start;
-	desc->virt_addr = reserved_start;
-	desc->num_pages = EFI_SIZE_TO_PAGES(reserved_size);
-	desc->attribute = EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC;
+	insert_memory_desc(EFI_CONVENTIONAL_MEMORY, ddr_start, ddr_end,
+		EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC);
 
-	/* Add conventional memory region (DDR before reserved) */
-	if (ddr_start < reserved_start) {
-		desc = &memory_map[memory_map_count++];
-		desc->type = EFI_CONVENTIONAL_MEMORY;
-		desc->phys_addr = ddr_start;
-		desc->virt_addr = ddr_start;
-		desc->num_pages = EFI_SIZE_TO_PAGES(reserved_start - ddr_start);
-		desc->attribute = EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC;
-	}
+	if (reserved_size > 0)
+		insert_memory_desc(EFI_RESERVED_TYPE, reserved_start, reserved_end,
+			EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC);
 
-	if (ddr_end > reserved_end) {
-		desc = &memory_map[memory_map_count++];
-		desc->type = EFI_CONVENTIONAL_MEMORY;
-		desc->phys_addr = reserved_end;
-		desc->virt_addr = reserved_end;
-		desc->num_pages = EFI_SIZE_TO_PAGES(ddr_end - reserved_end);
-		desc->attribute = EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC;
-	}
+	efi_start = (uint64_t)&efi_core_st;
+	efi_size = sizeof(efi_core_st);
+	efi_end = efi_start + efi_size;
+	insert_memory_desc(EFI_RUNTIME_SERVICES_DATA, efi_start, efi_end,
+		EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC);
 
-	desc = &memory_map[memory_map_count++];
-	desc->type = EFI_RUNTIME_SERVICES_DATA;
-	desc->phys_addr = (uint64_t)&efi_core_st;
-	desc->virt_addr = (uint64_t)&efi_core_st;
-	desc->num_pages = EFI_SIZE_TO_PAGES(sizeof(efi_core_st));
-	desc->attribute = EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC;
+	acpi_start = acpi_get_start_addr();
+	acpi_size = acpi_get_total_size();
+	acpi_end = acpi_start + acpi_size;
 
-	for (int i = 0; i < memory_map_count; i++) {
-		desc = &memory_map[i];
-		printf("Entry %d: Type: %u, PhysStart: 0x%llx, VirtStart: 0x%llx, Pages: %llu, Attr: 0x%llx\n",
-			i, desc->type, desc->phys_addr, desc->virt_addr, desc->num_pages, desc->attribute);
+	if (acpi_start && acpi_size > 0 && acpi_start < ddr_end)
+		insert_memory_desc(EFI_RUNTIME_SERVICES_DATA, acpi_start, acpi_end,
+			EFI_MEMORY_WB|EFI_MEMORY_WT|EFI_MEMORY_WC|EFI_MEMORY_UC);
+
+	for (i = 0; i < memory_map_count; i++) {
+		efi_memory_desc_t *desc = &memory_map[i];
+		printf("Entry %d: Type: %s, Region[0x%llx - 0x%llx], Pages: %llu, Attr: 0x%llx\n",
+			i, memory_type_names[desc->type], desc->phys_addr,
+			desc->phys_addr + desc->num_pages * EFI_PAGE_SIZE - 1,
+			desc->num_pages, desc->attribute);
 	}
 }
 
