@@ -417,6 +417,7 @@ void fdt_unregister_general_fixup(struct fdt_general_fixup *fixup)
 	sbi_list_del(&fixup->head);
 }
 
+#ifdef CONFIG_UEFI_DXE
 void fdt_efi_fixup(void *fdt)
 {
 	int node, resv_node;
@@ -465,7 +466,7 @@ void fdt_efi_fixup(void *fdt)
 	if (ret < 0)
 		return;
 
-	/* keep /chosen and /reserved-memory node */
+	/* keep /chosen node */
 	for (offset = fdt_first_subnode(fdt, 0);
 		offset >= 0;
 		offset = next_offset) {
@@ -474,13 +475,9 @@ void fdt_efi_fixup(void *fdt)
 		if (node < 0)
 			return;
 
-		resv_node = fdt_path_offset(fdt, "/reserved-memory");
-		if (resv_node < 0)
-			return;
-
 		next_offset = fdt_next_subnode(fdt, offset);
 
-		if (offset != node && offset != resv_node) {
+		if (offset != node) {
 			ret = fdt_del_node(fdt, offset);
 			if (ret)
 				return;
@@ -488,6 +485,7 @@ void fdt_efi_fixup(void *fdt)
 		}
 	}
 }
+#endif
 
 void fdt_fixups(void *fdt)
 {

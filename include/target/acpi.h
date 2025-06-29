@@ -492,7 +492,7 @@ typedef struct acpi_path {
 #define ACPI_OEMCMP(__id1, __id2, __len)		\
 	(strncmp((__id1), (__id2), (__len)) == 0)
 #define ACPI_OEMCPY(__from, __to, __len)		\
-	strncpy((__to), (__from), (__len))
+	memcpy((__to), (__from), (__len))
 
 /* ============================================================ *
  * address space handling
@@ -1143,10 +1143,14 @@ void acpi_bios_install_table(void *table);
 void acpi_fixups(char *oem, char *oem_table);
 char *acpi_get_vid(void);
 char *acpi_get_pid(void);
+uint64_t acpi_get_total_size(void);
+uint64_t acpi_get_start_addr(void);
 #else
 #define acpi_fixups(oem, oem_table)	do { } while (0)
 #define acpi_get_vid()			NULL
 #define acpi_get_pid()			NULL
+#define acpi_get_total_size()		0
+#define acpi_get_start_addr()		0
 #endif
 #endif /* __ASSEMBLY__ */
 
