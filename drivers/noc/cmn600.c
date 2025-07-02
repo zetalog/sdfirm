@@ -974,6 +974,9 @@ static void __cmn600_configure_rn_sam(caddr_t rnsam,
 			for (sam->region_sys_count = 0;
 			     sam->region_sys_count < cmn_scg_count;
 			     sam->region_sys_count++) {
+				region_base = base + (scg_size * sam->region_sys_count);
+				memregion = CMN_valid_region(CMN_region_target_HNF,
+						    (region_base), scg_size);
 				cmn_writeq_mask(CMN_region(sam->region_sys_count, memregion),
 						CMN_region(sam->region_sys_count, CMN_region_MASK),
 						CMN_rnsam_sys_cache_grp_region(rnsam,
@@ -1017,6 +1020,9 @@ static void __cmn600_configure_rn_sam(caddr_t rnsam,
 											 sam->region_sys2_count),
 						"CMN_rnsam_sys_cache_grp_secondary_region",
 						sam->region_sys2_count);
+				region_base = base + (scg_size * sam->region_sys2_count);
+				memregion = CMN_valid_region(CMN_region_target_HNF,
+					     region_base, scg_size);
 			}
 		}
 		cmn_hnf_cal_enable_scg(sam->region_sys2_count);
