@@ -158,4 +158,6 @@ extern uint8_t ddr_dev;
 #define ddr_init()			do { } while (0)
 #endif
 
+void ddrctl_scrubber_write(caddr_t ddrc_base);
+
 #endif /* __DDR_H_INCLUDE__ */
