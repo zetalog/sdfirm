@@ -9,19 +9,13 @@
 
 #define ECC_SRAM_MODNAME	"ecc_sram"
 
-/* Memory error type definitions */
 #define UNKNOWN_ERROR		0x0000
 #define SINGLE_BIT_ERROR	0x0002
 #define MULTIPLE_BIT_ERROR	0x0003
 
-/* Error type definitions */
 #define ECC_SRAM_ERR_TYPE_SEC		0x1
 #define ECC_SRAM_ERR_TYPE_DED		0x2
 
-/* Error injection test address */
-#define ECC_SRAM_TEST_ADDR		0x1000ULL
-
-/* SRAM ECC high-bit address */
 #define ESRAM_HIGH_ADDR			0x400000000ULL
 
 bh_t ecc_sram_bh;
@@ -54,10 +48,8 @@ static void ecc_sram_collect_error_info(struct ecc_sram_error_info *info)
 	uint32_t status;
 	uint64_t sec_addr, ded_addr;
 
-	/* Read error status registers */
 	status = __raw_readl(ESRAM_INT_STATUS);
 
-	/* Fill error info structure */
 	info->error_status = status;
 
 	if (status & ESRAM_INT_SEC) {
@@ -80,7 +72,6 @@ static void ecc_sram_collect_error_info(struct ecc_sram_error_info *info)
 		info->error_count = 0;
 	}
 
-	/* SRAM ECC doesn't have syndrome information */
 	info->error_syndrome = 0;
 }
 
@@ -147,7 +138,7 @@ void ecc_sram_report_error(void)
 /**
  * ecc_sram_handle_irq - Handle SRAM ECC interrupt
  */
-void ecc_sram_handle_irq(void)
+void ecc_sram_handle_irq(irq_t irq)
 {
 	uint32_t status;
 
@@ -156,29 +147,27 @@ void ecc_sram_handle_irq(void)
 
 	/* Handle SEC interrupt */
 	if (status & ESRAM_INT_SEC) {
-		con_dbg(ECC_SRAM_MODNAME ": SEC error detected at address 0x%08x\n",
-		       __raw_readl(ESRAM_SEC_ADDR));
+		con_log("ecc_sram_handle_irq: irq=%d\n", irq_ext(irq));
+		con_dbg(ECC_SRAM_MODNAME ": SEC error detected at address 0x%016llx\n",
+		       ESRAM_HIGH_ADDR | __raw_readl(ESRAM_SEC_ADDR));
 		con_dbg(ECC_SRAM_MODNAME ": SEC count: %d\n",
 		       __raw_readl(ESRAM_SEC_CNT) & 0xFFFF);
 
-		/* Report error */
 		ecc_sram_report_error();
 
-		/* Clear interrupt */
 		__raw_writel(ESRAM_INT_SEC, ESRAM_INT_CLR);
 	}
 
 	/* Handle DED interrupt */
 	if (status & ESRAM_INT_DED) {
-		con_dbg(ECC_SRAM_MODNAME ": DED error detected at address 0x%08x\n",
-		       __raw_readl(ESRAM_DED_ADDR));
+		con_log("ecc_sram_handle_irq: irq=%d\n", irq_ext(irq));
+		con_dbg(ECC_SRAM_MODNAME ": DED error detected at address 0x%016llx\n",
+		       ESRAM_HIGH_ADDR | __raw_readl(ESRAM_DED_ADDR));
 		con_dbg(ECC_SRAM_MODNAME ": DED count: %d\n",
 		       __raw_readl(ESRAM_DED_CNT) & 0xFFFF);
 
-		/* Report error */
 		ecc_sram_report_error();
 
-		/* Clear interrupt */
 		__raw_writel(ESRAM_INT_DED, ESRAM_INT_CLR);
 	}
 }
@@ -190,7 +179,7 @@ void ecc_sram_handle_irq(void)
 static void ecc_sram_bh_handler(uint8_t events)
 {
 	if (events == BH_POLLIRQ) {
-		ecc_sram_handle_irq();
+		ecc_sram_handle_irq(IRQ_R_SRAM_RAS);
 		return;
 	}
 }
@@ -205,7 +194,7 @@ static void ecc_sram_poll_init(void)
 static void ecc_sram_irq_init(void)
 {
 	irqc_configure_irq(IRQ_R_SRAM_RAS, 0, IRQ_LEVEL_TRIGGERED);
-	irq_register_vector(IRQ_R_SRAM_RAS, (irq_handler)ecc_sram_handle_irq);
+	irq_register_vector(IRQ_R_SRAM_RAS, ecc_sram_handle_irq);
 	irqc_enable_irq(IRQ_R_SRAM_RAS);
 }
 #define ecc_sram_poll_init()	do {} while (0)
@@ -217,9 +206,8 @@ static void ecc_sram_irq_init(void)
 void ecc_sram_init(void)
 {
 	/* Initialize SRAM */
-	__raw_writel(ESRAM_SW_INIT, ESRAM_SRAM_INIT);
-	while (__raw_readl(ESRAM_SRAM_INIT) & ESRAM_INIT_DONE)
-		;
+	con_log(ECC_SRAM_MODNAME ": initialize ECC SRAM\n");
+	con_log(ECC_SRAM_MODNAME ": RMU_BOOT_DONE: 0x%08x\n", __raw_readl(RMU_BOOT_DONE));
 
 	/* Enable interrupts for SEC and DED */
 	__raw_writel(ESRAM_INT_SEC | ESRAM_INT_DED, ESRAM_INT_EN);
@@ -295,7 +283,7 @@ static void ecc_sram_inject_error(uint64_t test_addr, uint32_t test_type)
 static int do_ecc_sram_test(int argc, char **argv)
 {
 	uint32_t test_type = 0;
-	uint64_t test_addr = ECC_SRAM_TEST_ADDR;
+	uint64_t test_addr = SRAM0_BASE;
 	uint32_t sec_thres = 1;
 	int i;
 
@@ -349,6 +337,6 @@ static int do_ecc_sram_test(int argc, char **argv)
 DEFINE_COMMAND(eccsram, do_ecc_sram_test, "ECC SRAM inject error commands",
 	"eccsram [-t test_type] [-a test_addr] [-c sec_thres]\n"
 	"  -t: Test type (0: SEC, 1: DED)\n"
-	"  -a: Test address (default: 0x1000)\n"
+	"  -a: Test address (default: 0x410100000)\n"
 	"  -c: SEC threshold count (default: 1)\n"
 );

@@ -7,6 +7,7 @@
 #include <target/cper.h>
 #include <target/acpi.h>
 #include <target/ras.h>
+#include <target/ddr.h>
 
 #define DDR_MODNAME	"ddr_ras"
 
@@ -1418,7 +1419,7 @@ void ddr_ras_intr_handle_irq(irq_t irq)
 #else
 static void ddr_irq_init(void)
 {
-	uint8_t i;
+	int i;
 
 #if defined(CONFIG_PZ1) || defined(CONFIG_ASIC)
 	/* Initialize RAS interrupt info for all DDR controllers */
@@ -1482,6 +1483,7 @@ void ddr_ras_init(void)
 		ddr_set(CH0_RAS_INTR_EN | CH1_RAS_INTR_EN | FUNC_INTR_EN,
 			func_irq_info[i].reg_base_addr + DDR_INTERRUPT_CTRL_REG);
 		ddr_set(0xFFFFFFFF, func_irq_info[i].reg_base_addr + WRB_RDB_PRR_CTRL);
+		ddrctl_scrubber_write( ddrc_addr[i].ctrl);
 		con_log("DDR_MODNAME: func_irq_info[%d].irq = %d\n", i, func_irq_info[i].irq);
 		con_log("DDR_MODNAME: func_irq_info[%d].ctrl_base_addr = 0x%lx\n", i, func_irq_info[i].ctrl_base_addr);
 		con_log("DDR_MODNAME: func_irq_info[%d].reg_base_addr = 0x%lx\n", i, func_irq_info[i].reg_base_addr);
@@ -1500,6 +1502,12 @@ void ddr_ras_init(void)
 
 	/* Register and enable all RAS interrupts */
 	ddr_irq_init();
+
+	uint32_t data = 0x55555555;
+	uint32_t addr = 0x10000;
+	con_log(DDR_MODNAME ": ----- write data [0x%x] into address [0x%x] ----\n", data, addr);
+	__raw_writel(data, addr);
+	con_log(DDR_MODNAME ": ----- read data [0x%x] from address [0x%x] ----\n", __raw_readl(addr), addr);
 
 	/* get DDR configuration */
 	ddr_get_config(ddrc_addr[0].ctrl);
@@ -1521,9 +1529,9 @@ static void ddr_ecc_inject(caddr_t ddrc_base, caddr_t reg_base,
 				uint8_t ch_index, int inject_type, uint32_t ecc_mode,
 				uint32_t rank, uint32_t bank, uint32_t bg, uint32_t row, uint32_t col, uint64_t poison_addr)
 {
-	uint32_t phys_addr;
-	volatile uint32_t *addr;
-	uint32_t orig_data, orig_data_poison;
+	uint32_t poison_data;
+
+	poison_data = 0xAAAAAAAA;
 
 	/* 1. Disable test_mode, set ECC mode */
 	con_log(DDR_MODNAME ": ECCCFG0:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG0));
@@ -1570,16 +1578,6 @@ static void ddr_ecc_inject(caddr_t ddrc_base, caddr_t reg_base,
 		inject_type == 1 ? "correctable" : "uncorrectable",
 		ch_index, rank, bg, bank, row, col);
 
-	/* 5. Write data to trigger error injection */
-	phys_addr = ddr_components_to_physaddr(bg, bank, row, col);
-	con_log(DDR_MODNAME ": phys_addr:0x%08x\n", phys_addr);
-	addr = (volatile uint32_t*)(uintptr_t)phys_addr;
-
-	orig_data = *addr;
-	orig_data_poison = *(volatile uint32_t *)(uintptr_t)poison_addr;
-	con_log(DDR_MODNAME ": Original data at 0x%08x: 0x%08x\n", phys_addr, orig_data);
-	con_log(DDR_MODNAME ": Original data at poison_addr:0x%08llx: 0x%08x\n", poison_addr, orig_data_poison);
-
 	con_log(DDR_MODNAME ": ECCCFG2:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG2));
 	/* Set flip bit position in ECCCFG2 */
 	if (inject_type == 1) {
@@ -1595,17 +1593,14 @@ static void ddr_ecc_inject(caddr_t ddrc_base, caddr_t reg_base,
 	}
 	con_log(DDR_MODNAME ": ECCCFG2:0x%08x\n", __raw_readl(ddrc_base + REGB_DDRC_CH_OFFSET(ch_index) + ECCCFG2));
 
-	con_log(DDR_MODNAME ": After ECCCFG2: data at 0x%08x: 0x%08x\n", phys_addr, *addr);
-	con_log(DDR_MODNAME ": After ECCCFG2: data at poison_addr:0x%08llx: 0x%08x\n", poison_addr, *(volatile uint32_t *)(uintptr_t)poison_addr);
 
-	/* 6. Wait for error injection to complete */
+	/* 5. Wait for error injection to complete */
 	ddrc_post_qdyn_write(ddrc_base);
 
-	/* 7. Restore original data */
-	*addr = orig_data;
-	*(volatile uint32_t *)(uintptr_t)poison_addr = orig_data_poison;
-	con_log(DDR_MODNAME ": Restored original data at 0x%08x: 0x%08x\n", phys_addr, orig_data);
-	con_log(DDR_MODNAME ": Restored original data at 0x%08llx: 0x%08x\n", poison_addr, orig_data_poison);
+	con_log(DDR_MODNAME ": ----- write data [0x%x] into address [0x%llx] ----\n", poison_data, poison_addr);
+	__raw_writel(0xAAAAAAAA, poison_addr);
+
+	/* 6. Read data to trigger: using 'mem read' command in shell */
 }
 
 static int do_ddr_intr_test(int argc, char **argv)
