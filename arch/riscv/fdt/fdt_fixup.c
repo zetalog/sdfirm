@@ -420,7 +420,7 @@ void fdt_unregister_general_fixup(struct fdt_general_fixup *fixup)
 #ifdef CONFIG_UEFI_DXE
 void fdt_efi_fixup(void *fdt)
 {
-	int node, resv_node;
+	int node;
 	int offset, next_offset;
 	extern struct efi_system_table_t efi_core_st;
 	extern efi_memory_desc_t memory_map[];
