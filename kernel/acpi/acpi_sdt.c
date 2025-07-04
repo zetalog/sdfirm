@@ -654,7 +654,7 @@ acpi_status_t aml_parse_option_term(struct aml_op_info *info,
 }
 
 acpi_status_t aml_parse_option_common(struct aml_op_info *info,
-  				      uint8_t *buffer,
+				      uint8_t *buffer,
 				      size_t max_buffer_size,
 				      AML_OP_PARSE_INDEX index,
 				      AML_OP_PARSE_FORMAT *data_type,
@@ -712,7 +712,7 @@ acpi_status_t aml_parse_option_common(struct aml_op_info *info,
 						&pkg_length);
 		/* Override MaxBufferSize if it is valid PkgLength */
 		if (op_length + pkg_length > max_buffer_size)
- 			return AE_BAD_PARAMETER;
+			return AE_BAD_PARAMETER;
 		else
 			max_buffer_size = op_length + pkg_length;
 	} else {
@@ -795,7 +795,7 @@ uint8_t *aml_get_object_name(struct aml_handle *handle)
 	term_index = info->max_index;
 	for (term_index = info->max_index; term_index > 0; term_index--) {
 		if (info->format[term_index - 1] == AML_NAME)
-  			break;
+			break;
 	}
 	BUG_ON(term_index == 0);
 
@@ -853,6 +853,8 @@ struct aml_node_list *aml_create_node(uint8_t *name_seg,
 	BUG_ON(!aml_node);
 
 	aml_node->signature = EFI_AML_NODE_LIST_SIGNATURE;
+	aml_node->name = acpi_os_allocate(ACPI_NAMESEG_SIZE);
+	BUG_ON(!aml_node->name);
 	memcpy(aml_node->name, name_seg, ACPI_NAMESEG_SIZE);
 	aml_node->buffer = NULL;
 	aml_node->size = 0;
@@ -921,7 +923,7 @@ struct aml_node_list *aml_find_node_in_tree(uint8_t *name_string,
 		seg_count = *buffer;
 		buffer += 1;
 	} else if (*buffer == 0) {
-    		BUG_ON(curr_node != root);
+		BUG_ON(curr_node != root);
 		return curr_node;
 	} else
 		seg_count = 1;
@@ -1001,7 +1003,7 @@ acpi_status_t aml_construct_node_list_for_child(struct aml_handle *handle,
 
 	/* Go through all the reset buffer. */
 	while ((size_t)curr_buffer < (size_t)buffer + buffer_size) {
-    		status = acpi_sdt_open_ex(curr_buffer,
+		status = acpi_sdt_open_ex(curr_buffer,
 			(size_t)buffer + buffer_size - (size_t)curr_buffer,
 			(void **)&child_handle);
 		if (ACPI_FAILURE(status))
@@ -1012,7 +1014,7 @@ acpi_status_t aml_construct_node_list_for_child(struct aml_handle *handle,
 		if (ACPI_FAILURE(status))
 			break;
 
- 		/* Parse next one */
+		/* Parse next one */
 		curr_buffer += child_handle->size;
 		acpi_sdt_close(child_handle);
 	}
@@ -1056,8 +1058,12 @@ void aml_destruct_node_list(struct aml_node_list *parent)
 	list_for_each_entry_safe(struct aml_node_list, curr, next,
 				 &parent->children, link) {
 		list_del_init(&curr->link);
-    		aml_destruct_node_list(curr);
+		aml_destruct_node_list(curr);
 	}
+
+	if (parent->name)
+		acpi_os_free(parent->name);
+
 	acpi_os_free(parent);
 }
 
@@ -1097,6 +1103,8 @@ acpi_status_t aml_find_path(struct aml_handle *handle,
 	/* Create root handle */
 	root_name[0] = AML_ROOT_PFX;
 	root_name[1] = 0;
+	root_name[2] = 0;
+	root_name[3] = 0;
 	root = aml_create_node(root_name, NULL, handle->info);
 
 	status = aml_construct_node_list(handle, root, root);
@@ -1429,6 +1437,7 @@ acpi_status_t acpi_sdt_find_path_from_root(ACPI_HANDLE aml,
 			return AE_BAD_PARAMETER;
 
 		if (!child_handle) {
+			/* No more children to search, path not found */
 			*paml = NULL;
 			return AE_OK;
 		}
@@ -1474,9 +1483,9 @@ acpi_status_t acpi_sdt_find_path(ACPI_HANDLE aml,
 
 	if (handle->signature == EFI_AML_ROOT_HANDLE_SIGNATURE)
 		status = acpi_sdt_find_path_from_root(handle, path, paml);
-  	else if (handle->signature == EFI_AML_HANDLE_SIGNATURE)
+	else if (handle->signature == EFI_AML_HANDLE_SIGNATURE)
 		status = acpi_sdt_find_path_from_non_root(handle, path, paml);
-  	else
+	else
 		status = AE_BAD_PARAMETER;
 
 	acpi_os_free(path);
@@ -1570,18 +1579,63 @@ acpi_status_t acpi_sdt_patch_STA(struct acpi_table_header *table,
 				 uint8_t sta)
 {
 	acpi_status_t status;
-	struct aml_handle *obj;
+	ACPI_HANDLE obj;
+	struct aml_handle *root_handle;
 	AML_OP_PARSE_FORMAT type;
 	size_t size;
 	uint8_t *buffer;
 
-	status = acpi_sdt_find_path(table, path, (void **)&obj);
-	if (ACPI_FAILURE(status))
-		return status;
+	if (!table || !path) {
+		acpi_err("acpi_sdt_patch_STA: invalid parameters\n");
+		return AE_BAD_PARAMETER;
+	}
+
+	/* Create a root handle for the DSDT table */
+	root_handle = acpi_os_allocate(sizeof(struct aml_handle));
+	if (!root_handle) {
+		acpi_err("acpi_sdt_patch_STA: failed to allocate root handle\n");
+		return AE_NO_MEMORY;
+	}
+
+	root_handle->signature = EFI_AML_ROOT_HANDLE_SIGNATURE;
+	root_handle->buffer = (uint8_t *)(table + sizeof(struct acpi_table_header));
+	root_handle->size = table->length - sizeof(struct acpi_table_header);
+	/* Set info to SCOPE_OP for root handle since DSDT is essentially a scope */
+	{
+		uint8_t scope_op = AML_SCOPE_OP;
+		root_handle->info = aml_search_by_opcode(&scope_op);
+	}
+	root_handle->modified = false;
+
+
+	status = acpi_sdt_find_path(root_handle, path, &obj);
+	if (ACPI_FAILURE(status) || !obj) {
+		acpi_err("acpi_sdt_patch_STA: failed to find path '%s', status: %d\n", path, status);
+		goto cleanup;
+	}
+
 	status = acpi_sdt_get_option(obj, 2, &type, &buffer, &size);
-	if (ACPI_FAILURE(status))
-		return status;
+	if (ACPI_FAILURE(status)) {
+		acpi_err("acpi_sdt_patch_STA: failed to get option 2, status: %d\n", status);
+		goto cleanup;
+	}
+
+	if (size < 4) {
+		acpi_err("acpi_sdt_patch_STA: buffer size is too small, expected at least 4 bytes, got %lu\n", size);
+		status = AE_BUFFER_OVERFLOW;
+		goto cleanup;
+	}
 
 	buffer[3] = sta;
+
+	status = AE_OK;
+
+cleanup:
+	if (obj)
+		acpi_sdt_close(obj);
+
+	if (root_handle)
+		acpi_os_free(root_handle);
+
 	return status;
 }

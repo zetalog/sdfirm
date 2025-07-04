@@ -1,8 +1,15 @@
 #include <target/acpi.h>
 #include <target/sbi.h>
+#include <target/arch.h>
+#include <target/noc.h>
 
 static char *acpi_vid;
 static char *acpi_pid;
+
+#ifdef CONFIG_ARCH_SPIKE
+static void acpi_fixup_dsdt_cpu_sta(struct acpi_table_header *dsdt, uint64_t disable_mask);
+static void acpi_fixup_madt_rintc_flags(struct acpi_table_header *madt, uint64_t disable_mask);
+#endif
 
 static uint64_t acpi_total_size = 0;
 static uint64_t acpi_start_addr = 0;
@@ -82,6 +89,11 @@ void acpi_fixups(char *oem, char *oem_table)
 	/* Initialize ACPI size tracking */
 	acpi_total_size = 0;
 	acpi_start_addr = 0;
+
+#ifdef CONFIG_ARCH_SPIKE
+	uint64_t cpu_mask = CPU_MASK;
+	uint64_t disable_mask = ~cpu_mask;
+#endif
 
 	/* Get RSDP address and map it */
 	rsdp_addr = acpi_os_get_root_pointer();
@@ -193,6 +205,11 @@ void acpi_fixups(char *oem, char *oem_table)
 					FIXUP_TABLE_WITHOUT_HEADER(dsdt);
 					acpi_total_size += dsdt->length;
 					printf("DSDT size: %u\n", dsdt->length);
+
+#ifdef CONFIG_ARCH_SPIKE
+					acpi_fixup_dsdt_cpu_sta(dsdt, disable_mask);
+#endif
+
 					acpi_os_unmap_memory(dsdt, sizeof(struct acpi_table_header));
 				} else {
 					printf("DSDT not found or invalid signature\n");
@@ -212,10 +229,14 @@ void acpi_fixups(char *oem, char *oem_table)
 		acpi_os_unmap_memory(fadt, sizeof(struct acpi_table_fadt));
 
 	status = acpi_get_table_by_inst(ACPI_NAME2TAG(ACPI_SIG_MADT), 0, &madt);
-	if(ACPI_SUCCESS(status)) {
+	if (ACPI_SUCCESS(status)) {
 		FIXUP_TABLE_WITHOUT_HEADER(madt.pointer);
 		acpi_total_size += madt.pointer->length;
 		printf("MADT size: %u\n", madt.pointer->length);
+
+#ifdef CONFIG_ARCH_SPIKE
+		acpi_fixup_madt_rintc_flags(madt.pointer, disable_mask);
+#endif
 	}
 
 	status = acpi_get_table_by_inst(ACPI_NAME2TAG(ACPI_SIG_SPCR), 0, &spcr);
@@ -236,3 +257,66 @@ void acpi_fixups(char *oem, char *oem_table)
 
 	printf("ACPI fixups completed. Total ACPI table size: 0x%llx bytes\n", acpi_total_size);
 }
+
+#ifdef CONFIG_ARCH_SPIKE
+#define HART_PER_CLUSTER 4
+
+static void acpi_fixup_dsdt_cpu_sta(struct acpi_table_header *dsdt, uint64_t disable_mask)
+{
+	acpi_status_t status;
+	int cpu_id;
+	char cpu_path[32];
+
+	printf("Fixing up DSDT CPU _STA values based on disable_mask: 0x%llx\n", disable_mask);
+
+	for (cpu_id = 0; cpu_id < MAX_CPU_CORES; cpu_id++) {
+		if (disable_mask & (1ULL << cpu_id)) {
+			snprintf(cpu_path, sizeof(cpu_path), "\\_SB.CL%02d.CP%02d._STA", cpu_id/HART_PER_CLUSTER, cpu_id);
+
+			status = acpi_sdt_patch_STA(dsdt, cpu_path, 0x0);
+			if (ACPI_SUCCESS(status)) {
+				printf("Disabled CPU %d _STA (set to 0x0)\n", cpu_id);
+			} else {
+				printf("Failed to modify CPU %d _STA (status: %d)\n", cpu_id, status);
+			}
+		}
+	}
+}
+
+static void acpi_fixup_madt_rintc_flags(struct acpi_table_header *madt, uint64_t disable_mask)
+{
+	uint8_t *table_start = (uint8_t *)madt;
+	uint8_t *table_end = table_start + madt->length;
+	uint8_t *ptr = table_start + sizeof(struct acpi_table_madt);
+
+	printf("MADT parsing: disable_mask: 0x%llx\n", disable_mask);
+
+	while (ptr + sizeof(struct acpi_subtable_header) <= table_end) {
+		struct acpi_subtable_header *subtable = (struct acpi_subtable_header *)ptr;
+
+		if (subtable->length == 0) {
+			printf("Invalid subtable length: 0, stopping to prevent infinite loop\n");
+			break;
+		}
+
+		if (ptr + subtable->length > table_end) {
+			printf("Invalid subtable length: %u (would exceed table end)\n", subtable->length);
+			break;
+		}
+
+		if (subtable->type == ACPI_MADT_TYPE_RINTC &&
+			subtable->length >= sizeof(struct acpi_madt_rintc)) {
+
+			struct acpi_madt_rintc *rintc = (struct acpi_madt_rintc *)ptr;
+
+			if (disable_mask & (1ULL << rintc->uid))
+				rintc->flags &= ~ACPI_MADT_ENABLED;
+		}
+
+		ptr += subtable->length;
+	}
+
+	acpi_table_calc_checksum(madt);
+}
+
+#endif
