@@ -33,7 +33,6 @@
 #define SHMEM_SLOT_SIZE ULL(0x40) // 64 bytes
 #endif
 
-#ifndef SYS_REALTIME
 #define RPMI_IRQ_COUNT	8
 static const unsigned int rpmi_irqs[RPMI_IRQ_COUNT] = {
 	IRQ_RPMI_A2P_REQ_S,
@@ -45,7 +44,6 @@ static const unsigned int rpmi_irqs[RPMI_IRQ_COUNT] = {
 	IRQ_RPMI_P2A_REQ_NS,
 	IRQ_RPMI_P2A_ACK_NS
 };
-#endif
 bh_t	rpmi_bh;
 
 /** Minimum Base group version required */
@@ -215,22 +213,24 @@ static int __smq_rx(struct smq_queue_ctx *qctx, u32 slot_size,
 
 	/* There should be some message in the queue */
 	if (__smq_queue_empty(qctx)) {
-		printf("RPMI RX: queue empty");
+		printf("RPMI RX: queue empty\n");
 		return -ENOENT;
 	}
 
 	/* Get the head/read index and tail/write index */
 	headidx = le32_to_cpu(*qctx->headptr);
 	tailidx = le32_to_cpu(*qctx->tailptr);
-	printf("RPMI RX: queue[%d] head=%d tail=%d",
+	printf("RPMI RX: queue[%d] head=%d tail=%d\n",
 		qctx->queue_id, headidx, tailidx);
 
 	/*
 	 * Compute msgidn expected in the incoming message
 	 * NOTE: DOORBELL bit is not expected to be set.
 	 */
+	printf("RPMI RX: MAKE_MESSAGE_ID inputs: group=0x%x, service=0x%x, type=0x%x\n",
+		service_group_id, args->service_id, args->type);
 	msgidn = MAKE_MESSAGE_ID(service_group_id, args->service_id, args->type);
-	printf("RPMI RX: expected msgid=0x%x", msgidn);
+	printf("RPMI RX: expected msgid=0x%x\n", msgidn);
 
 	/* Find the Rx message with matching token */
 	pos = headidx;
@@ -242,13 +242,13 @@ static int __smq_rx(struct smq_queue_ctx *qctx, u32 slot_size,
 		pos = (pos + 1) % qctx->num_slots;
 	}
 	if (pos == tailidx) {
-		printf("RPMI RX: no matching message found");
+		printf("RPMI RX: no matching message found\n");
 		return -ENOENT;
 	}
 
 	/* If Rx message is not first message then make it first message */
 	if (pos != headidx) {
-		printf("RPMI RX: reordering message from pos %d to head", pos);
+		printf("RPMI RX: reordering message from pos %d to head\n", pos);
 		src = (void *)qctx->buffer + (pos * slot_size);
 		dst = (void *)qctx->buffer + (headidx * slot_size);
 		for (i = 0; i < slot_size / sizeof(u32); i++) {
@@ -277,13 +277,13 @@ static int __smq_rx(struct smq_queue_ctx *qctx, u32 slot_size,
 		memcpy(dst, src,
 			xfer->rx_len - (sizeof(u32) * args->rx_endian_words));
 
-		printf("RPMI RX: received message service_id=0x%x len=%d",
+		printf("RPMI RX: received message service_id=0x%x len=%d\n",
 			GET_SERVICE_ID(msg), dlen);
 	}
 
 	/* Update the head/read index */
 	*qctx->headptr = cpu_to_le32(headidx + 1) % qctx->num_slots;
-	printf("RPMI RX: updated head to %d",
+	printf("RPMI RX: updated head to %d\n",
 		le32_to_cpu(*qctx->headptr));
 
 	/* Make sure updates to head are immediately visible to PuC */
@@ -310,13 +310,13 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 
 	/* There should be some room in the queue */
 	if (__smq_queue_full(qctx)) {
-		printf("RPMI TX: queue full");
+		printf("RPMI TX: queue full\n");
 		return -ENOMEM;
 	}
 
 	/* Get the tail/write index */
 	tailidx = le32_to_cpu(*qctx->tailptr);
-	printf("RPMI TX: queue[%d] tail=%d", qctx->queue_id, tailidx);
+	printf("RPMI TX: queue[%d] tail=%d\n", qctx->queue_id, tailidx);
 
 	/* Prepare the header to be written into the slot */
 	header.servicegroup_id = cpu_to_le16(service_group_id);
@@ -325,7 +325,7 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 	header.datalen = cpu_to_le16((u16)xfer->tx_len);
 	header.token = cpu_to_le16((u16)xfer->seq);
 
-	printf("RPMI TX: sending message service_id=0x%x len=%ld",
+	printf("RPMI TX: sending message service_id=0x%x len=%ld\n",
 		args->service_id, xfer->tx_len);
 
 	/* Write header into the slot */
@@ -349,8 +349,8 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 
 	/* Update the tail/write index */
 	*qctx->tailptr = cpu_to_le32(tailidx + 1) % qctx->num_slots;
-	printf("RPMI TX: updated tail to %d",
-		le32_to_cpu(*qctx->tailptr));
+	printf("RPMI TX: updated tail to %d / %d\n",
+		le32_to_cpu(*qctx->tailptr), qctx->num_slots);
 
 	/* Ring the RPMI doorbell if present */
 	if (mb_regs) {
@@ -370,11 +370,9 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 			default:
 				break;
 		}
-		if (doorbell) {
+
+		if (doorbell)
 			writel(cpu_to_le32(1), doorbell);
-			printf("RPMI TX: rung doorbell for queue %d",
-				qctx->queue_id);
-		}
 	}
 
 	return 0;
@@ -405,16 +403,16 @@ static int smq_rx(struct rpmi_shmem_mbox_controller *mctl,
 		ret = __smq_rx(qctx, mctl->slot_size, service_group_id, xfer);
 		spin_unlock(&qctx->queue_lock);
 		if (!ret) {
-			printf("RPMI RX: receive successful");
+			printf("RPMI RX: receive successful\n");
 			return 0;
 		}
 
 		mdelay(1);
 		rxretry += 1;
-		printf("RPMI RX: retry %d/%ld", rxretry, xfer->rx_timeout);
+		printf("RPMI RX: retry %d/%ld\n", rxretry, xfer->rx_timeout);
 	} while (rxretry < xfer->rx_timeout);
 
-	printf("RPMI RX: timeout after %d retries", rxretry);
+	printf("RPMI RX: timeout after %d retries\n", rxretry);
 	return -ETIMEDOUT;
 }
 
@@ -445,16 +443,16 @@ static int smq_tx(struct rpmi_shmem_mbox_controller *mctl,
 				service_group_id, xfer);
 		spin_unlock(&qctx->queue_lock);
 		if (!ret) {
-			printf("RPMI TX: send successful");
+			printf("RPMI TX: send successful\n");
 			return 0;
 		}
 
 		mdelay(1);
 		txretry += 1;
-		printf("RPMI TX: retry %d/%ld", txretry, xfer->tx_timeout);
+		printf("RPMI TX: retry %d/%ld\n", txretry, xfer->tx_timeout);
 	} while (txretry < xfer->tx_timeout);
 
-	printf("RPMI TX: timeout after %d retries", txretry);
+	printf("RPMI TX: timeout after %d retries\n", txretry);
 	return -ETIMEDOUT;
 }
 
@@ -626,7 +624,6 @@ static void rpmi_handler_irq(irq_t irq)
 	struct rpmi_shmem_mbox_controller *mctl = &g_mctl;
 	struct smq_queue_ctx *qctx;
 	struct mbox_xfer xfer;
-	struct rpmi_message_args args;
 	uint32_t doorbell_val;
 	int queue_idx = -1;
 	volatile le32_t *doorbell_reg = NULL;
@@ -638,33 +635,33 @@ static void rpmi_handler_irq(irq_t irq)
 	case IRQ_RPMI_A2P_REQ_NS:
 		queue_idx = RPMI_QUEUE_IDX_A2P_REQ;
 		doorbell_reg = mctl->mb_regs.a2p_req;
-		printf("RPMI IRQ: A2P_REQ interrupt (irq=%d)", irq);
+		printf("RPMI IRQ: A2P_REQ interrupt (irq=%d)\n", irq_ext(irq));
 			break;
 	case IRQ_RPMI_A2P_ACK_S:
 	case IRQ_RPMI_A2P_ACK_NS:
 		queue_idx = RPMI_QUEUE_IDX_A2P_ACK;
 		doorbell_reg = mctl->mb_regs.a2p_ack;
-		printf("RPMI IRQ: A2P_ACK interrupt (irq=%d)", irq);
+		printf("RPMI IRQ: A2P_ACK interrupt (irq=%d)\n", irq_ext(irq));
 			break;
 	case IRQ_RPMI_P2A_REQ_S:
 	case IRQ_RPMI_P2A_REQ_NS:
 		queue_idx = RPMI_QUEUE_IDX_P2A_REQ;
 		doorbell_reg = mctl->mb_regs.p2a_req;
-		printf("RPMI IRQ: P2A_REQ interrupt (irq=%d)", irq);
+		printf("RPMI IRQ: P2A_REQ interrupt (irq=%d)\n", irq_ext(irq));
 			break;
 	case IRQ_RPMI_P2A_ACK_S:
 	case IRQ_RPMI_P2A_ACK_NS:
 		queue_idx = RPMI_QUEUE_IDX_P2A_ACK;
 		doorbell_reg = mctl->mb_regs.p2a_ack;
-		printf("RPMI IRQ: P2A_ACK interrupt (irq=%d)", irq);
+		printf("RPMI IRQ: P2A_ACK interrupt (irq=%d)\n", irq_ext(irq));
 			break;
 		default:
-		printf("RPMI IRQ: unknown interrupt (irq=%d)", irq);
+		printf("RPMI IRQ: unknown interrupt (irq=%d)\n", irq_ext(irq));
 		return;
 	}
 
 	if (queue_idx < 0 || queue_idx >= RPMI_QUEUE_IDX_MAX_COUNT) {
-		printf("RPMI IRQ: invalid queue index %d", queue_idx);
+		printf("RPMI IRQ: invalid queue index %d\n", queue_idx);
 		return;
 		}
 
@@ -672,39 +669,35 @@ static void rpmi_handler_irq(irq_t irq)
 
 	doorbell_val = readl(doorbell_reg);
 	if (!doorbell_val) {
-		printf("RPMI IRQ: no doorbell detected for queue %d", queue_idx);
+		printf("RPMI IRQ: no doorbell detected for queue %d\n", queue_idx);
 		return;
 	}
 
-	printf("RPMI IRQ: doorbell detected on queue %d, value=0x%x", queue_idx, doorbell_val);
-
-			/* clear doorbell */
-	writel(0, doorbell_reg);
-	printf("RPMI IRQ: cleared doorbell for queue %d", queue_idx);
+	printf("RPMI IRQ: doorbell detected on queue %d, value=0x%x\n", queue_idx, doorbell_val);
 
 	/* handler message in queue */
 	spin_lock(&qctx->queue_lock);
 	while (!__smq_queue_empty(qctx)) {
-		memset(&args, 0, sizeof(args));
-		args.type = RPMI_MSG_NORMAL_REQUEST;
-		args.rx_endian_words = 2;
+		/* Get the head index to read the message */
+		uint32_t headidx = le32_to_cpu(*qctx->headptr);
+		uint32_t tailidx = le32_to_cpu(*qctx->tailptr);
 
-		memset(&xfer, 0, sizeof(xfer));
-		xfer.args = &args;
-		xfer.rx = NULL;
-		xfer.rx_len = mctl->slot_size;
-		xfer.rx_timeout = RPMI_DEF_RX_TIMEOUT;
-
-		int ret = __smq_rx(qctx, mctl->slot_size, 0, &xfer);
-		if (ret) {
-			printf("RPMI: receive message failed (ret=%d)", ret);
+		if (headidx == tailidx) {
+			/* Queue is empty */
 			break;
 		}
 
-		service_id = GET_SERVICE_ID(xfer.rx);
+		struct rpmi_message *msg = (void *)qctx->buffer + (headidx * mctl->slot_size);
+		service_id = GET_SERVICE_ID(msg);
 
+
+		handler_found = false;
 		for (int j = 0; j < num_handlers; j++) {
 			if (msg_handlers[j].service_id == service_id) {
+				memset(&xfer, 0, sizeof(xfer));
+				xfer.rx = msg;
+				xfer.rx_len = mctl->slot_size;
+
 				msg_handlers[j].handler(NULL, &xfer);
 				handler_found = true;
 				break;
@@ -712,11 +705,16 @@ static void rpmi_handler_irq(irq_t irq)
 		}
 
 		if (!handler_found)
-			printf("RPMI: no message handler found (service_id=0x%x)", service_id);
+			printf("RPMI: no message handler found (service_id=0x%x)\n", service_id);
 
+		*qctx->headptr = cpu_to_le32((headidx + 1) % qctx->num_slots);
+
+		smp_wmb();
 	}
 	spin_unlock(&qctx->queue_lock);
-	printf("RPMI IRQ[%d]: finished handling queue %d", irq_ext(irq), queue_idx);
+
+	/* clear doorbell */
+	writel(0, doorbell_reg);
 }
 
 #ifdef SYS_REALTIME

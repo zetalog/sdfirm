@@ -797,7 +797,19 @@ int rpmi_shmem_init(void);
 #define rpmi_shmem_init()		do { } while (0)
 #endif
 
+#ifdef CONFIG_RPMI_CPPC
+void rpmi_cppc_init(void);
+#else
+#define rpmi_cppc_init()		do { } while (0)
+#endif
+
 #ifdef CONFIG_RPMI_RAS
+struct rpmi_ras {
+	struct mbox_chan *chan;
+};
+
+/* External reference to the global RAS channel */
+extern struct rpmi_ras g_ras;
 void rpmi_ras_init(void);
 int rpmi_ras_sync_hart_errs(u32 *pending_vectors, u32 *nr_pending,
 			    u32 *nr_remaining);

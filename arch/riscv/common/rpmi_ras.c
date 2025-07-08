@@ -5,11 +5,7 @@
 #include <target/acpi.h>
 #include <target/mbox.h>
 
-struct rpmi_ras {
-	struct mbox_chan *chan;
-};
-
-static struct rpmi_ras g_ras;
+struct rpmi_ras g_ras;
 
 #ifndef CONFIG_SPACEMIT_RAS
 #define SPACEMIT_RAS_MSG_TYPE_HART_ERR    0x1001
@@ -295,38 +291,47 @@ int rpmi_ras_sync_reri_errs(uint32_t *pending_vectors, uint32_t *nr_pending,
 	mbuf->header.service_id;		\
 })
 
-static void ras_message_handler(struct mbox_chan *chan, struct mbox_xfer *xfer)
+
+static void ras_message_handler_internal(struct mbox_chan *chan, uint32_t msg_id, struct mbox_xfer *xfer)
 {
 	int rc = 0;
-	struct rpmi_ras_sync_err_resp *resp;
+	struct rpmi_ras_sync_err_resp *resp = NULL;
 	uint32_t pending_vectors[MAX_PEND_VECS];
 	uint32_t nr_pending = 0, nr_remaining = 0;
 	uint32_t src_list[MAX_ERR_SRCS];
 	struct acpi_hest_generic_v2 err_src;
-	uint32_t *req_data = (uint32_t *)xfer->rx;
-	uint32_t *resp_data = (uint32_t *)xfer->tx;
+	uint32_t *req_data = NULL;
+	uint32_t *resp_data = NULL;
 
-	switch (GET_SERVICE_ID(xfer->rx)) {
+	/* Initialize response buffer if available */
+	if (xfer && xfer->rx) {
+		resp = (struct rpmi_ras_sync_err_resp *)xfer->rx;
+		resp_data = (uint32_t *)xfer->rx;
+	}
+
+	switch (msg_id) {
 	case RPMI_RAS_SRV_SYNC_HART_ERR_REQ: {
-		struct rpmi_ras_sync_hart_err_req *req;
-		req = (struct rpmi_ras_sync_hart_err_req *)xfer->rx;
-		resp = (struct rpmi_ras_sync_err_resp *)xfer->tx;
+		struct rpmi_ras_sync_hart_err_req *req = NULL;
 
 		/* sync error vectors */
 		rc = rpmi_ras_sync_hart_errs(pending_vectors, &nr_pending, &nr_remaining);
 		if (rc) {
-			printf("RPMI RAS: sync error vectors failed (rc=%d)\n", rc);
-			resp->status = rc;
+			con_log("RPMI RAS: sync error vectors failed (rc=%d)\n", rc);
+			if (resp) {
+				resp->status = rc;
+			}
 			return;
 		}
 
 		/* fill response */
-		resp->status = 0;
-		resp->returned = nr_pending;
-		resp->remaining = nr_remaining;
-		if (nr_pending > 0) {
-			memcpy(resp->pending_vecs, pending_vectors,
-				   nr_pending * sizeof(uint32_t));
+		if (resp) {
+			resp->status = 0;
+			resp->returned = nr_pending;
+			resp->remaining = nr_remaining;
+			if (nr_pending > 0) {
+				memcpy(resp->pending_vecs, pending_vectors,
+					   nr_pending * sizeof(uint32_t));
+			}
 		}
 		break;
 	}
@@ -334,15 +339,16 @@ static void ras_message_handler(struct mbox_chan *chan, struct mbox_xfer *xfer)
 	case RPMI_RAS_SRV_SYNC_DEV_ERR_REQ:
 		rc = rpmi_ras_sync_reri_errs(NULL, &nr_pending, &nr_remaining);
 		if (rc) {
-			printf("RPMI RAS: sync RERI error failed (rc=%d)\n", rc);
+			con_log("RPMI RAS: sync RERI error failed (rc=%d)\n", rc);
 			return;
 		}
 		break;
 
 	case RPMI_RAS_SRV_GET_NUM_ERR_SRCS:
+		con_log("RPMI RAS: get number of error sources\n");
 		rc = acpi_ghes_get_num_err_srcs();
 		if (rc < 0) {
-			printf("RPMI RAS: get number of error sources failed (rc=%d)\n", rc);
+			con_log("RPMI RAS: get number of error sources failed (rc=%d)\n", rc);
 			return;
 		}
 		/* Return the number of error sources */
@@ -352,9 +358,10 @@ static void ras_message_handler(struct mbox_chan *chan, struct mbox_xfer *xfer)
 		break;
 
 	case RPMI_RAS_SRV_GET_ERR_SRCS_ID_LIST:
+		con_log("RPMI RAS: get error sources ID list\n");
 		rc = acpi_ghes_get_err_srcs_list(src_list, MAX_ERR_SRCS);
 		if (rc < 0) {
-			printf("RPMI RAS: get error sources ID list failed (rc=%d)\n", rc);
+			con_log("RPMI RAS: get error sources ID list failed (rc=%d)\n", rc);
 			return;
 		}
 		/* Return the error sources list */
@@ -369,7 +376,7 @@ static void ras_message_handler(struct mbox_chan *chan, struct mbox_xfer *xfer)
 		uint32_t src_id = req_data ? req_data[0] : 0;
 		rc = acpi_ghes_get_err_src_desc(src_id, &err_src);
 		if (rc) {
-			printf("RPMI RAS: get error source description failed (rc=%d)\n", rc);
+			con_log("RPMI RAS: get error source description failed (rc=%d)\n", rc);
 			return;
 		}
 		/* Return the error source description */
@@ -379,9 +386,20 @@ static void ras_message_handler(struct mbox_chan *chan, struct mbox_xfer *xfer)
 		break;
 
 	default:
-		printf("RPMI RAS: unknown service ID (0x%x)\n", GET_SERVICE_ID(xfer->rx));
+		con_log("RPMI RAS: unknown service ID (0x%x)\n", msg_id);
 		break;
 	}
+}
+
+static void ras_message_handler(struct mbox_chan *chan, struct mbox_xfer *xfer)
+{
+	uint32_t msg_id = 0;
+
+	if (xfer && xfer->rx) {
+		msg_id = GET_SERVICE_ID(xfer->rx);
+	}
+
+	ras_message_handler_internal(chan, msg_id, xfer);
 }
 
 void rpmi_ras_init(void)
