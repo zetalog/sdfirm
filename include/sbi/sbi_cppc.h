@@ -8,9 +8,7 @@
 #ifndef __SBI_CPPC_H__
 #define __SBI_CPPC_H__
 
-//#include <sbi/sbi_types.h>
-#include <asm/types.h>
-
+#include <target/sbi.h>
 /** CPPC device */
 struct sbi_cppc_device {
 	/** Name of the CPPC device */

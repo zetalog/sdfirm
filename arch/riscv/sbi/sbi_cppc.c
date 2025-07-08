@@ -5,7 +5,6 @@
  *
  */
 
-//#include <sbi/sbi_error.h>
 #include <target/sbi.h>
 #include <sbi/sbi_cppc.h>
 
