@@ -18,18 +18,6 @@
 #include <asm/types.h>
 
 /** Representation of a mailbox channel */
-struct mbox_chan {
-	/** List head */
-	struct sbi_dlist node;
-	/** Pointer to the mailbox controller */
-	struct mbox_controller *mbox;
-	/**
-	 * Arguments (or parameters) to identify a mailbox channel
-	 * within a mailbox controller.
-	 */
-#define MBOX_CHAN_MAX_ARGS	2
-	u32 chan_args[MBOX_CHAN_MAX_ARGS];
-};
 
 #define to_mbox_chan(__node)	\
 	container_of((__node), struct mbox_chan, node)
@@ -39,48 +27,6 @@ struct mbox_chan {
  *
  * NOTE: If both "tx" and "rx" are non-NULL then Tx is done before Rx.
  */
-struct mbox_xfer {
-#define MBOX_XFER_SEQ			(1UL << 0)
-	/** Transfer flags */
-	unsigned long flags;
-	/** Transfer arguments (or parameters) */
-	void *args;
-	/**
-	 * Sequence number
-	 *
-	 * If MBOX_XFER_SEQ is not set in flags then mbox_chan_xfer()
-	 * will generate a unique sequence number and update this field
-	 * else mbox_chan_xfer() will blindly use the sequence number
-	 * specified by this field.
-	 */
-	long seq;
-	/** Send data pointer */
-	void *tx;
-	/** Send data length (valid only if tx != NULL) */
-	unsigned long tx_len;
-	/**
-	 * Send timeout milliseconds (valid only if tx != NULL)
-	 *
-	 * If this field is non-zero along with tx != NULL then the
-	 * mailbox controller driver will wait specified milliseconds
-	 * for send data transfer to complete else the mailbox controller
-	 * driver will not wait.
-	 */
-	unsigned long tx_timeout;
-	/** Receive data pointer */
-	void *rx;
-	/** Receive data length (valid only if rx != NULL) */
-	unsigned long rx_len;
-	/**
-	 * Receive timeout milliseconds (valid only if rx != NULL)
-	 *
-	 * If this field is non-zero along with rx != NULL then the
-	 * mailbox controller driver will wait specified milliseconds
-	 * for receive data transfer to complete else the mailbox
-	 * controller driver will not wait.
-	 */
-	unsigned long rx_timeout;
-};
 
 #define mbox_xfer_init_tx(__p, __a, __t, __t_len, __t_tim)		\
 do {									\

@@ -6,18 +6,9 @@
  * Authors:
  *   Subrahmanya Lingappa <slingappa@ventanamicro.com>
  */
-
-#include <fdt.h>
-#include <sbi/sbi_cppc.h>
 #include <target/sbi.h>
-#include <sbi_utils/cppc/fdt_cppc.h>
-#include <asm/fdt.h>
-#include <asm/io.h>
-#include <sbi_utils/mailbox/fdt_mailbox.h>
-#include <sbi_utils/mailbox/rpmi_mailbox.h>
-
-//#include <target/acpi_cppc.h>
-//#include <target/mbox.h>
+#include <target/rpmi.h>
+#include <target/mbox.h>
 
 /**
  * Per hart RPMI CPPC fast channel size (bytes)
@@ -322,25 +313,26 @@ void rpmi_cppc_init(void)
 	int rc;
 	struct mbox_controller *mbox;
 	uint32_t chan_args[2];
-	struct mbox_chan *chan;
 
-	mbox = rpmi_shmem_get_controller();
-	if (!mbox)
+	mbox = rpmi_get_controller();
+	if (!mbox) {
+		printf("RPMI CPPC: get mailbox controller failed\n");
 		return;
+	}
 
 	chan_args[0] = RPMI_SRVGRP_CPPC;
 	chan_args[1] = RPMI_VERSION(1, 0);
 
-	chan = mbox_controller_request_chan(mbox, chan_args);
-	if (!chan) {
+	g_rpmi_cppc->chan = mbox_controller_request_chan(mbox, chan_args);
+	if (!g_rpmi_cppc->chan) {
 		printf("%s: failed to request channel\n", __func__);
 		return;
 	}
 
 	/* Update per-HART scratch space */
-	rc = rpmi_cppc_update_hart_scratch(chan);
+	rc = rpmi_cppc_update_hart_scratch(g_rpmi_cppc->chan);
 	if (rc) {
-		mbox_controller_free_chan(chan);
+		mbox_controller_free_chan(g_rpmi_cppc->chan);
 		return;
 	}
 }
