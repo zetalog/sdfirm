@@ -76,7 +76,6 @@ config SBI_ECALL_PMU
 
 config SBI_ECALL_CPPC
 	bool "CPPC extension"
-	default y
 
 config SBI_ECALL_CLK
 	bool "Enable clock reset ecall support"
