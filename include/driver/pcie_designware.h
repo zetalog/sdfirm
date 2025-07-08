@@ -461,6 +461,7 @@ struct dw_pcie {
 	//struct dw_pcie_ep ep;
 	bool active;
 	unsigned int version;
+	struct hlist_head saved_cap_space;
 };
 
 #define to_dw_pcie_from_pp(port)	\
