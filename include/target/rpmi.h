@@ -11,9 +11,6 @@
 #ifndef __RPMI_MSGPROT_H__
 #define __RPMI_MSGPROT_H__
 
-#include <target/endian.h>
-#include <target/mbox.h>
-
 /*
  * 31                                            0
  * +---------------------+-----------------------+

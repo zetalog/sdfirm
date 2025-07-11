@@ -1,50 +1,15 @@
-/*
- * SPDX-License-Identifier: BSD-2-Clause
- *
- * Copyright (c) 2024 Ventana Micro Systems Inc.
- *
- * Authors:
- *   Rahul Pathak <rpathak@ventanamicro.com>
- *   Subrahmanya Lingappa <slingappa@ventanamicro.com>
- *   Anup Patel <apatel@ventanamicro.com>
- */
-
-#include <target/rpmi.h>
-#include <target/spinlock.h>
-#include <target/types.h>
-#include <target/clk.h>
+#include <target/generic.h>
+#include <target/mbox.h>
 #include <target/delay.h>
-#include <asm/mach/reg.h>
 #include <target/irq.h>
+#include <target/console.h>
+#include <target/spinlock.h>
+#include <target/panic.h>
 
-#ifndef SHMEM_REG_BASE
-#define SHMEM_REG_BASE (__RMU_SRAM_MAILBOX_NS_BASE)
-#endif
+#define to_srvgrp_chan(mbox_chan)	\
+	container_of(mbox_chan, struct rpmi_srvgrp_chan, chan);
 
-#ifndef SHMEM_REG_SIZE
-#define SHMEM_REG_SIZE ULL(16 * 1024) // 16KB
-#endif
-
-#ifndef SHMEM_QUEUE_SIZE
-#define SHMEM_QUEUE_SIZE ULL(0x1000)
-#endif
-
-#ifndef SHMEM_SLOT_SIZE
-#define SHMEM_SLOT_SIZE ULL(0x40) // 64 bytes
-#endif
-
-#define RPMI_IRQ_COUNT	8
-static const unsigned int rpmi_irqs[RPMI_IRQ_COUNT] = {
-	IRQ_RPMI_A2P_REQ_S,
-	IRQ_RPMI_A2P_ACK_S,
-	IRQ_RPMI_A2P_REQ_NS,
-	IRQ_RPMI_A2P_ACK_NS,
-	IRQ_RPMI_P2A_REQ_S,
-	IRQ_RPMI_P2A_ACK_S,
-	IRQ_RPMI_P2A_REQ_NS,
-	IRQ_RPMI_P2A_ACK_NS
-};
-bh_t	rpmi_bh;
+struct rpmi_shmem_mbox_controller rpmi_shmem_boxes[RPMI_SHMEM_MAX_CONTROLLERS];
 
 /** Minimum Base group version required */
 #define RPMI_BASE_VERSION_MIN		RPMI_VERSION(1, 0)
@@ -104,83 +69,19 @@ bh_t	rpmi_bh;
 	((flags & RPMI_MSG_FLAGS_TYPE) >> RPMI_MSG_FLAGS_TYPE_POS));	\
 })
 
-enum rpmi_queue_type {
-	RPMI_QUEUE_TYPE_REQ = 0,
-	RPMI_QUEUE_TYPE_ACK = 1,
-};
-
-enum rpmi_queue_idx {
-	RPMI_QUEUE_IDX_A2P_REQ = 0,
-	RPMI_QUEUE_IDX_P2A_ACK = 1,
-	RPMI_QUEUE_IDX_P2A_REQ = 2,
-	RPMI_QUEUE_IDX_A2P_ACK = 3,
-	RPMI_QUEUE_IDX_MAX_COUNT,
-};
-
 enum rpmi_reg_idx {
 	RPMI_REG_IDX_DB_REG = 0, /* Doorbell register */
 	RPMI_REG_IDX_MAX_COUNT,
 };
 
-struct rpmi_mb_regs {
-	volatile le32_t *a2p_req;
-	volatile le32_t *a2p_ack;
-	volatile le32_t *p2a_req;
-	volatile le32_t *p2a_ack;
-};
+#if RPMI_SHMEM_MAX_CONTROLLERS > 1
+mbox_bid_t rpmi_shmem_bid;
 
-/** Single Queue Context Structure */
-struct smq_queue_ctx {
-	u32 queue_id;
-	u32 num_slots;
-	spinlock_t queue_lock;
-	/* Type of queue - REQ or ACK */
-	enum rpmi_queue_type queue_type;
-	/* Pointers to the queue shared memory */
-	volatile le32_t *headptr;
-	volatile le32_t *tailptr;
-	volatile uint8_t *buffer;
-	/* Name of the queue */
-	char name[RPMI_NAME_CHARS_MAX];
-};
-
-struct rpmi_srvgrp_chan {
-	u32 servicegroup_id;
-	u32 servicegroup_version;
-	struct mbox_chan chan;
-};
-
-#define to_srvgrp_chan(mbox_chan)	\
-		container_of(mbox_chan, struct rpmi_srvgrp_chan, chan);
-
-struct rpmi_shmem_mbox_controller {
-	/* Driver specific members */
-	u32 slot_size;
-	u32 queue_count;
-	struct rpmi_mb_regs mb_regs;
-	struct smq_queue_ctx queue_ctx_tbl[RPMI_QUEUE_IDX_MAX_COUNT];
-	/* Mailbox framework related members */
-	struct mbox_controller controller;
-	struct mbox_chan *base_chan;
-	u32 impl_version;
-	u32 impl_id;
-	u32 spec_version;
-	u32 plat_info_len;
-	char *plat_info;
-	struct {
-		u8 f0_priv_level;
-		bool f0_ev_notif_en;
-		bool f0_msi_en;
-	} base_flags;
-};
-
-#define RPMI_MAX_CHANNELS	16
-
-static struct rpmi_shmem_mbox_controller g_mctl;
-static struct rpmi_srvgrp_chan g_srvgrp_chans[RPMI_MAX_CHANNELS];
-static uint32_t g_chan_used[RPMI_MAX_CHANNELS];
-
-/**************** Shared Memory Queues Helpers **************/
+void rpmi_shmem_select(mbox_bid_t bid)
+{
+	rpmi_shmem_bid = bid - RPMI_SHMEM_BID_BASE;
+}
+#endif
 
 static bool __smq_queue_full(struct smq_queue_ctx *qctx)
 {
@@ -293,40 +194,35 @@ static int __smq_rx(struct smq_queue_ctx *qctx, u32 slot_size,
 }
 
 static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
-			u32 slot_size, u32 service_group_id, struct mbox_xfer *xfer)
+		    uint32_t doorbell_value,
+		    uint32_t slot_size, uint32_t service_group_id,
+		    struct mbox_xfer *xfer)
 {
-	u32 i, tailidx;
+	uint32_t i, tailidx;
 	void *dst, *src;
 	struct rpmi_message_header header = { 0 };
 	struct rpmi_message_args *args = xfer->args;
-	volatile le32_t *doorbell = NULL;
 
 	/* Tx sanity checks */
-	if ((sizeof(u32) * args->tx_endian_words) >
-		(slot_size - sizeof(struct rpmi_message_header)))
+	if ((sizeof(uint32_t) * args->tx_endian_words) >
+	    (slot_size - sizeof(struct rpmi_message_header)))
 		return -EINVAL;
-	if ((sizeof(u32) * args->tx_endian_words) > xfer->tx_len)
+	if ((sizeof(uint32_t) * args->tx_endian_words) > xfer->tx_len)
 		return -EINVAL;
 
 	/* There should be some room in the queue */
-	if (__smq_queue_full(qctx)) {
-		printf("RPMI TX: queue full\n");
+	if (__smq_queue_full(qctx))
 		return -ENOMEM;
-	}
 
 	/* Get the tail/write index */
 	tailidx = le32_to_cpu(*qctx->tailptr);
-	printf("RPMI TX: queue[%d] tail=%d\n", qctx->queue_id, tailidx);
 
 	/* Prepare the header to be written into the slot */
 	header.servicegroup_id = cpu_to_le16(service_group_id);
 	header.service_id = args->service_id;
 	header.flags = args->type;
-	header.datalen = cpu_to_le16((u16)xfer->tx_len);
-	header.token = cpu_to_le16((u16)xfer->seq);
-
-	printf("RPMI TX: sending message service_id=0x%x len=%ld\n",
-		args->service_id, xfer->tx_len);
+	header.datalen = cpu_to_le16((uint16_t)xfer->tx_len);
+	header.token = cpu_to_le16((uint16_t)xfer->seq);
 
 	/* Write header into the slot */
 	dst = (char *)qctx->buffer + (tailidx * slot_size);
@@ -337,11 +233,11 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 	if (xfer->tx) {
 		src = xfer->tx;
 		for (i = 0; i < args->tx_endian_words; i++)
-			((u32 *)dst)[i] = cpu_to_le32(((u32 *)src)[i]);
-		dst += sizeof(u32) * args->tx_endian_words;
-		src += sizeof(u32) * args->tx_endian_words;
-		memcpy(dst, src,
-			xfer->tx_len - (sizeof(u32) * args->tx_endian_words));
+			((uint32_t *)dst)[i] = cpu_to_le32(((uint32_t *)src)[i]);
+		dst += sizeof(uint32_t) * args->tx_endian_words;
+		src += sizeof(uint32_t) * args->tx_endian_words;
+		memcpy(dst, src, xfer->tx_len -
+				 (sizeof(uint32_t) * args->tx_endian_words));
 	}
 
 	/* Make sure queue chanages are visible to PuC before updating tail */
@@ -349,43 +245,24 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 
 	/* Update the tail/write index */
 	*qctx->tailptr = cpu_to_le32(tailidx + 1) % qctx->num_slots;
-	printf("RPMI TX: updated tail to %d / %d\n",
-		le32_to_cpu(*qctx->tailptr), qctx->num_slots);
 
 	/* Ring the RPMI doorbell if present */
-	if (mb_regs) {
-		switch (qctx->queue_id) {
-			case RPMI_QUEUE_IDX_A2P_REQ:
-				doorbell = mb_regs->a2p_req;
-				break;
-			case RPMI_QUEUE_IDX_A2P_ACK:
-				doorbell = mb_regs->a2p_ack;
-				break;
-			case RPMI_QUEUE_IDX_P2A_REQ:
-				doorbell = mb_regs->p2a_req;
-				break;
-			case RPMI_QUEUE_IDX_P2A_ACK:
-				doorbell = mb_regs->p2a_ack;
-				break;
-			default:
-				break;
-		}
-
-		if (doorbell)
-			writel(cpu_to_le32(1), doorbell);
-	}
+	if (mb_regs)
+		__raw_setl(doorbell_value, (caddr_t)&mb_regs->db_reg);
 
 	return 0;
 }
 
 static int smq_rx(struct rpmi_shmem_mbox_controller *mctl,
-		  u32 queue_id, u32 service_group_id, struct mbox_xfer *xfer)
+		  uint32_t queue_id, uint32_t service_group_id,
+		  struct mbox_xfer *xfer)
 {
 	int ret, rxretry = 0;
 	struct smq_queue_ctx *qctx;
 
 	if (mctl->queue_count < queue_id) {
-		printf("RPMI: invalid queue_id or service_group_id\n");
+		con_err("rpmi_shmem(%d): invalid queue_id or service_group_id\n",
+			mctl->controller.bid);
 		return -EINVAL;
 	}
 	qctx = &mctl->queue_ctx_tbl[queue_id];
@@ -402,28 +279,26 @@ static int smq_rx(struct rpmi_shmem_mbox_controller *mctl,
 		spin_lock(&qctx->queue_lock);
 		ret = __smq_rx(qctx, mctl->slot_size, service_group_id, xfer);
 		spin_unlock(&qctx->queue_lock);
-		if (!ret) {
-			printf("RPMI RX: receive successful\n");
+		if (!ret)
 			return 0;
-		}
 
 		mdelay(1);
 		rxretry += 1;
-		printf("RPMI RX: retry %d/%ld\n", rxretry, xfer->rx_timeout);
 	} while (rxretry < xfer->rx_timeout);
 
-	printf("RPMI RX: timeout after %d retries\n", rxretry);
 	return -ETIMEDOUT;
 }
 
 static int smq_tx(struct rpmi_shmem_mbox_controller *mctl,
-		  u32 queue_id, u32 service_group_id, struct mbox_xfer *xfer)
+		  uint32_t queue_id, uint32_t service_group_id,
+		  struct mbox_xfer *xfer)
 {
 	int ret, txretry = 0;
 	struct smq_queue_ctx *qctx;
 
 	if (mctl->queue_count < queue_id) {
-		printf("RPMI: queue_id or service_group_id\n");
+		con_err("rpmi_shmem(%d): invalid queue_id or service_group_id\n",
+			mctl->controller.bid);
 		return -EINVAL;
 	}
 	qctx = &mctl->queue_ctx_tbl[queue_id];
@@ -439,29 +314,36 @@ static int smq_tx(struct rpmi_shmem_mbox_controller *mctl,
 	 */
 	do {
 		spin_lock(&qctx->queue_lock);
-		ret = __smq_tx(qctx, &mctl->mb_regs, mctl->slot_size,
-				service_group_id, xfer);
+		ret = __smq_tx(qctx, mctl->mb_regs, mctl->doorbell_value,
+				mctl->slot_size, service_group_id, xfer);
 		spin_unlock(&qctx->queue_lock);
-		if (!ret) {
-			printf("RPMI TX: send successful\n");
+		if (!ret)
 			return 0;
-		}
 
 		mdelay(1);
 		txretry += 1;
-		printf("RPMI TX: retry %d/%ld\n", txretry, xfer->tx_timeout);
 	} while (txretry < xfer->tx_timeout);
 
-	printf("RPMI TX: timeout after %d retries\n", txretry);
 	return -ETIMEDOUT;
 }
 
+#if 0
+static int smq_base_get_two_u32(struct rpmi_shmem_mbox_controller *mctl,
+				uint32_t service_id, uint32_t *inarg, uint32_t *outvals)
+{
+	return rpmi_normal_request_with_status(
+			mctl->base_chan, service_id,
+			inarg, (inarg) ? 1 : 0, (inarg) ? 1 : 0,
+			outvals, 2, 2);
+}
+#endif
+
 /**************** Mailbox Controller Functions **************/
 
-int rpmi_shmem_mbox_xfer(struct mbox_chan *chan, struct mbox_xfer *xfer)
+int rpmi_shmem_transfer(struct mbox_chan *chan, struct mbox_xfer *xfer)
 {
 	int ret;
-	u32 tx_qid = 0, rx_qid = 0;
+	uint32_t tx_qid = 0, rx_qid = 0;
 	struct rpmi_shmem_mbox_controller *mctl =
 			container_of(chan->mbox,
 					 struct rpmi_shmem_mbox_controller,
@@ -478,30 +360,46 @@ int rpmi_shmem_mbox_xfer(struct mbox_chan *chan, struct mbox_xfer *xfer)
 	switch (args->type) {
 	case RPMI_MSG_NORMAL_REQUEST:
 		if (do_tx && do_rx) {
-			tx_qid = RPMI_QUEUE_IDX_A2P_REQ;
-			rx_qid = RPMI_QUEUE_IDX_P2A_ACK;
+			tx_qid = mctl->type == RPMI_MB_TYPE_AP ?
+					       RPMI_QUEUE_IDX_A2P_REQ :
+					       RPMI_QUEUE_IDX_P2A_REQ;
+			rx_qid = mctl->type == RPMI_MB_TYPE_AP ?
+					       RPMI_QUEUE_IDX_P2A_ACK :
+					       RPMI_QUEUE_IDX_A2P_ACK;
 		} else if (do_tx) {
-			tx_qid = RPMI_QUEUE_IDX_A2P_REQ;
+			tx_qid = mctl->type == RPMI_MB_TYPE_AP ?
+					       RPMI_QUEUE_IDX_A2P_REQ :
+					       RPMI_QUEUE_IDX_P2A_REQ;
 		} else if (do_rx) {
-			rx_qid = RPMI_QUEUE_IDX_P2A_REQ;
+			rx_qid = mctl->type == RPMI_MB_TYPE_AP ?
+					       RPMI_QUEUE_IDX_P2A_REQ :
+					       RPMI_QUEUE_IDX_A2P_REQ;
 		}
 		break;
 	case RPMI_MSG_POSTED_REQUEST:
 		if (do_tx && do_rx)
 			return -EINVAL;
 		if (do_tx) {
-			tx_qid = RPMI_QUEUE_IDX_A2P_REQ;
+			tx_qid = mctl->type == RPMI_MB_TYPE_AP ?
+					       RPMI_QUEUE_IDX_A2P_REQ :
+					       RPMI_QUEUE_IDX_P2A_REQ;
 		} else {
-			rx_qid = RPMI_QUEUE_IDX_P2A_REQ;
+			rx_qid = mctl->type == RPMI_MB_TYPE_AP ?
+					       RPMI_QUEUE_IDX_P2A_REQ :
+					       RPMI_QUEUE_IDX_A2P_REQ;
 		}
 		break;
 	case RPMI_MSG_ACKNOWLDGEMENT:
 		if (do_tx && do_rx)
 			return -EINVAL;
 		if (do_tx) {
-			tx_qid = RPMI_QUEUE_IDX_A2P_ACK;
+			tx_qid = mctl->type == RPMI_MB_TYPE_AP ?
+					       RPMI_QUEUE_IDX_A2P_ACK :
+					       RPMI_QUEUE_IDX_P2A_ACK;
 		} else {
-			rx_qid = RPMI_QUEUE_IDX_P2A_ACK;
+			rx_qid = mctl->type == RPMI_MB_TYPE_AP ?
+					       RPMI_QUEUE_IDX_P2A_ACK :
+					       RPMI_QUEUE_IDX_A2P_ACK;
 		}
 		break;
 	default:
@@ -523,39 +421,41 @@ int rpmi_shmem_mbox_xfer(struct mbox_chan *chan, struct mbox_xfer *xfer)
 	return 0;
 }
 
-int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl)
+int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl,
+			      struct rpmi_shmem *config)
 {
-	int count, qid;
+	int qid;
 	uint64_t reg_addr, reg_size;
 	struct smq_queue_ctx *qctx;
 
+	mctl->type = config->mb_type;
+	mctl->slot_size = config->slot_size;
 	if (mctl->slot_size < RPMI_SLOT_SIZE_MIN) {
-		printf("RPMI: slot_size < mimnum required message size\n");
+		con_log("rpmi_shmem(%d): slot_size < mimnum required message size\n",
+			mctl->controller.bid);
 		mctl->slot_size = RPMI_SLOT_SIZE_MIN;
 	}
+
+	mctl->doorbell_value = config->db_tx_val;
 
 	/*
 	 * queue names count is taken as the number of queues
 	 * supported which make it mandatory to provide the
 	 * name of the queue.
 	 */
-	count = 3;
-	if (count < 0 ||
-		count > (RPMI_QUEUE_IDX_MAX_COUNT + RPMI_REG_IDX_MAX_COUNT))
-		return -EINVAL;
-
-	mctl->queue_count = count - RPMI_REG_IDX_MAX_COUNT;
+	mctl->queue_count = config->queue_count;
 
 	/* parse all queues and populate queues context structure */
 	for (qid = 0; qid < mctl->queue_count; qid++) {
 		qctx = &mctl->queue_ctx_tbl[qid];
-		/* get each queue share-memory base address and size */
-		reg_addr = SHMEM_REG_BASE + qid * SHMEM_QUEUE_SIZE;
-		reg_size = SHMEM_REG_SIZE;
 
-		spin_lock(&qctx->queue_lock);
-		memset((void *)reg_addr, 0, reg_size);
-		spin_unlock(&qctx->queue_lock);
+		/* get each queue share-memory base address and size */
+		reg_addr = (uint64_t)config->queue_base[qid];
+		reg_size = (uint64_t)config->queue_size[qid];
+		if (!reg_addr || !reg_size)
+			return -ENOENT;
+
+		/* TODO: memregion configuration of queue */
 
 		/* calculate number of slots in each queue */
 		qctx->num_slots =
@@ -572,223 +472,234 @@ int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl)
 		/* store the index as queue_id */
 		qctx->queue_id = qid;
 
+		/* SPIN_LOCK_INIT(qctx->queue_lock); */
 	}
 
+	/* get the doorbell property name */
+	mctl->mb_regs = (void *)(unsigned long)config->db_tx_reg;
+
+	/* TODO: memregion configuration of db_reg */
+
+	mctl->irq = config->db_irq;
+	mctl->regs = (void *)(unsigned long)config->db_rx_reg;
+	mctl->val = config->db_rx_val;
 	return 0;
 }
 
-static struct mbox_chan *rpmi_shmem_request_chan(struct mbox_controller *mbox,
+void rpmi_shmem_free_slot(int sid)
+{
+	if (sid < RPMI_MAX_CHANNELS)
+		rpmi_shmem_chan_used[sid] = 0;
+}
+
+int rpmi_shmem_alloc_slot(struct mbox_controller *mbox)
+{
+	int sid;
+
+	/* Find an empty channel */
+	for (sid = 0; sid < RPMI_MAX_CHANNELS; sid++) {
+		if (!rpmi_shmem_chan_used[sid]) {
+			rpmi_shmem_chan_used[sid] = 1;
+			rpmi_shmem_srvgrp_chans[sid].chan.mbox = mbox;
+			return sid;
+		}
+	}
+	return -1;
+}
+
+static struct mbox_chan *rpmi_shmem_mbox_request_chan(
+						struct mbox_controller *mbox,
 						uint32_t *chan_args)
 {
 	struct rpmi_srvgrp_chan *srvgrp_chan;
-	int i;
+	__unused struct rpmi_shmem_mbox_controller *mctl =
+			container_of(mbox,
+				     struct rpmi_shmem_mbox_controller,
+				     controller);
+	int sid;
 
-	if (!mbox || !chan_args)
+	/* Service group id not defined or in reserved range is invalid */
+        if (chan_args[0] >= RPMI_SRVGRP_ID_MAX_COUNT &&
+	    chan_args[0] <= RPMI_SRVGRP_RESERVE_END)
 		return NULL;
 
-	/* Find an empty channel */
-	for (i = 0; i < RPMI_MAX_CHANNELS; i++) {
-		if (!g_chan_used[i]) {
-			srvgrp_chan = &g_srvgrp_chans[i];
-			srvgrp_chan->servicegroup_id = chan_args[0];
-			srvgrp_chan->servicegroup_version = chan_args[1];
-			srvgrp_chan->chan.mbox = mbox;
-			g_chan_used[i] = 1;
-			return &srvgrp_chan->chan;
-		}
-	}
+#if 0
+	/* Base serivce group is always present so probe other groups */
+	if (chan_args[0] != RPMI_SRVGRP_BASE) {
+		int ret;
 
-	return NULL;
+		/* Probe service group */
+		ret = smq_base_get_two_u32(mctl,
+					   RPMI_BASE_SRV_PROBE_SERVICE_GROUP,
+					   chan_args, tval);
+		if (ret || !tval[1])
+			return NULL;
+	}
+#endif
+
+	sid = rpmi_shmem_alloc_slot(mbox);
+	if (sid < 0)
+		return NULL;
+
+	srvgrp_chan = &rpmi_shmem_srvgrp_chans[sid];
+	srvgrp_chan->sid = sid;
+	srvgrp_chan->servicegroup_id = chan_args[0];
+	srvgrp_chan->servicegroup_version = chan_args[1];
+
+	return &srvgrp_chan->chan;
+}
+
+struct mbox_chan *rpmi_shmem_request_channel(uint32_t *args)
+{
+	struct rpmi_shmem_mbox_controller *mctl = &rpmi_shmem_boxes[rpmi_shmem_bid];
+	struct mbox_chan *chan;
+
+	chan = rpmi_shmem_mbox_request_chan(&mctl->controller, args);
+	if (!chan) {
+		con_err("rpmi_shmem(%d): failed to request channel %d\n",
+			rpmi_shmem_bid, args[0]);
+		BUG();
+	}
+	return chan;
 }
 
 static void rpmi_shmem_free_chan(struct mbox_controller *mbox,
 				struct mbox_chan *chan)
 {
 	struct rpmi_srvgrp_chan *srvgrp_chan;
-	int i;
+	mbox_sid_t sid;
 
 	if (!mbox || !chan)
 		return;
 
 	srvgrp_chan = to_srvgrp_chan(chan);
-	for (i = 0; i < RPMI_MAX_CHANNELS; i++) {
-		if (srvgrp_chan == &g_srvgrp_chans[i]) {
-			g_chan_used[i] = 0;
+	for (sid = 0; sid < RPMI_MAX_CHANNELS; sid++) {
+		if (srvgrp_chan == &rpmi_shmem_srvgrp_chans[sid]) {
+			rpmi_shmem_free_slot(sid);
 			break;
 		}
 	}
 }
 
-static void rpmi_handler_irq(irq_t irq)
+void rpmi_shmem_free_channel(struct mbox_chan *chan)
 {
-	struct rpmi_shmem_mbox_controller *mctl = &g_mctl;
+	rpmi_shmem_free_chan(chan->mbox, chan);
+}
+
+void rpmi_shmem_handle_irq(void)
+{
+	struct rpmi_shmem_mbox_controller *mctl = &rpmi_shmem_boxes[rpmi_shmem_bid];
+	enum rpmi_queue_idx queue_ids[2];
+	uint32_t doorbell_value = mctl->val;
+	struct rpmi_mb_regs *mb_regs = mctl->regs;
 	struct smq_queue_ctx *qctx;
+	int ret;
+	int i, j;
+	struct rpmi_message_args args;
 	struct mbox_xfer xfer;
-	uint32_t doorbell_val;
-	int queue_idx = -1;
-	volatile le32_t *doorbell_reg = NULL;
-	uint32_t service_id;
 	bool handler_found = false;
+	uint32_t service_id;
 
-	switch (irq) {
-	case IRQ_RPMI_A2P_REQ_S:
-	case IRQ_RPMI_A2P_REQ_NS:
-		queue_idx = RPMI_QUEUE_IDX_A2P_REQ;
-		doorbell_reg = mctl->mb_regs.a2p_req;
-		printf("RPMI IRQ: A2P_REQ interrupt (irq=%d)\n", irq_ext(irq));
-			break;
-	case IRQ_RPMI_A2P_ACK_S:
-	case IRQ_RPMI_A2P_ACK_NS:
-		queue_idx = RPMI_QUEUE_IDX_A2P_ACK;
-		doorbell_reg = mctl->mb_regs.a2p_ack;
-		printf("RPMI IRQ: A2P_ACK interrupt (irq=%d)\n", irq_ext(irq));
-			break;
-	case IRQ_RPMI_P2A_REQ_S:
-	case IRQ_RPMI_P2A_REQ_NS:
-		queue_idx = RPMI_QUEUE_IDX_P2A_REQ;
-		doorbell_reg = mctl->mb_regs.p2a_req;
-		printf("RPMI IRQ: P2A_REQ interrupt (irq=%d)\n", irq_ext(irq));
-			break;
-	case IRQ_RPMI_P2A_ACK_S:
-	case IRQ_RPMI_P2A_ACK_NS:
-		queue_idx = RPMI_QUEUE_IDX_P2A_ACK;
-		doorbell_reg = mctl->mb_regs.p2a_ack;
-		printf("RPMI IRQ: P2A_ACK interrupt (irq=%d)\n", irq_ext(irq));
-			break;
-		default:
-		printf("RPMI IRQ: unknown interrupt (irq=%d)\n", irq_ext(irq));
-		return;
+	if (mctl->type == RPMI_MB_TYPE_AP) {
+		queue_ids[0] = RPMI_QUEUE_IDX_P2A_REQ;
+		queue_ids[1] = RPMI_QUEUE_IDX_P2A_ACK;
 	}
-
-	if (queue_idx < 0 || queue_idx >= RPMI_QUEUE_IDX_MAX_COUNT) {
-		printf("RPMI IRQ: invalid queue index %d\n", queue_idx);
-		return;
-		}
-
-	qctx = &mctl->queue_ctx_tbl[queue_idx];
-
-	doorbell_val = readl(doorbell_reg);
-	if (!doorbell_val) {
-		printf("RPMI IRQ: no doorbell detected for queue %d\n", queue_idx);
-		return;
+	if (mctl->type == RPMI_MB_TYPE_PuC) {
+		queue_ids[0] = RPMI_QUEUE_IDX_A2P_REQ;
+		queue_ids[1] = RPMI_QUEUE_IDX_A2P_ACK;
 	}
+	if (mb_regs)
+		__raw_clearl(doorbell_value, (caddr_t)&mb_regs->db_reg);
 
-	printf("RPMI IRQ: doorbell detected on queue %d, value=0x%x\n", queue_idx, doorbell_val);
+	for (i = 0; i < 2; i++) {
+		con_dbg("rpmi_shmem(%d): handling %s_%s...\n",
+			rpmi_shmem_bid,
+			mctl->type == RPMI_MB_TYPE_AP ? "P2A" : "A2P",
+			i == 0 ? "REQ" : "ACK");
+		qctx = &rpmi_shmem_queue_ctx_tbl[queue_ids[i]];
+		while (!__smq_queue_empty(qctx)) {
+			memset(&args, 0, sizeof(args));
+			args.type = RPMI_MSG_NORMAL_REQUEST;
+			args.rx_endian_words = 2;
 
-	/* handler message in queue */
-	spin_lock(&qctx->queue_lock);
-	while (!__smq_queue_empty(qctx)) {
-		/* Get the head index to read the message */
-		uint32_t headidx = le32_to_cpu(*qctx->headptr);
-		uint32_t tailidx = le32_to_cpu(*qctx->tailptr);
+			memset(&xfer, 0, sizeof(xfer));
+			xfer.args = &args;
+			xfer.rx = NULL;
+			xfer.rx_len = mctl->slot_size;
+			xfer.rx_timeout = RPMI_DEF_RX_TIMEOUT;
 
-		if (headidx == tailidx) {
-			/* Queue is empty */
-			break;
-		}
-
-		struct rpmi_message *msg = (void *)qctx->buffer + (headidx * mctl->slot_size);
-		service_id = GET_SERVICE_ID(msg);
-
-
-		handler_found = false;
-		for (int j = 0; j < num_handlers; j++) {
-			if (msg_handlers[j].service_id == service_id) {
-				memset(&xfer, 0, sizeof(xfer));
-				xfer.rx = msg;
-				xfer.rx_len = mctl->slot_size;
-
-				msg_handlers[j].handler(NULL, &xfer);
-				handler_found = true;
+			ret = __smq_rx(qctx, mctl->slot_size, 0, &xfer);
+			if (ret) {
+				con_err("rpmi_shmem(%d): RX failed",
+					rpmi_shmem_bid);
 				break;
 			}
-		}
-
-		if (!handler_found)
-			printf("RPMI: no message handler found (service_id=0x%x)\n", service_id);
-
-		*qctx->headptr = cpu_to_le32((headidx + 1) % qctx->num_slots);
-
-		smp_wmb();
-	}
-	spin_unlock(&qctx->queue_lock);
-
-	/* clear doorbell */
-	writel(0, doorbell_reg);
-}
-
-#ifdef SYS_REALTIME
-static void rpmi_poll_init(void)
-{
-	irq_register_poller(rpmi_bh);
-}
-#define rpmi_irq_init()		do {} while (0)
-#else
-static void rpmi_irq_init(void)
-{
-	int i;
-
-	for (i = 0; i < RPMI_IRQ_COUNT; i++) {
-		irqc_configure_irq(rpmi_irqs[i], 0, IRQ_LEVEL_TRIGGERED);
-		irq_register_vector(rpmi_irqs[i], rpmi_handler_irq);
-		irqc_enable_irq(rpmi_irqs[i]);
-	}
-}
-#define rpmi_poll_init()	do {} while (0)
+			service_id = GET_SERVICE_ID(xfer.rx);
+#if 0
+			for (j = 0; j < num_handlers; j++) {
+				if (msg_handlers[j].service_id == service_id) {
+					msg_handlers[j].handler(NULL, &xfer);
+					handler_found = true;
+					break;
+				}
+			}
 #endif
+			if (!handler_found)
+				con_err("rpmi_shmem(%d): no handler found (service=0x%x)",
+					rpmi_shmem_bid, service_id);
+		}
+	}
 
-static void rpmi_bh_handler(uint8_t events)
+}
+
+void rpmi_shmem_irq_handler(irq_t irq)
 {
-	if (events == BH_POLLIRQ) {
-		for (int i = 0; i < RPMI_IRQ_COUNT; i++)
-			rpmi_handler_irq(rpmi_irqs[i]);
+	mbox_bid_t rpmi_bid;
+	__unused mbox_bid_t sbid;
+	__unused struct rpmi_shmem_mbox_controller *mctl;
 
-		return;
+	for (rpmi_bid = 0; rpmi_bid < RPMI_SHMEM_MAX_CONTROLLERS; rpmi_bid++) {
+		mctl = &rpmi_shmem_boxes[rpmi_shmem_bid];
+		if (rpmi_shmem_boxes[rpmi_bid].irq == irq) {
+			sbid = mbox_controller_save(mctl->controller.bid);
+			rpmi_shmem_handle_irq();
+			mbox_controller_restore(sbid);
+		}
 	}
 }
 
-int rpmi_shmem_init(void)
+void rpmi_shmem_irq_init(void)
+{
+	irqc_configure_irq(rpmi_shmem_irq, 0, IRQ_LEVEL_TRIGGERED);
+	irq_register_vector(rpmi_shmem_irq, rpmi_shmem_irq_handler);
+	irqc_enable_irq(rpmi_shmem_irq);
+}
+
+void rpmi_shmem_init(struct rpmi_shmem *config)
 {
 	int ret;
+	struct rpmi_shmem_mbox_controller *mctl;
 
-	clk_enable(rmu_mailbox_s_clk);
-	clk_enable(rmu_mailbox_ns_clk);
-	clk_enable(rmu_sram_mailbox_s_clk);
-	clk_enable(rmu_sram_mailbox_ns_clk);
-
-	g_mctl.mb_regs.a2p_req = (volatile le32_t *)MBOX_RPMI_A2P_REQ;
-	g_mctl.mb_regs.a2p_ack = (volatile le32_t *)MBOX_RPMI_A2P_ACK;
-	g_mctl.mb_regs.p2a_req = (volatile le32_t *)MBOX_RPMI_P2A_REQ;
-	g_mctl.mb_regs.p2a_ack = (volatile le32_t *)MBOX_RPMI_P2A_ACK;
-	g_mctl.slot_size = SHMEM_SLOT_SIZE;
-	g_mctl.controller.xfer = rpmi_shmem_mbox_xfer;
-	g_mctl.controller.request_chan = rpmi_shmem_request_chan;
-	g_mctl.controller.free_chan = rpmi_shmem_free_chan;
-	g_mctl.controller.max_xfer_len = g_mctl.slot_size -
-		sizeof(struct rpmi_message_header);
-
+	mctl = &rpmi_shmem_boxes[rpmi_shmem_bid];
 	/* initialize transport layer */
-	ret = rpmi_shmem_transport_init(&g_mctl);
+	ret = rpmi_shmem_transport_init(mctl, config);
 	if (ret) {
-		printf("RPMI: failed to initialize transport layer (ret=%d)\n", ret);
-		return ret;
+		con_err("rpmi_shmem(%d): failed to register.\n",
+			rpmi_shmem_bid);
+		BUG();
+		return;
 	}
 
+	mctl->controller.bid = mbox_bid;
+	mctl->controller.max_xfer_len = mctl->slot_size -
+					sizeof(struct rpmi_message_header);
 	/* register mailbox controller */
-	mbox_controller_add(&g_mctl.controller);
+	mbox_controller_add(&mctl->controller);
 
-	/* register interrupt handler */
-	rpmi_bh = bh_register_handler(rpmi_bh_handler);
-	rpmi_irq_init();
-	rpmi_poll_init();
-
-	printf("RPMI: shared memory initialized (shmem_base=0x%llx, slot_size=%d, max_xfer_len=%d)\n",
-		SHMEM_REG_BASE, g_mctl.slot_size, g_mctl.controller.max_xfer_len);
-
-	return 0;
+	con_log("rpmi_shmem(%d): registered.\n", rpmi_shmem_bid);
 }
 
 struct mbox_controller *rpmi_shmem_get_controller(void)
 {
-	return &g_mctl.controller;
+	return &rpmi_shmem_boxes[0].controller;
 }

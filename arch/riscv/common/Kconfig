@@ -1111,20 +1111,23 @@ config HPM_MAX_EVENTS
 
 endif
 
+menuconfig RPMI_SHMEM
+	bool "RISC-V shared memory based RPMI mailbox support"
+
+if RPMI_SHMEM
+
+config RPMI_SHMEM_MAX_CONTROLLERS
+	int "Num of shared memory based controllers"
+	range 1 8
+	default 1
+
+endif
+
 menuconfig RPMI
 	bool "Platform management interface (RPMI) support"
 	depends MBOX
 
 if RPMI
-
-choice
-	prompt "Platform RPMI scheme"
-	default RPMI_SHMEM
-
-config RPMI_SHMEM
-	bool "SHMEM"
-
-endchoice
 
 menu "RPMI interfaces"
 
