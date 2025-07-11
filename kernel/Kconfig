@@ -717,6 +717,9 @@ config MAX_CHANNELS
 
 endif
 
+config ARCH_HAS_MBOX
+	bool
+
 menuconfig MBOX
 	bool "Address space layout (MBOX) support"
 
@@ -725,7 +728,12 @@ if MBOX
 config MAX_MAILBOXES
 	int "Num of mailboxes (1-255)"
 	range 1 255
-	default 4
+	default 1
+
+config MAX_MAILSLOTS
+	int "Num of mailbox slots (1-255)"
+	range 1 255
+	default 16
 
 endif
 
