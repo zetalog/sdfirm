@@ -3,7 +3,16 @@
 
 #include <target/generic.h>
 #include <target/atomic.h>
-#include <mach/mbox.h>
+
+typedef uint8_t mbox_bid_t;
+typedef uint8_t mbox_sid_t;
+
+#ifdef CONFIG_MAX_MAILBOXES
+#define NR_MAILBOXES		CONFIG_MAX_MAILBOXES
+#else
+#define NR_MAILBOXES		1
+#endif
+#define INVALID_MBOX_BID	NR_MAILBOXES
 
 /** Representation of a mailbox channel */
 struct mbox_chan {
@@ -114,26 +123,18 @@ do {									\
 
 /** Representation of a mailbox controller */
 struct mbox_controller {
+	/** Unique ID of the mailbox controller assigned by the driver */
+	mbox_bid_t bid;
 	/** List head */
 	struct list_head node;
 	/** Next sequence atomic counter */
 	atomic_t xfer_next_seq;
 	/* List of mailbox channels */
 	struct list_head chan_list;
-	/** Unique ID of the mailbox controller assigned by the driver */
-	unsigned int id;
 	/** Maximum length of transfer supported by the mailbox controller */
 	unsigned int max_xfer_len;
 	/** Pointer to mailbox driver owning this mailbox controller */
 	void *driver;
-	/** Request a mailbox channel from the mailbox controller */
-	struct mbox_chan *(*request_chan)(struct mbox_controller *mbox,
-					  uint32_t *chan_args);
-	/** Free a mailbox channel from the mailbox controller */
-	void (*free_chan)(struct mbox_controller *mbox,
-			  struct mbox_chan *chan);
-	/** Transfer data over mailbox channel */
-	int (*xfer)(struct mbox_chan *chan, struct mbox_xfer *xfer);
 	/** Get an attribute of mailbox channel */
 	void (*get)(struct mbox_chan *chan, int attr_id, void *out_value);
 	/** Set an attribute of mailbox channel */
@@ -143,8 +144,22 @@ struct mbox_controller {
 #define to_mbox_controller(__node)	\
 	container_of((__node), struct mbox_controller, node)
 
-/** Find a registered mailbox controller */
-struct mbox_controller *mbox_controller_find(unsigned int id);
+#if NR_MAILBOXES > 1
+extern struct mbox_controller mbox_controllers[NR_MAILBOXES];
+extern mbox_bid_t mbox_bid;
+
+void mbox_controller_select(mbox_bid_t bid);
+mbox_bid_t mbox_controller_save(mbox_bid_t bid);
+#else
+#define mbox_bid			0
+#define mbox_controller_select(bid)	do { } while (0)
+#define mbox_controller_save(bid)	0
+#endif
+#define mbox_controller_restore(bid)	mbox_controller_select(bid)
+
+#include <driver/mbox.h>
+
+struct mbox_controller *mbox_controller_find(mbox_bid_t bid);
 void mbox_controller_add(struct mbox_controller *mbox);
 void mbox_controller_remove(struct mbox_controller *mbox);
 
@@ -156,6 +171,12 @@ void mbox_controller_free_chan(struct mbox_chan *chan);
 int mbox_chan_xfer(struct mbox_chan *chan, struct mbox_xfer *xfer);
 void mbox_chan_get(struct mbox_chan *chan, int attr_id, void *out_value);
 void mbox_chan_set(struct mbox_chan *chan, int attr_id, void *new_value);
+
+#ifdef CONFIG_MBOX
+void mbox_init(void);
+#else
+#define mbox_init()		do { } while (0)
+#endif
 
 #endif /* __MBOX_H_INCLUDE__ */
 

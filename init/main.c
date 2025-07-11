@@ -21,6 +21,7 @@
 #include <target/gpio.h>
 #include <target/perf.h>
 #include <target/ras.h>
+#include <target/mbox.h>
 
 __near__ uint32_t system_device_id = 0;
 text_char_t system_vendor_name[] = CONFIG_VENDOR_NAME;
@@ -80,6 +81,8 @@ void system_init(void)
 	ras_init();
 	board_late_init();
 	perf_init();
+	mbox_init();
+	ras_init();
 	task_init();
 	appl_init();
 	smp_init();
