@@ -913,6 +913,8 @@ static void __cmn600_configure_rn_sam(caddr_t rnsam,
 	uint32_t memregion;
 	unsigned int region_type;
 	size_t scg_size;
+	uint8_t scg_step;
+	uint8_t scg_index;
 	caddr_t region_base;
 
 #ifdef CONFIG_CMN600_DEBUG_CONFIGURE
@@ -948,84 +950,71 @@ static void __cmn600_configure_rn_sam(caddr_t rnsam,
 		sam->region_io_count++;
 		break;
 	case CMN600_MEMORY_REGION_TYPE_SYSCACHE:
-		if (sam->region_sys_count >= CMN_MAX_HASH_MEM_REGIONS) {
-			con_err(CMN_MODNAME ": SYS count %d > limit %d\n",
-				sam->region_sys_count, CMN_MAX_HASH_MEM_REGIONS);
+		if ((sam->region_sys_count + cmn_scg_count) >= CMN_MAX_HASH_MEM_REGIONS) {
+			con_err(CMN_MODNAME ": SYS count %d + %d > limit %d\n",
+				sam->region_sys_count, cmn_scg_count,
+				CMN_MAX_HASH_MEM_REGIONS);
 			BUG();
 		}
 		scg_size = region->size / cmn_scg_count;
-		region_base = base + (scg_size * sam->region_sys_count);
-		memregion = CMN_valid_region(CMN_region_target_HNF,
-					     region_base, scg_size);
-		if (cmn_scg_count == 2) {
-			cmn_writeq_mask(CMN_region(sam->region_sys_count, memregion),
-					CMN_region(sam->region_sys_count, CMN_region_MASK),
-					CMN_rnsam_sys_cache_grp_region(rnsam,
-								       sam->region_sys_count),
-					"CMN_rnsam_sys_cache_grp_region",
-					sam->region_sys_count);
+		/* The way to determine scg_step to fill ID register fields is as follows:
+		 *
+		 * Table 2-25 RN SAM SCG target ID programming for 16 hashed targets
+		 * +------------------------------+-----------------------------------------------+
+		 * |                              | Number of HN-Fs per SCG target ID table       |
+		 * | SCG target ID register (16)  +-----------+-----------+-----------+-----------+
+		 * |                              | 16        | 8         | 4         | 2, 1      |
+		 * +------------------------------+-----------+-----------+-----------+-----------+
+		 * | sys_cache_grp_hn_nodeid_reg0 | SCG0_NIDs | SCG0_NIDs | SCG0_NIDs | SCG0_NIDs |
+		 * |                              |           |           |           +-----------+
+		 * |                              |           |           |           | -         |
+		 * +------------------------------+           |           +-----------+-----------+
+		 * | sys_cache_grp_hn_nodeid_reg1 |           |           | SCG1_NIDs | SCG1_NIDs |
+		 * |                              |           |           |           +-----------+
+		 * |                              |           |           |           | -         |
+		 * +------------------------------+           +-----------+-----------+-----------+
+		 * | sys_cache_grp_hn_nodeid_reg2 |           | SCG2_NIDs | SCG2_NIDs | SCG2_NIDs |
+		 * |                              |           |           |           +-----------+
+		 * |                              |           |           |           | -         |
+		 * +------------------------------+           |           +-----------+-----------+
+		 * | sys_cache_grp_hn_nodeid_reg3 |           |           | SCG3_NIDs | SCG3_NIDs |
+		 * |                              |           |           |           +-----------+
+		 * |                              |           |           |           | -         |
+		 * +------------------------------+-----------+-----------+-----------+-----------+
+		 */
+		scg_step = (cmn_scg_count < 4) ? (4 / cmn_scg_count) : 1;
+		for (scg_index = 0; scg_index < cmn_scg_count; scg_index += scg_step) {
+			region_base = base + (scg_size * scg_index);
 			memregion = CMN_valid_region(CMN_region_target_HNF,
-						    (region_base + scg_size), scg_size);
-			cmn_writeq_mask(CMN_region(sam->region_sys_count, memregion),
-					CMN_region(sam->region_sys_count, CMN_region_MASK),
-					CMN_rnsam_sys_cache_grp_region(rnsam, 2),
-					"CMN_rnsam_sys_cache_grp_region", 2);
-		} else {
-			for (sam->region_sys_count = 0;
-			     sam->region_sys_count < cmn_scg_count;
-			     sam->region_sys_count++) {
-				region_base = base + (scg_size * sam->region_sys_count);
-				memregion = CMN_valid_region(CMN_region_target_HNF,
-						    (region_base), scg_size);
-				cmn_writeq_mask(CMN_region(sam->region_sys_count, memregion),
-						CMN_region(sam->region_sys_count, CMN_region_MASK),
-						CMN_rnsam_sys_cache_grp_region(rnsam,
-									       sam->region_sys_count),
-						"CMN_rnsam_sys_cache_grp_region",
-						sam->region_sys_count);
-			}
+						     region_base, scg_size);
+			cmn_writeq_mask(CMN_region(scg_index, memregion),
+					CMN_region(scg_index, CMN_region_MASK),
+					CMN_rnsam_sys_cache_grp_region(rnsam, scg_index),
+					"CMN_rnsam_sys_cache_grp_region", scg_index);
 		}
-		cmn_hnf_cal_enable_scg(sam->region_sys_count);
+		sam->region_sys_count += cmn_scg_count;
+		cmn_hnf_cal_enable_scg(cmn_scg_count);
 		break;
 	case CMN600_MEMORY_REGION_TYPE_SYSCACHE_SECONDARY:
-		if (sam->region_sys2_count >= CMN_MAX_HASH_MEM_REGIONS) {
-			con_err(CMN_MODNAME ": SYS count %d > limit %d\n",
-				sam->region_sys2_count, CMN_MAX_HASH_MEM_REGIONS);
+		if ((sam->region_sys2_count + cmn_scg_count) >= CMN_MAX_HASH_MEM_REGIONS) {
+			con_err(CMN_MODNAME ": SYS count %d + %d > limit %d\n",
+				sam->region_sys2_count, cmn_scg_count,
+				CMN_MAX_HASH_MEM_REGIONS);
 			BUG();
 		}
 		scg_size = region->size / cmn_scg_count;
-		region_base = base + (scg_size * sam->region_sys2_count);
-		memregion = CMN_valid_region(CMN_region_target_HNF,
-					     region_base, scg_size);
-		if (cmn_scg_count == 2) {
-			cmn_writeq_mask(CMN_region(sam->region_sys2_count, memregion),
-					CMN_region(sam->region_sys2_count, CMN_region_MASK),
-					CMN_rnsam_sys_cache_grp_secondary_region(rnsam,
-										 sam->region_sys2_count),
-					"CMN_rnsam_sys_cache_grp_secondary_region",
-					sam->region_sys2_count);
+		scg_step = (cmn_scg_count < 4) ? (4 / cmn_scg_count) : 1;
+		for (scg_index = 0; scg_index < cmn_scg_count; scg_index += scg_step) {
+			region_base = base + (scg_size * scg_index);
 			memregion = CMN_valid_region(CMN_region_target_HNF,
-						    (region_base + scg_size), scg_size);
-			cmn_writeq_mask(CMN_region(sam->region_sys2_count, memregion),
-					CMN_region(sam->region_sys2_count, CMN_region_MASK),
-					CMN_rnsam_sys_cache_grp_secondary_region(rnsam, 2),
-					"CMN_rnsam_sys_cache_grp_secondary_region", 2);
-		} else {
-			for (sam->region_sys2_count = 0;
-			     sam->region_sys2_count < cmn_scg_count;
-			     sam->region_sys2_count++) {
-				cmn_writeq_mask(CMN_region(sam->region_sys2_count, memregion),
-						CMN_region(sam->region_sys2_count, CMN_region_MASK),
-						CMN_rnsam_sys_cache_grp_secondary_region(rnsam,
-											 sam->region_sys2_count),
-						"CMN_rnsam_sys_cache_grp_secondary_region",
-						sam->region_sys2_count);
-				region_base = base + (scg_size * sam->region_sys2_count);
-				memregion = CMN_valid_region(CMN_region_target_HNF,
-					     region_base, scg_size);
-			}
+						     region_base, scg_size);
+			cmn_writeq_mask(CMN_region(scg_index, memregion),
+					CMN_region(scg_index, CMN_region_MASK),
+					CMN_rnsam_sys_cache_grp_secondary_region(rnsam, scg_index),
+					"CMN_rnsam_sys_cache_grp_secondary_region", scg_index);
 		}
-		cmn_hnf_cal_enable_scg(sam->region_sys2_count);
+		sam->region_sys2_count += cmn_scg_count;
+		cmn_hnf_cal_enable_scg(cmn_scg_count);
 		break;
 	case CMN600_REGION_TYPE_SYSCACHE_NONHASH:
 		memregion = CMN_valid_nonhash_region(CMN_region_target_HNI,
