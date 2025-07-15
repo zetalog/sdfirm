@@ -51,7 +51,7 @@
 #define DW_SSI_REG(n, offset)	(DW_SSI_BASE(n) + (offset))
 #endif
 #ifndef NR_DW_SSIS
-#define NR_DW_SSIS		1
+#define NR_DW_SSIS		CONFIG_SPI_MAX_DEVICES
 #endif
 
 /* ssi_memory_map/ssi_address_block registers */
@@ -158,15 +158,6 @@
 #define SSI_SCKDV_OFFSET	0
 #define SSI_SCKDV_MASK		REG_16BIT_MASK
 #define SSI_SCKDV(value)	_SET_FV(SSI_SCKDV, value)
-
-/* 5.1.11 SR */
-#define SSI_DCOL		_BV(6)
-#define SSI_TXE			_BV(5)
-#define SSI_RFF			_BV(4)
-#define SSI_RFNE		_BV(3)
-#define SSI_TFE			_BV(2)
-#define SSI_TFNF		_BV(1)
-#define SSI_BUSY		_BV(0)
 
 /* 5.1.12 IMR
  * 5.1.13 ISR
@@ -282,17 +273,17 @@ struct dw_ssi_ctx {
 			   SSI_TMOD_MASK, SSI_CTRLR0(n))
 #define dw_ssi_select_chips(n, chips)			\
 	dw_ssi_writel((chips), SSI_SER(n))
-#define dw_ssi_select_chip(n, chip)	dw_ssi_select_chips(n, _BV(chip))
-#define dw_ssi_deselect_chips(n)	dw_ssi_select_chips(n, 0)
+void dw_ssi_select_chip(int chip);
+void dw_ssi_deselect_chips();
 #define dw_ssi_enable_irqs(n, irqs)	dw_ssi_setl(irqs, SSI_IMR(n))
 #define dw_ssi_disable_irqs(n, irqs)	dw_ssi_clearl(irqs, SSI_IMR(n))
 #define dw_ssi_irqs_status(n)		dw_ssi_readl(SSI_ISR(n))
 #define dw_ssi_clear_irqs(n, irqs)	dw_ssi_clearl(irqs, SSI_ISR(n))
 
-uint8_t dw_ssi_read_byte(int n);
-void dw_ssi_write_byte(int n, uint8_t byte);
-void dw_ssi_config_mode(int n, uint8_t mode);
-void dw_ssi_config_freq(int n, uint32_t freq);
+uint8_t dw_ssi_read_byte();
+void dw_ssi_write_byte(uint8_t byte);
+void dw_ssi_config_mode(uint8_t mode);
+void dw_ssi_config_freq(uint32_t freq);
 void dw_ssi_init_master(int n, uint8_t frf, uint8_t tmod,
 			uint16_t txfifo, uint16_t rxfifo);
 void dw_ssi_init_slave(int n, uint8_t frf, uint8_t tmod,
@@ -300,8 +291,8 @@ void dw_ssi_init_slave(int n, uint8_t frf, uint8_t tmod,
 void dw_ssi_init_spi(int n, uint8_t spi_frf,
 		     uint8_t inst_l, uint8_t addr_l,
 		     uint8_t wait_cycles);
-void dw_ssi_start_ctrl(int n);
-#define dw_ssi_stop_ctrl(n)		dw_ssi_disable_ctrl(n)
+void dw_ssi_start_ctrl();
+void dw_ssi_stop_ctrl();
 
 #ifdef CONFIG_DW_SSI_FIFO_DEPTH
 #ifdef CONFIG_DW_SSI_TX_FIFO_DEPTH_2
@@ -364,6 +355,9 @@ void dw_ssi_start_ctrl(int n);
 #define DW_SSI_RX_FIFO_DEPTH		0
 #endif
 
+#if NR_DW_SSIS > 1
+void dw_ssi_master_select(spi_t spi);
+#endif
 #define __dw_ssi_init_master_fifo(n, frf, tmod)		\
 	dw_ssi_init_master(n, frf, tmod,		\
 			   DW_SSI_TX_FIFO_DEPTH,	\

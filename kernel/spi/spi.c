@@ -20,26 +20,41 @@
 #endif
 
 static bh_t spi_bh;
+
+#if NR_SPI_MASTERS > 1
+struct spi_master *spi_masters[NR_SPI_MASTERS];
+spi_t spi_mid;
+
+void spi_master_select(spi_t spi)
+{
+	spi_hw_master_select(spi);
+	spi_mid = spi;
+}
+
+spi_t spi_master_save(spi_t spi)
+{
+	spi_t spis = spi_mid;
+	spi_master_select(spi);
+	return spis;
+}
+#else
 spi_device_t *spi_devices[NR_SPI_DEVICES];
 spi_t spi_last_id = 0;
 uint8_t spi_last_mode = INVALID_SPI_MODE;
-uint8_t spi_target;
-uint8_t spi_buf[64];
-uint16_t spi_txlen;
-uint16_t spi_rxlen;
-spi_addr_t spi_address;
-spi_addr_t spi_abrt_slave;
+uint8_t spi_chip;
+uint32_t spi_max_freq_khz;
 uint32_t spi_last_freq = 0;
+uint8_t spi_mode;
+spi_len_t spi_rxsubmit;
+spi_len_t spi_txsubmit;
 spi_len_t spi_limit;
 spi_len_t spi_current;
 spi_len_t spi_commit;
-spi_len_t spi_rxsubmit;
-spi_len_t spi_txsubmit;
 uint8_t spi_status;
 uint8_t spi_state;
-uint16_t spi_event;
-uint8_t spi_mode;
+spi_event_t spi_event;
 spi_device_t *spi_device = NULL;
+#endif
 
 const char *spi_status_names[] = {
 	"IDLE",
@@ -119,11 +134,19 @@ uint8_t spi_dir_mode(void)
 
 void spi_write_byte(uint8_t byte)
 {
+	BUG_ON(!spi_device);
+	// if (spi_state != SPI_STATE_WRITE)
+	// 	return;
+
 	spi_hw_write_byte(byte);
 }
 
 uint8_t spi_read_byte(void)
 {
+	BUG_ON(!spi_device);
+	// if (spi_state != SPI_STATE_READ)
+	// 	return 0;
+
 	return spi_hw_read_byte();
 }
 
@@ -315,28 +338,3 @@ void spi_init(void)
 	}
 	spi_poll_init();
 }
-
-int do_spi(int argc, char *argv[])
-{
-	uint8_t spiread, spiwrite;
-	if (argc < 2)
-		return -EINVAL;
-	if (strcmp(argv[1], "read") == 0) {
-		spiread = spi_read_byte();
-		printf("spi_read: 0x%x\n", spiread);
-		return 0;
-	}
-	if (strcmp(argv[1], "write") == 0) {
-		spiwrite = (uint8_t)strtoull(argv[2], 0, 0);
-		spi_write_byte(spiwrite);
-		return 0;
-	}
-	return -EINVAL;
-}
-
-DEFINE_COMMAND(spi, do_spi, "SPI Commands",
-	"spi read\n"
-	"       -spi read data\n"
-	"spi write <data>\n"
-	"       -spi write data\n"
-);
