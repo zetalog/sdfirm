@@ -51,14 +51,26 @@
 #define dw_ssi_dbg(...)		do { } while (0)
 #endif
 
+#if NR_DW_SSIS > 1
+#define dw_ssi			dw_ssis[dw_ssid]
+static spi_t dw_ssid = 0;
+
+void dw_ssi_master_select(spi_t spi)
+{
+	BUG_ON(spi >= NR_DW_SSIS);
+	dw_ssid = spi;
+}
+#else
 #define dw_ssid				0
+#define dw_ssi_master_select(spi)	do { } while (0)
+static struct dw_ssi_ctx dw_ssi;
+#endif
 
 /* Only 8 Bits transfers are allowed */
 #define DW_SSI_XFER_SIZE		8
 typedef uint8_t dw_ssi_data;
-static struct dw_ssi_ctx dw_ssi;
 
-struct dw_ssi_ctx dw_ssis[NR_DW_SSIS];
+struct dw_ssi_ctx dw_ssis[NR_DW_SSIS] = {0};
 
 uint32_t dw_ssi_readl(caddr_t reg)
 {
@@ -78,18 +90,18 @@ void dw_ssi_writel(uint32_t val, caddr_t reg)
 #ifdef CONFIG_CLK
 uint32_t dw_ssi_get_clk_freq(void)
 {
-	return div32u(clk_get_frequency(DW_SSI_CLK), 1000);
+	return div32u(clk_get_frequency(DW_SSI_CLK(dw_ssid)), 1000);
 }
 #else
 #define dw_ssi_get_clk_freq()		(APB_CLK_FREQ / 1000)
 #endif
 
-void dw_ssi_config_mode(int n, uint8_t mode)
+void dw_ssi_config_mode(uint8_t mode)
 {
-	dw_ssis[n].spi_mode = mode;
+	dw_ssis[dw_ssid].spi_mode = mode;
 }
 
-void dw_ssi_config_freq(int n, uint32_t freq)
+void dw_ssi_config_freq(uint32_t freq)
 {
 	uint16_t sckdv;
 	uint32_t f_ssi_clk = dw_ssi_get_clk_freq();
@@ -107,7 +119,17 @@ void dw_ssi_config_freq(int n, uint32_t freq)
 	sckdv = (uint16_t)div32u(f_ssi_clk, freq);
 	/* Ensure Fsclk_out is less than requested, and even value. */
 	sckdv = (sckdv + 1) & 0xFFFE;
-	dw_ssis[n].sckdv = sckdv;
+	dw_ssis[dw_ssid].sckdv = sckdv;
+}
+
+void dw_ssi_select_chip(int chip)
+{
+	dw_ssi_select_chips(dw_ssid, _BV(chip));
+}
+
+void dw_ssi_deselect_chips()
+{
+	dw_ssi_select_chips(dw_ssid, 0);
 }
 
 void dw_ssi_switch_xfer(int n, uint8_t tmod)
@@ -118,29 +140,29 @@ void dw_ssi_switch_xfer(int n, uint8_t tmod)
 	}
 }
 
-void dw_ssi_write_byte(int n, uint8_t byte)
+void dw_ssi_write_byte(uint8_t byte)
 {
 	spi_sync_status();
 	dw_ssi.status = SPI_STATUS_IDLE;
-	dw_ssi_enable_irqs(n, SSI_TXEI);
-	dw_ssi_write_dr(n, byte);
+	dw_ssi_enable_irqs(dw_ssid, SSI_TXEI);
+	dw_ssi_write_dr(dw_ssid, byte);
 	while (dw_ssi.status == SPI_STATUS_IDLE)
 		bh_sync();
 	dw_ssi.status = SPI_STATUS_IDLE;
-	dw_ssi_disable_irqs(n, SSI_TXEI);
+	dw_ssi_disable_irqs(dw_ssid, SSI_TXEI);
 }
 
-uint8_t dw_ssi_read_byte(int n)
+uint8_t dw_ssi_read_byte()
 {
 	uint8_t byte;
 	spi_sync_status();
 	dw_ssi.status = SPI_STATUS_IDLE;
-	dw_ssi_enable_irqs(n, SSI_RXFI);
+	dw_ssi_enable_irqs(dw_ssid, SSI_RXFI);
 	while (dw_ssi.status == SPI_STATUS_IDLE)
 		bh_sync();
-	byte = (uint8_t)dw_ssi_read_dr(n);
+	byte = (uint8_t)dw_ssi_read_dr(dw_ssid);
 	dw_ssi.status = SPI_STATUS_IDLE;
-	dw_ssi_disable_irqs(n, SSI_RXFI);
+	dw_ssi_disable_irqs(dw_ssid, SSI_RXFI);
 	return byte;
 }
 
@@ -214,40 +236,48 @@ void dw_ssi_init_spi(int n, uint8_t spi_frf,
 	dw_ssis[n].spi_wait = wait_cycles;
 }
 
-void dw_ssi_start_ctrl(int n)
+void dw_ssi_start_ctrl()
 {
 	uint32_t ctrl;
 
-	if (n >= NR_DW_SSIS)
+	if (dw_ssid >= NR_DW_SSIS)
 		return;
 
 	/* Configure CTRLR0 */
 	dw_ssi_writel(SSI_SSTE |
-		      SSI_FRF(dw_ssis[n].frf) |
-		      SSI_TMOD(dw_ssis[n].tmod) |
-		      SSI_SPI_FRF(dw_ssis[n].spi_frf) |
-		      SSI_SPI_MODE(dw_ssis[n].spi_mode) |
+		      SSI_FRF(dw_ssis[dw_ssid].frf) |
+		      SSI_TMOD(dw_ssis[dw_ssid].tmod) |
+		      SSI_SPI_FRF(dw_ssis[dw_ssid].spi_frf) |
+		      SSI_SPI_MODE(dw_ssis[dw_ssid].spi_mode) |
 		      SSI_DFS(DW_SSI_XFER_SIZE - 1),
-		      SSI_CTRLR0(n));
+		      SSI_CTRLR0(dw_ssid));
 
 	/* Configure FIFO */
-	dw_ssi_writel(dw_ssis[n].tx_fifo_depth, SSI_TXFTLR(n));
-	dw_ssi_writel(0, SSI_RXFTLR(n));
+	dw_ssi_writel(dw_ssis[dw_ssid].tx_fifo_depth, SSI_TXFTLR(dw_ssid));
+	dw_ssi_writel(0, SSI_RXFTLR(dw_ssid));
 
 	/* Configure SPI_CTRLR0 */
 	ctrl = SSI_TRANS_TYPE(0);
-	if (dw_ssis[n].spi_frf != SSI_SPI_FRF_STD)
+	if (dw_ssis[dw_ssid].spi_frf != SSI_SPI_FRF_STD)
 		ctrl |= SSI_TRANS_TYPE(2);
-	if (dw_ssis[n].tmod == SSI_TMOD_EEPROM_READ) {
-		ctrl |= SSI_INST_L(dw_ssis[n].eeprom_inst_len >> 2) |
-			SSI_ADDR_L(dw_ssis[n].eeprom_addr_len >> 2);
+	if (dw_ssis[dw_ssid].tmod == SSI_TMOD_EEPROM_READ) {
+		ctrl |= SSI_INST_L(dw_ssis[dw_ssid].eeprom_inst_len >> 2) |
+			SSI_ADDR_L(dw_ssis[dw_ssid].eeprom_addr_len >> 2);
 	}
-	ctrl |= SSI_WAIT_CYCLES(dw_ssis[n].spi_wait);
-	dw_ssi_writel(ctrl, SSI_SPI_CTRLR0(n));
+	ctrl |= SSI_WAIT_CYCLES(dw_ssis[dw_ssid].spi_wait);
+	dw_ssi_writel(ctrl, SSI_SPI_CTRLR0(dw_ssid));
 
 	/* Configure BAUDR */
-	dw_ssi_writel(dw_ssis[n].sckdv, SSI_BAUDR(n));
-	dw_ssi_enable_ctrl(n);
+	dw_ssi_writel(dw_ssis[dw_ssid].sckdv, SSI_BAUDR(dw_ssid));
+	dw_ssi_enable_ctrl(dw_ssid);
+}
+
+void dw_ssi_stop_ctrl()
+{
+	if (dw_ssid >= NR_DW_SSIS)
+		return;
+
+	dw_ssi_disable_ctrl(dw_ssid);
 }
 
 #ifdef CONFIG_DW_SSI_XFER

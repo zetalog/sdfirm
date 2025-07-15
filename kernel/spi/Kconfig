@@ -16,6 +16,16 @@ config SPI_MASTER
 config SPI_SLAVE
 	bool "Enable bus slave support"
 
+config SPI_MAX_MASTERS
+	int "Number of SPI masters"
+	depends SPI_MASTER
+	default 1
+
+config SPI_MAX_SLAVES
+	int "Number of SPI slaves"
+	depends SPI_SLAVE
+	default 1
+
 config SPI_MAX_DEVICES
 	int "Number of SPI slave devices (1~8)"
 	range 1 8

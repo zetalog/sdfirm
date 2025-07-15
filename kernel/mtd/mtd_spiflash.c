@@ -40,9 +40,14 @@
 #define spiflash_tx(byte)			\
 	do {					\
 		spiflash_apb_delay(APB_DELAY);	\
+		spi_submit_write(1);		\
 		spi_write_byte(byte);		\
 	} while (0)
-#define spiflash_rx()			spi_read_byte()
+static inline uint8_t spiflash_rx()
+{
+	spi_submit_read(1);
+	return spi_read_byte();
+}
 
 struct spiflash_info {
 	spi_t spi;
