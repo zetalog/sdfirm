@@ -159,6 +159,15 @@
 #define SSI_SCKDV_MASK		REG_16BIT_MASK
 #define SSI_SCKDV(value)	_SET_FV(SSI_SCKDV, value)
 
+/* 5.1.11 SR */
+#define SSI_DCOL		_BV(6)
+#define SSI_TXE			_BV(5)
+#define SSI_RFF			_BV(4)
+#define SSI_RFNE		_BV(3)
+#define SSI_TFE			_BV(2)
+#define SSI_TFNF		_BV(1)
+#define SSI_BUSY		_BV(0)
+
 /* 5.1.12 IMR
  * 5.1.13 ISR
  * 5.1.14 RISR
