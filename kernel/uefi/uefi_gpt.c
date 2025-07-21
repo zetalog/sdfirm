@@ -104,7 +104,9 @@ int gpt_get_part_by_name(mtd_t mtd, const char *part_name,
 
 	gpt_loader(sector_buffer, flash_addr_header, copy_size_header);
 	gpt_header_print((struct gpt_header *)sector_buffer);
+#ifdef CONFIG_UEFI_GPT_DEBUG
 	hexdump(flash_addr_header, sector_buffer, 1, GPT_SECTOR_SIZE);
+#endif
 	for (i = 0; i < GPT_PGPT_PART_CNT; i++) {
 		uint8_t *guid_bytes =
 			(uint8_t *)(&entry_ptr->partition_guid);

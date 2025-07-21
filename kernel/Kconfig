@@ -523,6 +523,7 @@ menuconfig MEM
 	bool "Address space allocator (bootmem) support"
 	select STRING_STRTOUL
 	select STRING_STRTOULL
+	select STRING_HEXDUMP if CONSOLE_OUTPUT
 
 if MEM
 

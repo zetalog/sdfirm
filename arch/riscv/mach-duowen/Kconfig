@@ -230,6 +230,7 @@ config DUOWEN_BOOT_PROT_TEST
 	depends EXPERIMENTAL && COMMAND
 	depends DUOWEN_TB
 	select DUOWEN_BOOT_DEBUG
+	select STRING_HEXDUMP
 
 endif
 
@@ -834,6 +835,7 @@ menuconfig DUOWEN_SSI_FLASH
 	select ARCH_HAS_SPIFLASH
 	select GPIO
 	select DUOWEN_SSI_FLASH_IRQ if DUOWEN_TB && SYS_IRQ
+	select STRING_HEXDUMP if COMMAND
 	help
 	  The DUOWN SoC also contains a DW_SSI controller that can be used
 	  to interface with the external SSI flashes. However, the

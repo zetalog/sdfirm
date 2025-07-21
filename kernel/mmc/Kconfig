@@ -25,6 +25,7 @@ if ARCH_HAS_MMC || ARCH_HAS_SD
 
 menuconfig MMCSD
 	bool "MMC/SD/SDIO card support"
+	select STRING_HEXDUMP if COMMAND
 
 if MMCSD
 

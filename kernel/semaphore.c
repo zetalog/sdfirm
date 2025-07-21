@@ -2,8 +2,14 @@
 #include <target/delay.h>
 
 #ifdef CONFIG_TASK
-#define wait_sem(sem, timeout)	task_wait(&sem->wq, current, timeout)
-#define wake_sem(sem)		take_wake(&sem->wq);
+//#define wait_sem(sem, timeout)	task_wait(&sem->wq, current, timeout)
+//#define wake_sem(sem)		take_wake(&sem->wq);
+static inline int wait_sem(semaphore_t *sem, tick_t timeout)
+{
+	udelay(timeout);
+	return -ETIME;
+}
+#define wake_sem(sem)			do { } while (0)
 #else
 static inline int wait_sem(semaphore_t *sem, tick_t timeout)
 {

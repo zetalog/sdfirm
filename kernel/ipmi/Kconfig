@@ -88,6 +88,7 @@ if KCS
 config KCS_HIF
 	bool "Enable KCS host interface support"
 	select LPC
+	select STRING_HEXDUMP if COMMAND
 
 config KCS_BMC
 	bool "Enable KCS BMC slave demo support"
@@ -308,6 +309,7 @@ endif
 
 menuconfig SSIF
 	bool "SMBus System Interface (SSIF) support"
+	select STRING_HEXDUMP if COMMAND
 
 if SSIF
 
