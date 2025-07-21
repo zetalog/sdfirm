@@ -113,17 +113,18 @@
 #define DW_SSI_CLK_FREQ			(APB_CLK_FREQ) /* Hz */
 
 #ifdef CONFIG_DW_SSI
-#define spi_hw_config_mode(mode)	dw_ssi_config_mode(SSI_ID, mode)
-#define spi_hw_config_freq(khz)		dw_ssi_config_freq(SSI_ID, khz)
-#define spi_hw_read_byte()		dw_ssi_read_byte(SSI_ID)
-#define spi_hw_write_byte(byte)		dw_ssi_write_byte(SSI_ID, byte)
-#define spi_hw_chip_select(chip)	dw_ssi_select_chip(SSI_ID, chip)
-#define spi_hw_deselect_chips()		dw_ssi_deselect_chips(SSI_ID)
+#define spi_hw_master_select(spi)	dw_ssi_master_select(spi)
+#define spi_hw_config_mode(mode)	dw_ssi_config_mode(mode)
+#define spi_hw_config_freq(khz)		dw_ssi_config_freq(khz)
+#define spi_hw_read_byte()		dw_ssi_read_byte()
+#define spi_hw_write_byte(byte)		dw_ssi_write_byte(byte)
+#define spi_hw_chip_select(chip)	dw_ssi_select_chip(chip)
+#define spi_hw_deselect_chips()		dw_ssi_deselect_chips()
 void spi_hw_ctrl_init(void);
 #define spi_hw_irq_init()		dw_ssi_irq_init()
 #define spi_hw_handle_irq()		dw_ssi_handle_irq()
-#define spi_hw_ctrl_start()		dw_ssi_start_ctrl(SSI_ID)
-#define spi_hw_ctrl_stop()		dw_ssi_stop_ctrl(SSI_ID)
+#define spi_hw_ctrl_start()		dw_ssi_start_ctrl()
+#define spi_hw_ctrl_stop()		dw_ssi_stop_ctrl()
 #endif
 
 #ifdef CONFIG_DUOWEN_SSI_FLASH

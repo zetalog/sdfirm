@@ -10,7 +10,7 @@ typedef struct semaphore {
 	int limit;
 	spinlock_t lock;
 #ifdef CONFIG_TASK
-	task_wait_t wq;
+	//task_wait_t wq;
 #endif
 } semaphore_t;
 

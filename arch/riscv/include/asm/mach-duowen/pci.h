@@ -75,6 +75,8 @@
 #define PCIE_CORE_CHIPLINK			PCIE_CORE_X4_1
 #define PCIE_MAX_CORES				4
 
+#define PCIE_CTRL_MAX				PCIE_MAX_CORES
+
 /* PCIe subsystem registers */
 #define PCIE_RESET_CONTROL(n)			\
 	PCIE_SUBSYS_REG(0x000 + ((n) << 2))
@@ -401,7 +403,11 @@ uint32_t dw_pcie_read_axi(uint64_t addr);
 void dw_pcie_write_axi(uint64_t addr, uint32_t data);
 #define dw_pcie_sram_init()		__dw_pcie_sram_init()
 #endif
+#ifdef CONFIG_DUOWEN_PCIE
 void pci_platform_init(void);
+#else
+#define pci_platform_init()		do { } while (0)
+#endif
 
 #ifdef CONFIG_DW_PCIE
 void smmu_pcie_alloc_sme(void);

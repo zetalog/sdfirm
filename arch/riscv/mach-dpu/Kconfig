@@ -636,6 +636,7 @@ menuconfig DPU_SSI_FLASH
 	select ARCH_HAS_SPIFLASH
 	select SPIFLASH_W25Q
 	select STRING_UUID
+	select STRING_HEXDUMP if COMMAND
 	select ARCH_HAS_SPIFLASH_ADDR_4BYTE if !DPU_BOOT_ROM
 	help
 	  The DPU SoC also contains a DW_SSI controller that can be used

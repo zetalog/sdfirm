@@ -71,7 +71,7 @@
 #define CLINT_MSIP(hart)                \
         CLINT_REG(clint_hw_chip(hart),	\
 		  CLINT_MSIP_BASE +	\
-		  clint_hw_hart_offset(clint_ctx(hart)) << 2)
+		  (clint_hw_hart_offset(clint_ctx(hart)) << 2))
 #define CLINT_MTIMECMP(hart)            \
         CLINT_REG(clint_hw_chip(hart),	\
 		  CLINT_MTIMECMP_BASE +	\

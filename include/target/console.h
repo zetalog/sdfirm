@@ -102,7 +102,6 @@ static inline int console_input_init(void)
 int console_output_space(void);
 void console_output_handler(void);
 int console_output_init(void);
-void hexdump(caddr_t addr, const void *data, uint8_t width, size_t count);
 size_t hexstrtobin(const char *str, uint8_t *buf, size_t len);
 #else
 #define console_output_handler()	do { } while (0)
@@ -114,7 +113,6 @@ static inline int console_output_space(void)
 {
 	return 1;
 }
-#define hexdump(addr, data, width, count)	do { } while (0)
 #endif
 
 /* Console command line related */
@@ -128,8 +126,13 @@ __printf_chk(1) void con_err(const char *fmt, ...);
 #define console_init()				do { } while (0)
 #define console_late_init()			do { } while (0)
 #define con_err(...)				do { } while (0)
-#define hexdump(addr, data, width, count)	do { } while (0)
 #define hexstrtobin(str, buf, len)		0
+#endif
+
+#ifdef CONFIG_STRING_HEXDUMP
+void hexdump(caddr_t addr, const void *data, uint8_t width, size_t count);
+#else
+#define hexdump(addr, data, width, count)	do { } while (0)
 #endif
 
 #ifdef CONFIG_MMU_IDMAP_DEVICE
