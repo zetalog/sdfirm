@@ -45,6 +45,12 @@
 #include <target/generic.h>
 #include <driver/pci.h>
 
+#ifdef CONFIG_PCIE_DEBUG
+void pcie_dbg(const char *fmt, ...);
+#else
+#define pcie_dbg(...)	do { } while (0)
+#endif
+
 /* 7.5.1.1 Type 0/1 Common Configuration Space */
 #define PCI_VendorID				0x000 /* 16-bits */
 #define PCI_DeviceID				0x002 /* 16-bits */

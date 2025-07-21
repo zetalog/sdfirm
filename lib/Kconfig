@@ -219,6 +219,11 @@ config STRING_GETOPT
 	bool "getopt"
 	select PRINT_PRINTF
 
+config STRING_HEXDUMP
+	bool "hexdump"
+	depends CONSOLE_OUTPUT
+	select PRINT_PRINTF
+
 config STRING_BYTELIST
 	bool "byte list"
 

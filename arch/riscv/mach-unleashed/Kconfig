@@ -141,10 +141,12 @@ config UNLEASHED_SDCARD
 	select UNLEASHED_FLASH
 	select SD
 	select SD_SPI
+	select STRING_HEXDUMP if COMMAND
 
 config UNLEASHED_SPINOR
 	bool
 	select UNLEASHED_FLASH
+	select STRING_HEXDUMP if COMMAND
 
 choice
 	prompt "Boot flash controller"

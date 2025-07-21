@@ -87,6 +87,7 @@ menuconfig COMMAND
 	bool "Enable command line support"
 	select STRING_STRTOUL
 	select STRING_STRTOULL
+	select STRING_HEXDUMP if CONSOLE_OUTPUT
 
 config COMMAND_BATCH
 	bool "Enable batch command support"

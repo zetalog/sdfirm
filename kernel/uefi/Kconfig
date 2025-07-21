@@ -17,6 +17,7 @@ config UEFI_GPT
 
 config UEFI_GPT_DEBUG
 	bool "Enable UEFI debugging message"
+	select STRING_HEXDUMP if CONSOLE_OUTPUT
 
 endif
 
