@@ -467,42 +467,6 @@ void cmn600_disable_ocm(void)
 }
 #endif
 
-/*
-void cmn600_flush_hnfs_slc(uint64_t abf_mode,caddr_t saddr, caddr_t eaddr)
-{
-	cmn_id_t i;
-	for(i = 0; i< cmn_hnf_count; i++)
-		cmn_hnf_abf(CMN_HNF_BASE(cmn_hnf_ids[i]), abf_mode, saddr, eaddr);
-}
-
-static void cmn_hnf_abf(uint64_t hnf, uint64_t abf_mode, uint64_t saddr, uint64_t eaddr)
-{
-	cmn_writeq(hnf_abf_lo_addr(hnf) |
-		   CMN_abf_lo_addr(saddr),
-		   CMN_hnf_abf_lo_addr(hnf),
-		   "CMN_hnf_abf_lo_addr", -1);
-	cmn_writeq(hnf_abf_hi_addr(hnf) |
-		   CMN_abf_hi_addr(eaddr),
-		   CMN_hnf_abf_hi_addr(hnf),
-		   "CMN_hnf_abf_hi_addr", -1);
-	cmn_writeq(hnf_abf_pr(hnf) |
-		   CMN_abf_mode(abf_mode) |
-		   CMN_abf_enable(1),
-		   CMN_hnf_abf_pr(hnf),
-		   "CMN_hnf_abf_lo_addr", -1);
-}
-
-void cmn_hnf_abf_done(int hnf_id_idx)
-{
-	uint64_t abf_sr = 0x0;
-
-	while ((abf_sr & 0xf) == 0x0) {
-		//wait_ns(10000);
-		abf_sr = hnf_abf_sr(CMN_HNF_BASE(cmn_hnf_ids[hnf_id_idx]));
-	}
-}
-*/
-
 static uint8_t cmn_hnf_mapping(void)
 {
 	if (cmn_snf_count == 3)
@@ -950,7 +914,7 @@ static void __cmn600_configure_rn_sam(caddr_t rnsam,
 		sam->region_io_count++;
 		break;
 	case CMN600_MEMORY_REGION_TYPE_SYSCACHE:
-		if ((sam->region_sys_count + cmn_scg_count) >= CMN_MAX_HASH_MEM_REGIONS) {
+		if ((sam->region_sys_count + cmn_scg_count) > CMN_MAX_HASH_MEM_REGIONS) {
 			con_err(CMN_MODNAME ": SYS count %d + %d > limit %d\n",
 				sam->region_sys_count, cmn_scg_count,
 				CMN_MAX_HASH_MEM_REGIONS);
@@ -996,7 +960,7 @@ static void __cmn600_configure_rn_sam(caddr_t rnsam,
 		cmn_hnf_cal_enable_scg(cmn_scg_count);
 		break;
 	case CMN600_MEMORY_REGION_TYPE_SYSCACHE_SECONDARY:
-		if ((sam->region_sys2_count + cmn_scg_count) >= CMN_MAX_HASH_MEM_REGIONS) {
+		if ((sam->region_sys2_count + cmn_scg_count) > CMN_MAX_HASH_MEM_REGIONS) {
 			con_err(CMN_MODNAME ": SYS count %d + %d > limit %d\n",
 				sam->region_sys2_count, cmn_scg_count,
 				CMN_MAX_HASH_MEM_REGIONS);
@@ -1299,7 +1263,6 @@ void cmn600_init(void)
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
 	cmn600_configure();
 	/* Capture CCIX host topology */
-	cmn600_cml_detect_mmap();
 	cmn600_initialized = true;
 }
 
@@ -1544,6 +1507,10 @@ static int do_cmn600_dump(int argc, char *argv[])
 		}
 		return 0;
 	} else {
+		if (strcmp(argv[2], "scg") == 0) {
+			printf("SCG-%d\n", SCG_COUNT);
+			return 0;
+		}
 		if (strcmp(argv[2], "hnf") == 0) {
 			for (i = 0; i < cmn_hnf_count; i++) {
 				base = cmn_bases[cmn_hnf_ids[i]];
