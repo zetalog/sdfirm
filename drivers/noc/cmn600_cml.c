@@ -703,22 +703,6 @@ static void cmn_cml_enable_dvm(cmn_id_t link)
 				 CMN_lnk_dvmdomain_ack, true);
 }
 
-void cmn600_cml_detect_mmap(void)
-{
-	unsigned int region_index;
-	struct cmn600_memregion *region;
-
-	for (region_index = 0; region_index < cmn_mmap_count; region_index++) {
-		region = &cmn_mmap_table[region_index];
-
-		if (region->type == CMN600_REGION_TYPE_CCIX) {
-			cml_ha_mmap_table_local[cml_ha_mmap_count_local].base = region->base;
-			cml_ha_mmap_table_local[cml_ha_mmap_count_local].size = region->size;
-			cml_ha_mmap_count_local++;
-		}
-	}
-}
-
 void cmn600_cml_early_init(void)
 {
 	int ret;
