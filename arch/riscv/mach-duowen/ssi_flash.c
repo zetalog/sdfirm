@@ -64,7 +64,7 @@ void spi_hw_ctrl_init(void)
 	spi_config_pad(SSI_PIN_SS, GPIO_PAD_PULL_UP, TLMM_PAD_FUNCTION);
 	spi_config_pad(SSI_PIN_SS_IN, GPIO_PAD_PULL_UP, TLMM_PAD_FUNCTION);
 
-	clk_enable(DW_SSI_CLK);
+	clk_enable(DW_SSI_CLK(SSI_ID));
 	dw_ssi_init_master(SSI_ID, SSI_FRF_SPI,
 			   SSI_TMOD_EEPROM_READ, 8, 8);
 	dw_ssi_init_spi(SSI_ID, SSI_SPI_FRF_STD,

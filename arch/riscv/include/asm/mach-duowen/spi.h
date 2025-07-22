@@ -47,7 +47,7 @@
 #include <target/mtd.h>
 
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI0
-#define DW_SSI_CLK		spi0_clk
+#define DW_SSI_CLK(n)		spi0_clk
 #define DW_SSI_BASE(n)		SPI0_BASE
 #define SSI_ID			0
 #define SSI_PORT		GPIO1B
@@ -59,7 +59,7 @@
 #define IRQ_SPI			IRQ_SPI_MST0
 #endif
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI1
-#define DW_SSI_CLK		spi1_clk
+#define DW_SSI_CLK(n)		spi1_clk
 #define DW_SSI_BASE(n)		SPI1_BASE
 #define SSI_ID			1
 #define SSI_PORT		GPIO1B
@@ -71,7 +71,7 @@
 #define IRQ_SPI			IRQ_SPI_MST1
 #endif
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI2
-#define DW_SSI_CLK		spi2_clk
+#define DW_SSI_CLK(n)		spi2_clk
 #define DW_SSI_BASE(n)		SPI2_BASE
 #define SSI_ID			2
 #define SSI_PORT		GPIO1C
@@ -83,7 +83,7 @@
 #define IRQ_SPI			IRQ_SPI_MST2
 #endif
 #ifdef CONFIG_DUOWEN_SSI_FLASH_SPI3
-#define DW_SSI_CLK		spi3_clk
+#define DW_SSI_CLK(n)		spi3_clk
 #define DW_SSI_BASE(n)		SPI3_BASE
 #define SSI_ID			3
 #define SSI_PORT		GPIO1D
