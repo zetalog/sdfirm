@@ -58,6 +58,9 @@
 #define n100_hw_ha_nid(chip)			0x40
 #define n100_hw_link_nid(link)			0x40
 #define n100_hw_chip_base(base, chip)		DIE1_BASE
+#define n100_hw_chip_link()			true
+#else
+#define n100_hw_chip_link()			false
 #endif
 #ifdef CONFIG_K1MXLITE_N100
 #define k1mxlite_n100_init()			spacemit_n100_noc_init()
@@ -66,5 +69,7 @@
 #define k1mxlite_n100_init()			do { } while (0)
 #define k1mxlite_n100_d2d_init()		do { } while (0)
 #endif
+#define n100_hw_ctrl_init()			do { } while (0)
+#define n100_hw_d2d_init()			do { } while (0)
 
 #endif /* __NOC_K1MXLITE_H_INCLUDE__ */

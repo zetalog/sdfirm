@@ -643,11 +643,8 @@ static void cmn600_discover_internal(caddr_t node)
 				cmn_hnf_count, CMN_MAX_HNF_COUNT);
 			BUG();
 		}
-		if (!cmn600_hw_hnf_masked(cmn_node_id(node))) {
-                        cmn_hnf_ids[cmn_hnf_count++] = cmn_nr_nodes;
-                        cmn_bases[cmn_nr_nodes++] = node;
-                }
-
+		cmn_hnf_ids[cmn_hnf_count++] = cmn_nr_nodes;
+		cmn_bases[cmn_nr_nodes++] = node;
 		break;
 	case CMN_RN_SAM:
 		if (cmn_rn_sam_int_count >= CMN_MAX_RN_SAM_INT_COUNT) {
@@ -1508,7 +1505,7 @@ static int do_cmn600_dump(int argc, char *argv[])
 		return 0;
 	} else {
 		if (strcmp(argv[2], "scg") == 0) {
-			printf("SCG-%d\n", SCG_COUNT);
+			printf("SCG-%d\n", cmn600_hw_scg_count());
 			return 0;
 		}
 		if (strcmp(argv[2], "hnf") == 0) {

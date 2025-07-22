@@ -193,9 +193,11 @@
 #define CMN_NID_Y_OFFSET		3
 #define CMN_NID_Y_MASK			REG_2BIT_MASK
 #define CMN_Y(nid)			_GET_FV(CMN_NID_Y, nid)
+#define cmn_y(y)			_SET_FV(CMN_NID_Y, y)
 #define CMN_NID_X_OFFSET		5
 #define CMN_NID_X_MASK			REG_2BIT_MASK
 #define CMN_X(nid)			_GET_FV(CMN_NID_X, nid)
+#define cmn_x(x)			_SET_FV(CMN_NID_X, x)
 #define CMN_ROOT_NODE_POINTER_Y_OFFSET	6
 #define CMN_ROOT_NODE_POINTER_Y_MASK	REG_2BIT_MASK
 #define CMN_ROOT_NODE_POINTER_Y(y)	_SET_FV(CMN_ROOT_NODE_POINTER_Y, y)
