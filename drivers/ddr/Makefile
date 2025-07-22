@@ -9,3 +9,5 @@ obj-$(CONFIG_DW_UMCTL2_DDR5) += dwc_ddr54_ctrl.rel
 obj-$(CONFIG_DW_UMCTL2_DDR5) += dwc_ddr5_ucode.rel
 obj-$(CONFIG_DW_UMCTL2_DDR5) += dwc_ddr5_sw_cmd.rel
 obj-$(CONFIG_DW_UMCTL2_DDR5) += dwc_ddr54_para_cfg.rel
+obj-$(CONFIG_DW_UMCTL2) += dw_umctl2_stub.rel
+obj-$(CONFIG_DW_UMCTL2) += dw_umctl2.rel
