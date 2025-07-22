@@ -46,7 +46,7 @@
 #include <target/clk.h>
 #include <target/mtd.h>
 
-#define DW_SSI_CLK		srst_spi
+#define DW_SSI_CLK(n)		srst_spi
 #define DW_SSI_BASE(n)		SSI_BASE
 #define SSI_ID			0
 
@@ -90,7 +90,7 @@
 #define spi_hw_deselect_chips()		dw_ssi_deselect_chips()
 #define spi_hw_ctrl_init()					\
 	do {							\
-		clk_enable(DW_SSI_CLK);				\
+		clk_enable(DW_SSI_CLK(SSI_ID));			\
 		dw_ssi_init_master(SSI_ID, SSI_SPI_FRF_STD,	\
 				   SSI_TMOD_EEPROM_READ, 8, 8);	\
 		dw_ssi_init_spi(SSI_ID, SSI_SPI_FRF_STD,	\

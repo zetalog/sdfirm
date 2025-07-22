@@ -90,7 +90,7 @@ void dw_ssi_writel(uint32_t val, caddr_t reg)
 #ifdef CONFIG_CLK
 uint32_t dw_ssi_get_clk_freq(void)
 {
-	return div32u(clk_get_frequency(DW_SSI_CLK), 1000);
+	return div32u(clk_get_frequency(DW_SSI_CLK(dw_ssid)), 1000);
 }
 #else
 #define dw_ssi_get_clk_freq()		(APB_CLK_FREQ / 1000)
