@@ -106,6 +106,9 @@ config ARCH_IS_BOOT_LIB
 config ARCH_IS_BIG_ENDIAN
 	bool
 
+config ARCH_HAS_IRQ_DOMAIN
+	bool
+
 menu "Scheduling facility (irq) support"
 	depends !SYS_NOIRQ
 
@@ -119,6 +122,10 @@ config MAX_VECTORS
 	  implemented by the firmware rather than the compiler.  Setting
 	  maximum vector number the software currently is using can reduce
 	  memory consumption.
+
+config IRQ_DOMAIN
+	bool "Enable cascading IRQ controller support"
+	depends ARCH_HAS_IRQ_DOMAIN
 
 endmenu
 
