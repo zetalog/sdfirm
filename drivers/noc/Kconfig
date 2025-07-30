@@ -111,10 +111,18 @@ if CMN600_CML
 config CMN600_CML_TLP
 	bool "Enable PCIe TLP header support"
 	depends !ARCH_HAS_CMN600_CML_NO_TLP
+	help
+	  TLP header could be opt-out to improve CCIX performance, this
+	  option should be consistent with PCIe configuration.
 
 config CMN600_CML_NO_MESSAGE_PACK
 	bool "Force no message packing support"
 	help
+	  CCIX message could be split into packets when it exceeds maximum
+	  PCIe packet size. While multiple messages could also be packed
+	  into one packet to improve performance. In either case, this
+	  option is a CMN specific configuration and PCIe could only see
+	  packed or split packets.
 	  By default 'nomessagepack' is automatically configured according
 	  to the capability. Enabling this to force 'nomessagepack' option
 	  checked.
