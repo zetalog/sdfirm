@@ -1,4 +1,3 @@
-#include <target/rpmi.h>
 #include <target/types.h>
 #include <target/reri.h>
 #include <target/console.h>
@@ -407,6 +406,12 @@ void rpmi_ras_init(void)
 	struct mbox_controller *mbox;
 	uint32_t chan_args[2];
 	int rc;
+
+	/* Check if already initialized */
+	if (g_ras.chan) {
+		printf("RPMI RAS: already initialized, reusing existing channel\n");
+		return;
+	}
 
 	mbox = rpmi_get_controller();
 	if (!mbox) {

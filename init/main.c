@@ -78,11 +78,10 @@ void system_init(void)
 	timer_init();
 
 	modules_init();
+	mbox_init();
 	ras_init();
 	board_late_init();
 	perf_init();
-	mbox_init();
-	ras_init();
 	task_init();
 	appl_init();
 	smp_init();

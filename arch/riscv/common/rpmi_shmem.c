@@ -247,8 +247,10 @@ static int __smq_tx(struct smq_queue_ctx *qctx, struct rpmi_mb_regs *mb_regs,
 	*qctx->tailptr = cpu_to_le32(tailidx + 1) % qctx->num_slots;
 
 	/* Ring the RPMI doorbell if present */
-	if (mb_regs)
+	if (mb_regs) {
 		__raw_setl(doorbell_value, (caddr_t)&mb_regs->db_reg);
+		con_log("rpmi_shmem(%d): [TX] ring the doorbell: %d\n", rpmi_shmem_bid, doorbell_value);
+	}
 
 	return 0;
 }
@@ -326,17 +328,6 @@ static int smq_tx(struct rpmi_shmem_mbox_controller *mctl,
 
 	return -ETIMEDOUT;
 }
-
-#if 0
-static int smq_base_get_two_u32(struct rpmi_shmem_mbox_controller *mctl,
-				uint32_t service_id, uint32_t *inarg, uint32_t *outvals)
-{
-	return rpmi_normal_request_with_status(
-			mctl->base_chan, service_id,
-			inarg, (inarg) ? 1 : 0, (inarg) ? 1 : 0,
-			outvals, 2, 2);
-}
-#endif
 
 /**************** Mailbox Controller Functions **************/
 
@@ -519,23 +510,9 @@ static struct mbox_chan *rpmi_shmem_mbox_request_chan(
 	int sid;
 
 	/* Service group id not defined or in reserved range is invalid */
-        if (chan_args[0] >= RPMI_SRVGRP_ID_MAX_COUNT &&
+	if (chan_args[0] >= RPMI_SRVGRP_ID_MAX_COUNT &&
 	    chan_args[0] <= RPMI_SRVGRP_RESERVE_END)
 		return NULL;
-
-#if 0
-	/* Base serivce group is always present so probe other groups */
-	if (chan_args[0] != RPMI_SRVGRP_BASE) {
-		int ret;
-
-		/* Probe service group */
-		ret = smq_base_get_two_u32(mctl,
-					   RPMI_BASE_SRV_PROBE_SERVICE_GROUP,
-					   chan_args, tval);
-		if (ret || !tval[1])
-			return NULL;
-	}
-#endif
 
 	sid = rpmi_shmem_alloc_slot(mbox);
 	if (sid < 0)
@@ -600,6 +577,11 @@ void rpmi_shmem_handle_irq(void)
 	bool handler_found = false;
 	uint32_t service_id;
 
+	if (doorbell_value) {
+		writel(0, (caddr_t)&mb_regs->db_reg);
+		// con_dbg("rpmi_shmem(%d): doorbell_value: %d\n", rpmi_shmem_bid, readl((caddr_t)&mb_regs->db_reg));
+	}
+
 	if (mctl->type == RPMI_MB_TYPE_AP) {
 		queue_ids[0] = RPMI_QUEUE_IDX_P2A_REQ;
 		queue_ids[1] = RPMI_QUEUE_IDX_P2A_ACK;
@@ -608,14 +590,12 @@ void rpmi_shmem_handle_irq(void)
 		queue_ids[0] = RPMI_QUEUE_IDX_A2P_REQ;
 		queue_ids[1] = RPMI_QUEUE_IDX_A2P_ACK;
 	}
-	if (mb_regs)
-		__raw_clearl(doorbell_value, (caddr_t)&mb_regs->db_reg);
 
 	for (i = 0; i < 2; i++) {
-		con_dbg("rpmi_shmem(%d): handling %s_%s...\n",
-			rpmi_shmem_bid,
-			mctl->type == RPMI_MB_TYPE_AP ? "P2A" : "A2P",
-			i == 0 ? "REQ" : "ACK");
+		// con_dbg("rpmi_shmem(%d): handling %s_%s...\n",
+		// 	rpmi_shmem_bid,
+		// 	mctl->type == RPMI_MB_TYPE_AP ? "P2A" : "A2P",
+		// 	i == 0 ? "REQ" : "ACK");
 		qctx = &rpmi_shmem_queue_ctx_tbl[queue_ids[i]];
 		while (!__smq_queue_empty(qctx)) {
 			memset(&args, 0, sizeof(args));
@@ -630,12 +610,11 @@ void rpmi_shmem_handle_irq(void)
 
 			ret = __smq_rx(qctx, mctl->slot_size, 0, &xfer);
 			if (ret) {
-				con_err("rpmi_shmem(%d): RX failed",
+				con_err("rpmi_shmem(%d): RX failed\n",
 					rpmi_shmem_bid);
 				break;
 			}
 			service_id = GET_SERVICE_ID(xfer.rx);
-#if 0
 			for (j = 0; j < num_handlers; j++) {
 				if (msg_handlers[j].service_id == service_id) {
 					msg_handlers[j].handler(NULL, &xfer);
@@ -643,7 +622,7 @@ void rpmi_shmem_handle_irq(void)
 					break;
 				}
 			}
-#endif
+
 			if (!handler_found)
 				con_err("rpmi_shmem(%d): no handler found (service=0x%x)",
 					rpmi_shmem_bid, service_id);
@@ -661,11 +640,14 @@ void rpmi_shmem_irq_handler(irq_t irq)
 	for (rpmi_bid = 0; rpmi_bid < RPMI_SHMEM_MAX_CONTROLLERS; rpmi_bid++) {
 		mctl = &rpmi_shmem_boxes[rpmi_shmem_bid];
 		if (rpmi_shmem_boxes[rpmi_bid].irq == irq) {
+			con_log("rpmi_shmem(%d): irq: %d\n", rpmi_bid, irq_ext(irq));
 			sbid = mbox_controller_save(mctl->controller.bid);
 			rpmi_shmem_handle_irq();
 			mbox_controller_restore(sbid);
 		}
 	}
+
+	irqc_ack_irq(irq);
 }
 
 void rpmi_shmem_irq_init(void)

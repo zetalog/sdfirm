@@ -7,6 +7,7 @@
 
 #ifndef ARCH_HAVE_MBOX
 #define mbox_hw_ctrl_init()
+#define mbox_hw_irq_init()
 #define mbox_hw_select_box(bid)
 #endif
 

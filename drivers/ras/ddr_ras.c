@@ -1483,7 +1483,7 @@ void ddr_ras_init(void)
 		ddr_set(CH0_RAS_INTR_EN | CH1_RAS_INTR_EN | FUNC_INTR_EN,
 			func_irq_info[i].reg_base_addr + DDR_INTERRUPT_CTRL_REG);
 		ddr_set(0xFFFFFFFF, func_irq_info[i].reg_base_addr + WRB_RDB_PRR_CTRL);
-		ddrctl_scrubber_write( ddrc_addr[i].ctrl);
+		ddrctl_scrubber_write(ddrc_addr[i].ctrl);
 		con_log("DDR_MODNAME: func_irq_info[%d].irq = %d\n", i, func_irq_info[i].irq);
 		con_log("DDR_MODNAME: func_irq_info[%d].ctrl_base_addr = 0x%lx\n", i, func_irq_info[i].ctrl_base_addr);
 		con_log("DDR_MODNAME: func_irq_info[%d].reg_base_addr = 0x%lx\n", i, func_irq_info[i].reg_base_addr);
@@ -1598,7 +1598,7 @@ static void ddr_ecc_inject(caddr_t ddrc_base, caddr_t reg_base,
 	ddrc_post_qdyn_write(ddrc_base);
 
 	con_log(DDR_MODNAME ": ----- write data [0x%x] into address [0x%llx] ----\n", poison_data, poison_addr);
-	__raw_writel(0xAAAAAAAA, poison_addr);
+	__raw_writel(poison_data, poison_addr);
 
 	/* 6. Read data to trigger: using 'mem read' command in shell */
 }
