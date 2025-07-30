@@ -32,15 +32,10 @@ config ECC_SRAM_RAS
 	  - Interrupt handling for SEC/DED errors
 	  - Error injection and threshold configuration
 
-config PCIE_RAS
-	bool "Enable PCIe reliability availability serviceability (RAS) support"
+config DW_PCIE_RAS_DES_EINJ
+	bool "Enable DWC PCIE DES capabilities support"
 	depends on RAS && PCI && DW_PCIE
 	help
-	  This option enables PCIe RAS support for error detection and handling.
-	  It includes features such as:
-	  - Advanced Error Reporting (AER)
-	  - Error detection and handling
-	  - Interrupt handling for CE/UE errors
-	  - Error injection
-
+	  Select Y to expose its RAS DES capabilities about Error Injection
+	  for the PCIe controller.
 endmenu

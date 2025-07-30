@@ -354,9 +354,23 @@ typedef union {
     uint32_t value[16];
 } pci_cfg;
 
-
 /* CapabilityID */
 #define PCI_CAP_PowerManagement				0x01
 
 int pci_enum(int bus, int index);
+
+#ifdef CONFIG_DW_PCIE_RAS_DES_EINJ
+struct pcie_einj_param {
+	const char *inj_name;
+	uint32_t counter;
+	int val_diff;
+	uint32_t vc_num;
+};
+int pcie_aer_init(struct pcie_port *pp);
+int pcie_err_inject(struct pcie_port *pp, struct pcie_einj_param *param);
+#else
+#define pcie_aer_init(pp)		do { } while (0)
+#define pcie_err_inject(pp, param)	do { } while (0)
+#endif /* CONFIG_DW_PCIE_RAS_DES_EINJ */
+
 #endif /* __PCI_H_INCLUDE__ */
