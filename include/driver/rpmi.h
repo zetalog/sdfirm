@@ -44,7 +44,6 @@
 
 #include <asm/types.h>
 
-void rpmi_shmem_init(void);
 int rpmi_ras_sync_hart_errs(u32 *pending_vectors, u32 *nr_pending,
 			    u32 *nr_remaining);
 int rpmi_ras_sync_reri_errs(u32 *pending_vectors, u32 *nr_pending,

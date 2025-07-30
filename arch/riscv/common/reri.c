@@ -7,7 +7,6 @@
  *   Himanshu Chauhan <hchauhan@ventanamicro.com>
  */
 
-#include <target/sbi.h>
 #include <target/irq.h>
 #include <target/cmdline.h>
 #include <target/console.h>
@@ -63,7 +62,7 @@ static const int iommu_reri_irqs[] = {
 	IRQ_IOMMU_IOATC12_RAS,
 	IRQ_IOMMU_IOATC13_RAS,
 };
-#define NR_IOMMU_RERI_IRQS		(sizeof(iommu_reri_irqs) / sizeof(iommu_reri_irqs[0]))
+#define NR_IOMMU_RERI_IRQS		ARRAY_SIZE(iommu_reri_irqs)
 #endif
 
 static void reri_clear_valid_bit(caddr_t base, int record_idx)
@@ -216,20 +215,6 @@ static uint32_t riscv_reri_get_hart_sse_vector(int hart_id,
 		return SBI_ENOENT;
 
 	*sse_vector = reri_hart->dev.sse_vector;
-
-	return 0;
-}
-
-static uint32_t riscv_reri_get_hart_src_id(int hart_id,
-					   uint32_t *hart_src_id)
-{
-	struct reri_hart_dev *reri_hart;
-
-	reri_hart = get_reri_hart_dev(hart_id);
-	if (!reri_hart)
-		return SBI_ENOENT;
-
-	*hart_src_id = reri_hart->dev.src_id;
 
 	return 0;
 }
@@ -509,14 +494,14 @@ static void generic_reri_irq_handler(irq_t irq)
 	int cluster_id, local_hart_id, i;
 	uint64_t bank_addr;
 	enum reri_event_source_type source_type;
-	int irq_number = irq_ext(irq);
 
-	if (irq_number == IRQ_RAS_CE || irq_number == IRQ_RAS_UE)
+	if (irq == IRQ_RAS_CE || irq == IRQ_RAS_UE)
 		source_type = RERI_EVENT_SOURCE_CPU;
 	else
 		source_type = RERI_EVENT_SOURCE_IOMMU;
+#ifndef SYS_REALTIME
 	con_log(RERI_MODNAME ": handle interrupt (irq=%d)", irq);
-
+#endif
 	if (source_type == RERI_EVENT_SOURCE_CPU) {
 		if (get_cluster_and_local_hart_id(current_hart, &cluster_id, &local_hart_id) != 0)
 			return;
@@ -571,7 +556,7 @@ static void iommu_reri_poll_init(void)
 }
 #else
 #define iommu_reri_irq_init()	do {} while (0)
-#endif
+#endif /* CONFIG_RISCV_IOMMU_SPACET */
 #define cpu_reri_irq_init()	do {} while (0)
 #else
 static void cpu_reri_irq_init(void)
@@ -596,9 +581,9 @@ static void iommu_reri_irq_init(void)
 }
 #else
 #define iommu_reri_poll_init()	do {} while (0)
-#endif
+#endif /* CONFIG_RISCV_IOMMU_SPACET */
 #define cpu_reri_poll_init()	do {} while (0)
-#endif
+#endif /* SYS_REALTIME */
 
 void reri_drv_init(void)
 {
@@ -660,9 +645,9 @@ void reri_drv_init(void)
 }
 
 static int riscv_reri_get_iommu_err_bank_addr(uint32_t iommu_id,
-					  uint32_t err_bank_id_target,
-					  uint64_t *bank_addr_out,
-					  uint64_t *size_out)
+					      uint32_t err_bank_id_target,
+					      uint64_t *bank_addr_out,
+					      uint64_t *size_out)
 {
 	for (int i = 0; i < reri_nr_iommu_err_banks; i++) {
 		if (reri_iommu_err_banks && reri_iommu_err_banks[i].dev.addr != 0) {

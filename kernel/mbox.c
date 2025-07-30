@@ -18,7 +18,7 @@ mbox_bid_t mbox_bid;
 
 void mbox_controller_select(mbox_bid_t bid)
 {
-	mbox_hw_ctrl_select(bid);
+	mbox_hw_select_box(bid);
 	mbox_bid = bid;
 }
 

@@ -1,4 +1,4 @@
-#include <target/rpmi.h>
+#include <target/mbox.h>
 
 #define MAX_MSG_HANDLERS 16
 struct rpmi_msg_handler msg_handlers[MAX_MSG_HANDLERS];
@@ -43,20 +43,6 @@ int rpmi_posted_request(
 			  req, sizeof(u32) * req_words, RPMI_DEF_TX_TIMEOUT);
 
 	return mbox_chan_xfer(chan, &xfer);
-}
-
-int rpmi_init(void)
-{
-	int ret;
-
-	ret = rpmi_shmem_init();
-	if (ret) {
-		printf("RPMI: failed to initialize shared memory transport (ret=%d)\n", ret);
-		return ret;
-	}
-
-	printf("RPMI: module initialized successfully\n");
-	return 0;
 }
 
 struct mbox_controller *rpmi_get_controller(void)

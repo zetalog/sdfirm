@@ -11,6 +11,8 @@
 #ifndef __RPMI_MSGPROT_H__
 #define __RPMI_MSGPROT_H__
 
+#include <target/mbox.h>
+
 /*
  * 31                                            0
  * +---------------------+-----------------------+
@@ -765,12 +767,10 @@ extern struct rpmi_msg_handler msg_handlers[];
 extern int num_handlers;
 
 #ifdef CONFIG_RPMI
-int rpmi_init(void);
 struct mbox_controller *rpmi_get_controller(void);
 int rpmi_register_handler(uint32_t service_id,
 	void (*handler)(struct mbox_chan *chan, struct mbox_xfer *xfer));
 #else
-#define rpmi_init()		do { } while (0)
 #define rpmi_get_controller()		NULL
 #define rpmi_register_handler()		do { } while (0)
 #endif
@@ -787,12 +787,6 @@ int rpmi_posted_request(struct mbox_chan *chan, uint32_t service_id,
 			void *req, uint32_t req_words, uint32_t req_endian_words);
 
 struct mbox_controller *rpmi_shmem_get_controller(void);
-
-#ifdef CONFIG_RPMI_SHMEM
-int rpmi_shmem_init(void);
-#else
-#define rpmi_shmem_init()		do { } while (0)
-#endif
 
 #ifdef CONFIG_RPMI_CPPC
 void rpmi_cppc_init(void);
@@ -828,11 +822,12 @@ int spacemit_ras_sync_error_record(struct spacemit_ras_error_record *error_recor
 #else
 #define spacemit_ras_sync_hart_errs()		do { } while (0)
 #define spacemit_ras_sync_error_record()	do { } while (0)
-#endif
+#endif /* CONFIG_SPACEMIT_RAS */
+
 #else
 #define rpmi_ras_init()			do { } while (0)
 #define rpmi_ras_sync_hart_errs()	do { } while (0)
 #define rpmi_ras_sync_reri_errs()	do { } while (0)
-#endif
+#endif /* CONFIG_RPMI_RAS */
 
 #endif /* __RPMI_MSGPROT_H__ */
