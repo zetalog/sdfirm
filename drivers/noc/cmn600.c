@@ -1245,7 +1245,7 @@ void cmn600_configure_rn_sam_ext(cmn_nid_t nid)
 	}
 }
 
-void cmn600_init(void)
+void cmn600_init(bool disc_only)
 {
 	caddr_t root_node_pointer;
 
@@ -1258,7 +1258,8 @@ void cmn600_init(void)
 	cmn_nr_nodes = 1;
 	cmn600_discover();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
-	cmn600_configure();
+	if (!disc_only)
+		cmn600_configure();
 	/* Capture CCIX host topology */
 	cmn600_initialized = true;
 }

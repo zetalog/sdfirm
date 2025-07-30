@@ -1622,7 +1622,7 @@ const char *cmn600_mem_region_name(uint8_t type);
 const char *cmn600_revision_name(uint8_t revision);
 #endif
 
-void cmn600_init(void);
+void cmn600_init(bool disc_only);
 uint16_t cmn600_node_type(cmn_nid_t nid);
 bool cmn600_rnsam_is_rnd(cmn_nid_t nid);
 bool cmn600_rnsam_is_rni(cmn_nid_t nid);
