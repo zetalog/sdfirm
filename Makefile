@@ -476,7 +476,7 @@ drivers-y	:= $(patsubst %/, %/built-in.lib, $(drivers-y))
 # Build kernel
 # ---------------------------------------------------------------------------
 # sdfirm is built from the objects selected by $(sdfirm-init) and
-# $(sdfirm-main). Most are built-in.lib files from top-level directories
+# $(sdfirm-main). Most are built-in.lib files orom top-level directories
 # in the kernel tree, others are specified in arch/$(ARCH)/Makefile.
 # Ordering when linking is important, and $(sdfirm-init) must be first.
 #

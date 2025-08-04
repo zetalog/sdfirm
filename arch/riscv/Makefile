@@ -72,7 +72,7 @@ CFLAGS += $(call cc-option,-fno-tree-loop-distribute-patterns)
 boot		:= arch/riscv/boot
 KBUILD_IMAGE	:= sdfirm.bin sdfirm.srec
 ifneq ($(CONFIG_VERILOG_DATA_WIDTH),)
-KBUILD_IMAGE	+= sdfirm.ram sdfirm.rom
+KBUILD_IMAGE	+= sdfirm.hex sdfirm.ram sdfirm.rom
 endif
 
 # arch specific predefines for sparse
@@ -186,6 +186,8 @@ sdfirm.bin: sdfirm.strip
 sdfirm.srec: sdfirm.strip
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 ifneq ($(CONFIG_VERILOG_DATA_WIDTH),)
+sdfirm.hex: sdfirm.strip
+	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 sdfirm.rom: sdfirm.bin
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 sdfirm.ram: sdfirm.srec
@@ -200,6 +202,7 @@ CLEAN_FILES += arch/$(ARCH)/boot/sdfirm.rom
 CLEAN_FILES += arch/$(ARCH)/boot/sdfirm.ram
 CLEAN_FILES += arch/$(ARCH)/boot/sdfirm.srec
 CLEAN_FILES += arch/$(ARCH)/boot/sdfirm.bin
+CLEAN_FILES += arch/$(ARCH)/boot/sdfirm.hex
 
 # We use MRPROPER_FILES and CLEAN_FILES now
 archclean:
