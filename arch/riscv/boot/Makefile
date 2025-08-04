@@ -11,7 +11,7 @@
 # Copyright (C) 2009 Lv Zheng
 #
 
-sdfirm := sdfirm.bin sdfirm.srec sdfirm.ram sdfirm.rom
+sdfirm := sdfirm.bin sdfirm.srec sdfirm.hex sdfirm.ram sdfirm.rom
 
 $(obj)/sdfirm.bin: sdfirm.strip FORCE
 	$(call if_changed,objcopy)
@@ -23,12 +23,17 @@ OBJCOPYFLAGS_sdfirm.bin		+=-O binary
 OBJCOPYFLAGS_sdfirm.srec	+=-O srec
 
 ifneq ($(CONFIG_VERILOG_DATA_WIDTH),)
+VHX_WIDTH = $(shell expr $(CONFIG_VERILOG_DATA_WIDTH) / 8)
+$(obj)/sdfirm.hex: sdfirm.strip FORCE
+	$(call if_changed,objcopy)
+	@echo '  Small Device Firmware: $@ is ready'
 $(obj)/sdfirm.rom: $(obj)/sdfirm.bin FORCE
 	$(call if_changed,bin2vhx)
 	@echo '  Small Device Firmware: $@ is ready'
 $(obj)/sdfirm.ram: $(obj)/sdfirm.srec FORCE
 	$(call if_changed,srec2vhx)
 	@echo '  Small Device Firmware: $@ is ready'
+OBJCOPYFLAGS_sdfirm.hex		+=-O verilog
 BIN2VHXFLAGS_sdfirm.rom		+=--width=$(CONFIG_VERILOG_DATA_WIDTH)
 SREC2VHXFLAGS_sdfirm.ram	+=-w $(CONFIG_VERILOG_DATA_WIDTH)
 endif

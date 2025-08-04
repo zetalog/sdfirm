@@ -175,7 +175,6 @@ quiet_cmd_srec2vhx = SREC2VHX $@
 quiet_cmd_bin2vhx = BIN2VHX $@
       cmd_bin2vhx = $(BIN2VHX) $< $@ $(BIN2VHXFLAGS) $(BIN2VHXFLAGS_$(@F))
 
-
 # DTC
 # ---------------------------------------------------------------------------
 DTC ?= dtc
