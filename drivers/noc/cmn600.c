@@ -1258,7 +1258,7 @@ void cmn600_init(bool disc_only)
 	cmn_nr_nodes = 1;
 	cmn600_discover();
 	/* TODO: Dynamic internal/external RN_SAM nodes and HNF cache groups */
-	if (!disc_only)
+	if (disc_only)
 		cmn600_configure();
 	/* Capture CCIX host topology */
 	cmn600_initialized = true;
