@@ -2,6 +2,7 @@
 
 ARCH=riscv
 MACH=k1matrix
+BBL=opensbi
 BBLVAR=
 CROSS_COMPILE=riscv64-unknown-linux-gnu-
 

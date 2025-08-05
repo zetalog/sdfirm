@@ -70,7 +70,7 @@ fatal_usage()
 	usage 1
 }
 
-while getopts "a:b:c:d:e:fg:i:m:n:ru" opt
+while getopts "a:b:c:d:e:f:g:i:m:n:ru" opt
 do
 	case $opt in
 	a) ARCH=$OPTARG;;
@@ -105,7 +105,7 @@ do
 	   if [ "x$OPTARG" = "xacpi" ]; then
 		BUILD_ACPI=yes
 	   fi;;
-	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m sdfirm";;
+	f) BUILD_MODULE_OPS="${BUILD_MODULE_OPS} -m $OPTARG";;
 	g) feat=`parse_feat $OPTARG`
 	   option=`parse_opt $OPTARG`
 	   if [ "x$feat" = "xsim" ]; then
@@ -127,6 +127,7 @@ do
 	   fatal_usage;;
 	esac
 done
+echo "BUILD_MODULE_OPS=$BUILD_MODULE_OPS"
 shift $(($OPTIND - 1))
 
 if [ -z ${ARCH} ]; then
@@ -137,9 +138,6 @@ if [ -z ${MACH} ]; then
 fi
 if [ -z ${CROSS_COMPILE} ]; then
 	export CROSS_COMPILE=riscv64-unknown-linux-gnu-
-fi
-if [ -z ${BBL} ]; then
-	export BBL=sdfirm
 fi
 if [ -z ${SDFIRM_DIR} ]; then
 	export SDFIRM_DIR=${WORKING_DIR}/sdfirm
