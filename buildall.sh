@@ -138,8 +138,6 @@ if [ "x${BUILD_RISCV64}" = "xyes" ]; then
 	build_sdfirm riscv64 duowen_bbl_imc
 	build_sdfirm riscv64 k1max_cpu_bbl
 	build_sdfirm riscv64 k1max_soc_bbl
-	build_sdfirm riscv64 k1mxlite_bbl
-	build_sdfirm riscv64 k1mxlite_d2d_bbl
 	if [ "x$PSEUDO_IMAGE" = "xyes" ]; then
 		echo "Deleting pseudo image..."
 		rm -f Image
@@ -230,11 +228,6 @@ if [ "x${BUILD_RISCV64}" = "xyes" ]; then
 	# K1-max
 	build_sdfirm riscv64 k1max_cpu_litmus
 	build_sdfirm riscv64 k1max_soc_litmus
-	# K1MXLite
-	build_sdfirm riscv64 k1mxlite_zsbl
-	build_sdfirm riscv64 k1mxlite_fsbl
-	build_sdfirm riscv64 k1mxlite_d2d_fsbl
-	build_sdfirm riscv64 k1mxlite_litmus
 fi
 
 # Restore environments
