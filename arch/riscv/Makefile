@@ -112,10 +112,6 @@ ifeq ($(CONFIG_ARCH_STEV20),y)
  machine-$(CONFIG_ARCH_STEV20)		:= stev20
  incdir-$(CONFIG_ARCH_STEV20)		:= stev20
 endif
-ifeq ($(CONFIG_ARCH_K1MXLITE),y)
- machine-$(CONFIG_ARCH_K1MXLITE)	:= k1mxlite
- incdir-$(CONFIG_ARCH_K1MXLITE)		:= k1mxlite
-endif
 include $(srctree)/arch/$(ARCH)/Makefile-spa36xx
 ifeq ($(CONFIG_ARCH_K1X),y)
  machine-$(CONFIG_ARCH_K1X)		:= k1x
