@@ -21,6 +21,9 @@ if [ -z $MACH ]; then
 	MACH=spike64
 	BBLVAR=
 fi
+if [ -z $BBL ]; then
+	BBL=sdfirm
+fi
 if [ -z $CROSS_COMPILE ]; then
 	CROSS_COMPILE=riscv64-linux-gnu-
 fi
@@ -69,6 +72,7 @@ SCRIPT=${SDFIRM_ROOT}/scripts/linux
 # Environments that are required to be exported
 export ARCH
 export MACH
+export BBL
 export CROSS_COMPILE
 export SDFIRM_ROOT
 export LITMUS_ROOT
@@ -76,11 +80,12 @@ export LITMUS_ROOT
 # Customer support
 if [ -z ${BUILD_CUSTOMER} ]; then
 	# Enable busybox and applications
-	BUILD_IMAGE_OPS="-f -u -n sdfirm"
+	BUILD_IMAGE_OPS="-f $BBL -u -n sdfirm"
 else
 	# Enable busybox only
-	BUILD_IMAGE_OPS="-f -n sdfirm"
+	BUILD_IMAGE_OPS="-f $BBL -n sdfirm"
 fi
+
 # Simple environments
 if [ "x${BUILD_SIM}" != "x" ]; then
 	BUILD_IMAGE_OPS="$BUILD_IMAGE_OPS -g sim=${BUILD_SIM}"

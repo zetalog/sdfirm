@@ -571,7 +571,7 @@ function build_sdfirm()
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$TOP/obj/sdfirm-$ARCH/ my_defconfig
-	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPLE $SDFIRM_PATH/scripts/config \
+	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE $SDFIRM_PATH/scripts/config \
 		--file $TOP/obj/sdfirm-$ARCH/.config \
 		--set-str SBI_PAYLOAD_PATH \
 		$TOP/obj/linux-$ARCH/arch/$ARCH/boot/Image

@@ -567,7 +567,12 @@ function build_linux()
 		fi
 	fi
 	)
-	cp -f ${TOP}/obj/linux-riscv/arch/${ARCH}/boot/Image ${SDFIRM_DIR}/Image
+	if [ "x$BBL" = "xsdfirm" ]; then
+		cp -f ${TOP}/obj/linux-riscv/arch/${ARCH}/boot/Image ${SDFIRM_DIR}/Image
+	fi
+	if [ "x$BBL" = "xopensbi" ]; then
+		cp -f ${TOP}/obj/linux-riscv/arch/${ARCH}/boot/Image ${OPENSBI_DIR}/Image
+	fi
 }
 
 function build_sdfirm()
@@ -611,7 +616,7 @@ function build_sdfirm()
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE mrproper
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
 		O=$TOP/obj/sdfirm-$ARCH/ my_defconfig
-	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPLE $SDFIRM_PATH/scripts/config \
+	ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE $SDFIRM_PATH/scripts/config \
 		--file $TOP/obj/sdfirm-$ARCH/.config \
 		--set-str SBI_PAYLOAD_PATH \
 		$TOP/obj/linux-$ARCH/arch/$ARCH/boot/Image
@@ -627,6 +632,39 @@ function build_sdfirm()
 	${CROSS_COMPILE}objcopy \
 		--only-keep-debug $TOP/obj/sdfirm-$ARCH/sdfirm \
 		$TOP/obj/sdfirm-$ARCH/sdfirm.sym
+	)
+}
+
+function build_opensbi()
+{
+	echo "== Build opensbi =="
+	rm -rf $TOP/obj/opensbi-$ARCH
+	mkdir -p $TOP/obj/opensbi-$ARCH
+	echo "pwd"
+	dtc -O dtb -b 0 -o $TOP/sdfirm/scripts/dts/kmh.dtb $TOP/sdfirm/scripts/dts/${MACH}.dts
+	mv $TOP/sdfirm/scripts/dts/kmh.dtb $TOP/obj/linux-$ARCH/arch/$ARCH/boot/dts/${MACH}.dtb
+	(
+	cd $OPENSBI_PATH
+	if [ -x $TOP/obj/opensbi-$ARCH ]; then
+		make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE \
+			O=$TOP/obj/opensbi-$ARCH/ distclean
+	fi
+		make PLATFORM=generic \
+		CROSS_COMPILE=$CROSS_COMPILE \
+		O=$TOP/obj/opensbi-$ARCH/ \
+		FW_PAYLOAD_PATH=$TOP/obj/linux-$ARCH/arch/$ARCH/boot/Image \
+		FW_FDT_PATH=$TOP/obj/linux-$ARCH/arch/$ARCH/boot/dts/${MACH}.dtb \
+		FW_TEXT_START=0x1000 -j6
+	if [ ! -f $TOP/obj/opensbi-$ARCH/platform/generic/firmware/fw_payload.bin ]; then
+		echo "Error: Failed to build opensbi"
+		exit 1
+	fi
+	if [ -f $TOP/obj/opensbi-$ARCH/platform/generic/firmware/fw_payload.elf ]; then
+		${CROSS_COMPILE}objcopy \
+			--only-keep-debug \
+			$TOP/obj/opensbi-$ARCH/platform/generic/firmware/fw_payload.elf \
+			$TOP/obj/opensbi-$ARCH/platform/generic/firmware/fw_payload.sym
+	fi
 	)
 }
 
@@ -651,6 +689,9 @@ function build_bbl()
 	fi
 	if [ "x$BBL" = "xsdfirm" ]; then
 		build_sdfirm
+	fi
+	if [ "x$BBL" = "xopensbi" ]; then
+		build_opensbi
 	fi
 }
 
@@ -839,23 +880,36 @@ INITRAMFS_FILELIST_TEMPLATE=config-initramfs-$ARCH
 
 echo "== Prepare =="
 if [ "x${M_MODE}" = "xyes" ]; then
+	if [ -z $SDFIRM_DIR ]; then
+		SDFIRM_DIR=sdfirm
+		SDFIRM_PATH=$TOP/sdfirm
+	else
+		if [ ! -d $SDFIRM_DIR ]; then
+			echo "Sdfirm source $SDFIRM_DIR not found"
+			exit 1
+		fi
+		SDFIRM_PATH=`(cd $SDFIRM_DIR; pwd)`
+		SDFIRM_DIR=`dirname $SDFIRM_PATH`
+	fi
 	if [ -z $BBL ]; then
 		BBL=riscv-pk
 	fi
 	if [ "x$BBL" = "xsdfirm" ]; then
-		if [ -z $SDFIRM_DIR ]; then
-			SDFIRM_DIR=sdfirm
-			SDFIRM_PATH=$TOP/sdfirm
-		else
-			if [ ! -d $SDFIRM_DIR ]; then
-				echo "Sdfirm source $SDFIRM_DIR not found"
-				exit 1
-			fi
-			SDFIRM_PATH=`(cd $SDFIRM_DIR; pwd)`
-			SDFIRM_DIR=`dirname $SDFIRM_PATH`
-		fi
 		if [ -z $MACH ]; then
 			MACH=spike64
+		fi
+	fi
+	if [ "x$BBL" = "xopensbi" ]; then
+		if [ -z $OPENSBI_DIR ]; then
+			OPENSBI_DIR=opensbi
+			OPENSBI_PATH=$TOP/opensbi
+		else
+			if [ ! -d $OPENSBI_DIR ]; then
+				echo "Sdfirm source $OPENSBI_DIR not found"
+				exit 1
+			fi
+			OPENSBI_PATH=`(cd $OPENSBI_DIR; pwd)`
+			OPENSBI_DIR=`dirname $OPENSBI_PATH`
 		fi
 	fi
 fi
