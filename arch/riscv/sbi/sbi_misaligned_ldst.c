@@ -225,7 +225,7 @@ int sbi_misaligned_store_handler(uint32_t hartid, ulong mcause,
 		regs->tval2 = mtval2;
 		regs->tinst = mtinst;
 		regs->gva   = sbi_regs_gva(regs);
-		sbi_trap_redirect(regs, scratch, regs->epc,
+		return sbi_trap_redirect(regs, scratch, regs->epc,
 				  uptrap.cause, uptrap.tval);
 	}
 
