@@ -4,7 +4,7 @@ Small Device Firmware (sdfirm)
 About
 ---------
 
-The project sdfirm is abbrieviated for [Small Device Firmware](http://sdfirm.sourceforge.net). 
+The project sdfirm is the abbreviation for [Small Device Firmware](http://sdfirm.sourceforge.net). 
 
 It was started to build a firmware for a MCS51 chip (AT89C5122). Compiled
 with sdcc, it was named sdfirm. After successfully demonstrated its
